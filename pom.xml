@@ -92,6 +92,8 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.5.0</version>
                 <executions>
+                    <!-- Using npm install as a workaround for bun install crashes in some environments.
+                         Once bun is more stable, this can be replaced with bun install. -->
                     <execution>
                         <id>npm-install</id>
                         <phase>generate-resources</phase>
