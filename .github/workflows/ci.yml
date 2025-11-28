@@ -39,7 +39,7 @@ jobs:
 
       - name: Build native image
         if: github.ref == 'refs/heads/main'
-        run: ./gradlew build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true
+        run: ./gradlew build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true -x test
 
       - name: Log in to Container registry
         if: github.ref == 'refs/heads/main'
