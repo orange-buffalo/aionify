@@ -6,13 +6,13 @@ Self-hosted time tracking app
 
 - **Backend**: Quarkus with Kotlin
 - **Frontend**: React with shadcn-ui components
-- **Build**: Bun for frontend, Maven for backend
+- **Build**: Bun for frontend, Gradle for backend
 - **Testing**: Playwright for E2E tests
 
 ## Prerequisites
 
 - Java 17+
-- Maven 3.8+
+- Gradle 8.10+ (wrapper included)
 - Bun 1.0+ (install from https://bun.sh)
 - Node.js 18+ (for Playwright browser management)
 
@@ -21,18 +21,18 @@ Self-hosted time tracking app
 ### Build the project
 
 ```bash
-./mvnw compile
+./gradlew build
 ```
 
 This will:
-1. Install frontend npm dependencies
+1. Install frontend dependencies with Bun
 2. Build the React frontend with Bun
 3. Compile the Kotlin backend
 
 ### Run in development mode
 
 ```bash
-./mvnw quarkus:dev
+./gradlew quarkusDev
 ```
 
 The application will be available at http://localhost:8080
@@ -40,7 +40,7 @@ The application will be available at http://localhost:8080
 ### Run tests
 
 ```bash
-./mvnw test
+./gradlew test
 ```
 
 This runs both:
@@ -57,6 +57,7 @@ This runs both:
 │   │   ├── App.tsx     # Main application component
 │   │   └── main.tsx    # Entry point
 │   ├── build.ts        # Bun build script
+│   ├── bun.lock        # Bun lock file
 │   └── package.json    # Frontend dependencies
 ├── src/
 │   ├── main/
@@ -64,7 +65,7 @@ This runs both:
 │   │   └── resources/  # Configuration files
 │   └── test/
 │       └── kotlin/     # Test files (including Playwright tests)
-└── pom.xml             # Maven configuration
+└── build.gradle.kts    # Gradle configuration
 ```
 
 ## License
