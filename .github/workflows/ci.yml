@@ -33,12 +33,13 @@ jobs:
 
       - name: Build and test
         run: |
-          ./gradlew build -Dquarkus.container-image.build=true \
-              --build-cache --console=plain --scan
+          ./gradlew build --build-cache --console=plain --scan
 
       - name: Push Docker image
         run: |
-          ./gradlew build -Dquarkus.container-image.push=true \
+          ./gradlew build \
+              -Dquarkus.container-image.build=true \
+              -Dquarkus.container-image.push=true \
               --build-cache --console=plain --scan
 
       - name: Publish Test Report
