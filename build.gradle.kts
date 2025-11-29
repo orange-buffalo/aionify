@@ -77,8 +77,12 @@ tasks.named<ProcessResources>("processResources") {
 }
 
 // Playwright browser installation task
+val playwrightConfig by configurations.creating {
+    extendsFrom(configurations.testImplementation.get())
+}
+
 tasks.register<JavaExec>("installPlaywrightBrowsers") {
-    classpath = sourceSets["test"].runtimeClasspath
+    classpath = playwrightConfig
     mainClass.set("com.microsoft.playwright.CLI")
     args("install", "--with-deps", "--only-shell")
 }
