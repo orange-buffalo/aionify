@@ -28,6 +28,6 @@ runs:
         restore-keys: |
           ${{ runner.os }}-bun-
 
-    - name: Install Playwright
+    - name: Install Playwright browsers
       shell: bash
-      run: npx playwright install --with-deps
+      run: ./gradlew installPlaywrightBrowsers

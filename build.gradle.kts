@@ -75,3 +75,10 @@ tasks.named<ProcessResources>("processResources") {
         into("META-INF/resources")
     }
 }
+
+// Playwright browser installation task
+tasks.register<JavaExec>("installPlaywrightBrowsers") {
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("com.microsoft.playwright.CLI")
+    args("install", "--with-deps", "--only-shell")
+}
