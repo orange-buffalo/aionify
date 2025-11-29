@@ -31,14 +31,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build native binary
-        # if: github.ref == 'refs/heads/main'
+      - name: Build and test
         run: |
-          ./gradlew build -Dquarkus.native.enabled=true \
-              -Dquarkus.package.jar.enabled=false \
-              -Dquarkus.native.container-build=true \
-              -Dquarkus.container-image.build=true \
-              -Dquarkus.container-image.push=true \
+          ./gradlew build -Dquarkus.container-image.build=true \
+              --build-cache --console=plain --scan
+
+      - name: Push Docker image
+        run: |
+          ./gradlew build -Dquarkus.container-image.push=true \
               --build-cache --console=plain --scan
 
       - name: Publish Test Report
