@@ -19,12 +19,5 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Setup environment
         uses: ./.github/actions/setup-environment
-
-      - name: Install frontend dependencies
-        working-directory: frontend
-        run: bun install
