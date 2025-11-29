@@ -21,7 +21,7 @@ jobs:
         uses: ./.github/actions/setup-environment
 
       - name: Build and test
-        run: ./gradlew quarkusBuild --build-cache --console=plain --scan
+        run: ./gradlew build --build-cache --console=plain --scan
 
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v5
@@ -42,17 +42,22 @@ jobs:
       - name: Build native binary
         # if: github.ref == 'refs/heads/main'
         run: |
-          ./gradlew build -Dquarkus.native.enabled=true -Dquarkus.package.jar.enabled=false --build-cache --console=plain --scan
+          ./gradlew build -Dquarkus.native.enabled=true \
+              -Dquarkus.package.jar.enabled=false \
+              -Dquarkus.native.container-build=true \
+              -Dquarkus.container-image.build=true \
+              -Dquarkus.container-image.push=true \
+              --build-cache --console=plain --scan
 
-      - name: debug
-        run: ls -lah build
+      # - name: debug
+      #   run: ls -lah build
 
-      - name: Build Docker image
-        # if: github.ref == 'refs/heads/main'
-        run: |
-          ./gradlew build -Dquarkus.native.container-build=true -Dquarkus.container-image.build=true
+      # - name: Build Docker image
+      #   # if: github.ref == 'refs/heads/main'
+      #   run: |
+      #     ./gradlew build -Dquarkus.container-image.build=true
 
-      - name: Push Docker image
-        # if: github.ref == 'refs/heads/main'
-        run: |
-          ./gradlew build -Dquarkus.container-image.push=true --build-cache --console=plain --scan
+      # - name: Push Docker image
+      #   # if: github.ref == 'refs/heads/main'
+      #   run: |
+      #     ./gradlew build -Dquarkus.container-image.push=true --build-cache --console=plain --scan
