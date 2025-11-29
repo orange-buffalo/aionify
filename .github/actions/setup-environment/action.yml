@@ -30,4 +30,4 @@ runs:
 
     - name: Install Playwright browsers
       shell: bash
-      run: ./gradlew installPlaywrightBrowsers
+      run: ./gradlew installPlaywrightBrowsers --build-cache

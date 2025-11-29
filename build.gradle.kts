@@ -84,5 +84,5 @@ val playwrightConfig by configurations.creating {
 tasks.register<JavaExec>("installPlaywrightBrowsers") {
     classpath = playwrightConfig
     mainClass.set("com.microsoft.playwright.CLI")
-    args("install", "--with-deps", "--only-shell")
+    args("install", "--with-deps", "chromium")
 }
