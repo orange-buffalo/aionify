@@ -39,12 +39,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push native image
+      - name: Build native binary
         # if: github.ref == 'refs/heads/main'
         run: |
-          ./gradlew quarkusBuild -Dquarkus.native.enabled=true \
-            -Dquarkus.native.container-build=true \
-            -Dquarkus.package.jar.enabled=false \
-            -Dquarkus.container-image.push=true \
-            -Dquarkus.container-image.build=true \
-            -x test --build-cache --console=plain --scan
+          ./gradlew build -Dquarkus.native.enabled=true --build-cache --console=plain --scan
+
+      - name: debug
+        run: ls -lah build
+
+      - name: Build Docker image
+        # if: github.ref == 'refs/heads/main'
+        run: |
+          ./gradlew build -Dquarkus.native.container-build=true -Dquarkus.container-image.build=true
+
+      - name: Push Docker image
+        # if: github.ref == 'refs/heads/main'
+        run: |
+          ./gradlew build -Dquarkus.container-image.push=true --build-cache --console=plain --scan
