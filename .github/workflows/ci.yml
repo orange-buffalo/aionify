@@ -46,4 +46,5 @@ jobs:
             -Dquarkus.native.container-build=true \
             -Dquarkus.package.jar.enabled=false \
             -Dquarkus.container-image.push=true \
+            -Dquarkus.container-image.build=true \
             -x test --build-cache --console=plain --scan
