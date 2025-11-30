@@ -22,10 +22,19 @@ dependencies {
     implementation("io.quarkus:quarkus-container-image-docker")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
+    // Database persistence
+    implementation("io.quarkus:quarkus-jdbc-postgresql")
+    implementation("io.quarkus:quarkus-flyway")
+    implementation("org.flywaydb:flyway-database-postgresql")
+    implementation("io.quarkiverse.jdbi:quarkus-jdbi:1.7.0")
+    implementation("org.jdbi:jdbi3-kotlin:3.49.1")
+    implementation("org.jdbi:jdbi3-kotlin-sqlobject:3.49.1")
+
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("com.microsoft.playwright:playwright:1.52.0")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.rest-assured:kotlin-extensions")
+    testImplementation("io.quarkus:quarkus-jdbc-h2")
 }
 
 group = "org.aionify"
