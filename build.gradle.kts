@@ -34,7 +34,6 @@ dependencies {
     testImplementation("com.microsoft.playwright:playwright:1.52.0")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.rest-assured:kotlin-extensions")
-    testImplementation("io.quarkus:quarkus-jdbc-h2")
 }
 
 group = "org.aionify"
