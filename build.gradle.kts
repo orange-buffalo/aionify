@@ -1,6 +1,6 @@
 plugins {
-    kotlin("jvm") version "2.0.21"
-    kotlin("plugin.allopen") version "2.0.21"
+    kotlin("jvm") version "2.2.20"
+    kotlin("plugin.allopen") version "2.2.20"
     id("io.quarkus")
 }
 
@@ -19,8 +19,9 @@ dependencies {
     implementation("io.quarkus:quarkus-rest-jackson")
     implementation("io.quarkus:quarkus-kotlin")
     implementation("io.quarkus:quarkus-arc")
+    implementation("io.quarkus:quarkus-container-image-docker")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    
+
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.quarkiverse.playwright:quarkus-playwright:2.1.1")
     testImplementation("io.rest-assured:rest-assured")
@@ -31,8 +32,8 @@ group = "org.aionify"
 version = "1.0.0-SNAPSHOT"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 tasks.withType<Test> {
@@ -48,7 +49,7 @@ allOpen {
 
 kotlin {
     compilerOptions {
-        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
         javaParameters = true
     }
 }
@@ -74,4 +75,15 @@ tasks.named<ProcessResources>("processResources") {
     from("frontend/dist") {
         into("META-INF/resources")
     }
+}
+
+// Playwright browser installation task
+val playwrightConfig by configurations.creating {
+    extendsFrom(configurations.testImplementation.get())
+}
+
+tasks.register<JavaExec>("installPlaywrightBrowsers") {
+    classpath = playwrightConfig
+    mainClass.set("com.microsoft.playwright.CLI")
+    args("install", "--with-deps", "chromium")
 }
