@@ -47,8 +47,10 @@ jobs:
             --build-cache --console=plain
 
       - name: Upload Playwright traces
-        uses: ./.github/actions/upload-playwright-traces
+        uses: actions/upload-artifact@v4
         if: always()
         with:
-          traces-path: build/playwright-traces
-          retention-days: '10'
+          name: playwright-traces
+          path: build/playwright-traces/
+          retention-days: 10
+          if-no-files-found: ignore
