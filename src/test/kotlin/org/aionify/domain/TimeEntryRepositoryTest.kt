@@ -27,7 +27,6 @@ class TimeEntryRepositoryTest {
         assertEquals(startTime2, entry2.startTime)
 
         val allEntries = repository.findAll()
-        
         assertEquals(2, allEntries.size)
         assertEquals(entry1.id, allEntries[0].id)
         assertEquals(startTime1, allEntries[0].startTime)

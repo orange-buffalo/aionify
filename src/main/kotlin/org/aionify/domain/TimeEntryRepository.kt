@@ -25,7 +25,7 @@ class TimeEntryRepository(private val jdbi: Jdbi) {
                 .map { rs, _ ->
                     TimeEntry(
                         id = rs.getLong("id"),
-                        startTime = rs.getTimestamp("start_time").toInstant()
+                        startTime = rs.getObject("start_time", java.time.OffsetDateTime::class.java).toInstant()
                     )
                 }
                 .list()
