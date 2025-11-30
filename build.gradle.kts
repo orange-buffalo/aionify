@@ -21,7 +21,7 @@ dependencies {
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-container-image-docker")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    
+
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.quarkiverse.playwright:quarkus-playwright:2.1.1")
     testImplementation("io.rest-assured:rest-assured")
