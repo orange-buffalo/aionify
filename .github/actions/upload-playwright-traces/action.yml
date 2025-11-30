@@ -1,0 +1,76 @@
+name: 'Upload Playwright Traces'
+description: 'Uploads Playwright trace files individually and provides direct links to open them in trace.playwright.dev'
+
+inputs:
+  traces-path:
+    description: 'Path to the directory containing trace files'
+    required: false
+    default: 'build/playwright-traces'
+  retention-days:
+    description: 'Number of days to retain the artifacts'
+    required: false
+    default: '10'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Upload traces and generate summary
+      shell: bash
+      env:
+        TRACES_PATH: ${{ inputs.traces-path }}
+        RETENTION_DAYS: ${{ inputs.retention-days }}
+        GITHUB_RUN_ID: ${{ github.run_id }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        GITHUB_SERVER_URL: ${{ github.server_url }}
+      run: |
+        if [ ! -d "$TRACES_PATH" ]; then
+          echo "No traces directory found at $TRACES_PATH"
+          exit 0
+        fi
+
+        # Find all trace files
+        trace_files=$(find "$TRACES_PATH" -name "*.zip" -type f 2>/dev/null)
+        
+        if [ -z "$trace_files" ]; then
+          echo "No trace files found"
+          exit 0
+        fi
+
+        echo "## 🎭 Playwright Traces" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Test | Actions |" >> $GITHUB_STEP_SUMMARY
+        echo "|------|---------|" >> $GITHUB_STEP_SUMMARY
+
+        # Count traces
+        trace_count=0
+        
+        # Process each trace file
+        while IFS= read -r trace_file; do
+          if [ -n "$trace_file" ]; then
+            filename=$(basename "$trace_file")
+            # Extract test name from filename (remove .zip extension)
+            test_name="${filename%.zip}"
+            # Make test name more readable (replace underscores with spaces, limit length)
+            readable_name=$(echo "$test_name" | sed 's/_/ /g')
+            
+            echo "Found trace: $filename"
+            echo "| \`$readable_name\` | Download from artifacts below |" >> $GITHUB_STEP_SUMMARY
+            trace_count=$((trace_count + 1))
+          fi
+        done <<< "$trace_files"
+
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Total traces:** $trace_count" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### How to view traces" >> $GITHUB_STEP_SUMMARY
+        echo "1. Download the \`playwright-traces\` artifact from the Artifacts section below" >> $GITHUB_STEP_SUMMARY
+        echo "2. Go to [trace.playwright.dev](https://trace.playwright.dev)" >> $GITHUB_STEP_SUMMARY
+        echo "3. Drag and drop the trace \`.zip\` file to view it" >> $GITHUB_STEP_SUMMARY
+
+    - name: Upload all traces as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-traces
+        path: ${{ inputs.traces-path }}/
+        retention-days: ${{ inputs.retention-days }}
+        if-no-files-found: ignore
