@@ -23,7 +23,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
     testImplementation("io.quarkus:quarkus-junit5")
-    testImplementation("io.quarkiverse.playwright:quarkus-playwright:2.1.1")
+    testImplementation("com.microsoft.playwright:playwright:1.52.0")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.rest-assured:kotlin-extensions")
 }

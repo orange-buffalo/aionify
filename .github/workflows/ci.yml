@@ -52,5 +52,5 @@ jobs:
         with:
           name: playwright-traces
           path: build/playwright-traces/
-          retention-days: 30
+          retention-days: 10
           if-no-files-found: ignore
