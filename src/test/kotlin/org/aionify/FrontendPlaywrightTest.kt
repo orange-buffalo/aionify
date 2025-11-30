@@ -1,43 +1,17 @@
 package org.aionify
 
-import com.microsoft.playwright.Browser
-import com.microsoft.playwright.BrowserType
-import com.microsoft.playwright.Page
-import com.microsoft.playwright.Playwright
 import io.quarkus.test.common.http.TestHTTPResource
 import io.quarkus.test.junit.QuarkusTest
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.net.URL
 
 @QuarkusTest
-class FrontendPlaywrightTest {
-
-    private lateinit var playwright: Playwright
-    private lateinit var browser: Browser
-    private lateinit var page: Page
+class FrontendPlaywrightTest : PlaywrightTestBase() {
 
     @TestHTTPResource("/")
     lateinit var url: URL
-
-    @BeforeEach
-    fun setup() {
-        playwright = Playwright.create()
-        browser = playwright.chromium().launch(
-            BrowserType.LaunchOptions().setHeadless(true)
-        )
-        page = browser.newPage()
-    }
-
-    @AfterEach
-    fun teardown() {
-        page.close()
-        browser.close()
-        playwright.close()
-    }
 
     @Test
     fun `should display welcome page with title and button`() {

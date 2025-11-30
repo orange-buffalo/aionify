@@ -45,3 +45,12 @@ jobs:
             -Dquarkus.container-image.build=true \
             -Dquarkus.container-image.push=true \
             --build-cache --console=plain
+
+      - name: Upload Playwright traces
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-traces
+          path: build/playwright-traces/
+          retention-days: 10
+          if-no-files-found: ignore
