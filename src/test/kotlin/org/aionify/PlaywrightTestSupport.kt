@@ -30,6 +30,7 @@ class PlaywrightTestSupport : BeforeEachCallback, AfterEachCallback {
 
     companion object {
         private const val TRACES_DIR = "build/playwright-traces"
+        private val SANITIZE_REGEX = Regex("[^a-zA-Z0-9_-]")
     }
 
     override fun beforeEach(context: ExtensionContext) {
@@ -72,7 +73,7 @@ class PlaywrightTestSupport : BeforeEachCallback, AfterEachCallback {
         val className = context.testClass.map { it.simpleName }.orElse("UnknownClass")
         val methodName = context.testMethod.map { it.name }.orElse("unknownMethod")
         // Sanitize method name (replace special characters)
-        val sanitizedMethodName = methodName.replace(Regex("[^a-zA-Z0-9_-]"), "_")
+        val sanitizedMethodName = methodName.replace(SANITIZE_REGEX, "_")
         return "${className}_${sanitizedMethodName}.zip"
     }
 }
