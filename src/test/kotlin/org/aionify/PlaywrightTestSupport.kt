@@ -34,7 +34,7 @@ abstract class PlaywrightTestBase {
     private lateinit var browser: Browser
     private lateinit var browserContext: BrowserContext
     private lateinit var _page: Page
-    private var testInfo: TestInfo? = null
+    private lateinit var testInfo: TestInfo
 
     protected val page: Page
         get() = _page
@@ -88,7 +88,7 @@ abstract class PlaywrightTestBase {
 
     private fun buildTraceFileName(): String {
         val className = this::class.java.simpleName
-        val methodName = testInfo?.testMethod?.map { it.name }?.orElse("unknownMethod") ?: "unknownMethod"
+        val methodName = testInfo.testMethod.map { it.name }.orElse("unknownMethod")
         // Sanitize method name (replace special characters)
         val sanitizedMethodName = methodName.replace(SANITIZE_REGEX, "_")
         return "${className}_${sanitizedMethodName}.zip"
