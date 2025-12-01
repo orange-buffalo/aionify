@@ -1,5 +1,6 @@
 package io.orangebuffalo.aionify.domain
 
+import io.quarkus.elytron.security.common.BcryptUtil
 import io.quarkus.runtime.StartupEvent
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.enterprise.event.Observes
@@ -26,7 +27,7 @@ class DefaultAdminStartupService(private val userRepository: UserRepository) {
         val randomPassword = generateRandomPassword()
         val defaultAdmin = User(
             userName = "sudo",
-            passwordHash = hashPassword(randomPassword),
+            passwordHash = BcryptUtil.bcryptHash(randomPassword),
             greeting = "Administrator",
             isAdmin = true,
             locale = Locale.ENGLISH,
@@ -34,7 +35,14 @@ class DefaultAdminStartupService(private val userRepository: UserRepository) {
         )
 
         userRepository.insert(defaultAdmin)
-        log.info("Created default admin user 'sudo' with generated password: $randomPassword")
+        log.warn("Created default admin user 'sudo'. Please check the application output for the generated password.")
+        // Print directly to stdout to avoid password appearing in log files
+        println("=".repeat(60))
+        println("DEFAULT ADMIN CREATED")
+        println("Username: sudo")
+        println("Password: $randomPassword")
+        println("Please change this password after first login!")
+        println("=".repeat(60))
         
         return randomPassword
     }
@@ -44,12 +52,5 @@ class DefaultAdminStartupService(private val userRepository: UserRepository) {
         val bytes = ByteArray(24)
         random.nextBytes(bytes)
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
-    }
-
-    private fun hashPassword(password: String): String {
-        // Using a simple hash for now - in production, use BCrypt or similar
-        val digest = java.security.MessageDigest.getInstance("SHA-256")
-        val hashBytes = digest.digest(password.toByteArray())
-        return Base64.getEncoder().encodeToString(hashBytes)
     }
 }
