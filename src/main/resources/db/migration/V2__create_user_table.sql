@@ -1,0 +1,9 @@
+CREATE TABLE app_user (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_name VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    greeting VARCHAR(255) NOT NULL,
+    is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+    locale VARCHAR(50) NOT NULL,
+    language_code VARCHAR(10) NOT NULL
+);
