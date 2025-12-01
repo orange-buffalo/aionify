@@ -1,4 +1,4 @@
-package org.aionify.domain
+package io.orangebuffalo.aionify.domain
 
 import jakarta.enterprise.context.ApplicationScoped
 import org.jdbi.v3.core.Jdbi
