@@ -1,4 +1,4 @@
-package org.aionify
+package io.orangebuffalo.aionify
 
 import io.quarkus.test.common.http.TestHTTPResource
 import io.quarkus.test.junit.QuarkusTest
