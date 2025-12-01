@@ -36,7 +36,7 @@ dependencies {
     testImplementation("io.rest-assured:kotlin-extensions")
 }
 
-group = "org.aionify"
+group = "io.orange-buffalo"
 version = "1.0.0-SNAPSHOT"
 
 java {

@@ -1,4 +1,4 @@
-package org.aionify.config
+package io.orangebuffalo.aionify.config
 
 import io.agroal.api.AgroalDataSource
 import jakarta.enterprise.context.ApplicationScoped

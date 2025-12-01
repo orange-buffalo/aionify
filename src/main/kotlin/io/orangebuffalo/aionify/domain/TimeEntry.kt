@@ -1,4 +1,4 @@
-package org.aionify.domain
+package io.orangebuffalo.aionify.domain
 
 import java.time.Instant
 
