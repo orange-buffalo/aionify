@@ -30,6 +30,9 @@ dependencies {
     implementation("org.jdbi:jdbi3-kotlin:3.49.1")
     implementation("org.jdbi:jdbi3-kotlin-sqlobject:3.49.1")
 
+    // Security / Password hashing
+    implementation("io.quarkus:quarkus-elytron-security-common")
+
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("com.microsoft.playwright:playwright:1.52.0")
     testImplementation("io.rest-assured:rest-assured")
