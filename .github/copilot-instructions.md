@@ -4,6 +4,16 @@ This document provides instructions for GitHub Copilot when working on this repo
 
 **Important**: Keep this document up to date after every change that affects it. Extend it with necessary information when new approaches are introduced, new code infrastructure is added, or existing patterns change.
 
+## Documentation
+
+Project documentation is organized as follows:
+- `README.md` - Brief project overview and links to detailed docs
+- `docs/deployment.md` - Production deployment guide (configuration, Docker, admin setup)
+- `docs/development.md` - Local development setup guide
+- `.github/copilot-instructions.md` - This file, containing coding guidelines and conventions
+
+**When making changes that affect deployment or development workflows, update the corresponding documentation files.**
+
 ## Tech Stack Overview
 
 - **Backend**: Quarkus framework with Kotlin
@@ -43,6 +53,7 @@ To run a specific test class:
 - `frontend/` - React frontend application
   - `src/components/ui/` - shadcn-ui components
   - `src/lib/` - Utility functions
+- `docs/` - Project documentation
 - `.github/workflows/` - CI/CD workflows
 - `.github/actions/` - Custom GitHub Actions
 
