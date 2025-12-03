@@ -81,3 +81,12 @@ body {
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
+
+/* Login page gradient background */
+.login-gradient-bg {
+  background: 
+    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(120, 0, 200, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(100, 0, 180, 0.25) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 30% at 70% 80%, rgba(80, 0, 150, 0.2) 0%, transparent 50%),
+    linear-gradient(180deg, #0d1520 0%, #1a2332 50%, #0d1520 100%);
+}

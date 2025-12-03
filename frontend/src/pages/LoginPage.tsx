@@ -73,27 +73,9 @@ export function LoginPage() {
   }
 
   return (
-    <div className="dark min-h-screen bg-background flex items-center justify-center p-4" data-testid="login-page">
-      {/* Decorative shapes */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-12 h-12 bg-cyan-500 rounded-lg rotate-12 opacity-80" />
-        <div className="absolute top-[40%] left-[8%] w-8 h-8 bg-purple-500 rounded-full opacity-80" />
-        <div className="absolute top-[55%] left-[5%] w-6 h-6 bg-green-500 rotate-45 opacity-80" />
-        <div className="absolute top-[30%] right-[8%] w-6 h-6 bg-orange-400 rounded-full opacity-80" />
-        <div className="absolute bottom-[40%] right-[10%] w-16 h-16 bg-muted rounded-full opacity-30" />
-      </div>
-
-      <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center relative z-10">
-        {/* Left side - Quote */}
-        <div className="hidden lg:block text-center lg:text-left px-8">
-          <blockquote className="text-2xl lg:text-3xl font-light text-foreground leading-relaxed">
-            "Keep your face always toward the sunshine - and shadows will fall behind you."
-          </blockquote>
-          <p className="mt-4 text-muted-foreground italic">— Walt Whitman</p>
-        </div>
-
-        {/* Right side - Login form */}
-        <Card className="w-full max-w-md mx-auto bg-card/90 backdrop-blur-sm border-border/50">
+    <div className="dark min-h-screen flex items-center justify-center p-4 login-gradient-bg" data-testid="login-page">
+      {/* Centered Login form */}
+      <Card className="w-full max-w-md bg-card/90 backdrop-blur-sm border-border/50">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold" data-testid="login-title">Login</CardTitle>
             <CardDescription>
@@ -187,7 +169,6 @@ export function LoginPage() {
             </form>
           </CardContent>
         </Card>
-      </div>
     </div>
   )
 }
