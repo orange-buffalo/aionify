@@ -14,30 +14,29 @@ class FrontendPlaywrightTest : PlaywrightTestBase() {
     lateinit var url: URL
 
     @Test
-    fun `should display welcome page with title and button`() {
+    fun `should display login page with title and form`() {
         page.navigate(url.toString())
 
         // Verify the page title
         assertEquals("Aionify - Time Tracking", page.title())
 
-        // Verify the welcome title is present
-        val welcomeTitle = page.locator("[data-testid='welcome-title']")
-        assertTrue(welcomeTitle.isVisible)
-        assertEquals("Welcome to Aionify", welcomeTitle.textContent())
+        // Verify the login title is present
+        val loginTitle = page.locator("[data-testid='login-title']")
+        assertTrue(loginTitle.isVisible)
+        assertEquals("Login", loginTitle.textContent())
 
-        // Verify the Get Started button is present
-        val getStartedButton = page.locator("[data-testid='get-started-button']")
-        assertTrue(getStartedButton.isVisible)
-        assertEquals("Get Started", getStartedButton.textContent())
+        // Verify the login button is present
+        val loginButton = page.locator("[data-testid='login-button']")
+        assertTrue(loginButton.isVisible)
     }
 
     @Test
-    fun `should have properly styled components`() {
+    fun `should have properly styled login components`() {
         page.navigate(url.toString())
 
-        // Verify the app container is present
-        val appContainer = page.locator("[data-testid='app']")
-        assertTrue(appContainer.isVisible)
+        // Verify the login page container is present
+        val loginPage = page.locator("[data-testid='login-page']")
+        assertTrue(loginPage.isVisible)
 
         // Verify the card component is rendered
         val card = page.locator(".rounded-lg.border")

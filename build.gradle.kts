@@ -33,6 +33,10 @@ dependencies {
     // Security / Password hashing
     implementation("io.quarkus:quarkus-elytron-security-common")
 
+    // JWT authentication
+    implementation("io.quarkus:quarkus-smallrye-jwt")
+    implementation("io.quarkus:quarkus-smallrye-jwt-build")
+
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("com.microsoft.playwright:playwright:1.52.0")
     testImplementation("io.rest-assured:rest-assured")
