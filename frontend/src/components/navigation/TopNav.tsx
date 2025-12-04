@@ -88,7 +88,7 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent 
                   align="end" 
-                  className="w-56 rounded-sm"
+                  className="w-56 rounded-sm dark bg-popover text-popover-foreground"
                   data-testid="mobile-menu-dropdown"
                 >
                   <DropdownMenuLabel>Navigation</DropdownMenuLabel>
@@ -123,7 +123,7 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent 
                 align="end" 
-                className="w-56 rounded-sm"
+                className="w-56 rounded-sm dark bg-popover text-popover-foreground"
                 data-testid="profile-menu-dropdown"
               >
                 {(userName || greeting) && (
