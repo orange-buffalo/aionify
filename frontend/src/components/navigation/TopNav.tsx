@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { User, LogOut, Menu } from "lucide-react"
 import { useState } from "react"
+import { TOKEN_KEY } from "@/lib/constants"
 
 export interface NavItem {
   label: string
@@ -29,7 +30,7 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleLogout = () => {
-    localStorage.removeItem("aionify_token")
+    localStorage.removeItem(TOKEN_KEY)
     navigate("/login")
   }
 

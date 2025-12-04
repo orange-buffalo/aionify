@@ -2,8 +2,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Settings, Users, BarChart } from "lucide-react"
 import { TopNav, NavItem } from "@/components/navigation/TopNav"
-
-const LAST_USERNAME_KEY = "aionify_last_username"
+import { LAST_USERNAME_KEY } from "@/lib/constants"
 
 export function AdminPortal() {
   const [userInfo, setUserInfo] = useState<{ userName: string; greeting: string } | null>(null)
