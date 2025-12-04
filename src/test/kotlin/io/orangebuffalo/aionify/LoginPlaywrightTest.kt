@@ -210,7 +210,8 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
         // Wait for redirect to user portal
         page.waitForURL("**/portal")
 
-        // Logout
+        // Logout - first open profile menu, then click logout
+        page.locator("[data-testid='profile-menu-button']").click()
         page.locator("[data-testid='logout-button']").click()
 
         // Wait for redirect back to login
@@ -242,7 +243,8 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
         // Wait for user portal
         page.waitForURL("**/portal")
 
-        // Click logout
+        // Click logout - first open profile menu, then click logout
+        page.locator("[data-testid='profile-menu-button']").click()
         page.locator("[data-testid='logout-button']").click()
 
         // Should redirect to login
@@ -279,7 +281,8 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
         // Wait for admin portal
         page.waitForURL("**/admin")
 
-        // Click logout
+        // Click logout - first open profile menu, then click logout
+        page.locator("[data-testid='profile-menu-button']").click()
         page.locator("[data-testid='logout-button']").click()
 
         // Should redirect to login
