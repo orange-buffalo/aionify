@@ -79,6 +79,7 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
                   <Button 
                     variant="ghost" 
                     size="icon"
+                    className="text-foreground/80 hover:text-foreground"
                     data-testid="mobile-menu-button"
                   >
                     <Menu className="h-5 w-5" />
@@ -87,7 +88,7 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent 
                   align="end" 
-                  className="w-56"
+                  className="w-56 rounded-sm"
                   data-testid="mobile-menu-dropdown"
                 >
                   <DropdownMenuLabel>Navigation</DropdownMenuLabel>
@@ -113,7 +114,7 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  className="rounded-full"
+                  className="rounded-full text-foreground/80 hover:text-foreground"
                   data-testid="profile-menu-button"
                 >
                   <User className="h-5 w-5" />
@@ -122,7 +123,7 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent 
                 align="end" 
-                className="w-56"
+                className="w-56 rounded-sm"
                 data-testid="profile-menu-dropdown"
               >
                 {(userName || greeting) && (
