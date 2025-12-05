@@ -2,7 +2,6 @@ package io.orangebuffalo.aionify
 
 import jakarta.ws.rs.GET
 import jakarta.ws.rs.Path
-import jakarta.ws.rs.PathParam
 import jakarta.ws.rs.Produces
 import jakarta.ws.rs.core.MediaType
 import java.io.InputStream
@@ -18,7 +17,7 @@ class SpaRoutingResource {
     @GET
     @Path("{path:(?!api/).*}")
     @Produces(MediaType.TEXT_HTML)
-    fun serveIndex(@PathParam("path") path: String): InputStream? {
+    fun serveIndex(): InputStream? {
         return Thread.currentThread().contextClassLoader
             .getResourceAsStream("META-INF/resources/index.html")
     }
