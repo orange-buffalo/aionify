@@ -27,9 +27,6 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
     @Inject
     lateinit var userRepository: UserRepository
 
-    @Inject
-    lateinit var testDatabaseSupport: TestDatabaseSupport
-
     private val testPassword = "testPassword123"
     private val regularUserName = "testuser"
     private val regularUserGreeting = "Test User"
@@ -38,9 +35,6 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupTestData() {
-        // Clean up database before each test for isolation
-        testDatabaseSupport.truncateAllTables()
-
         // Create test user with known credentials
         regularUser = userRepository.insert(
             User(

@@ -7,6 +7,7 @@ import com.microsoft.playwright.Page
 import com.microsoft.playwright.Playwright
 import com.microsoft.playwright.Tracing
 import io.orangebuffalo.aionify.domain.User
+import jakarta.inject.Inject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInfo
@@ -15,7 +16,8 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 /**
- * Base class for Playwright tests that provides browser lifecycle management and automatic trace recording.
+ * Base class for Playwright tests that provides browser lifecycle management, automatic trace recording,
+ * and database cleanup before each test.
  * 
  * Traces are saved to `build/playwright-traces/` with a filename based on the test class and method names.
  * 
@@ -24,15 +26,18 @@ import java.nio.file.Paths
  * @QuarkusTest
  * class MyPlaywrightTest : PlaywrightTestBase() {
  *     @Inject
- *     lateinit var testDatabaseSupport: TestDatabaseSupport
+ *     lateinit var testAuthSupport: TestAuthSupport
  *     
  *     @Inject
- *     lateinit var testAuthSupport: TestAuthSupport
+ *     lateinit var userRepository: UserRepository
+ *     
+ *     private lateinit var testUser: User
  *     
  *     @BeforeEach
  *     fun setupTestData() {
- *         testDatabaseSupport.truncateAllTables()
+ *         // Database is already truncated by base class
  *         // Setup test-specific data
+ *         testUser = userRepository.insert(User(...))
  *     }
  *
  *     @Test
@@ -43,6 +48,9 @@ import java.nio.file.Paths
  * ```
  */
 abstract class PlaywrightTestBase {
+
+    @Inject
+    lateinit var testDatabaseSupport: TestDatabaseSupport
 
     private lateinit var playwright: Playwright
     private lateinit var browser: Browser
@@ -65,6 +73,9 @@ abstract class PlaywrightTestBase {
     @BeforeEach
     fun setupPlaywright(testInfo: TestInfo) {
         this.testInfo = testInfo
+        
+        // Clean up database before each test for isolation
+        testDatabaseSupport.truncateAllTables()
         
         playwright = Playwright.create()
         browser = playwright.chromium().launch(

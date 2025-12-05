@@ -31,9 +31,6 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
     lateinit var userRepository: UserRepository
 
     @Inject
-    lateinit var testDatabaseSupport: TestDatabaseSupport
-
-    @Inject
     lateinit var testAuthSupport: TestAuthSupport
 
     private val testPassword = "testPassword123"
@@ -47,9 +44,6 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupTestData() {
-        // Clean up database before each test for isolation
-        testDatabaseSupport.truncateAllTables()
-
         // Create test users with known credentials
         regularUser = userRepository.insert(
             User(
