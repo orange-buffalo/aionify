@@ -15,11 +15,26 @@ import java.util.Locale
 @QuarkusTest
 class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
+    @TestHTTPResource("/")
+    lateinit var baseUrl: URL
+
     @TestHTTPResource("/login")
     lateinit var loginUrl: URL
 
+    @TestHTTPResource("/portal")
+    lateinit var portalUrl: URL
+
+    @TestHTTPResource("/admin")
+    lateinit var adminUrl: URL
+
     @Inject
     lateinit var userRepository: UserRepository
+
+    @Inject
+    lateinit var testDatabaseSupport: TestDatabaseSupport
+
+    @Inject
+    lateinit var testAuthSupport: TestAuthSupport
 
     private val testPassword = "testPassword123"
     private val regularUserName = "navtestuser"
@@ -27,56 +42,49 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
     private val adminUserName = "navtestadmin"
     private val adminUserGreeting = "Nav Test Admin"
 
+    private lateinit var regularUser: User
+    private lateinit var adminUser: User
+
     @BeforeEach
-    fun setupTestUsers() {
-        // Create a regular (non-admin) user for testing if not exists
-        if (userRepository.findByUserName(regularUserName) == null) {
-            userRepository.insert(
-                User(
-                    userName = regularUserName,
-                    passwordHash = BcryptUtil.bcryptHash(testPassword),
-                    greeting = regularUserGreeting,
-                    isAdmin = false,
-                    locale = Locale.ENGLISH,
-                    languageCode = "en"
-                )
-            )
-        }
+    fun setupTestData() {
+        // Clean up database before each test for isolation
+        testDatabaseSupport.truncateAllTables()
 
-        // Create an admin user for testing if not exists
-        if (userRepository.findByUserName(adminUserName) == null) {
-            userRepository.insert(
-                User(
-                    userName = adminUserName,
-                    passwordHash = BcryptUtil.bcryptHash(testPassword),
-                    greeting = adminUserGreeting,
-                    isAdmin = true,
-                    locale = Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        // Create test users with known credentials
+        regularUser = userRepository.insert(
+            User(
+                userName = regularUserName,
+                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                greeting = regularUserGreeting,
+                isAdmin = false,
+                locale = Locale.ENGLISH,
+                languageCode = "en"
             )
-        }
+        )
+
+        adminUser = userRepository.insert(
+            User(
+                userName = adminUserName,
+                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                greeting = adminUserGreeting,
+                isAdmin = true,
+                locale = Locale.ENGLISH,
+                languageCode = "en"
+            )
+        )
     }
 
-    private fun loginAsRegularUser() {
-        page.navigate(loginUrl.toString())
-        page.locator("[data-testid='username-input']").fill(regularUserName)
-        page.locator("[data-testid='password-input']").fill(testPassword)
-        page.locator("[data-testid='login-button']").click()
-        page.waitForURL("**/portal")
+    private fun navigateToPortalViaToken() {
+        loginViaToken(baseUrl, portalUrl, regularUser, testAuthSupport)
     }
 
-    private fun loginAsAdmin() {
-        page.navigate(loginUrl.toString())
-        page.locator("[data-testid='username-input']").fill(adminUserName)
-        page.locator("[data-testid='password-input']").fill(testPassword)
-        page.locator("[data-testid='login-button']").click()
-        page.waitForURL("**/admin")
+    private fun navigateToAdminViaToken() {
+        loginViaToken(baseUrl, adminUrl, adminUser, testAuthSupport)
     }
 
     @Test
     fun `user portal should display top navigation with user-specific menu items`() {
-        loginAsRegularUser()
+        navigateToPortalViaToken()
 
         // Verify top nav is present
         val topNav = page.locator("[data-testid='top-nav']")
@@ -100,7 +108,7 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `admin portal should display top navigation with admin-specific menu items`() {
-        loginAsAdmin()
+        navigateToAdminViaToken()
 
         // Verify top nav is present
         val topNav = page.locator("[data-testid='top-nav']")
@@ -124,7 +132,7 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `admin portal should NOT show user-specific menu items`() {
-        loginAsAdmin()
+        navigateToAdminViaToken()
 
         // Wait for top nav to be visible first
         val topNav = page.locator("[data-testid='top-nav']")
@@ -145,7 +153,7 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `user portal should NOT show admin-specific menu items`() {
-        loginAsRegularUser()
+        navigateToPortalViaToken()
 
         // Wait for top nav to be visible first
         val topNav = page.locator("[data-testid='top-nav']")
@@ -166,7 +174,7 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `profile menu should display user greeting`() {
-        loginAsRegularUser()
+        navigateToPortalViaToken()
 
         // Open profile menu
         page.locator("[data-testid='profile-menu-button']").click()
@@ -183,7 +191,7 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `profile menu should show logout option`() {
-        loginAsRegularUser()
+        navigateToPortalViaToken()
 
         // Open profile menu
         page.locator("[data-testid='profile-menu-button']").click()
@@ -196,7 +204,7 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `logout from profile menu should redirect to login and show welcome back`() {
-        loginAsRegularUser()
+        navigateToPortalViaToken()
 
         // Verify user portal is displayed
         val userPortal = page.locator("[data-testid='user-portal']")
@@ -229,7 +237,7 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `mobile menu button should be visible on narrow screens`() {
-        loginAsRegularUser()
+        navigateToPortalViaToken()
 
         // Set viewport to mobile width
         page.setViewportSize(375, 667)
@@ -245,7 +253,7 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `mobile menu should show all navigation items when opened`() {
-        loginAsRegularUser()
+        navigateToPortalViaToken()
 
         // Set viewport to mobile width
         page.setViewportSize(375, 667)
@@ -271,7 +279,7 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `admin mobile menu should show admin-specific items`() {
-        loginAsAdmin()
+        navigateToAdminViaToken()
 
         // Set viewport to mobile width
         page.setViewportSize(375, 667)

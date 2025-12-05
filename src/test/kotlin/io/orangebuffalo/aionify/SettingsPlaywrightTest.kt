@@ -15,8 +15,14 @@ import java.util.Locale
 @QuarkusTest
 class SettingsPlaywrightTest : PlaywrightTestBase() {
 
+    @TestHTTPResource("/")
+    lateinit var baseUrl: URL
+
     @TestHTTPResource("/login")
     lateinit var loginUrl: URL
+
+    @TestHTTPResource("/portal")
+    lateinit var portalUrl: URL
 
     @TestHTTPResource("/portal/settings")
     lateinit var userSettingsUrl: URL
@@ -27,43 +33,49 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
     @Inject
     lateinit var userRepository: UserRepository
 
+    @Inject
+    lateinit var testDatabaseSupport: TestDatabaseSupport
+
+    @Inject
+    lateinit var testAuthSupport: TestAuthSupport
+
     private val testPassword = "testPassword123"
     private val regularUserName = "settingsTestUser"
     private val regularUserGreeting = "Settings Test User"
 
+    private lateinit var regularUser: User
+
     @BeforeEach
-    fun setupTestUsers() {
-        // Create a regular (non-admin) user for testing if not exists
-        if (userRepository.findByUserName(regularUserName) == null) {
-            userRepository.insert(
-                User(
-                    userName = regularUserName,
-                    passwordHash = BcryptUtil.bcryptHash(testPassword),
-                    greeting = regularUserGreeting,
-                    isAdmin = false,
-                    locale = Locale.ENGLISH,
-                    languageCode = "en"
-                )
+    fun setupTestData() {
+        // Clean up database before each test for isolation
+        testDatabaseSupport.truncateAllTables()
+
+        // Create test user with known credentials
+        regularUser = userRepository.insert(
+            User(
+                userName = regularUserName,
+                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                greeting = regularUserGreeting,
+                isAdmin = false,
+                locale = Locale.ENGLISH,
+                languageCode = "en"
             )
-        } else {
-            // Reset password to known value for the test
-            userRepository.updatePasswordHash(regularUserName, BcryptUtil.bcryptHash(testPassword))
-        }
+        )
     }
 
-    private fun loginAsRegularUser() {
-        page.navigate(loginUrl.toString())
-        page.locator("[data-testid='username-input']").fill(regularUserName)
-        page.locator("[data-testid='password-input']").fill(testPassword)
-        page.locator("[data-testid='login-button']").click()
-        page.waitForURL("**/portal")
+    private fun navigateToSettingsViaToken() {
+        loginViaToken(baseUrl, userSettingsUrl, regularUser, testAuthSupport)
+    }
+
+    private fun navigateToPortalViaToken() {
+        loginViaToken(baseUrl, portalUrl, regularUser, testAuthSupport)
     }
 
     // === Full Test Suite for Regular User ===
 
     @Test
     fun `should display settings menu item in profile dropdown`() {
-        loginAsRegularUser()
+        navigateToPortalViaToken()
 
         // Open profile menu
         page.locator("[data-testid='profile-menu-button']").click()
@@ -76,7 +88,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should navigate to settings page when clicking settings menu item`() {
-        loginAsRegularUser()
+        navigateToPortalViaToken()
 
         // Open profile menu and click settings
         page.locator("[data-testid='profile-menu-button']").click()
@@ -98,12 +110,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should display my profile panel with placeholder message`() {
-        loginAsRegularUser()
-
-        // Navigate to settings
-        page.locator("[data-testid='profile-menu-button']").click()
-        page.locator("[data-testid='settings-menu-item']").click()
-        page.waitForURL("**/portal/settings")
+        navigateToSettingsViaToken()
 
         // Verify my profile placeholder
         val profilePlaceholder = page.locator("[data-testid='profile-placeholder']")
@@ -117,12 +124,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should display change password form with all required elements`() {
-        loginAsRegularUser()
-
-        // Navigate to settings
-        page.locator("[data-testid='profile-menu-button']").click()
-        page.locator("[data-testid='settings-menu-item']").click()
-        page.waitForURL("**/portal/settings")
+        navigateToSettingsViaToken()
 
         // Verify all password inputs are visible
         val currentPasswordInput = page.locator("[data-testid='current-password-input']")
@@ -140,12 +142,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should toggle current password visibility`() {
-        loginAsRegularUser()
-
-        // Navigate to settings
-        page.locator("[data-testid='profile-menu-button']").click()
-        page.locator("[data-testid='settings-menu-item']").click()
-        page.waitForURL("**/portal/settings")
+        navigateToSettingsViaToken()
 
         val currentPasswordInput = page.locator("[data-testid='current-password-input']")
         val toggleButton = page.locator("[data-testid='toggle-current-password-visibility']")
@@ -164,12 +161,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should toggle new password visibility`() {
-        loginAsRegularUser()
-
-        // Navigate to settings
-        page.locator("[data-testid='profile-menu-button']").click()
-        page.locator("[data-testid='settings-menu-item']").click()
-        page.waitForURL("**/portal/settings")
+        navigateToSettingsViaToken()
 
         val newPasswordInput = page.locator("[data-testid='new-password-input']")
         val toggleButton = page.locator("[data-testid='toggle-new-password-visibility']")
@@ -188,12 +180,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should toggle confirm password visibility`() {
-        loginAsRegularUser()
-
-        // Navigate to settings
-        page.locator("[data-testid='profile-menu-button']").click()
-        page.locator("[data-testid='settings-menu-item']").click()
-        page.waitForURL("**/portal/settings")
+        navigateToSettingsViaToken()
 
         val confirmPasswordInput = page.locator("[data-testid='confirm-password-input']")
         val toggleButton = page.locator("[data-testid='toggle-confirm-password-visibility']")
@@ -212,12 +199,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show error when current password is empty`() {
-        loginAsRegularUser()
-
-        // Navigate to settings
-        page.locator("[data-testid='profile-menu-button']").click()
-        page.locator("[data-testid='settings-menu-item']").click()
-        page.waitForURL("**/portal/settings")
+        navigateToSettingsViaToken()
 
         // Fill only new password and confirmation
         page.locator("[data-testid='new-password-input']").fill("newPassword123")
@@ -238,12 +220,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show error when new password is empty`() {
-        loginAsRegularUser()
-
-        // Navigate to settings
-        page.locator("[data-testid='profile-menu-button']").click()
-        page.locator("[data-testid='settings-menu-item']").click()
-        page.waitForURL("**/portal/settings")
+        navigateToSettingsViaToken()
 
         // Fill only current password
         page.locator("[data-testid='current-password-input']").fill(testPassword)
@@ -263,12 +240,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show error when passwords do not match`() {
-        loginAsRegularUser()
-
-        // Navigate to settings
-        page.locator("[data-testid='profile-menu-button']").click()
-        page.locator("[data-testid='settings-menu-item']").click()
-        page.waitForURL("**/portal/settings")
+        navigateToSettingsViaToken()
 
         // Fill with mismatched passwords
         page.locator("[data-testid='current-password-input']").fill(testPassword)
@@ -290,12 +262,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show error when current password is incorrect`() {
-        loginAsRegularUser()
-
-        // Navigate to settings
-        page.locator("[data-testid='profile-menu-button']").click()
-        page.locator("[data-testid='settings-menu-item']").click()
-        page.waitForURL("**/portal/settings")
+        navigateToSettingsViaToken()
 
         // Fill with incorrect current password
         page.locator("[data-testid='current-password-input']").fill("wrongPassword")
@@ -317,12 +284,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show error for password exceeding max length`() {
-        loginAsRegularUser()
-
-        // Navigate to settings
-        page.locator("[data-testid='profile-menu-button']").click()
-        page.locator("[data-testid='settings-menu-item']").click()
-        page.waitForURL("**/portal/settings")
+        navigateToSettingsViaToken()
 
         // Create a password that exceeds 50 characters
         // The input has maxLength=50, so we need to bypass it by evaluating JS
@@ -350,12 +312,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should successfully change password and show success message`() {
-        loginAsRegularUser()
-
-        // Navigate to settings
-        page.locator("[data-testid='profile-menu-button']").click()
-        page.locator("[data-testid='settings-menu-item']").click()
-        page.waitForURL("**/portal/settings")
+        navigateToSettingsViaToken()
 
         val newPassword = "brandNewPassword456"
 
@@ -388,12 +345,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should be able to login with new password after change`() {
-        loginAsRegularUser()
-
-        // Navigate to settings
-        page.locator("[data-testid='profile-menu-button']").click()
-        page.locator("[data-testid='settings-menu-item']").click()
-        page.waitForURL("**/portal/settings")
+        navigateToSettingsViaToken()
 
         val newPassword = "loginAfterChangeTest"
 
@@ -411,7 +363,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='logout-button']").click()
         page.waitForURL("**/login")
 
-        // Try to login with new password
+        // Try to login with new password (needs UI login to verify password actually changed)
         page.locator("[data-testid='username-input']").fill(regularUserName)
         page.locator("[data-testid='password-input']").fill(newPassword)
         page.locator("[data-testid='login-button']").click()
@@ -425,12 +377,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should not reset inputs on validation failure`() {
-        loginAsRegularUser()
-
-        // Navigate to settings
-        page.locator("[data-testid='profile-menu-button']").click()
-        page.locator("[data-testid='settings-menu-item']").click()
-        page.waitForURL("**/portal/settings")
+        navigateToSettingsViaToken()
 
         // Fill with mismatched passwords
         page.locator("[data-testid='current-password-input']").fill(testPassword)
@@ -456,12 +403,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should allow changing password to max length of 50 characters`() {
-        loginAsRegularUser()
-
-        // Navigate to settings
-        page.locator("[data-testid='profile-menu-button']").click()
-        page.locator("[data-testid='settings-menu-item']").click()
-        page.waitForURL("**/portal/settings")
+        navigateToSettingsViaToken()
 
         // Use exactly 50 characters password
         val maxLengthPassword = "a".repeat(50)
@@ -484,43 +426,20 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `admin should be able to access settings and change password`() {
         // Create a test admin user
-        val testAdminName = "settingsTestAdmin"
         val testAdminPassword = "adminPassword123"
-        if (userRepository.findByUserName(testAdminName) == null) {
-            userRepository.insert(
-                User(
-                    userName = testAdminName,
-                    passwordHash = BcryptUtil.bcryptHash(testAdminPassword),
-                    greeting = "Settings Test Admin",
-                    isAdmin = true,
-                    locale = Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        val adminUser = userRepository.insert(
+            User(
+                userName = "settingsTestAdmin",
+                passwordHash = BcryptUtil.bcryptHash(testAdminPassword),
+                greeting = "Settings Test Admin",
+                isAdmin = true,
+                locale = Locale.ENGLISH,
+                languageCode = "en"
             )
-        } else {
-            // Reset password to known value for the test
-            userRepository.updatePasswordHash(testAdminName, BcryptUtil.bcryptHash(testAdminPassword))
-        }
+        )
 
-        // Login as admin
-        page.navigate(loginUrl.toString())
-        page.locator("[data-testid='username-input']").fill(testAdminName)
-        page.locator("[data-testid='password-input']").fill(testAdminPassword)
-        page.locator("[data-testid='login-button']").click()
-        page.waitForURL("**/admin")
-
-        // Open profile menu and click settings
-        page.locator("[data-testid='profile-menu-button']").click()
-        
-        // Verify settings menu item is visible
-        val settingsMenuItem = page.locator("[data-testid='settings-menu-item']")
-        settingsMenuItem.waitFor()
-        assertTrue(settingsMenuItem.isVisible, "Settings menu item should be visible for admin")
-        
-        settingsMenuItem.click()
-
-        // Wait for navigation to admin settings page
-        page.waitForURL("**/admin/settings")
+        // Use token-based auth for admin
+        loginViaToken(baseUrl, adminSettingsUrl, adminUser, testAuthSupport)
 
         // Verify settings page is displayed
         val settingsPage = page.locator("[data-testid='settings-page']")
