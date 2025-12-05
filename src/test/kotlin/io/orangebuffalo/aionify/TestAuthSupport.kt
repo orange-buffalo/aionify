@@ -21,11 +21,14 @@ class TestAuthSupport(
     /**
      * Generates a valid JWT token for the given user.
      * This token can be used to authenticate without going through the login page.
+     * 
+     * @throws IllegalArgumentException if the user has no ID (i.e., was not persisted to the database)
      */
     fun generateToken(user: User): String {
+        val userId = requireNotNull(user.id) { "User must be persisted (have an ID) before generating a token" }
         return Jwt.issuer(jwtIssuer)
             .subject(user.userName)
-            .claim("userId", user.id)
+            .claim("userId", userId)
             .claim("isAdmin", user.isAdmin)
             .claim("greeting", user.greeting)
             .expiresIn(Duration.ofMinutes(jwtExpirationMinutes))
