@@ -1,11 +1,17 @@
 package io.orangebuffalo.aionify.auth
 
+import io.quarkus.security.Authenticated
+import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Size
 import jakarta.ws.rs.Consumes
 import jakarta.ws.rs.POST
 import jakarta.ws.rs.Path
 import jakarta.ws.rs.Produces
+import jakarta.ws.rs.core.Context
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
+import jakarta.ws.rs.core.SecurityContext
 
 @Path("/api/auth")
 class AuthResource(private val authService: AuthService) {
@@ -14,7 +20,7 @@ class AuthResource(private val authService: AuthService) {
     @Path("/login")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    fun login(request: LoginRequest): Response {
+    fun login(@Valid request: LoginRequest): Response {
         return try {
             val response = authService.authenticate(request.userName, request.password)
             Response.ok(response).build()
@@ -29,32 +35,15 @@ class AuthResource(private val authService: AuthService) {
     @Path("/change-password")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    fun changePassword(request: ChangePasswordRequest): Response {
-        // Validate current password is not empty
-        if (request.currentPassword.isBlank()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                .entity(ChangePasswordErrorResponse("Current password cannot be empty"))
+    @Authenticated
+    fun changePassword(@Valid request: ChangePasswordRequest, @Context securityContext: SecurityContext): Response {
+        val userName = securityContext.userPrincipal?.name
+            ?: return Response.status(Response.Status.UNAUTHORIZED)
+                .entity(ChangePasswordErrorResponse("User not authenticated"))
                 .build()
-        }
-        // Validate new password is not empty and within max length
-        if (request.newPassword.isBlank()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                .entity(ChangePasswordErrorResponse("New password cannot be empty"))
-                .build()
-        }
-        if (request.newPassword.length > 50) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                .entity(ChangePasswordErrorResponse("Password cannot exceed 50 characters"))
-                .build()
-        }
-        if (request.newPassword != request.confirmPassword) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                .entity(ChangePasswordErrorResponse("New password and confirmation do not match"))
-                .build()
-        }
 
         return try {
-            authService.changePassword(request.userName, request.currentPassword, request.newPassword)
+            authService.changePassword(userName, request.currentPassword, request.newPassword)
             Response.ok(ChangePasswordSuccessResponse("Password changed successfully")).build()
         } catch (e: AuthenticationException) {
             Response.status(Response.Status.BAD_REQUEST)
@@ -81,10 +70,12 @@ data class LoginErrorResponse(
 )
 
 data class ChangePasswordRequest(
-    val userName: String,
+    @field:NotBlank(message = "Current password cannot be empty")
     val currentPassword: String,
-    val newPassword: String,
-    val confirmPassword: String
+
+    @field:NotBlank(message = "New password cannot be empty")
+    @field:Size(max = 50, message = "Password cannot exceed 50 characters")
+    val newPassword: String
 )
 
 data class ChangePasswordSuccessResponse(

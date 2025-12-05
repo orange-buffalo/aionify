@@ -37,6 +37,9 @@ dependencies {
     implementation("io.quarkus:quarkus-smallrye-jwt")
     implementation("io.quarkus:quarkus-smallrye-jwt-build")
 
+    // Validation
+    implementation("io.quarkus:quarkus-hibernate-validator")
+
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("com.microsoft.playwright:playwright:1.52.0")
     testImplementation("io.rest-assured:rest-assured")

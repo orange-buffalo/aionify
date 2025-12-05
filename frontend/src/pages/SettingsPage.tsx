@@ -1,18 +1,13 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Settings, Users, BarChart, Clock, Calendar, FileText, User, KeyRound, Eye, EyeOff, Check, X } from "lucide-react"
-import { TopNav, NavItem } from "@/components/navigation/TopNav"
-import { LAST_USERNAME_KEY } from "@/lib/constants"
-import { useLocation } from "react-router"
+import { User, KeyRound, Eye, EyeOff, Check, X } from "lucide-react"
+import { PortalLayout } from "@/components/layout/PortalLayout"
+import { TOKEN_KEY } from "@/lib/constants"
 
 export function SettingsPage() {
-  const [userInfo, setUserInfo] = useState<{ userName: string; greeting: string } | null>(null)
-  const location = useLocation()
-  const isAdminSettings = location.pathname.startsWith("/admin")
-
   // Change password form state
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
@@ -23,31 +18,6 @@ export function SettingsPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-
-  useEffect(() => {
-    const stored = localStorage.getItem(LAST_USERNAME_KEY)
-    if (stored) {
-      try {
-        setUserInfo(JSON.parse(stored))
-      } catch {
-        // Ignore parsing errors
-      }
-    }
-  }, [])
-
-  const adminMenuItems: NavItem[] = [
-    { label: "Users", icon: <Users className="h-4 w-4 mr-2" /> },
-    { label: "Reports", icon: <BarChart className="h-4 w-4 mr-2" /> },
-    { label: "Settings", icon: <Settings className="h-4 w-4 mr-2" /> },
-  ]
-
-  const userMenuItems: NavItem[] = [
-    { label: "Time Entry", icon: <Clock className="h-4 w-4 mr-2" /> },
-    { label: "Calendar", icon: <Calendar className="h-4 w-4 mr-2" /> },
-    { label: "Reports", icon: <FileText className="h-4 w-4 mr-2" /> },
-  ]
-
-  const menuItems = isAdminSettings ? adminMenuItems : userMenuItems
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -72,24 +42,19 @@ export function SettingsPage() {
       return
     }
 
-    if (!userInfo?.userName) {
-      setError("User information not available")
-      return
-    }
-
     setIsLoading(true)
 
     try {
+      const token = localStorage.getItem(TOKEN_KEY)
       const response = await fetch("/api/auth/change-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { "Authorization": `Bearer ${token}` } : {})
         },
         body: JSON.stringify({
-          userName: userInfo.userName,
           currentPassword,
           newPassword,
-          confirmPassword,
         }),
       })
 
@@ -113,12 +78,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="dark min-h-screen bg-background" data-testid="settings-page">
-      <TopNav 
-        menuItems={menuItems}
-        userName={userInfo?.userName}
-        greeting={userInfo?.greeting}
-      />
+    <PortalLayout testId="settings-page">
       <div className="p-8">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
@@ -269,6 +229,6 @@ export function SettingsPage() {
           </div>
         </div>
       </div>
-    </div>
+    </PortalLayout>
   )
 }
