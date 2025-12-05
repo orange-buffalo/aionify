@@ -9,12 +9,13 @@ import java.io.InputStream
 /**
  * Handles SPA routing by serving index.html for all frontend routes.
  * This allows React Router to handle client-side routing.
+ * Uses a negative condition to serve all paths except API endpoints.
  */
 @Path("/")
 class SpaRoutingResource {
 
     @GET
-    @Path("{path:login|admin|portal}")
+    @Path("{path:(?!api/).*}")
     @Produces(MediaType.TEXT_HTML)
     fun serveIndex(): InputStream? {
         return Thread.currentThread().contextClassLoader

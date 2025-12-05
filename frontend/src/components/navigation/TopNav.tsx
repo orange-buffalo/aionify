@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router"
+import { useNavigate, useLocation } from "react-router"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { User, LogOut, Menu } from "lucide-react"
+import { User, LogOut, Menu, Settings } from "lucide-react"
 import { useState } from "react"
 import { TOKEN_KEY } from "@/lib/constants"
 
@@ -27,11 +27,21 @@ export interface TopNavProps {
 
 export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
   const navigate = useNavigate()
+  const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleLogout = () => {
     localStorage.removeItem(TOKEN_KEY)
     navigate("/login")
+  }
+
+  const handleSettings = () => {
+    // Navigate to settings based on current portal (admin or user)
+    if (location.pathname.startsWith("/admin")) {
+      navigate("/admin/settings")
+    } else {
+      navigate("/portal/settings")
+    }
   }
 
   const handleNavClick = (item: NavItem) => {
@@ -134,6 +144,14 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
                     <DropdownMenuSeparator />
                   </>
                 )}
+                <DropdownMenuItem
+                  onClick={handleSettings}
+                  className="cursor-pointer"
+                  data-testid="settings-menu-item"
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={handleLogout}
                   className="cursor-pointer text-destructive focus:text-destructive"

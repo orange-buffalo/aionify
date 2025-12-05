@@ -1,36 +1,10 @@
-import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Clock, Calendar, FileText } from "lucide-react"
-import { TopNav, NavItem } from "@/components/navigation/TopNav"
-import { LAST_USERNAME_KEY } from "@/lib/constants"
+import { PortalLayout } from "@/components/layout/PortalLayout"
 
 export function UserPortal() {
-  const [userInfo, setUserInfo] = useState<{ userName: string; greeting: string } | null>(null)
-
-  useEffect(() => {
-    const stored = localStorage.getItem(LAST_USERNAME_KEY)
-    if (stored) {
-      try {
-        setUserInfo(JSON.parse(stored))
-      } catch {
-        // Ignore parsing errors
-      }
-    }
-  }, [])
-
-  const userMenuItems: NavItem[] = [
-    { label: "Time Entry", icon: <Clock className="h-4 w-4 mr-2" /> },
-    { label: "Calendar", icon: <Calendar className="h-4 w-4 mr-2" /> },
-    { label: "Reports", icon: <FileText className="h-4 w-4 mr-2" /> },
-  ]
-
   return (
-    <div className="dark min-h-screen bg-background" data-testid="user-portal">
-      <TopNav 
-        menuItems={userMenuItems}
-        userName={userInfo?.userName}
-        greeting={userInfo?.greeting}
-      />
+    <PortalLayout testId="user-portal">
       <div className="p-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
@@ -80,6 +54,6 @@ export function UserPortal() {
           </div>
         </div>
       </div>
-    </div>
+    </PortalLayout>
   )
 }
