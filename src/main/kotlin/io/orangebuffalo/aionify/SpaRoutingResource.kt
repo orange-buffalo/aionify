@@ -14,7 +14,7 @@ import java.io.InputStream
 class SpaRoutingResource {
 
     @GET
-    @Path("{path:login|admin|portal}")
+    @Path("{path:login|admin|admin/settings|portal|portal/settings}")
     @Produces(MediaType.TEXT_HTML)
     fun serveIndex(): InputStream? {
         return Thread.currentThread().contextClassLoader

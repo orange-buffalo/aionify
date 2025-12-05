@@ -62,4 +62,19 @@ class UserRepository(private val jdbi: Jdbi) {
                 .orElse(null)
         }
     }
+
+    fun updatePasswordHash(userName: String, newPasswordHash: String) {
+        jdbi.useHandle<Exception> { handle ->
+            handle.createUpdate(
+                """
+                UPDATE app_user 
+                SET password_hash = :passwordHash 
+                WHERE user_name = :userName
+                """.trimIndent()
+            )
+                .bind("userName", userName)
+                .bind("passwordHash", newPasswordHash)
+                .execute()
+        }
+    }
 }

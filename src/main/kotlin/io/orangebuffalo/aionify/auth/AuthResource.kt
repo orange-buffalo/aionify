@@ -24,6 +24,38 @@ class AuthResource(private val authService: AuthService) {
                 .build()
         }
     }
+
+    @POST
+    @Path("/change-password")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    fun changePassword(request: ChangePasswordRequest): Response {
+        // Validate password is not empty and within max length
+        if (request.newPassword.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(ChangePasswordErrorResponse("New password cannot be empty"))
+                .build()
+        }
+        if (request.newPassword.length > 50) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(ChangePasswordErrorResponse("Password cannot exceed 50 characters"))
+                .build()
+        }
+        if (request.newPassword != request.confirmPassword) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(ChangePasswordErrorResponse("New password and confirmation do not match"))
+                .build()
+        }
+
+        return try {
+            authService.changePassword(request.userName, request.currentPassword, request.newPassword)
+            Response.ok(ChangePasswordSuccessResponse("Password changed successfully")).build()
+        } catch (e: AuthenticationException) {
+            Response.status(Response.Status.BAD_REQUEST)
+                .entity(ChangePasswordErrorResponse(e.message ?: "Failed to change password"))
+                .build()
+        }
+    }
 }
 
 data class LoginRequest(
@@ -39,5 +71,20 @@ data class LoginResponse(
 )
 
 data class LoginErrorResponse(
+    val error: String
+)
+
+data class ChangePasswordRequest(
+    val userName: String,
+    val currentPassword: String,
+    val newPassword: String,
+    val confirmPassword: String
+)
+
+data class ChangePasswordSuccessResponse(
+    val message: String
+)
+
+data class ChangePasswordErrorResponse(
     val error: String
 )

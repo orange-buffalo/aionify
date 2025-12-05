@@ -39,4 +39,16 @@ class AuthService(
             isAdmin = user.isAdmin
         )
     }
+
+    fun changePassword(userName: String, currentPassword: String, newPassword: String) {
+        val user = userRepository.findByUserName(userName)
+            ?: throw AuthenticationException("User not found")
+
+        if (!BcryptUtil.matches(currentPassword, user.passwordHash)) {
+            throw AuthenticationException("Current password is incorrect")
+        }
+
+        val newPasswordHash = BcryptUtil.bcryptHash(newPassword)
+        userRepository.updatePasswordHash(userName, newPasswordHash)
+    }
 }
