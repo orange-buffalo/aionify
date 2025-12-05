@@ -5,8 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, LogIn, User, KeyRound } from "lucide-react"
-
-const LAST_USERNAME_KEY = "aionify_last_username"
+import { LAST_USERNAME_KEY, TOKEN_KEY } from "@/lib/constants"
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -53,7 +52,7 @@ export function LoginPage() {
       const data = await response.json()
       
       // Store token and user info
-      localStorage.setItem("aionify_token", data.token)
+      localStorage.setItem(TOKEN_KEY, data.token)
       localStorage.setItem(LAST_USERNAME_KEY, JSON.stringify({
         userName: data.userName,
         greeting: data.greeting

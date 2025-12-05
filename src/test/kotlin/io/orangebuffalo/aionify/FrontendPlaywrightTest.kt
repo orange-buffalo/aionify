@@ -36,10 +36,12 @@ class FrontendPlaywrightTest : PlaywrightTestBase() {
 
         // Verify the login page container is present
         val loginPage = page.locator("[data-testid='login-page']")
+        loginPage.waitFor()
         assertTrue(loginPage.isVisible)
 
         // Verify the card component is rendered
         val card = page.locator(".rounded-lg.border")
+        card.waitFor()
         assertTrue(card.isVisible)
     }
 }
