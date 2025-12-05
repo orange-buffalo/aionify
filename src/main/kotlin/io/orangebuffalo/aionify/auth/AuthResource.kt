@@ -30,7 +30,13 @@ class AuthResource(private val authService: AuthService) {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun changePassword(request: ChangePasswordRequest): Response {
-        // Validate password is not empty and within max length
+        // Validate current password is not empty
+        if (request.currentPassword.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(ChangePasswordErrorResponse("Current password cannot be empty"))
+                .build()
+        }
+        // Validate new password is not empty and within max length
         if (request.newPassword.isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(ChangePasswordErrorResponse("New password cannot be empty"))

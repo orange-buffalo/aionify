@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Settings, User, KeyRound, Eye, EyeOff, Check, X } from "lucide-react"
+import { Settings, Users, BarChart, Clock, Calendar, FileText, User, KeyRound, Eye, EyeOff, Check, X } from "lucide-react"
 import { TopNav, NavItem } from "@/components/navigation/TopNav"
 import { LAST_USERNAME_KEY } from "@/lib/constants"
 import { useLocation } from "react-router"
@@ -36,15 +36,15 @@ export function SettingsPage() {
   }, [])
 
   const adminMenuItems: NavItem[] = [
-    { label: "Users", icon: <User className="h-4 w-4 mr-2" /> },
-    { label: "Reports", icon: <Settings className="h-4 w-4 mr-2" /> },
-    { label: "Settings", icon: <Settings className="h-4 w-4 mr-2" />, href: "/admin/settings" },
+    { label: "Users", icon: <Users className="h-4 w-4 mr-2" /> },
+    { label: "Reports", icon: <BarChart className="h-4 w-4 mr-2" /> },
+    { label: "Settings", icon: <Settings className="h-4 w-4 mr-2" /> },
   ]
 
   const userMenuItems: NavItem[] = [
-    { label: "Time Entry", icon: <User className="h-4 w-4 mr-2" /> },
-    { label: "Calendar", icon: <Settings className="h-4 w-4 mr-2" /> },
-    { label: "Reports", icon: <Settings className="h-4 w-4 mr-2" /> },
+    { label: "Time Entry", icon: <Clock className="h-4 w-4 mr-2" /> },
+    { label: "Calendar", icon: <Calendar className="h-4 w-4 mr-2" /> },
+    { label: "Reports", icon: <FileText className="h-4 w-4 mr-2" /> },
   ]
 
   const menuItems = isAdminSettings ? adminMenuItems : userMenuItems
