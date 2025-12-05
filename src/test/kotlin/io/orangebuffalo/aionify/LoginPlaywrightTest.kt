@@ -31,21 +31,21 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
     private val regularUserName = "testuser"
     private val regularUserGreeting = "Test User"
 
+    private lateinit var regularUser: User
+
     @BeforeEach
-    fun setupTestUsers() {
-        // Create a regular (non-admin) user for testing if not exists
-        if (userRepository.findByUserName(regularUserName) == null) {
-            userRepository.insert(
-                User(
-                    userName = regularUserName,
-                    passwordHash = BcryptUtil.bcryptHash(testPassword),
-                    greeting = regularUserGreeting,
-                    isAdmin = false,
-                    locale = Locale.ENGLISH,
-                    languageCode = "en"
-                )
+    fun setupTestData() {
+        // Create test user with known credentials
+        regularUser = userRepository.insert(
+            User(
+                userName = regularUserName,
+                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                greeting = regularUserGreeting,
+                isAdmin = false,
+                locale = Locale.ENGLISH,
+                languageCode = "en"
             )
-        }
+        )
     }
 
     @Test
@@ -163,23 +163,19 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
     fun `should redirect admin user to admin portal after successful login`() {
         page.navigate(loginUrl.toString())
 
-        // Get the admin password - we need to find it from the test output or use a known admin
-        // The default admin "sudo" was created during startup
-        // For testing, let's create a test admin with a known password
+        // Create a test admin with a known password
         val testAdminName = "testadmin"
         val testAdminPassword = "adminPass123"
-        if (userRepository.findByUserName(testAdminName) == null) {
-            userRepository.insert(
-                User(
-                    userName = testAdminName,
-                    passwordHash = BcryptUtil.bcryptHash(testAdminPassword),
-                    greeting = "Test Admin",
-                    isAdmin = true,
-                    locale = Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        userRepository.insert(
+            User(
+                userName = testAdminName,
+                passwordHash = BcryptUtil.bcryptHash(testAdminPassword),
+                greeting = "Test Admin",
+                isAdmin = true,
+                locale = Locale.ENGLISH,
+                languageCode = "en"
             )
-        }
+        )
 
         // Enter valid credentials for admin user
         page.locator("[data-testid='username-input']").fill(testAdminName)
@@ -258,18 +254,16 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
     fun `should allow logout from admin portal`() {
         val testAdminName = "testadmin2"
         val testAdminPassword = "adminPass456"
-        if (userRepository.findByUserName(testAdminName) == null) {
-            userRepository.insert(
-                User(
-                    userName = testAdminName,
-                    passwordHash = BcryptUtil.bcryptHash(testAdminPassword),
-                    greeting = "Test Admin 2",
-                    isAdmin = true,
-                    locale = Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        userRepository.insert(
+            User(
+                userName = testAdminName,
+                passwordHash = BcryptUtil.bcryptHash(testAdminPassword),
+                greeting = "Test Admin 2",
+                isAdmin = true,
+                locale = Locale.ENGLISH,
+                languageCode = "en"
             )
-        }
+        )
 
         page.navigate(loginUrl.toString())
 

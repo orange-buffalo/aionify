@@ -1,9 +1,11 @@
 package io.orangebuffalo.aionify.domain
 
+import io.orangebuffalo.aionify.TestDatabaseSupport
 import io.quarkus.test.junit.QuarkusTest
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Instant
 
@@ -12,6 +14,14 @@ class TimeEntryRepositoryTest {
 
     @Inject
     lateinit var repository: TimeEntryRepository
+
+    @Inject
+    lateinit var testDatabaseSupport: TestDatabaseSupport
+
+    @BeforeEach
+    fun cleanupDatabase() {
+        testDatabaseSupport.truncateAllTables()
+    }
 
     @Test
     fun `should insert and list time entries`() {
