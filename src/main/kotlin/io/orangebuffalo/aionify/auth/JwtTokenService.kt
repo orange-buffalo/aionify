@@ -5,9 +5,11 @@ import io.quarkus.runtime.StartupEvent
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.enterprise.event.Observes
 import org.eclipse.microprofile.config.inject.ConfigProperty
+import org.jboss.logging.Logger
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.attribute.PosixFilePermissions
 import java.security.KeyPair
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -29,7 +31,12 @@ class JwtTokenService(
     @param:ConfigProperty(name = "aionify.jwt.expiration-minutes", defaultValue = "1440")
     private val jwtExpirationMinutes: Long
 ) {
+    private val log = Logger.getLogger(JwtTokenService::class.java)
+    
+    @Volatile
     private lateinit var keyPair: KeyPair
+    
+    @Volatile
     private lateinit var publicKeyPath: Path
 
     fun init(@Observes event: StartupEvent) {
@@ -39,9 +46,20 @@ class JwtTokenService(
         // Write public key to a temporary file for SmallRye JWT to read
         publicKeyPath = Paths.get(System.getProperty("java.io.tmpdir"), "aionify-jwt-public.pem")
         val publicKeyPem = convertPublicKeyToPem(keyPair.public)
-        Files.writeString(publicKeyPath, publicKeyPem)
         
-        println("JWT public key written to: $publicKeyPath")
+        // Write with restricted permissions (owner read/write only) if on Unix-like system
+        try {
+            val perms = PosixFilePermissions.fromString("rw-------")
+            val attrs = PosixFilePermissions.asFileAttribute(perms)
+            Files.deleteIfExists(publicKeyPath)
+            Files.createFile(publicKeyPath, attrs)
+            Files.writeString(publicKeyPath, publicKeyPem)
+        } catch (e: UnsupportedOperationException) {
+            // POSIX not supported (e.g., Windows), fallback to default permissions
+            Files.writeString(publicKeyPath, publicKeyPem)
+        }
+        
+        log.info("JWT public key written to: $publicKeyPath")
     }
 
     private fun convertPublicKeyToPem(publicKey: java.security.PublicKey): String {
