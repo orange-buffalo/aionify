@@ -15,13 +15,11 @@ import java.util.Locale
 /**
  * Playwright tests for the login functionality.
  * 
- * Note: These tests run in Quarkus test mode, where SmallRye JWT auto-generates signing keys
- * by default. In production mode, the `smallrye.jwt.new-token.key.id` property must be set
- * in application.properties to enable auto-generation. Without it, login attempts will fail
- * with a JWT signing error.
+ * Note: These tests run in Quarkus test mode. The application uses jjwt library to
+ * auto-generate RSA key pairs for JWT signing at startup. This works in all modes
+ * (dev, test, production).
  * 
- * The tests verify login UI behavior and successful authentication flows, but they cannot
- * simulate the exact production mode JWT configuration behavior within the test environment.
+ * The tests verify login UI behavior and successful authentication flows.
  */
 @QuarkusTest
 class LoginPlaywrightTest : PlaywrightTestBase() {
