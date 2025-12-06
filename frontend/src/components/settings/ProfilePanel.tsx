@@ -131,7 +131,7 @@ export function ProfilePanel() {
     setSaving(true)
 
     try {
-      const data = await apiPut<ProfileUpdateResponse>("/api/users/profile", {
+      await apiPut<ProfileUpdateResponse>("/api/users/profile", {
         greeting,
         languageCode: language,
         locale,
@@ -141,7 +141,9 @@ export function ProfilePanel() {
       localStorage.setItem(LANGUAGE_KEY, language)
       await i18n.changeLanguage(language)
       
-      setSuccess(data.message || t("settings.profile.updateSuccess"))
+      // Use a translation key instead of the translated string
+      // This will be translated in the JSX using the new language
+      setSuccess("success")
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.error"))
     } finally {
@@ -249,7 +251,7 @@ export function ProfilePanel() {
 
             {/* Success Message */}
             {success && (
-              <FormMessage type="success" message={success} testId="profile-success" />
+              <FormMessage type="success" message={t("settings.profile.updateSuccess")} testId="profile-success" />
             )}
 
             {/* Submit Button */}

@@ -54,7 +54,7 @@ export function ChangePasswordPanel() {
         currentPassword,
         newPassword,
       })
-      setSuccess(data.message || t("settings.changePassword.changeSuccess"))
+      setSuccess(t("settings.changePassword.changeSuccess"))
       
       // Reset form on success
       setCurrentPassword("")
