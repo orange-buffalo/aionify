@@ -3,7 +3,6 @@ package io.orangebuffalo.aionify.domain
 import io.quarkus.security.Authenticated
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.Context
@@ -14,6 +13,10 @@ import java.util.Locale
 
 @Path("/api/users")
 class UserResource(private val userRepository: UserRepository) {
+
+    companion object {
+        private val SUPPORTED_LANGUAGES = setOf("en", "uk")
+    }
 
     @GET
     @Path("/profile")
@@ -51,25 +54,16 @@ class UserResource(private val userRepository: UserRepository) {
                 .entity(ProfileErrorResponse("User not authenticated"))
                 .build()
 
-        // Validate language code
-        if (request.languageCode !in listOf("en", "uk")) {
+        if (request.languageCode !in SUPPORTED_LANGUAGES) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(ProfileErrorResponse("Language must be either 'en' (English) or 'uk' (Ukrainian)"))
                 .build()
         }
 
-        // Validate and parse locale
-        val locale = try {
-            Locale.forLanguageTag(request.locale).also {
-                if (it.toLanguageTag() == "und" || request.locale.isBlank()) {
-                    throw IllegalArgumentException("Invalid locale")
-                }
-            }
-        } catch (e: Exception) {
-            return Response.status(Response.Status.BAD_REQUEST)
+        val locale = parseLocale(request.locale)
+            ?: return Response.status(Response.Status.BAD_REQUEST)
                 .entity(ProfileErrorResponse("Invalid locale format"))
                 .build()
-        }
 
         userRepository.updateProfile(
             userName = userName,
@@ -79,6 +73,12 @@ class UserResource(private val userRepository: UserRepository) {
         )
 
         return Response.ok(ProfileSuccessResponse("Profile updated successfully")).build()
+    }
+
+    private fun parseLocale(localeTag: String): Locale? {
+        if (localeTag.isBlank()) return null
+        val locale = Locale.forLanguageTag(localeTag)
+        return if (locale.toLanguageTag() == "und") null else locale
     }
 }
 
