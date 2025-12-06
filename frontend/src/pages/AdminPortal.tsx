@@ -1,15 +1,18 @@
+import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Settings, Users, BarChart } from "lucide-react"
 import { PortalLayout } from "@/components/layout/PortalLayout"
 
 export function AdminPortal() {
+  const { t } = useTranslation()
+  
   return (
     <PortalLayout testId="admin-portal">
       <div className="p-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground" data-testid="admin-title">Admin Portal</h1>
-            <p className="text-muted-foreground">Manage your Aionify instance</p>
+            <h1 className="text-3xl font-bold text-foreground" data-testid="admin-title">{t("portal.admin.title")}</h1>
+            <p className="text-muted-foreground">{t("portal.admin.subtitle")}</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">

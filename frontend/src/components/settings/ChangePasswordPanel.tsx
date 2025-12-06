@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,6 +13,7 @@ interface ChangePasswordResponse {
 }
 
 export function ChangePasswordPanel() {
+  const { t } = useTranslation()
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -29,19 +31,19 @@ export function ChangePasswordPanel() {
 
     // Client-side validation
     if (!currentPassword) {
-      setError("Current password is required")
+      setError(t("validation.currentPasswordRequired"))
       return
     }
     if (!newPassword) {
-      setError("New password is required")
+      setError(t("validation.newPasswordRequired"))
       return
     }
     if (newPassword.length > 50) {
-      setError("Password cannot exceed 50 characters")
+      setError(t("validation.passwordTooLong"))
       return
     }
     if (newPassword !== confirmPassword) {
-      setError("New password and confirmation do not match")
+      setError(t("validation.passwordsDoNotMatch"))
       return
     }
 
@@ -52,14 +54,14 @@ export function ChangePasswordPanel() {
         currentPassword,
         newPassword,
       })
-      setSuccess(data.message || "Password changed successfully")
+      setSuccess(data.message || t("settings.changePassword.changeSuccess"))
       
       // Reset form on success
       setCurrentPassword("")
       setNewPassword("")
       setConfirmPassword("")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+      setError(err instanceof Error ? err.message : t("common.error"))
     } finally {
       setLoading(false)
     }
@@ -70,22 +72,22 @@ export function ChangePasswordPanel() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <KeyRound className="h-5 w-5" />
-          Change Password
+          {t("settings.changePassword.title")}
         </CardTitle>
-        <CardDescription>Update your account password</CardDescription>
+        <CardDescription>{t("settings.changePassword.subtitle")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
           {/* Current Password */}
           <div className="space-y-2">
             <Label htmlFor="currentPassword" className="text-muted-foreground">
-              Current Password
+              {t("settings.changePassword.currentPassword")}
             </Label>
             <div className="relative">
               <Input
                 id="currentPassword"
                 type={showCurrentPassword ? "text" : "password"}
-                placeholder="Enter current password"
+                placeholder={t("settings.changePassword.currentPasswordPlaceholder")}
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 className="pr-10 bg-background/50"
@@ -107,13 +109,13 @@ export function ChangePasswordPanel() {
           {/* New Password */}
           <div className="space-y-2">
             <Label htmlFor="newPassword" className="text-muted-foreground">
-              New Password
+              {t("settings.changePassword.newPassword")}
             </Label>
             <div className="relative">
               <Input
                 id="newPassword"
                 type={showNewPassword ? "text" : "password"}
-                placeholder="Enter new password"
+                placeholder={t("settings.changePassword.newPasswordPlaceholder")}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="pr-10 bg-background/50"
@@ -135,13 +137,13 @@ export function ChangePasswordPanel() {
           {/* Confirm New Password */}
           <div className="space-y-2">
             <Label htmlFor="confirmPassword" className="text-muted-foreground">
-              Confirm New Password
+              {t("settings.changePassword.confirmPassword")}
             </Label>
             <div className="relative">
               <Input
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
-                placeholder="Confirm new password"
+                placeholder={t("settings.changePassword.confirmPasswordPlaceholder")}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="pr-10 bg-background/50"
@@ -177,7 +179,7 @@ export function ChangePasswordPanel() {
             disabled={loading}
             data-testid="change-password-button"
           >
-            {loading ? "Saving..." : "Save Password"}
+            {loading ? t("settings.changePassword.changing") : t("settings.changePassword.change")}
           </Button>
         </form>
       </CardContent>
