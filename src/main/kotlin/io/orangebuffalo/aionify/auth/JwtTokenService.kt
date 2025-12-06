@@ -10,7 +10,7 @@ import org.jboss.logging.Logger
 import java.security.KeyPair
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-import java.util.*
+import java.util.Date
 
 /**
  * Service for generating and validating JWT tokens.

@@ -1,14 +1,9 @@
 package io.orangebuffalo.aionify.auth
 
 import io.jsonwebtoken.Claims
-import io.jsonwebtoken.Jwts
-import io.quarkus.security.identity.SecurityIdentity
-import io.quarkus.vertx.http.runtime.security.HttpSecurityUtils
-import io.vertx.ext.web.RoutingContext
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.ws.rs.container.ContainerRequestContext
 import jakarta.ws.rs.container.ContainerRequestFilter
-import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.core.SecurityContext
 import jakarta.ws.rs.ext.Provider
 import org.jboss.logging.Logger
@@ -44,6 +39,11 @@ class JwtAuthenticationFilter(
         try {
             val claims = jwtTokenService.validateToken(token)
             val userName = claims.subject
+            
+            if (userName.isNullOrBlank()) {
+                log.debug("JWT token has no subject claim")
+                return
+            }
             
             // Set security context with authenticated user
             requestContext.securityContext = object : SecurityContext {
