@@ -12,6 +12,15 @@ import org.junit.jupiter.api.Test
 import java.net.URL
 import java.util.Locale
 
+/**
+ * Playwright tests for the login functionality.
+ * 
+ * Note: These tests run in Quarkus test mode. The application uses jjwt library to
+ * auto-generate RSA key pairs for JWT signing at startup. This works in all modes
+ * (dev, test, production).
+ * 
+ * The tests verify login UI behavior and successful authentication flows.
+ */
 @QuarkusTest
 class LoginPlaywrightTest : PlaywrightTestBase() {
 
