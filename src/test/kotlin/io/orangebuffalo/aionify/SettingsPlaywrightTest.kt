@@ -102,18 +102,260 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         assertEquals("Settings", settingsTitle.textContent())
     }
 
+    // === Profile Management Tests ===
+
     @Test
-    fun `should display my profile panel with placeholder message`() {
+    fun `should display profile form with existing user data`() {
         navigateToSettingsViaToken()
 
-        // Verify my profile placeholder
-        val profilePlaceholder = page.locator("[data-testid='profile-placeholder']")
-        profilePlaceholder.waitFor()
-        assertTrue(profilePlaceholder.isVisible, "Profile placeholder should be visible")
-        assertTrue(
-            profilePlaceholder.textContent()?.contains("coming soon") == true,
-            "Profile placeholder should indicate feature is coming soon"
+        // Wait for profile to load
+        val greetingInput = page.locator("[data-testid='profile-greeting-input']")
+        greetingInput.waitFor()
+
+        // Verify form elements are visible
+        assertTrue(greetingInput.isVisible, "Greeting input should be visible")
+        
+        val languageSelect = page.locator("[data-testid='profile-language-select']")
+        assertTrue(languageSelect.isVisible, "Language select should be visible")
+        
+        val localeSelect = page.locator("[data-testid='profile-locale-select']")
+        assertTrue(localeSelect.isVisible, "Locale select should be visible")
+        
+        val saveButton = page.locator("[data-testid='profile-save-button']")
+        assertTrue(saveButton.isVisible, "Save button should be visible")
+
+        // Verify existing data is loaded
+        assertEquals(regularUserGreeting, greetingInput.inputValue(), "Greeting should be pre-filled")
+        assertTrue(languageSelect.textContent()?.contains("English") == true, "Language should show English")
+    }
+
+    @Test
+    fun `should display profile with Ukrainian language and locale`() {
+        // Create user with Ukrainian settings
+        val ukUser = userRepository.insert(
+            User(
+                userName = "ukrainianUser",
+                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                greeting = "Привіт",
+                isAdmin = false,
+                locale = Locale.forLanguageTag("uk-UA"),
+                languageCode = "uk"
+            )
         )
+
+        loginViaToken(baseUrl, userSettingsUrl, ukUser, testAuthSupport)
+
+        // Wait for profile to load
+        val greetingInput = page.locator("[data-testid='profile-greeting-input']")
+        greetingInput.waitFor()
+
+        // Verify Ukrainian data is loaded
+        assertEquals("Привіт", greetingInput.inputValue(), "Greeting should show Ukrainian greeting")
+        
+        val languageSelect = page.locator("[data-testid='profile-language-select']")
+        assertTrue(languageSelect.textContent()?.contains("Ukrainian") == true, "Language should show Ukrainian")
+        
+        val localeSelect = page.locator("[data-testid='profile-locale-select']")
+        assertEquals("Ukrainian (Ukraine)", localeSelect.textContent(), "Locale should show Ukrainian (Ukraine)")
+    }
+
+    @Test
+    fun `should display profile with German locale`() {
+        // Create user with German locale
+        val deUser = userRepository.insert(
+            User(
+                userName = "germanUser",
+                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                greeting = "Hallo",
+                isAdmin = false,
+                locale = Locale.forLanguageTag("de-DE"),
+                languageCode = "en"
+            )
+        )
+
+        loginViaToken(baseUrl, userSettingsUrl, deUser, testAuthSupport)
+
+        // Wait for profile to load
+        val greetingInput = page.locator("[data-testid='profile-greeting-input']")
+        greetingInput.waitFor()
+
+        // Verify data is loaded
+        assertEquals("Hallo", greetingInput.inputValue(), "Greeting should show German greeting")
+        assertTrue(page.locator("[data-testid='profile-language-select']").textContent()?.contains("English") == true, "Language should be English")
+        assertEquals("German (Germany)", page.locator("[data-testid='profile-locale-select']").textContent(), "Locale should show German (Germany)")
+    }
+
+    @Test
+    fun `should show error when greeting is blank`() {
+        navigateToSettingsViaToken()
+
+        // Wait for profile to load
+        val greetingInput = page.locator("[data-testid='profile-greeting-input']")
+        greetingInput.waitFor()
+
+        // Clear greeting and submit
+        greetingInput.fill("")
+        page.locator("[data-testid='profile-save-button']").click()
+
+        // Wait for error message
+        val errorMessage = page.locator("[data-testid='profile-error']")
+        errorMessage.waitFor()
+        assertTrue(errorMessage.isVisible, "Error message should be visible")
+        assertTrue(
+            errorMessage.textContent()?.contains("Greeting cannot be blank") == true,
+            "Error should indicate greeting cannot be blank"
+        )
+    }
+
+    @Test
+    fun `should show error when greeting is only whitespace`() {
+        navigateToSettingsViaToken()
+
+        // Wait for profile to load
+        val greetingInput = page.locator("[data-testid='profile-greeting-input']")
+        greetingInput.waitFor()
+
+        // Set greeting to whitespace and submit
+        greetingInput.fill("   ")
+        page.locator("[data-testid='profile-save-button']").click()
+
+        // Wait for error message
+        val errorMessage = page.locator("[data-testid='profile-error']")
+        errorMessage.waitFor()
+        assertTrue(errorMessage.isVisible, "Error message should be visible")
+        assertTrue(
+            errorMessage.textContent()?.contains("Greeting cannot be blank") == true,
+            "Error should indicate greeting cannot be blank"
+        )
+    }
+
+    @Test
+    fun `should show error for greeting exceeding max length`() {
+        navigateToSettingsViaToken()
+
+        // Wait for profile to load
+        val greetingInput = page.locator("[data-testid='profile-greeting-input']")
+        greetingInput.waitFor()
+
+        // Create greeting exceeding 255 chars - bypass maxLength
+        val longGreeting = "a".repeat(256)
+        greetingInput.evaluate("el => el.maxLength = 500")
+        greetingInput.fill(longGreeting)
+        page.locator("[data-testid='profile-save-button']").click()
+
+        // Wait for error message
+        val errorMessage = page.locator("[data-testid='profile-error']")
+        errorMessage.waitFor()
+        assertTrue(errorMessage.isVisible, "Error message should be visible")
+        assertTrue(
+            errorMessage.textContent()?.contains("exceed 255 characters") == true,
+            "Error should indicate greeting exceeds max length"
+        )
+    }
+
+    @Test
+    fun `should successfully update profile and show success message`() {
+        navigateToSettingsViaToken()
+
+        // Wait for profile to load
+        val greetingInput = page.locator("[data-testid='profile-greeting-input']")
+        greetingInput.waitFor()
+
+        // Update profile data
+        greetingInput.fill("Updated Greeting")
+        
+        // Change language to Ukrainian
+        page.locator("[data-testid='profile-language-select']").click()
+        page.locator("[data-testid='language-option-uk']").click()
+        
+        // Change locale to Ukrainian (Ukraine)
+        page.locator("[data-testid='profile-locale-select']").click()
+        page.locator("[data-testid='locale-option-uk-UA']").click()
+
+        // Submit
+        page.locator("[data-testid='profile-save-button']").click()
+
+        // Wait for success message
+        val successMessage = page.locator("[data-testid='profile-success']")
+        successMessage.waitFor()
+        assertTrue(successMessage.isVisible, "Success message should be visible")
+        assertTrue(
+            successMessage.textContent()?.contains("Profile updated successfully") == true,
+            "Success message should indicate profile was updated"
+        )
+
+        // Verify data was persisted by reloading
+        page.reload()
+        
+        greetingInput.waitFor()
+        assertEquals("Updated Greeting", greetingInput.inputValue(), "Updated greeting should be persisted")
+        assertTrue(page.locator("[data-testid='profile-language-select']").textContent()?.contains("Ukrainian") == true, "Ukrainian language should be persisted")
+        assertEquals("Ukrainian (Ukraine)", page.locator("[data-testid='profile-locale-select']").textContent(), "Ukrainian locale should be persisted")
+    }
+
+    @Test
+    fun `should allow greeting at max length of 255 characters`() {
+        navigateToSettingsViaToken()
+
+        // Wait for profile to load
+        val greetingInput = page.locator("[data-testid='profile-greeting-input']")
+        greetingInput.waitFor()
+
+        // Use exactly 255 characters
+        val maxLengthGreeting = "a".repeat(255)
+        greetingInput.fill(maxLengthGreeting)
+        page.locator("[data-testid='profile-save-button']").click()
+
+        // Wait for success message
+        val successMessage = page.locator("[data-testid='profile-success']")
+        successMessage.waitFor()
+        assertTrue(successMessage.isVisible, "Success message should be visible for max length greeting")
+    }
+
+    @Test
+    fun `should display language dropdown with all options`() {
+        navigateToSettingsViaToken()
+
+        // Wait for profile to load
+        val languageSelect = page.locator("[data-testid='profile-language-select']")
+        languageSelect.waitFor()
+
+        // Open dropdown
+        languageSelect.click()
+
+        // Verify options
+        val dropdown = page.locator("[data-testid='profile-language-dropdown']")
+        dropdown.waitFor()
+        
+        val englishOption = page.locator("[data-testid='language-option-en']")
+        val ukrainianOption = page.locator("[data-testid='language-option-uk']")
+        
+        assertTrue(englishOption.isVisible, "English option should be visible")
+        assertTrue(ukrainianOption.isVisible, "Ukrainian option should be visible")
+    }
+
+    @Test
+    fun `should display locale dropdown with all options`() {
+        navigateToSettingsViaToken()
+
+        // Wait for profile to load
+        val localeSelect = page.locator("[data-testid='profile-locale-select']")
+        localeSelect.waitFor()
+
+        // Open dropdown
+        localeSelect.click()
+
+        // Verify some options are visible
+        val dropdown = page.locator("[data-testid='profile-locale-dropdown']")
+        dropdown.waitFor()
+        
+        val usOption = page.locator("[data-testid='locale-option-en-US']")
+        val ukOption = page.locator("[data-testid='locale-option-uk-UA']")
+        val deOption = page.locator("[data-testid='locale-option-de-DE']")
+        
+        assertTrue(usOption.isVisible, "English (US) option should be visible")
+        assertTrue(ukOption.isVisible, "Ukrainian (Ukraine) option should be visible")
+        assertTrue(deOption.isVisible, "German (Germany) option should be visible")
     }
 
     @Test
