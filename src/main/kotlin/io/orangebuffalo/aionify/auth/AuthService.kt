@@ -2,18 +2,12 @@ package io.orangebuffalo.aionify.auth
 
 import io.orangebuffalo.aionify.domain.UserRepository
 import io.quarkus.elytron.security.common.BcryptUtil
-import io.smallrye.jwt.build.Jwt
 import jakarta.enterprise.context.ApplicationScoped
-import org.eclipse.microprofile.config.inject.ConfigProperty
-import java.time.Duration
 
 @ApplicationScoped
 class AuthService(
     private val userRepository: UserRepository,
-    @param:ConfigProperty(name = "aionify.jwt.issuer", defaultValue = "aionify")
-    private val jwtIssuer: String,
-    @param:ConfigProperty(name = "aionify.jwt.expiration-minutes", defaultValue = "1440")
-    private val jwtExpirationMinutes: Long
+    private val jwtTokenService: JwtTokenService
 ) {
 
     fun authenticate(userName: String, password: String): LoginResponse {
@@ -24,13 +18,12 @@ class AuthService(
             throw AuthenticationException("Invalid username or password")
         }
 
-        val token = Jwt.issuer(jwtIssuer)
-            .subject(user.userName)
-            .claim("userId", user.id)
-            .claim("isAdmin", user.isAdmin)
-            .claim("greeting", user.greeting)
-            .expiresIn(Duration.ofMinutes(jwtExpirationMinutes))
-            .sign()
+        val token = jwtTokenService.generateToken(
+            userName = user.userName,
+            userId = requireNotNull(user.id) { "User must have an ID" },
+            isAdmin = user.isAdmin,
+            greeting = user.greeting
+        )
 
         return LoginResponse(
             token = token,
