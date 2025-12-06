@@ -77,4 +77,21 @@ class UserRepository(private val jdbi: Jdbi) {
                 .execute()
         }
     }
+
+    fun updateProfile(userName: String, greeting: String, languageCode: String, locale: Locale) {
+        jdbi.useHandle<Exception> { handle ->
+            handle.createUpdate(
+                """
+                UPDATE app_user 
+                SET greeting = :greeting, language_code = :languageCode, locale = :locale 
+                WHERE user_name = :userName
+                """.trimIndent()
+            )
+                .bind("userName", userName)
+                .bind("greeting", greeting)
+                .bind("languageCode", languageCode)
+                .bind("locale", locale.toLanguageTag())
+                .execute()
+        }
+    }
 }
