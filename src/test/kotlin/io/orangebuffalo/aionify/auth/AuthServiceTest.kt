@@ -14,6 +14,15 @@ import java.util.Locale
 /**
  * Test for AuthService to verify JWT token generation and authentication.
  * This test helps catch production issues where JWT signing keys might not be configured.
+ * 
+ * Note: This test runs in Quarkus test mode, where SmallRye JWT auto-generates signing keys
+ * by default. In production mode, the `smallrye.jwt.new-token.key.id` property must be set
+ * to enable auto-generation. Without it, JWT signing will fail with:
+ * "SRJWT05021: Please set 'smallrye.jwt.sign.key.location' or 'smallrye.jwt.sign.key' property"
+ * 
+ * This test verifies that the JWT signing mechanism works correctly and would fail if
+ * the application configuration is broken, but it cannot simulate the exact production
+ * mode behavior within the test environment.
  */
 @QuarkusTest
 class AuthServiceTest {

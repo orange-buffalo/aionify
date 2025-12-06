@@ -12,6 +12,17 @@ import org.junit.jupiter.api.Test
 import java.net.URL
 import java.util.Locale
 
+/**
+ * Playwright tests for the login functionality.
+ * 
+ * Note: These tests run in Quarkus test mode, where SmallRye JWT auto-generates signing keys
+ * by default. In production mode, the `smallrye.jwt.new-token.key.id` property must be set
+ * in application.properties to enable auto-generation. Without it, login attempts will fail
+ * with a JWT signing error.
+ * 
+ * The tests verify login UI behavior and successful authentication flows, but they cannot
+ * simulate the exact production mode JWT configuration behavior within the test environment.
+ */
 @QuarkusTest
 class LoginPlaywrightTest : PlaywrightTestBase() {
 
