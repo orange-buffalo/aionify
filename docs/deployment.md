@@ -106,6 +106,13 @@ docker compose up -d
 
 Aionify uses Flyway for database migrations. Migrations are applied automatically when the application starts. No manual migration steps are required.
 
+## Authentication
+
+Aionify uses JWT (JSON Web Tokens) for authentication. JWT signing keys are automatically generated at application startup, which means:
+
+- Users will need to log in again after the application restarts
+- The application is designed for single-instance deployments
+
 ## Default Admin User
 
 On first startup, if no admin user exists in the database, Aionify automatically creates a default admin user:
