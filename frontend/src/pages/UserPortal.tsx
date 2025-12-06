@@ -20,12 +20,12 @@ export function UserPortal() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5" />
-                  Time Entry
+                  {t("portal.user.timeEntry.title")}
                 </CardTitle>
-                <CardDescription>Log your time</CardDescription>
+                <CardDescription>{t("portal.user.timeEntry.description")}</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground text-sm">Time entry coming soon...</p>
+                <p className="text-muted-foreground text-sm">{t("portal.user.timeEntry.comingSoon")}</p>
               </CardContent>
             </Card>
 
@@ -33,12 +33,12 @@ export function UserPortal() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  Calendar
+                  {t("portal.user.calendar.title")}
                 </CardTitle>
-                <CardDescription>View your schedule</CardDescription>
+                <CardDescription>{t("portal.user.calendar.description")}</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground text-sm">Calendar coming soon...</p>
+                <p className="text-muted-foreground text-sm">{t("portal.user.calendar.comingSoon")}</p>
               </CardContent>
             </Card>
 
@@ -46,12 +46,12 @@ export function UserPortal() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  Reports
+                  {t("portal.user.reports.title")}
                 </CardTitle>
-                <CardDescription>View your reports</CardDescription>
+                <CardDescription>{t("portal.user.reports.description")}</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground text-sm">Reports coming soon...</p>
+                <p className="text-muted-foreground text-sm">{t("portal.user.reports.comingSoon")}</p>
               </CardContent>
             </Card>
           </div>

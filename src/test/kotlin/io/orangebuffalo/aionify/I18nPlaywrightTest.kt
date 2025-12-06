@@ -125,6 +125,17 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         // Verify language was saved to local storage
         val savedLanguage = page.evaluate("localStorage.getItem('aionify_language')")
         assert(savedLanguage == "uk") { "Expected language to be 'uk' but was '$savedLanguage'" }
+        
+        // Logout to verify login page is in Ukrainian
+        page.locator("[data-testid='profile-menu-button']").click()
+        page.locator("[data-testid='logout-button']").click()
+        
+        // Wait for redirect to login
+        page.waitForURL("**/login")
+        
+        // Verify login page is in Ukrainian
+        val loginTitle = page.locator("[data-testid='login-title']")
+        assertThat(loginTitle).hasText("Вхід")
     }
 
     @Test

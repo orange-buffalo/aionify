@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FormMessage } from "@/components/ui/form-message"
 import { User, Loader2 } from "lucide-react"
 import { apiGet, apiPut } from "@/lib/api"
-import { LANGUAGE_KEY } from "@/lib/constants"
+import { initializeLanguage, translateErrorCode } from "@/lib/i18n"
 
 // Available languages with native names
 const LANGUAGES = [
@@ -136,14 +136,15 @@ export function ProfilePanel() {
         locale,
       })
       
-      // Save language to localStorage and update i18n
-      localStorage.setItem(LANGUAGE_KEY, language)
-      await i18n.changeLanguage(language)
+      // Save language to localStorage and update i18n using centralized function
+      await initializeLanguage(language)
       
       // Set success flag (translation will be applied in JSX with current language)
       setSuccess("success")
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("common.error"))
+      // Translate error using error code if available
+      const errorMessage = err instanceof Error ? err.message : t("common.error")
+      setError(errorMessage)
     } finally {
       setSaving(false)
     }

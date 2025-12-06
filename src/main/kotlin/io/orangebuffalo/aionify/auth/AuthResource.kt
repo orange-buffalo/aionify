@@ -39,15 +39,19 @@ class AuthResource(private val authService: AuthService) {
     fun changePassword(@Valid request: ChangePasswordRequest, @Context securityContext: SecurityContext): Response {
         val userName = securityContext.userPrincipal?.name
             ?: return Response.status(Response.Status.UNAUTHORIZED)
-                .entity(ChangePasswordErrorResponse("User not authenticated"))
+                .entity(ChangePasswordErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
                 .build()
 
         return try {
             authService.changePassword(userName, request.currentPassword, request.newPassword)
             Response.ok(ChangePasswordSuccessResponse("Password changed successfully")).build()
         } catch (e: AuthenticationException) {
+            val errorCode = when (e.message) {
+                "Current password is incorrect" -> "CURRENT_PASSWORD_INCORRECT"
+                else -> "UNKNOWN_ERROR"
+            }
             Response.status(Response.Status.BAD_REQUEST)
-                .entity(ChangePasswordErrorResponse(e.message ?: "Failed to change password"))
+                .entity(ChangePasswordErrorResponse(e.message ?: "Failed to change password", errorCode))
                 .build()
         }
     }
@@ -67,7 +71,8 @@ data class LoginResponse(
 )
 
 data class LoginErrorResponse(
-    val error: String
+    val error: String,
+    val errorCode: String = "INVALID_CREDENTIALS"
 )
 
 data class ChangePasswordRequest(
@@ -84,5 +89,6 @@ data class ChangePasswordSuccessResponse(
 )
 
 data class ChangePasswordErrorResponse(
-    val error: String
+    val error: String,
+    val errorCode: String
 )

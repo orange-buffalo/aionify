@@ -6,11 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, LogIn, User, KeyRound } from "lucide-react"
-import { LAST_USERNAME_KEY, TOKEN_KEY, LANGUAGE_KEY } from "@/lib/constants"
+import { LAST_USERNAME_KEY, TOKEN_KEY } from "@/lib/constants"
+import { initializeLanguage, loadSavedLanguage, translateErrorCode } from "@/lib/i18n"
 
 export function LoginPage() {
   const navigate = useNavigate()
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [userName, setUserName] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -30,12 +31,6 @@ export function LoginPage() {
         setUserName(lastUsername)
       }
     }
-
-    // Load saved language if available
-    const savedLanguage = localStorage.getItem(LANGUAGE_KEY)
-    if (savedLanguage && (savedLanguage === "en" || savedLanguage === "uk")) {
-      i18n.changeLanguage(savedLanguage)
-    }
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,12 +49,8 @@ export function LoginPage() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        // Translate known API error messages
-        const apiError = errorData.error || ""
-        if (apiError === "Invalid username or password") {
-          throw new Error(t("login.invalidCredentials"))
-        }
-        throw new Error(apiError || t("login.invalidCredentials"))
+        // Translate error using error code if available
+        throw new Error(translateErrorCode(errorData.errorCode))
       }
 
       const data = await response.json()
@@ -73,8 +64,7 @@ export function LoginPage() {
 
       // Store user's preferred language and switch to it
       if (data.languageCode) {
-        localStorage.setItem(LANGUAGE_KEY, data.languageCode)
-        await i18n.changeLanguage(data.languageCode)
+        await initializeLanguage(data.languageCode)
       }
 
       // Redirect based on user role (Jackson serializes isAdmin as "admin")

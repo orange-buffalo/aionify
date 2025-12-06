@@ -25,12 +25,12 @@ class UserResource(private val userRepository: UserRepository) {
     fun getProfile(@Context securityContext: SecurityContext): Response {
         val userName = securityContext.userPrincipal?.name
             ?: return Response.status(Response.Status.UNAUTHORIZED)
-                .entity(ProfileErrorResponse("User not authenticated"))
+                .entity(ProfileErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
                 .build()
 
         val user = userRepository.findByUserName(userName)
             ?: return Response.status(Response.Status.NOT_FOUND)
-                .entity(ProfileErrorResponse("User not found"))
+                .entity(ProfileErrorResponse("User not found", "USER_NOT_FOUND"))
                 .build()
 
         return Response.ok(
@@ -51,18 +51,18 @@ class UserResource(private val userRepository: UserRepository) {
     fun updateProfile(@Valid request: UpdateProfileRequest, @Context securityContext: SecurityContext): Response {
         val userName = securityContext.userPrincipal?.name
             ?: return Response.status(Response.Status.UNAUTHORIZED)
-                .entity(ProfileErrorResponse("User not authenticated"))
+                .entity(ProfileErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
                 .build()
 
         if (request.languageCode !in SUPPORTED_LANGUAGES) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(ProfileErrorResponse("Language must be either 'en' (English) or 'uk' (Ukrainian)"))
+                .entity(ProfileErrorResponse("Language must be either 'en' (English) or 'uk' (Ukrainian)", "LANGUAGE_NOT_SUPPORTED"))
                 .build()
         }
 
         val locale = parseLocale(request.locale)
             ?: return Response.status(Response.Status.BAD_REQUEST)
-                .entity(ProfileErrorResponse("Invalid locale format"))
+                .entity(ProfileErrorResponse("Invalid locale format", "INVALID_LOCALE"))
                 .build()
 
         userRepository.updateProfile(
@@ -107,5 +107,6 @@ data class ProfileSuccessResponse(
 )
 
 data class ProfileErrorResponse(
-    val error: String
+    val error: String,
+    val errorCode: String
 )
