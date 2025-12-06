@@ -194,7 +194,7 @@ const getSavedLanguage = (): string | null => {
 
 const detectBrowserLanguage = (): string => {
   const browserLang = navigator.language.split("-")[0] // Get language code without region
-  const supportedLanguages = ["en", "uk"]
+  const supportedLanguages = Object.keys(resources)
   return supportedLanguages.includes(browserLang) ? browserLang : "en"
 }
 

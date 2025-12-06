@@ -9,12 +9,11 @@ import { FormMessage } from "@/components/ui/form-message"
 import { User, Loader2 } from "lucide-react"
 import { apiGet, apiPut } from "@/lib/api"
 import { LANGUAGE_KEY } from "@/lib/constants"
-import ISO6391 from "iso-639-1"
 
-// Available languages with native names using iso-639-1
+// Available languages with native names
 const LANGUAGES = [
   { code: "en", name: "English" },
-  { code: "uk", name: `Ukrainian (${ISO6391.getNativeName("uk")})` },
+  { code: "uk", name: "Ukrainian (Українська)" },
 ]
 
 // Standard locales (BCP 47 language tags with region)
@@ -141,8 +140,7 @@ export function ProfilePanel() {
       localStorage.setItem(LANGUAGE_KEY, language)
       await i18n.changeLanguage(language)
       
-      // Use a translation key instead of the translated string
-      // This will be translated in the JSX using the new language
+      // Set success flag (translation will be applied in JSX with current language)
       setSuccess("success")
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.error"))
