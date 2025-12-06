@@ -1,12 +1,12 @@
 package io.orangebuffalo.aionify
 
+import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserRepository
 import io.quarkus.elytron.security.common.BcryptUtil
 import io.quarkus.test.common.http.TestHTTPResource
 import io.quarkus.test.junit.QuarkusTest
 import jakarta.inject.Inject
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.net.URL
@@ -54,29 +54,29 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
         // Verify login page is displayed
         val loginPage = page.locator("[data-testid='login-page']")
-        assertTrue(loginPage.isVisible, "Login page should be visible")
+        assertThat(loginPage).isVisible()
 
         // Verify login title
         val loginTitle = page.locator("[data-testid='login-title']")
-        assertTrue(loginTitle.isVisible, "Login title should be visible")
-        assertEquals("Login", loginTitle.textContent())
+        assertThat(loginTitle).isVisible()
+        assertThat(loginTitle).hasText("Login")
 
         // Verify username input
         val usernameInput = page.locator("[data-testid='username-input']")
-        assertTrue(usernameInput.isVisible, "Username input should be visible")
+        assertThat(usernameInput).isVisible()
 
         // Verify password input
         val passwordInput = page.locator("[data-testid='password-input']")
-        assertTrue(passwordInput.isVisible, "Password input should be visible")
+        assertThat(passwordInput).isVisible()
 
         // Verify login button
         val loginButton = page.locator("[data-testid='login-button']")
-        assertTrue(loginButton.isVisible, "Login button should be visible")
+        assertThat(loginButton).isVisible()
 
         // Verify lost password link
         val lostPasswordLink = page.locator("[data-testid='lost-password-link']")
-        assertTrue(lostPasswordLink.isVisible, "Lost password link should be visible")
-        assertEquals("Lost password?", lostPasswordLink.textContent())
+        assertThat(lostPasswordLink).isVisible()
+        assertThat(lostPasswordLink).hasText("Lost password?")
     }
 
     @Test
@@ -87,15 +87,15 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
         val toggleButton = page.locator("[data-testid='toggle-password-visibility']")
 
         // Initially password should be hidden
-        assertEquals("password", passwordInput.getAttribute("type"))
+        assertThat(passwordInput).hasAttribute("type", "password")
 
         // Click toggle to show password
         toggleButton.click()
-        assertEquals("text", passwordInput.getAttribute("type"))
+        assertThat(passwordInput).hasAttribute("type", "text")
 
         // Click again to hide password
         toggleButton.click()
-        assertEquals("password", passwordInput.getAttribute("type"))
+        assertThat(passwordInput).hasAttribute("type", "password")
     }
 
     @Test
@@ -107,15 +107,10 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='password-input']").fill("wrongpassword")
         page.locator("[data-testid='login-button']").click()
 
-        // Wait for error message to appear
+        // Wait for error message to appear and verify
         val errorMessage = page.locator("[data-testid='login-error']")
-        errorMessage.waitFor()
-
-        assertTrue(errorMessage.isVisible, "Error message should be visible")
-        assertTrue(
-            errorMessage.textContent()?.contains("Invalid username or password") == true,
-            "Error should indicate invalid credentials"
-        )
+        assertThat(errorMessage).isVisible()
+        assertThat(errorMessage).containsText("Invalid username or password")
     }
 
     @Test
@@ -127,15 +122,10 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='password-input']").fill("wrongpassword")
         page.locator("[data-testid='login-button']").click()
 
-        // Wait for error message to appear
+        // Wait for error message to appear and verify
         val errorMessage = page.locator("[data-testid='login-error']")
-        errorMessage.waitFor()
-
-        assertTrue(errorMessage.isVisible, "Error message should be visible")
-        assertTrue(
-            errorMessage.textContent()?.contains("Invalid username or password") == true,
-            "Error should indicate invalid credentials"
-        )
+        assertThat(errorMessage).isVisible()
+        assertThat(errorMessage).containsText("Invalid username or password")
     }
 
     @Test
@@ -152,11 +142,10 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
         // Verify we're on the user portal
         val userPortal = page.locator("[data-testid='user-portal']")
-        userPortal.waitFor()
-        assertTrue(userPortal.isVisible, "User portal should be visible")
+        assertThat(userPortal).isVisible()
 
         val userTitle = page.locator("[data-testid='user-title']")
-        assertEquals("Time Tracking", userTitle.textContent())
+        assertThat(userTitle).hasText("Time Tracking")
     }
 
     @Test
@@ -187,11 +176,10 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
         // Verify we're on the admin portal
         val adminPortal = page.locator("[data-testid='admin-portal']")
-        adminPortal.waitFor()
-        assertTrue(adminPortal.isVisible, "Admin portal should be visible")
+        assertThat(adminPortal).isVisible()
 
         val adminTitle = page.locator("[data-testid='admin-title']")
-        assertEquals("Admin Portal", adminTitle.textContent())
+        assertThat(adminTitle).hasText("Admin Portal")
     }
 
     @Test
@@ -215,16 +203,12 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
         // Verify the username is pre-filled
         val usernameInput = page.locator("[data-testid='username-input']")
-        assertEquals(regularUserName, usernameInput.inputValue())
+        assertThat(usernameInput).hasValue(regularUserName)
 
         // Verify welcome back message
         val welcomeBackMessage = page.locator("[data-testid='welcome-back-message']")
-        welcomeBackMessage.waitFor()
-        assertTrue(welcomeBackMessage.isVisible, "Welcome back message should be visible")
-        assertTrue(
-            welcomeBackMessage.textContent()?.contains(regularUserGreeting) == true,
-            "Welcome message should contain user's greeting"
-        )
+        assertThat(welcomeBackMessage).isVisible()
+        assertThat(welcomeBackMessage).containsText(regularUserGreeting)
     }
 
     @Test
@@ -247,7 +231,7 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
         page.waitForURL("**/login")
         
         val loginPage = page.locator("[data-testid='login-page']")
-        assertTrue(loginPage.isVisible, "Should be back on login page")
+        assertThat(loginPage).isVisible()
     }
 
     @Test
@@ -283,7 +267,7 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
         page.waitForURL("**/login")
         
         val loginPage = page.locator("[data-testid='login-page']")
-        assertTrue(loginPage.isVisible, "Should be back on login page")
+        assertThat(loginPage).isVisible()
     }
 
     @Test
@@ -294,6 +278,6 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
         page.waitForURL("**/login")
         
         val loginPage = page.locator("[data-testid='login-page']")
-        assertTrue(loginPage.isVisible, "Should be on login page")
+        assertThat(loginPage).isVisible()
     }
 }

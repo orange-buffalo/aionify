@@ -1,12 +1,12 @@
 package io.orangebuffalo.aionify
 
+import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserRepository
 import io.quarkus.elytron.security.common.BcryptUtil
 import io.quarkus.test.common.http.TestHTTPResource
 import io.quarkus.test.junit.QuarkusTest
 import jakarta.inject.Inject
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.net.URL
@@ -76,8 +76,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Verify settings menu item is visible
         val settingsMenuItem = page.locator("[data-testid='settings-menu-item']")
-        settingsMenuItem.waitFor()
-        assertTrue(settingsMenuItem.isVisible, "Settings menu item should be visible")
+        assertThat(settingsMenuItem).isVisible()
     }
 
     @Test
@@ -93,13 +92,12 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Verify settings page is displayed
         val settingsPage = page.locator("[data-testid='settings-page']")
-        settingsPage.waitFor()
-        assertTrue(settingsPage.isVisible, "Settings page should be visible")
+        assertThat(settingsPage).isVisible()
 
         // Verify settings title
         val settingsTitle = page.locator("[data-testid='settings-title']")
-        assertTrue(settingsTitle.isVisible, "Settings title should be visible")
-        assertEquals("Settings", settingsTitle.textContent())
+        assertThat(settingsTitle).isVisible()
+        assertThat(settingsTitle).hasText("Settings")
     }
 
     // === Profile Management Tests ===
@@ -110,23 +108,21 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Wait for profile to load
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
-        greetingInput.waitFor()
+        assertThat(greetingInput).isVisible()
 
         // Verify form elements are visible
-        assertTrue(greetingInput.isVisible, "Greeting input should be visible")
-        
         val languageSelect = page.locator("[data-testid='profile-language-select']")
-        assertTrue(languageSelect.isVisible, "Language select should be visible")
+        assertThat(languageSelect).isVisible()
         
         val localeSelect = page.locator("[data-testid='profile-locale-select']")
-        assertTrue(localeSelect.isVisible, "Locale select should be visible")
+        assertThat(localeSelect).isVisible()
         
         val saveButton = page.locator("[data-testid='profile-save-button']")
-        assertTrue(saveButton.isVisible, "Save button should be visible")
+        assertThat(saveButton).isVisible()
 
         // Verify existing data is loaded
-        assertEquals(regularUserGreeting, greetingInput.inputValue(), "Greeting should be pre-filled")
-        assertTrue(languageSelect.textContent()?.contains("English") == true, "Language should show English")
+        assertThat(greetingInput).hasValue(regularUserGreeting)
+        assertThat(languageSelect).containsText("English")
     }
 
     @Test
@@ -145,18 +141,15 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         loginViaToken(baseUrl, userSettingsUrl, ukUser, testAuthSupport)
 
-        // Wait for profile to load
+        // Wait for profile to load and verify Ukrainian data is loaded
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
-        greetingInput.waitFor()
-
-        // Verify Ukrainian data is loaded
-        assertEquals("Привіт", greetingInput.inputValue(), "Greeting should show Ukrainian greeting")
+        assertThat(greetingInput).hasValue("Привіт")
         
         val languageSelect = page.locator("[data-testid='profile-language-select']")
-        assertTrue(languageSelect.textContent()?.contains("Ukrainian") == true, "Language should show Ukrainian")
+        assertThat(languageSelect).containsText("Ukrainian")
         
         val localeSelect = page.locator("[data-testid='profile-locale-select']")
-        assertEquals("Ukrainian (Ukraine)", localeSelect.textContent(), "Locale should show Ukrainian (Ukraine)")
+        assertThat(localeSelect).hasText("Ukrainian (Ukraine)")
     }
 
     @Test
@@ -175,14 +168,11 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         loginViaToken(baseUrl, userSettingsUrl, deUser, testAuthSupport)
 
-        // Wait for profile to load
+        // Wait for profile to load and verify data is loaded
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
-        greetingInput.waitFor()
-
-        // Verify data is loaded
-        assertEquals("Hallo", greetingInput.inputValue(), "Greeting should show German greeting")
-        assertTrue(page.locator("[data-testid='profile-language-select']").textContent()?.contains("English") == true, "Language should be English")
-        assertEquals("German (Germany)", page.locator("[data-testid='profile-locale-select']").textContent(), "Locale should show German (Germany)")
+        assertThat(greetingInput).hasValue("Hallo")
+        assertThat(page.locator("[data-testid='profile-language-select']")).containsText("English")
+        assertThat(page.locator("[data-testid='profile-locale-select']")).hasText("German (Germany)")
     }
 
     @Test
@@ -191,20 +181,16 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Wait for profile to load
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
-        greetingInput.waitFor()
+        assertThat(greetingInput).isVisible()
 
         // Clear greeting and submit
         greetingInput.fill("")
         page.locator("[data-testid='profile-save-button']").click()
 
-        // Wait for error message
+        // Wait for error message and verify
         val errorMessage = page.locator("[data-testid='profile-error']")
-        errorMessage.waitFor()
-        assertTrue(errorMessage.isVisible, "Error message should be visible")
-        assertTrue(
-            errorMessage.textContent()?.contains("Greeting cannot be blank") == true,
-            "Error should indicate greeting cannot be blank"
-        )
+        assertThat(errorMessage).isVisible()
+        assertThat(errorMessage).containsText("Greeting cannot be blank")
     }
 
     @Test
@@ -213,20 +199,16 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Wait for profile to load
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
-        greetingInput.waitFor()
+        assertThat(greetingInput).isVisible()
 
         // Set greeting to whitespace and submit
         greetingInput.fill("   ")
         page.locator("[data-testid='profile-save-button']").click()
 
-        // Wait for error message
+        // Wait for error message and verify
         val errorMessage = page.locator("[data-testid='profile-error']")
-        errorMessage.waitFor()
-        assertTrue(errorMessage.isVisible, "Error message should be visible")
-        assertTrue(
-            errorMessage.textContent()?.contains("Greeting cannot be blank") == true,
-            "Error should indicate greeting cannot be blank"
-        )
+        assertThat(errorMessage).isVisible()
+        assertThat(errorMessage).containsText("Greeting cannot be blank")
     }
 
     @Test
@@ -235,7 +217,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Wait for profile to load
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
-        greetingInput.waitFor()
+        assertThat(greetingInput).isVisible()
 
         // Create greeting exceeding 255 chars - bypass maxLength
         val longGreeting = "a".repeat(256)
@@ -243,14 +225,10 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         greetingInput.fill(longGreeting)
         page.locator("[data-testid='profile-save-button']").click()
 
-        // Wait for error message
+        // Wait for error message and verify
         val errorMessage = page.locator("[data-testid='profile-error']")
-        errorMessage.waitFor()
-        assertTrue(errorMessage.isVisible, "Error message should be visible")
-        assertTrue(
-            errorMessage.textContent()?.contains("exceed 255 characters") == true,
-            "Error should indicate greeting exceeds max length"
-        )
+        assertThat(errorMessage).isVisible()
+        assertThat(errorMessage).containsText("exceed 255 characters")
     }
 
     @Test
@@ -259,7 +237,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Wait for profile to load
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
-        greetingInput.waitFor()
+        assertThat(greetingInput).isVisible()
 
         // Update profile data
         greetingInput.fill("Updated Greeting")
@@ -275,22 +253,17 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // Submit
         page.locator("[data-testid='profile-save-button']").click()
 
-        // Wait for success message
+        // Wait for success message and verify
         val successMessage = page.locator("[data-testid='profile-success']")
-        successMessage.waitFor()
-        assertTrue(successMessage.isVisible, "Success message should be visible")
-        assertTrue(
-            successMessage.textContent()?.contains("Profile updated successfully") == true,
-            "Success message should indicate profile was updated"
-        )
+        assertThat(successMessage).isVisible()
+        assertThat(successMessage).containsText("Profile updated successfully")
 
         // Verify data was persisted by reloading
         page.reload()
         
-        greetingInput.waitFor()
-        assertEquals("Updated Greeting", greetingInput.inputValue(), "Updated greeting should be persisted")
-        assertTrue(page.locator("[data-testid='profile-language-select']").textContent()?.contains("Ukrainian") == true, "Ukrainian language should be persisted")
-        assertEquals("Ukrainian (Ukraine)", page.locator("[data-testid='profile-locale-select']").textContent(), "Ukrainian locale should be persisted")
+        assertThat(greetingInput).hasValue("Updated Greeting")
+        assertThat(page.locator("[data-testid='profile-language-select']")).containsText("Ukrainian")
+        assertThat(page.locator("[data-testid='profile-locale-select']")).hasText("Ukrainian (Ukraine)")
     }
 
     @Test
@@ -299,7 +272,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Wait for profile to load
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
-        greetingInput.waitFor()
+        assertThat(greetingInput).isVisible()
 
         // Use exactly 255 characters
         val maxLengthGreeting = "a".repeat(255)
@@ -308,8 +281,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Wait for success message
         val successMessage = page.locator("[data-testid='profile-success']")
-        successMessage.waitFor()
-        assertTrue(successMessage.isVisible, "Success message should be visible for max length greeting")
+        assertThat(successMessage).isVisible()
     }
 
     @Test
@@ -318,20 +290,20 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Wait for profile to load
         val languageSelect = page.locator("[data-testid='profile-language-select']")
-        languageSelect.waitFor()
+        assertThat(languageSelect).isVisible()
 
         // Open dropdown
         languageSelect.click()
 
         // Verify options
         val dropdown = page.locator("[data-testid='profile-language-dropdown']")
-        dropdown.waitFor()
+        assertThat(dropdown).isVisible()
         
         val englishOption = page.locator("[data-testid='language-option-en']")
         val ukrainianOption = page.locator("[data-testid='language-option-uk']")
         
-        assertTrue(englishOption.isVisible, "English option should be visible")
-        assertTrue(ukrainianOption.isVisible, "Ukrainian option should be visible")
+        assertThat(englishOption).isVisible()
+        assertThat(ukrainianOption).isVisible()
     }
 
     @Test
@@ -340,22 +312,22 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Wait for profile to load
         val localeSelect = page.locator("[data-testid='profile-locale-select']")
-        localeSelect.waitFor()
+        assertThat(localeSelect).isVisible()
 
         // Open dropdown
         localeSelect.click()
 
         // Verify some options are visible
         val dropdown = page.locator("[data-testid='profile-locale-dropdown']")
-        dropdown.waitFor()
+        assertThat(dropdown).isVisible()
         
         val usOption = page.locator("[data-testid='locale-option-en-US']")
         val ukOption = page.locator("[data-testid='locale-option-uk-UA']")
         val deOption = page.locator("[data-testid='locale-option-de-DE']")
         
-        assertTrue(usOption.isVisible, "English (US) option should be visible")
-        assertTrue(ukOption.isVisible, "Ukrainian (Ukraine) option should be visible")
-        assertTrue(deOption.isVisible, "German (Germany) option should be visible")
+        assertThat(usOption).isVisible()
+        assertThat(ukOption).isVisible()
+        assertThat(deOption).isVisible()
     }
 
     @Test
@@ -364,16 +336,16 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Verify all password inputs are visible
         val currentPasswordInput = page.locator("[data-testid='current-password-input']")
-        assertTrue(currentPasswordInput.isVisible, "Current password input should be visible")
+        assertThat(currentPasswordInput).isVisible()
 
         val newPasswordInput = page.locator("[data-testid='new-password-input']")
-        assertTrue(newPasswordInput.isVisible, "New password input should be visible")
+        assertThat(newPasswordInput).isVisible()
 
         val confirmPasswordInput = page.locator("[data-testid='confirm-password-input']")
-        assertTrue(confirmPasswordInput.isVisible, "Confirm password input should be visible")
+        assertThat(confirmPasswordInput).isVisible()
 
         val changePasswordButton = page.locator("[data-testid='change-password-button']")
-        assertTrue(changePasswordButton.isVisible, "Change password button should be visible")
+        assertThat(changePasswordButton).isVisible()
     }
 
     @Test
@@ -384,15 +356,15 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         val toggleButton = page.locator("[data-testid='toggle-current-password-visibility']")
 
         // Initially password should be hidden
-        assertEquals("password", currentPasswordInput.getAttribute("type"))
+        assertThat(currentPasswordInput).hasAttribute("type", "password")
 
         // Click toggle to show password
         toggleButton.click()
-        assertEquals("text", currentPasswordInput.getAttribute("type"))
+        assertThat(currentPasswordInput).hasAttribute("type", "text")
 
         // Click again to hide password
         toggleButton.click()
-        assertEquals("password", currentPasswordInput.getAttribute("type"))
+        assertThat(currentPasswordInput).hasAttribute("type", "password")
     }
 
     @Test
@@ -403,15 +375,15 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         val toggleButton = page.locator("[data-testid='toggle-new-password-visibility']")
 
         // Initially password should be hidden
-        assertEquals("password", newPasswordInput.getAttribute("type"))
+        assertThat(newPasswordInput).hasAttribute("type", "password")
 
         // Click toggle to show password
         toggleButton.click()
-        assertEquals("text", newPasswordInput.getAttribute("type"))
+        assertThat(newPasswordInput).hasAttribute("type", "text")
 
         // Click again to hide password
         toggleButton.click()
-        assertEquals("password", newPasswordInput.getAttribute("type"))
+        assertThat(newPasswordInput).hasAttribute("type", "password")
     }
 
     @Test
@@ -422,15 +394,15 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         val toggleButton = page.locator("[data-testid='toggle-confirm-password-visibility']")
 
         // Initially password should be hidden
-        assertEquals("password", confirmPasswordInput.getAttribute("type"))
+        assertThat(confirmPasswordInput).hasAttribute("type", "password")
 
         // Click toggle to show password
         toggleButton.click()
-        assertEquals("text", confirmPasswordInput.getAttribute("type"))
+        assertThat(confirmPasswordInput).hasAttribute("type", "text")
 
         // Click again to hide password
         toggleButton.click()
-        assertEquals("password", confirmPasswordInput.getAttribute("type"))
+        assertThat(confirmPasswordInput).hasAttribute("type", "password")
     }
 
     @Test
@@ -444,14 +416,10 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // Click change password
         page.locator("[data-testid='change-password-button']").click()
 
-        // Wait for error message
+        // Wait for error message and verify
         val errorMessage = page.locator("[data-testid='change-password-error']")
-        errorMessage.waitFor()
-        assertTrue(errorMessage.isVisible, "Error message should be visible")
-        assertTrue(
-            errorMessage.textContent()?.contains("Current password is required") == true,
-            "Error should indicate current password is required"
-        )
+        assertThat(errorMessage).isVisible()
+        assertThat(errorMessage).containsText("Current password is required")
     }
 
     @Test
@@ -464,14 +432,10 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // Click change password
         page.locator("[data-testid='change-password-button']").click()
 
-        // Wait for error message
+        // Wait for error message and verify
         val errorMessage = page.locator("[data-testid='change-password-error']")
-        errorMessage.waitFor()
-        assertTrue(errorMessage.isVisible, "Error message should be visible")
-        assertTrue(
-            errorMessage.textContent()?.contains("New password is required") == true,
-            "Error should indicate new password is required"
-        )
+        assertThat(errorMessage).isVisible()
+        assertThat(errorMessage).containsText("New password is required")
     }
 
     @Test
@@ -486,14 +450,10 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // Click change password
         page.locator("[data-testid='change-password-button']").click()
 
-        // Wait for error message
+        // Wait for error message and verify
         val errorMessage = page.locator("[data-testid='change-password-error']")
-        errorMessage.waitFor()
-        assertTrue(errorMessage.isVisible, "Error message should be visible")
-        assertTrue(
-            errorMessage.textContent()?.contains("do not match") == true,
-            "Error should indicate passwords do not match"
-        )
+        assertThat(errorMessage).isVisible()
+        assertThat(errorMessage).containsText("do not match")
     }
 
     @Test
@@ -508,14 +468,10 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // Click change password
         page.locator("[data-testid='change-password-button']").click()
 
-        // Wait for error message
+        // Wait for error message and verify
         val errorMessage = page.locator("[data-testid='change-password-error']")
-        errorMessage.waitFor()
-        assertTrue(errorMessage.isVisible, "Error message should be visible")
-        assertTrue(
-            errorMessage.textContent()?.contains("Current password is incorrect") == true,
-            "Error should indicate current password is incorrect"
-        )
+        assertThat(errorMessage).isVisible()
+        assertThat(errorMessage).containsText("Current password is incorrect")
     }
 
     @Test
@@ -536,14 +492,10 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // Click change password
         page.locator("[data-testid='change-password-button']").click()
 
-        // Wait for error message
+        // Wait for error message and verify
         val errorMessage = page.locator("[data-testid='change-password-error']")
-        errorMessage.waitFor()
-        assertTrue(errorMessage.isVisible, "Error message should be visible")
-        assertTrue(
-            errorMessage.textContent()?.contains("exceed 50 characters") == true,
-            "Error should indicate password exceeds max length"
-        )
+        assertThat(errorMessage).isVisible()
+        assertThat(errorMessage).containsText("exceed 50 characters")
     }
 
     @Test
@@ -560,23 +512,19 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // Click change password
         page.locator("[data-testid='change-password-button']").click()
 
-        // Wait for success message
+        // Wait for success message and verify
         val successMessage = page.locator("[data-testid='change-password-success']")
-        successMessage.waitFor()
-        assertTrue(successMessage.isVisible, "Success message should be visible")
-        assertTrue(
-            successMessage.textContent()?.contains("Password changed successfully") == true,
-            "Success message should indicate password was changed"
-        )
+        assertThat(successMessage).isVisible()
+        assertThat(successMessage).containsText("Password changed successfully")
 
         // Verify inputs are reset
         val currentPasswordInput = page.locator("[data-testid='current-password-input']")
         val newPasswordInput = page.locator("[data-testid='new-password-input']")
         val confirmPasswordInput = page.locator("[data-testid='confirm-password-input']")
 
-        assertEquals("", currentPasswordInput.inputValue(), "Current password input should be reset")
-        assertEquals("", newPasswordInput.inputValue(), "New password input should be reset")
-        assertEquals("", confirmPasswordInput.inputValue(), "Confirm password input should be reset")
+        assertThat(currentPasswordInput).hasValue("")
+        assertThat(newPasswordInput).hasValue("")
+        assertThat(confirmPasswordInput).hasValue("")
     }
 
     @Test
@@ -592,7 +540,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='change-password-button']").click()
 
         // Wait for success
-        page.locator("[data-testid='change-password-success']").waitFor()
+        assertThat(page.locator("[data-testid='change-password-success']")).isVisible()
 
         // Logout
         page.locator("[data-testid='profile-menu-button']").click()
@@ -607,8 +555,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // Should be redirected to portal
         page.waitForURL("**/portal")
         val userPortal = page.locator("[data-testid='user-portal']")
-        userPortal.waitFor()
-        assertTrue(userPortal.isVisible, "User portal should be visible after login with new password")
+        assertThat(userPortal).isVisible()
     }
 
     @Test
@@ -625,16 +572,16 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Wait for error message
         val errorMessage = page.locator("[data-testid='change-password-error']")
-        errorMessage.waitFor()
+        assertThat(errorMessage).isVisible()
 
         // Verify inputs are NOT reset
         val currentPasswordInput = page.locator("[data-testid='current-password-input']")
         val newPasswordInput = page.locator("[data-testid='new-password-input']")
         val confirmPasswordInput = page.locator("[data-testid='confirm-password-input']")
 
-        assertEquals(testPassword, currentPasswordInput.inputValue(), "Current password input should not be reset on error")
-        assertEquals("newPassword123", newPasswordInput.inputValue(), "New password input should not be reset on error")
-        assertEquals("differentPassword456", confirmPasswordInput.inputValue(), "Confirm password input should not be reset on error")
+        assertThat(currentPasswordInput).hasValue(testPassword)
+        assertThat(newPasswordInput).hasValue("newPassword123")
+        assertThat(confirmPasswordInput).hasValue("differentPassword456")
     }
 
     @Test
@@ -653,8 +600,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Wait for success message
         val successMessage = page.locator("[data-testid='change-password-success']")
-        successMessage.waitFor()
-        assertTrue(successMessage.isVisible, "Success message should be visible for max length password")
+        assertThat(successMessage).isVisible()
     }
 
     // === Sanity Success Path Test for Admin ===
@@ -679,8 +625,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Verify settings page is displayed
         val settingsPage = page.locator("[data-testid='settings-page']")
-        settingsPage.waitFor()
-        assertTrue(settingsPage.isVisible, "Settings page should be visible for admin")
+        assertThat(settingsPage).isVisible()
 
         val newPassword = "newAdminPassword789"
 
@@ -692,13 +637,9 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // Click change password
         page.locator("[data-testid='change-password-button']").click()
 
-        // Wait for success message
+        // Wait for success message and verify
         val successMessage = page.locator("[data-testid='change-password-success']")
-        successMessage.waitFor()
-        assertTrue(successMessage.isVisible, "Admin should see success message after changing password")
-        assertTrue(
-            successMessage.textContent()?.contains("Password changed successfully") == true,
-            "Success message should indicate password was changed"
-        )
+        assertThat(successMessage).isVisible()
+        assertThat(successMessage).containsText("Password changed successfully")
     }
 }

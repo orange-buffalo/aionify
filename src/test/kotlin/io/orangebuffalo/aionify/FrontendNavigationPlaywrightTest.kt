@@ -1,5 +1,6 @@
 package io.orangebuffalo.aionify
 
+import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.quarkus.test.common.http.TestHTTPResource
 import io.quarkus.test.junit.QuarkusTest
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -33,6 +34,6 @@ class FrontendNavigationPlaywrightTest : PlaywrightTestBase() {
         
         // Verify basic page content is loaded
         val body = page.locator("body")
-        assertTrue(body.isVisible, "Body element should be visible")
+        assertThat(body).isVisible()
     }
 }
