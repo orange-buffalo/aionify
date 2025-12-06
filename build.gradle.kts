@@ -33,8 +33,7 @@ dependencies {
     // Security / Password hashing
     implementation("io.quarkus:quarkus-elytron-security-common")
 
-    // JWT authentication
-    implementation("io.quarkus:quarkus-smallrye-jwt")
+    // JWT authentication - using jjwt for both generation and validation
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")
     implementation("io.jsonwebtoken:jjwt-impl:0.12.6")
     implementation("io.jsonwebtoken:jjwt-jackson:0.12.6")

@@ -15,11 +15,10 @@ import java.util.Locale
 /**
  * Playwright tests for the login functionality.
  * 
- * Note: These tests run in Quarkus test mode. The application uses jjwt library to
- * auto-generate RSA key pairs for JWT signing at startup. This works in all modes
- * (dev, test, production).
- * 
- * The tests verify login UI behavior and successful authentication flows.
+ * Note: The application uses jjwt library to auto-generate RSA key pairs for both JWT
+ * signing and validation at startup. All keys are kept in-memory only, with no file
+ * storage required. This approach works in all modes (dev, test, production) and
+ * eliminates issues with shared files between test forks or multiple instances.
  */
 @QuarkusTest
 class LoginPlaywrightTest : PlaywrightTestBase() {

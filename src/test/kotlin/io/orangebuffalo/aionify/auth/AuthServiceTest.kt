@@ -14,9 +14,10 @@ import java.util.Locale
 /**
  * Test for AuthService to verify JWT token generation and authentication.
  * 
- * The application uses the jjwt library to auto-generate RSA key pairs for JWT signing
- * at startup. This test verifies that the JWT signing mechanism works correctly in all
- * environments (dev, test, production).
+ * The application uses the jjwt library to auto-generate RSA key pairs for both JWT
+ * signing and validation at startup. All keys are kept in-memory only, with no file
+ * storage required. This eliminates issues with shared files between test forks or
+ * multiple application instances.
  */
 @QuarkusTest
 class AuthServiceTest {
