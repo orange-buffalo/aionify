@@ -1,6 +1,7 @@
 package io.orangebuffalo.aionify.auth
 
 import io.jsonwebtoken.Jwts
+import io.quarkus.runtime.ShutdownEvent
 import io.quarkus.runtime.StartupEvent
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.enterprise.event.Observes
@@ -54,12 +55,31 @@ class JwtTokenService(
             Files.deleteIfExists(publicKeyPath)
             Files.createFile(publicKeyPath, attrs)
             Files.writeString(publicKeyPath, publicKeyPem)
-        } catch (e: UnsupportedOperationException) {
-            // POSIX not supported (e.g., Windows), fallback to default permissions
-            Files.writeString(publicKeyPath, publicKeyPem)
+            log.info("JWT public key written to: $publicKeyPath")
+        } catch (e: Exception) {
+            // Handle all exceptions (UnsupportedOperationException, IOException, etc.)
+            log.warn("Could not set POSIX permissions on JWT public key file. Falling back to default permissions.", e)
+            try {
+                Files.deleteIfExists(publicKeyPath)
+                Files.writeString(publicKeyPath, publicKeyPem)
+                log.info("JWT public key written to: $publicKeyPath (with default permissions)")
+            } catch (e: Exception) {
+                log.error("Failed to write JWT public key file", e)
+                throw RuntimeException("Failed to initialize JWT token service", e)
+            }
         }
-        
-        log.info("JWT public key written to: $publicKeyPath")
+    }
+    
+    fun shutdown(@Observes event: ShutdownEvent) {
+        // Clean up the temporary public key file on shutdown
+        try {
+            if (::publicKeyPath.isInitialized && Files.exists(publicKeyPath)) {
+                Files.delete(publicKeyPath)
+                log.info("JWT public key file cleaned up: $publicKeyPath")
+            }
+        } catch (e: Exception) {
+            log.warn("Failed to clean up JWT public key file: $publicKeyPath", e)
+        }
     }
 
     private fun convertPublicKeyToPem(publicKey: java.security.PublicKey): String {
