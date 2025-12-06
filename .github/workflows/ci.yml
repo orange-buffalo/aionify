@@ -20,23 +20,24 @@ jobs:
       - name: Setup environment
         uses: ./.github/actions/setup-environment
 
+      - name: Prepare container image tag
+        id: prepare-tag
+        run: |
+          # Extract branch name and sanitize it for use as a Docker tag
+          # Replaces / with - and removes any characters not allowed in Docker tags
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          SANITIZED_TAG=$(echo "$BRANCH_NAME" | sed 's/\//-/g' | sed 's/[^a-zA-Z0-9._-]/-/g')
+          echo "tag=$SANITIZED_TAG" >> $GITHUB_OUTPUT
+          echo "Using Docker tag: $SANITIZED_TAG"
+
       - name: Log in to Container registry
-        if: github.ref == 'refs/heads/main'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and test (feature branches)
-        if: github.ref != 'refs/heads/main'
-        env:
-          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
-        run: |
-          ./gradlew build --build-cache --console=plain
-
-      - name: Build, test and publish container image (main branch)
-        if: github.ref == 'refs/heads/main'
+      - name: Build, test and publish container image
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
         run: |
@@ -44,6 +45,7 @@ jobs:
             -Dquarkus.package.jar.enabled=false -Dquarkus.native.enabled=true \
             -Dquarkus.container-image.build=true \
             -Dquarkus.container-image.push=true \
+            -Dquarkus.container-image.tag=${{ steps.prepare-tag.outputs.tag }} \
             --build-cache --console=plain
 
       - name: Upload Playwright traces
