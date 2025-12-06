@@ -78,6 +78,7 @@ class UserResource(private val userRepository: UserRepository) {
     private fun parseLocale(localeTag: String): Locale? {
         if (localeTag.isBlank()) return null
         val locale = Locale.forLanguageTag(localeTag)
+        // "und" is the BCP 47 language tag for "undetermined" - returned when the input is invalid
         return if (locale.toLanguageTag() == "und") null else locale
     }
 }

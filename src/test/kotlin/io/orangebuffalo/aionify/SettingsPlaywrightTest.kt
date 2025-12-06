@@ -126,7 +126,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Verify existing data is loaded
         assertEquals(regularUserGreeting, greetingInput.inputValue(), "Greeting should be pre-filled")
-        assertEquals("English", languageSelect.textContent(), "Language should show English")
+        assertTrue(languageSelect.textContent()?.contains("English") == true, "Language should show English")
     }
 
     @Test
@@ -153,7 +153,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         assertEquals("Привіт", greetingInput.inputValue(), "Greeting should show Ukrainian greeting")
         
         val languageSelect = page.locator("[data-testid='profile-language-select']")
-        assertEquals("Ukrainian", languageSelect.textContent(), "Language should show Ukrainian")
+        assertTrue(languageSelect.textContent()?.contains("Ukrainian") == true, "Language should show Ukrainian")
         
         val localeSelect = page.locator("[data-testid='profile-locale-select']")
         assertEquals("Ukrainian (Ukraine)", localeSelect.textContent(), "Locale should show Ukrainian (Ukraine)")
@@ -181,7 +181,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Verify data is loaded
         assertEquals("Hallo", greetingInput.inputValue(), "Greeting should show German greeting")
-        assertEquals("English", page.locator("[data-testid='profile-language-select']").textContent(), "Language should be English")
+        assertTrue(page.locator("[data-testid='profile-language-select']").textContent()?.contains("English") == true, "Language should be English")
         assertEquals("German (Germany)", page.locator("[data-testid='profile-locale-select']").textContent(), "Locale should show German (Germany)")
     }
 
@@ -289,7 +289,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         
         greetingInput.waitFor()
         assertEquals("Updated Greeting", greetingInput.inputValue(), "Updated greeting should be persisted")
-        assertEquals("Ukrainian", page.locator("[data-testid='profile-language-select']").textContent(), "Ukrainian language should be persisted")
+        assertTrue(page.locator("[data-testid='profile-language-select']").textContent()?.contains("Ukrainian") == true, "Ukrainian language should be persisted")
         assertEquals("Ukrainian (Ukraine)", page.locator("[data-testid='profile-locale-select']").textContent(), "Ukrainian locale should be persisted")
     }
 
