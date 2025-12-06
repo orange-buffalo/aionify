@@ -136,7 +136,7 @@ export function ProfilePanel() {
         locale,
       })
       
-      // Save language to localStorage and update i18n using centralized function
+      // Update user language preference and apply changes
       await initializeLanguage(language)
       
       // Set success flag (translation will be applied in JSX with current language)

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, LogIn, User, KeyRound } from "lucide-react"
 import { LAST_USERNAME_KEY, TOKEN_KEY } from "@/lib/constants"
-import { initializeLanguage, loadSavedLanguage, translateErrorCode } from "@/lib/i18n"
+import { initializeLanguage, translateErrorCode } from "@/lib/i18n"
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -20,6 +20,7 @@ export function LoginPage() {
   const [lastUserGreeting, setLastUserGreeting] = useState<string | null>(null)
 
   useEffect(() => {
+    // Load last user's credentials from localStorage (runs once on mount)
     const lastUsername = localStorage.getItem(LAST_USERNAME_KEY)
     if (lastUsername) {
       try {

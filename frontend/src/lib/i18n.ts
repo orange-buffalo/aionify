@@ -316,10 +316,6 @@ export const saveLanguagePreference = (languageCode: string) => {
   }
 }
 
-export const loadSavedLanguage = (): string | null => {
-  return getSavedLanguage()
-}
-
 export const initializeLanguage = async (languageCode: string) => {
   saveLanguagePreference(languageCode)
   await i18n.changeLanguage(languageCode)
