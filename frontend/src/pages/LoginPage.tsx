@@ -54,7 +54,12 @@ export function LoginPage() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || t("login.invalidCredentials"))
+        // Translate known API error messages
+        const apiError = errorData.error || ""
+        if (apiError === "Invalid username or password") {
+          throw new Error(t("login.invalidCredentials"))
+        }
+        throw new Error(apiError || t("login.invalidCredentials"))
       }
 
       const data = await response.json()
