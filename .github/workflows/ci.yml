@@ -24,9 +24,10 @@ jobs:
         id: prepare-tag
         run: |
           # Extract branch name and sanitize it for use as a Docker tag
-          # Replaces / with - and removes any characters not allowed in Docker tags
+          # Docker tags must match [a-zA-Z0-9_.-]+
           BRANCH_NAME="${GITHUB_REF#refs/heads/}"
-          SANITIZED_TAG=$(echo "$BRANCH_NAME" | sed 's/\//-/g' | sed 's/[^a-zA-Z0-9._-]/-/g')
+          # Replace / with -, remove invalid characters, collapse consecutive hyphens, remove leading/trailing hyphens
+          SANITIZED_TAG=$(echo "$BRANCH_NAME" | sed 's/\//-/g' | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/-\+/-/g' | sed 's/^-//' | sed 's/-$//')
           echo "tag=$SANITIZED_TAG" >> $GITHUB_OUTPUT
           echo "Using Docker tag: $SANITIZED_TAG"
 
