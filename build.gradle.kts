@@ -83,6 +83,9 @@ java {
 
 tasks.withType<Test> {
     systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
+    testLogging {
+        events("passed", "skipped", "failed", "standardOut", "standardError")
+    }
 }
 
 allOpen {
@@ -137,30 +140,34 @@ tasks.register<JavaExec>("installPlaywrightBrowsers") {
 val e2eTest by tasks.registering(Test::class) {
     description = "Runs E2E tests against Docker image"
     group = "verification"
-    
+
     testClassesDirs = sourceSets["e2eTest"].output.classesDirs
     classpath = sourceSets["e2eTest"].runtimeClasspath
-    
+
     // Must run after the image is built
     mustRunAfter(tasks.build)
-    
+
     systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
-    
+
     // Pass the Docker image tag to tests via system property
     // Check is deferred to execution time via doFirst
     doFirst {
-        val dockerImage = System.getenv("AIONIFY_DOCKER_IMAGE") 
+        val dockerImage = System.getenv("AIONIFY_DOCKER_IMAGE")
             ?: System.getProperty("aionify.docker.image")
             ?: throw GradleException("E2E tests require AIONIFY_DOCKER_IMAGE environment variable or -Daionify.docker.image system property to be set")
-        
+
         systemProperty("aionify.docker.image", dockerImage)
     }
-    
+
     useJUnitPlatform()
-    
+
     // Generate test reports
     reports {
         html.required.set(true)
         junitXml.required.set(true)
+    }
+
+    testLogging {
+        events("passed", "skipped", "failed", "standardOut", "standardError")
     }
 }

@@ -66,8 +66,8 @@ jobs:
           AIONIFY_DOCKER_IMAGE: ghcr.io/orange-buffalo/aionify:${{ steps.prepare-tag.outputs.tag }}
         run: |
           ./gradlew e2eTest \
-            -Daionify.docker.image=ghcr.io/orange-buffalo/aionify:${{ steps.prepare-tag.outputs.tag }} \
-            --console=plain
+            -Daionify.docker.image=$AIONIFY_DOCKER_IMAGE \
+            --build-cache --console=plain
 
       - name: Upload Playwright traces
         uses: actions/upload-artifact@v4

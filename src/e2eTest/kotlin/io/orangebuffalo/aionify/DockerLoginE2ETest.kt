@@ -8,13 +8,14 @@ import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.ComposeContainer
+import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.Wait
 import java.io.File
 import java.time.Duration
 
 /**
  * End-to-end test that validates login functionality on a Docker image.
- * 
+ *
  * This test:
  * 1. Starts the application and database using Docker Compose
  * 2. Waits for the application to be ready
@@ -42,12 +43,13 @@ class DockerLoginE2ETest {
 
         // Create a temporary docker-compose file with the actual image name
         val tempComposeFile = createTempComposeFile(dockerImage)
-        
+
         try {
             // Start Docker Compose
             val composeContainer = ComposeContainer(tempComposeFile)
                 .withExposedService(APP_SERVICE, APP_PORT, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(3)))
                 .withLocalCompose(true)
+                .withLogConsumer(APP_SERVICE, Slf4jLogConsumer(log))
 
             try {
                 log.info("Starting Docker Compose...")
@@ -87,18 +89,18 @@ class DockerLoginE2ETest {
         if (!templateFile.exists()) {
             throw IllegalStateException("Template compose file not found at: ${templateFile.absolutePath}")
         }
-        
+
         val template = templateFile.readText()
-        
+
         // Replace the environment variable with the actual image name
         val content = template.replace("\${AIONIFY_IMAGE}", dockerImage)
-        
+
         val tempFile = File.createTempFile("docker-compose-e2e-", ".yml")
         tempFile.deleteOnExit()
         tempFile.writeText(content)
-        
+
         log.info("Created temporary compose file at: {}", tempFile.absolutePath)
-        
+
         return tempFile
     }
 
@@ -140,18 +142,18 @@ class DockerLoginE2ETest {
 
     private fun extractAdminPasswordFromLogs(composeContainer: ComposeContainer): String {
         // Testcontainers appends '_1' to the service name for the first instance
-        val containerName = "${APP_SERVICE}_1"
+        val containerName = "${APP_SERVICE}-1"
         val container = composeContainer.getContainerByServiceName(containerName)
-            .orElseThrow { 
+            .orElseThrow {
                 IllegalStateException(
                     "Could not find container for service $APP_SERVICE. " +
                     "Expected container name: $containerName. " +
                     "This might happen if Testcontainers changes its naming convention."
                 )
             }
-        
+
         val logs = container.logs
-        
+
         // Look for the password pattern in logs
         // Expected format:
         // ============================================================
@@ -160,7 +162,7 @@ class DockerLoginE2ETest {
         // Password: <random-password>
         // Please change this password after first login!
         // ============================================================
-        
+
         val passwordPattern = Regex("""Password:\s*([^\s]+)""")
         val match = passwordPattern.find(logs)
             ?: throw IllegalStateException(
