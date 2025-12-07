@@ -70,22 +70,33 @@ class DockerLoginE2ETest {
                 composeContainer.stop()
             }
         } finally {
-            // Clean up temporary file
-            tempComposeFile.delete()
+            // Clean up temporary file (best effort)
+            try {
+                if (tempComposeFile.exists()) {
+                    tempComposeFile.delete()
+                }
+            } catch (e: Exception) {
+                log.warn("Failed to delete temporary compose file: {}", e.message)
+            }
         }
     }
 
     private fun createTempComposeFile(dockerImage: String): File {
-        val tempFile = File.createTempFile("docker-compose-e2e-", ".yml")
-        
         // Read the template compose file
         val templateFile = File("src/test/resources/docker-compose-e2e.yml")
+        if (!templateFile.exists()) {
+            throw IllegalStateException("Template compose file not found at: ${templateFile.absolutePath}")
+        }
+        
         val template = templateFile.readText()
         
         // Replace the environment variable with the actual image name
         val content = template.replace("\${AIONIFY_IMAGE}", dockerImage)
         
+        val tempFile = File.createTempFile("docker-compose-e2e-", ".yml")
+        tempFile.deleteOnExit()
         tempFile.writeText(content)
+        
         log.info("Created temporary compose file at: {}", tempFile.absolutePath)
         
         return tempFile
