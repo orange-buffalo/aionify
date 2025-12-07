@@ -12,6 +12,7 @@ import jakarta.ws.rs.core.Context
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.core.SecurityContext
+import kotlinx.serialization.Serializable
 
 @Path("/api/auth")
 class AuthResource(private val authService: AuthService) {
@@ -57,11 +58,13 @@ class AuthResource(private val authService: AuthService) {
     }
 }
 
+@Serializable
 data class LoginRequest(
     val userName: String,
     val password: String
 )
 
+@Serializable
 data class LoginResponse(
     val token: String,
     val userName: String,
@@ -70,11 +73,13 @@ data class LoginResponse(
     val languageCode: String
 )
 
+@Serializable
 data class LoginErrorResponse(
     val error: String,
     val errorCode: String = "INVALID_CREDENTIALS"
 )
 
+@Serializable
 data class ChangePasswordRequest(
     @field:NotBlank(message = "Current password cannot be empty")
     val currentPassword: String,
@@ -84,10 +89,12 @@ data class ChangePasswordRequest(
     val newPassword: String
 )
 
+@Serializable
 data class ChangePasswordSuccessResponse(
     val message: String
 )
 
+@Serializable
 data class ChangePasswordErrorResponse(
     val error: String,
     val errorCode: String
