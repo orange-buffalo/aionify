@@ -50,7 +50,10 @@ class DockerLoginE2ETest {
         try {
             // Start Docker Compose
             val composeContainer = ComposeContainer(tempComposeFile)
-                .withExposedService(APP_SERVICE, APP_PORT, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(3)))
+                .withExposedService(APP_SERVICE, APP_PORT, 
+                    Wait.forHttp("/")
+                        .forStatusCode(200)
+                        .withStartupTimeout(Duration.ofMinutes(3)))
                 .withLocalCompose(true)
                 .withLogConsumer(APP_SERVICE, Slf4jLogConsumer(log))
 
@@ -68,6 +71,23 @@ class DockerLoginE2ETest {
                 // Extract admin password from logs
                 val adminPassword = extractAdminPasswordFromLogs(composeContainer)
                 log.info("Extracted admin password successfully")
+
+                // Wait a bit for the application to be fully ready
+                log.info("Waiting for application to be fully ready...")
+                Thread.sleep(2000)
+
+                // Verify application is responding with a simple GET request
+                try {
+                    val connection = java.net.URL(appUrl).openConnection() as java.net.HttpURLConnection
+                    connection.requestMethod = "GET"
+                    connection.connectTimeout = 5000
+                    connection.readTimeout = 5000
+                    val responseCode = connection.responseCode
+                    log.info("GET {} returned HTTP {}", appUrl, responseCode)
+                    connection.disconnect()
+                } catch (e: Exception) {
+                    log.error("Failed to connect to application at {}: {}", appUrl, e.message, e)
+                }
 
                 // Test login with Playwright
                 testLoginWithPlaywright(appUrl, adminPassword)
