@@ -62,7 +62,9 @@ The application will be available at `http://localhost:8080`.
 
 ## Running with Docker Compose
 
-Create a `docker-compose.yml` file:
+A reference Docker Compose configuration is available in the repository at [`src/test/resources/docker-compose-e2e.yml`](https://github.com/orange-buffalo/aionify/blob/main/src/test/resources/docker-compose-e2e.yml).
+
+For production use, create your own `docker-compose.yml` file based on this reference, with the following additions:
 
 ```yaml
 services:
@@ -73,7 +75,7 @@ services:
     environment:
       AIONIFY_DB_URL: jdbc:postgresql://db:5432/aionify
       AIONIFY_DB_USERNAME: aionify
-      AIONIFY_DB_PASSWORD: your-secure-password
+      AIONIFY_DB_PASSWORD: your-secure-password  # Change this!
     depends_on:
       db:
         condition: service_healthy
@@ -83,9 +85,9 @@ services:
     environment:
       POSTGRES_DB: aionify
       POSTGRES_USER: aionify
-      POSTGRES_PASSWORD: your-secure-password
+      POSTGRES_PASSWORD: your-secure-password  # Change this!
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data  # Persist data across restarts
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U aionify -d aionify"]
       interval: 5s
@@ -93,8 +95,12 @@ services:
       retries: 5
 
 volumes:
-  postgres_data:
+  postgres_data:  # Named volume for database persistence
 ```
+
+**Important**: 
+- Change `your-secure-password` to a strong, unique password
+- The `postgres_data` volume ensures database data persists across container restarts
 
 Start the application:
 

@@ -47,6 +47,32 @@ dependencies {
     testImplementation("io.rest-assured:kotlin-extensions")
 }
 
+// E2E tests source set
+sourceSets {
+    create("e2eTest") {
+        kotlin {
+            srcDir("src/e2eTest/kotlin")
+        }
+        resources {
+            srcDir("src/e2eTest/resources")
+        }
+        compileClasspath += sourceSets.main.get().output + configurations.testRuntimeClasspath.get()
+        runtimeClasspath += output + compileClasspath
+    }
+}
+
+// E2E test dependencies
+val e2eTestImplementation by configurations.getting {
+    extendsFrom(configurations.testImplementation.get())
+}
+
+dependencies {
+    e2eTestImplementation("org.testcontainers:testcontainers:1.20.4")
+    e2eTestImplementation("org.testcontainers:junit-jupiter:1.20.4")
+    e2eTestImplementation("com.microsoft.playwright:playwright:1.52.0")
+    e2eTestImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+}
+
 group = "io.orange-buffalo"
 version = "1.0.0-SNAPSHOT"
 
@@ -105,4 +131,29 @@ tasks.register<JavaExec>("installPlaywrightBrowsers") {
     classpath = playwrightConfig
     mainClass.set("com.microsoft.playwright.CLI")
     args("install", "--with-deps", "chromium")
+}
+
+// E2E test task
+val e2eTest by tasks.registering(Test::class) {
+    description = "Runs E2E tests against Docker image"
+    group = "verification"
+    
+    testClassesDirs = sourceSets["e2eTest"].output.classesDirs
+    classpath = sourceSets["e2eTest"].runtimeClasspath
+    
+    // Must run after the image is built
+    mustRunAfter(tasks.build)
+    
+    systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
+    
+    // Pass the Docker image tag to tests via system property
+    systemProperty("aionify.docker.image", System.getenv("AIONIFY_DOCKER_IMAGE") ?: "ghcr.io/orange-buffalo/aionify:latest")
+    
+    useJUnitPlatform()
+    
+    // Generate test reports
+    reports {
+        html.required.set(true)
+        junitXml.required.set(true)
+    }
 }

@@ -1,0 +1,24 @@
+services:
+  aionify:
+    image: ${AIONIFY_IMAGE:-ghcr.io/orange-buffalo/aionify:latest}
+    ports:
+      - "8080:8080"
+    environment:
+      AIONIFY_DB_URL: jdbc:postgresql://db:5432/aionify
+      AIONIFY_DB_USERNAME: aionify
+      AIONIFY_DB_PASSWORD: test-password
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: aionify
+      POSTGRES_USER: aionify
+      POSTGRES_PASSWORD: test-password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aionify -d aionify"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
