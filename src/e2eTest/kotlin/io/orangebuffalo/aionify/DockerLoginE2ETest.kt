@@ -38,6 +38,7 @@ class DockerLoginE2ETest {
         private const val APP_SERVICE = "aionify"
         private const val APP_PORT = 8080
         private const val ADMIN_USERNAME = "sudo"
+        private const val MAX_LOG_OUTPUT_LENGTH = 5000
     }
 
     @BeforeAll
@@ -133,9 +134,18 @@ class DockerLoginE2ETest {
     }
 
     private fun extractAdminPasswordFromLogs(): String {
-        val logs = composeContainer.getContainerByServiceName("${APP_SERVICE}_1")
-            .orElseThrow { IllegalStateException("Could not find container for service $APP_SERVICE") }
-            .logs
+        // Testcontainers appends '_1' to the service name for the first instance
+        val containerName = "${APP_SERVICE}_1"
+        val container = composeContainer.getContainerByServiceName(containerName)
+            .orElseThrow { 
+                IllegalStateException(
+                    "Could not find container for service $APP_SERVICE. " +
+                    "Expected container name: $containerName. " +
+                    "This might happen if Testcontainers changes its naming convention."
+                )
+            }
+        
+        val logs = container.logs
         
         // Look for the password pattern in logs
         // Expected format:
@@ -149,7 +159,7 @@ class DockerLoginE2ETest {
         val passwordPattern = Regex("""Password:\s*([^\s]+)""")
         val match = passwordPattern.find(logs)
             ?: throw IllegalStateException(
-                "Could not find admin password in logs. Logs:\n${logs.take(5000)}"
+                "Could not find admin password in logs. Logs:\n${logs.take(MAX_LOG_OUTPUT_LENGTH)}"
             )
 
         return match.groupValues[1]

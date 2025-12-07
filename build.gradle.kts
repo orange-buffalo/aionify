@@ -147,7 +147,14 @@ val e2eTest by tasks.registering(Test::class) {
     systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
     
     // Pass the Docker image tag to tests via system property
-    systemProperty("aionify.docker.image", System.getenv("AIONIFY_DOCKER_IMAGE") ?: "ghcr.io/orange-buffalo/aionify:latest")
+    // Check is deferred to execution time via doFirst
+    doFirst {
+        val dockerImage = System.getenv("AIONIFY_DOCKER_IMAGE") 
+            ?: System.getProperty("aionify.docker.image")
+            ?: throw GradleException("E2E tests require AIONIFY_DOCKER_IMAGE environment variable or -Daionify.docker.image system property to be set")
+        
+        systemProperty("aionify.docker.image", dockerImage)
+    }
     
     useJUnitPlatform()
     
