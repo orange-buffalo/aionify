@@ -29,7 +29,7 @@ class AuthService(
             token = token,
             userName = user.userName,
             greeting = user.greeting,
-            isAdmin = user.isAdmin,
+            admin = user.isAdmin,
             languageCode = user.languageCode
         )
     }

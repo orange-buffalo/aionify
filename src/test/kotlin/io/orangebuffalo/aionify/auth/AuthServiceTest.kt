@@ -62,7 +62,7 @@ class AuthServiceTest {
         assertTrue(response.token.isNotEmpty(), "Token should not be empty")
         assertEquals(testUserName, response.userName)
         assertEquals(testGreeting, response.greeting)
-        assertFalse(response.isAdmin)
+        assertFalse(response.admin)
         
         // Verify token contains expected parts (header.payload.signature)
         val tokenParts = response.token.split(".")
@@ -116,10 +116,10 @@ class AuthServiceTest {
         // When: Authenticating as admin
         val response = authService.authenticate("admin", testPassword)
 
-        // Then: Token should be generated and isAdmin flag should be true
+        // Then: Token should be generated and admin flag should be true
         assertNotNull(response.token)
         assertTrue(response.token.isNotEmpty())
-        assertTrue(response.isAdmin)
+        assertTrue(response.admin)
         assertEquals("Admin User", response.greeting)
     }
 }

@@ -69,7 +69,7 @@ data class LoginResponse(
     val token: String,
     val userName: String,
     val greeting: String,
-    val isAdmin: Boolean,
+    val admin: Boolean,
     val languageCode: String
 )
 
