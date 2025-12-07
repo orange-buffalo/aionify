@@ -61,9 +61,6 @@ jobs:
             -Dquarkus.container-image.tag=${{ steps.prepare-tag.outputs.tag }} \
             --build-cache --console=plain
 
-      - name: Install Playwright browsers for E2E tests
-        run: ./gradlew installPlaywrightBrowsers
-
       - name: Run E2E tests against Docker image
         env:
           AIONIFY_DOCKER_IMAGE: ghcr.io/orange-buffalo/aionify:${{ steps.prepare-tag.outputs.tag }}

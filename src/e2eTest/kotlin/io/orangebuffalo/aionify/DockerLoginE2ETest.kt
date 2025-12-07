@@ -5,10 +5,8 @@ import com.microsoft.playwright.BrowserType
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.Playwright
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.slf4j.LoggerFactory
 import org.testcontainers.containers.ComposeContainer
 import org.testcontainers.containers.wait.strategy.Wait
 import java.io.File
@@ -24,15 +22,9 @@ import java.time.Duration
  * 4. Uses Playwright to test login with the extracted credentials
  * 5. Validates that login is successful by checking the admin portal loads
  */
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DockerLoginE2ETest {
 
-    private lateinit var composeContainer: ComposeContainer
-    private lateinit var playwright: Playwright
-    private lateinit var browser: Browser
-    private lateinit var page: Page
-    private lateinit var appUrl: String
-    private lateinit var adminPassword: String
+    private val log = LoggerFactory.getLogger(DockerLoginE2ETest::class.java)
 
     companion object {
         private const val APP_SERVICE = "aionify"
@@ -41,16 +33,12 @@ class DockerLoginE2ETest {
         private const val MAX_LOG_OUTPUT_LENGTH = 5000
     }
 
-    @BeforeAll
-    fun setup() {
-        // Get the Docker image from system property (passed from Gradle)
+    @Test
+    fun `should successfully login with auto-generated admin credentials`() {
         val dockerImage = System.getProperty("aionify.docker.image")
             ?: throw IllegalStateException("aionify.docker.image system property must be set")
 
-        println("Using Docker image: $dockerImage")
-
-        // Create environment variables for docker-compose
-        val envVars = mapOf("AIONIFY_IMAGE" to dockerImage)
+        log.info("Using Docker image: {}", dockerImage)
 
         // Find the docker-compose file
         val composeFile = File("src/test/resources/docker-compose-e2e.yml")
@@ -59,81 +47,79 @@ class DockerLoginE2ETest {
         }
 
         // Start Docker Compose
-        composeContainer = ComposeContainer(composeFile)
+        val composeContainer = ComposeContainer(composeFile)
             .withExposedService(APP_SERVICE, APP_PORT, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(3)))
-            .withEnv(envVars)
+            .withEnv(mapOf("AIONIFY_IMAGE" to dockerImage))
             .withLocalCompose(true)
 
-        println("Starting Docker Compose...")
-        composeContainer.start()
+        try {
+            log.info("Starting Docker Compose...")
+            composeContainer.start()
 
-        // Get the application URL
-        val host = composeContainer.getServiceHost(APP_SERVICE, APP_PORT)
-        val port = composeContainer.getServicePort(APP_SERVICE, APP_PORT)
-        appUrl = "http://$host:$port"
+            // Get the application URL
+            val host = composeContainer.getServiceHost(APP_SERVICE, APP_PORT)
+            val port = composeContainer.getServicePort(APP_SERVICE, APP_PORT)
+            val appUrl = "http://$host:$port"
 
-        println("Application available at: $appUrl")
+            log.info("Application available at: {}", appUrl)
 
-        // Extract admin password from logs
-        adminPassword = extractAdminPasswordFromLogs()
-        println("Extracted admin password successfully")
+            // Extract admin password from logs
+            val adminPassword = extractAdminPasswordFromLogs(composeContainer)
+            log.info("Extracted admin password successfully")
 
-        // Setup Playwright
-        playwright = Playwright.create()
-        browser = playwright.chromium().launch(
-            BrowserType.LaunchOptions().setHeadless(true)
-        )
-    }
-
-    @AfterAll
-    fun teardown() {
-        if (::page.isInitialized) {
-            page.close()
-        }
-        if (::browser.isInitialized) {
-            browser.close()
-        }
-        if (::playwright.isInitialized) {
-            playwright.close()
-        }
-        if (::composeContainer.isInitialized) {
+            // Test login with Playwright
+            testLoginWithPlaywright(appUrl, adminPassword)
+        } finally {
             composeContainer.stop()
         }
     }
 
-    @Test
-    fun `should successfully login with auto-generated admin credentials`() {
-        // Create a new page for this test
-        page = browser.newPage()
+    private fun testLoginWithPlaywright(appUrl: String, adminPassword: String) {
+        val playwright = Playwright.create()
+        try {
+            val browser = playwright.chromium().launch(
+                BrowserType.LaunchOptions().setHeadless(true)
+            )
+            try {
+                val page = browser.newPage()
+                try {
+                    // Navigate to login page
+                    page.navigate("$appUrl/login")
 
-        // Navigate to login page
-        page.navigate("$appUrl/login")
+                    // Verify login page is displayed
+                    val loginPage = page.locator("[data-testid='login-page']")
+                    assertThat(loginPage).isVisible()
 
-        // Verify login page is displayed
-        val loginPage = page.locator("[data-testid='login-page']")
-        assertThat(loginPage).isVisible()
+                    // Enter admin credentials
+                    page.locator("[data-testid='username-input']").fill(ADMIN_USERNAME)
+                    page.locator("[data-testid='password-input']").fill(adminPassword)
 
-        // Enter admin credentials
-        page.locator("[data-testid='username-input']").fill(ADMIN_USERNAME)
-        page.locator("[data-testid='password-input']").fill(adminPassword)
+                    // Click login button
+                    page.locator("[data-testid='login-button']").click()
 
-        // Click login button
-        page.locator("[data-testid='login-button']").click()
+                    // Wait for redirect to admin portal
+                    page.waitForURL("**/admin", Page.WaitForURLOptions().setTimeout(10000.0))
 
-        // Wait for redirect to admin portal
-        page.waitForURL("**/admin", Page.WaitForURLOptions().setTimeout(10000.0))
+                    // Verify we're on the admin portal
+                    val adminPortal = page.locator("[data-testid='admin-portal']")
+                    assertThat(adminPortal).isVisible()
 
-        // Verify we're on the admin portal
-        val adminPortal = page.locator("[data-testid='admin-portal']")
-        assertThat(adminPortal).isVisible()
+                    val adminTitle = page.locator("[data-testid='admin-title']")
+                    assertThat(adminTitle).hasText("Admin Portal")
 
-        val adminTitle = page.locator("[data-testid='admin-title']")
-        assertThat(adminTitle).hasText("Admin Portal")
-
-        println("✓ Login successful - admin portal loaded")
+                    log.info("✓ Login successful - admin portal loaded")
+                } finally {
+                    page.close()
+                }
+            } finally {
+                browser.close()
+            }
+        } finally {
+            playwright.close()
+        }
     }
 
-    private fun extractAdminPasswordFromLogs(): String {
+    private fun extractAdminPasswordFromLogs(composeContainer: ComposeContainer): String {
         // Testcontainers appends '_1' to the service name for the first instance
         val containerName = "${APP_SERVICE}_1"
         val container = composeContainer.getContainerByServiceName(containerName)
