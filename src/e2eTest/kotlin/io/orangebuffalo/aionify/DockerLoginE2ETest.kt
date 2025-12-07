@@ -133,7 +133,9 @@ class DockerLoginE2ETest {
     }
 
     private fun extractAdminPasswordFromLogs(): String {
-        val logs = composeContainer.getServiceContainer(APP_SERVICE).logs
+        val logs = composeContainer.getContainerByServiceName("${APP_SERVICE}_1")
+            .orElseThrow { IllegalStateException("Could not find container for service $APP_SERVICE") }
+            .logs
         
         // Look for the password pattern in logs
         // Expected format:
