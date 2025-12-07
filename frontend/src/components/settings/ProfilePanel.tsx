@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react"
+import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -7,12 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FormMessage } from "@/components/ui/form-message"
 import { User, Loader2 } from "lucide-react"
 import { apiGet, apiPut } from "@/lib/api"
-import ISO6391 from "iso-639-1"
+import { initializeLanguage, translateErrorCode } from "@/lib/i18n"
 
-// Available languages with native names using iso-639-1
+// Available languages with native names
 const LANGUAGES = [
   { code: "en", name: "English" },
-  { code: "uk", name: `Ukrainian (${ISO6391.getNativeName("uk")})` },
+  { code: "uk", name: "Ukrainian (Українська)" },
 ]
 
 // Standard locales (BCP 47 language tags with region)
@@ -70,6 +71,7 @@ function formatDateTimeExample(locale: string): string {
 }
 
 export function ProfilePanel() {
+  const { t, i18n } = useTranslation()
   const [greeting, setGreeting] = useState("")
   const [language, setLanguage] = useState("")
   const [locale, setLocale] = useState("")
@@ -109,33 +111,40 @@ export function ProfilePanel() {
 
     // Client-side validation
     if (!greeting.trim()) {
-      setError("Greeting cannot be blank")
+      setError(t("validation.greetingBlank"))
       return
     }
     if (greeting.length > 255) {
-      setError("Greeting cannot exceed 255 characters")
+      setError(t("validation.greetingTooLong"))
       return
     }
     if (!language) {
-      setError("Language is required")
+      setError(t("validation.languageRequired"))
       return
     }
     if (!locale) {
-      setError("Locale is required")
+      setError(t("validation.localeRequired"))
       return
     }
 
     setSaving(true)
 
     try {
-      const data = await apiPut<ProfileUpdateResponse>("/api/users/profile", {
+      await apiPut<ProfileUpdateResponse>("/api/users/profile", {
         greeting,
         languageCode: language,
         locale,
       })
-      setSuccess(data.message || "Profile updated successfully")
+      
+      // Update user language preference and apply changes
+      await initializeLanguage(language)
+      
+      // Set success flag (translation will be applied in JSX with current language)
+      setSuccess("success")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+      // Translate error using error code if available
+      const errorMessage = err instanceof Error ? err.message : t("common.error")
+      setError(errorMessage)
     } finally {
       setSaving(false)
     }
@@ -146,27 +155,27 @@ export function ProfilePanel() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <User className="h-5 w-5" />
-          My Profile
+          {t("settings.profile.title")}
         </CardTitle>
-        <CardDescription>View and manage your profile information</CardDescription>
+        <CardDescription>{t("settings.profile.subtitle")}</CardDescription>
       </CardHeader>
       <CardContent>
         {loading ? (
           <div className="flex items-center gap-2 text-muted-foreground" data-testid="profile-loading">
             <Loader2 className="h-4 w-4 animate-spin" />
-            Loading profile...
+            {t("settings.profile.loading")}
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
             {/* Greeting */}
             <div className="space-y-2">
               <Label htmlFor="greeting" className="text-muted-foreground">
-                Greeting
+                {t("settings.profile.greeting")}
               </Label>
               <Input
                 id="greeting"
                 type="text"
-                placeholder="Enter your greeting"
+                placeholder={t("settings.profile.greetingPlaceholder")}
                 value={greeting}
                 onChange={(e) => setGreeting(e.target.value)}
                 className="bg-background/50"
@@ -178,7 +187,7 @@ export function ProfilePanel() {
             {/* Language */}
             <div className="space-y-2">
               <Label htmlFor="language" className="text-muted-foreground">
-                Language
+                {t("settings.profile.language")}
               </Label>
               <Select value={language} onValueChange={setLanguage}>
                 <SelectTrigger 
@@ -186,7 +195,7 @@ export function ProfilePanel() {
                   className="bg-background/50"
                   data-testid="profile-language-select"
                 >
-                  <SelectValue placeholder="Select language" />
+                  <SelectValue placeholder={t("settings.profile.languagePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent data-testid="profile-language-dropdown">
                   {LANGUAGES.map((lang) => (
@@ -195,7 +204,7 @@ export function ProfilePanel() {
                       value={lang.code}
                       data-testid={`language-option-${lang.code}`}
                     >
-                      {lang.name}
+                      {t(`languages.${lang.code}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -205,7 +214,7 @@ export function ProfilePanel() {
             {/* Locale */}
             <div className="space-y-2">
               <Label htmlFor="locale" className="text-muted-foreground">
-                Locale
+                {t("settings.profile.locale")}
               </Label>
               <Select value={locale} onValueChange={setLocale}>
                 <SelectTrigger 
@@ -213,7 +222,7 @@ export function ProfilePanel() {
                   className="bg-background/50"
                   data-testid="profile-locale-select"
                 >
-                  <SelectValue placeholder="Select locale" />
+                  <SelectValue placeholder={t("settings.profile.localePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent data-testid="profile-locale-dropdown">
                   {LOCALES.map((loc) => (
@@ -229,7 +238,7 @@ export function ProfilePanel() {
               </Select>
               {localeExample && (
                 <p className="text-xs text-muted-foreground" data-testid="locale-example">
-                  Example: {localeExample}
+                  {t("settings.profile.localeExample", { example: localeExample })}
                 </p>
               )}
             </div>
@@ -241,7 +250,7 @@ export function ProfilePanel() {
 
             {/* Success Message */}
             {success && (
-              <FormMessage type="success" message={success} testId="profile-success" />
+              <FormMessage type="success" message={t("settings.profile.updateSuccess")} testId="profile-success" />
             )}
 
             {/* Submit Button */}
@@ -251,7 +260,7 @@ export function ProfilePanel() {
               disabled={saving}
               data-testid="profile-save-button"
             >
-              {saving ? "Saving..." : "Save Profile"}
+              {saving ? t("settings.profile.saving") : t("settings.profile.save")}
             </Button>
           </form>
         )}

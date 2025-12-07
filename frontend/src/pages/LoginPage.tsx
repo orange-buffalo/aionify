@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, LogIn, User, KeyRound } from "lucide-react"
 import { LAST_USERNAME_KEY, TOKEN_KEY } from "@/lib/constants"
+import { initializeLanguage, translateErrorCode } from "@/lib/i18n"
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [userName, setUserName] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -17,6 +20,7 @@ export function LoginPage() {
   const [lastUserGreeting, setLastUserGreeting] = useState<string | null>(null)
 
   useEffect(() => {
+    // Load last user's credentials from localStorage (runs once on mount)
     const lastUsername = localStorage.getItem(LAST_USERNAME_KEY)
     if (lastUsername) {
       try {
@@ -46,7 +50,8 @@ export function LoginPage() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || "Login failed")
+        // Translate error using error code if available
+        throw new Error(translateErrorCode(errorData.errorCode))
       }
 
       const data = await response.json()
@@ -58,6 +63,11 @@ export function LoginPage() {
         greeting: data.greeting
       }))
 
+      // Store user's preferred language and switch to it
+      if (data.languageCode) {
+        await initializeLanguage(data.languageCode)
+      }
+
       // Redirect based on user role (Jackson serializes isAdmin as "admin")
       if (data.admin) {
         navigate("/admin")
@@ -65,7 +75,7 @@ export function LoginPage() {
         navigate("/portal")
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+      setError(err instanceof Error ? err.message : t("common.error"))
     } finally {
       setIsLoading(false)
     }
@@ -76,11 +86,11 @@ export function LoginPage() {
       {/* Centered Login form */}
       <Card className="w-full max-w-md bg-card/90 backdrop-blur-sm border-border/50">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold" data-testid="login-title">Login</CardTitle>
+            <CardTitle className="text-2xl font-bold" data-testid="login-title">{t("login.title")}</CardTitle>
             <CardDescription>
               {lastUserGreeting 
-                ? <span data-testid="welcome-back-message">Welcome back, {lastUserGreeting}!</span>
-                : "Sign in to your account to continue."
+                ? <span data-testid="welcome-back-message">{t("login.welcomeBack", { greeting: lastUserGreeting })}</span>
+                : t("login.signInPrompt")
               }
             </CardDescription>
           </CardHeader>
@@ -88,14 +98,14 @@ export function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="userName" className="text-muted-foreground">
-                  Username
+                  {t("login.username")}
                 </Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="userName"
                     type="text"
-                    placeholder="Enter your username"
+                    placeholder={t("login.usernamePlaceholder")}
                     value={userName}
                     onChange={(e) => setUserName(e.target.value)}
                     className="pl-10 bg-background/50"
@@ -109,7 +119,7 @@ export function LoginPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password" className="text-muted-foreground">
-                    Password
+                    {t("login.password")}
                   </Label>
                   <button
                     type="button"
@@ -117,7 +127,7 @@ export function LoginPage() {
                     data-testid="lost-password-link"
                     onClick={() => {/* Dummy - no action */}}
                   >
-                    Lost password?
+                    {t("login.lostPassword")}
                   </button>
                 </div>
                 <div className="relative">
@@ -125,7 +135,7 @@ export function LoginPage() {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Password"
+                    placeholder={t("login.passwordPlaceholder")}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 pr-10 bg-background/50"
@@ -157,10 +167,10 @@ export function LoginPage() {
                 data-testid="login-button"
               >
                 {isLoading ? (
-                  "Signing in..."
+                  t("login.signingIn")
                 ) : (
                   <>
-                    Sign in
+                    {t("login.signIn")}
                     <LogIn className="ml-2 h-4 w-4" />
                   </>
                 )}

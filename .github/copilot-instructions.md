@@ -18,7 +18,7 @@ Project documentation is organized as follows:
 
 - **Backend**: Quarkus framework with Kotlin
 - **Frontend**: React with TypeScript, shadcn-ui components, and Tailwind CSS v4
-- **Build Tools**: Gradle for backend, Bun for frontend
+- **Build Tools**: Gradle for backend, **Bun for frontend** (never commit `package-lock.json`)
 - **Database**: PostgreSQL with Flyway migrations and JDBI for data access
 - **Testing**: JUnit 5 with Playwright for E2E tests
 
