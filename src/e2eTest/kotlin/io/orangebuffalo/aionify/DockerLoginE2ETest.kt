@@ -107,7 +107,7 @@ class DockerLoginE2ETest {
     private fun testLoginWithPlaywright(appUrl: String, adminPassword: String) {
         Playwright.create().use { playwright ->
             playwright.chromium().launch(
-                BrowserType.LaunchOptions().setHeadless(false)
+                BrowserType.LaunchOptions().setHeadless(true)
             ).use { browser ->
                 browser.newPage().use { page ->
                     // Navigate to login page
