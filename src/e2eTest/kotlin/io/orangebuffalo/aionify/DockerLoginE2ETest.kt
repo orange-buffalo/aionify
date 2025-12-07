@@ -4,6 +4,7 @@ import com.microsoft.playwright.Browser
 import com.microsoft.playwright.BrowserType
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.Playwright
+import com.microsoft.playwright.Tracing
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
@@ -11,6 +12,8 @@ import org.testcontainers.containers.ComposeContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.Wait
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.time.Duration
 
 /**
@@ -106,35 +109,60 @@ class DockerLoginE2ETest {
 
     private fun testLoginWithPlaywright(appUrl: String, adminPassword: String) {
         Playwright.create().use { playwright ->
-            playwright.chromium().launch(
+            val browser = playwright.chromium().launch(
                 BrowserType.LaunchOptions().setHeadless(true)
-            ).use { browser ->
-                browser.newPage().use { page ->
-                    // Navigate to login page
-                    page.navigate("$appUrl/login")
+            )
+            
+            browser.use {
+                val context = browser.newContext()
+                
+                context.use {
+                    // Start tracing
+                    context.tracing().start(
+                        Tracing.StartOptions()
+                            .setScreenshots(true)
+                            .setSnapshots(true)
+                            .setSources(true)
+                    )
+                    
+                    try {
+                        val page = context.newPage()
+                        
+                        page.use {
+                            // Navigate to login page
+                            page.navigate("$appUrl/login")
 
-                    // Verify login page is displayed
-                    val loginPage = page.locator("[data-testid='login-page']")
-                    assertThat(loginPage).isVisible()
+                            // Verify login page is displayed
+                            val loginPage = page.locator("[data-testid='login-page']")
+                            assertThat(loginPage).isVisible()
 
-                    // Enter admin credentials
-                    page.locator("[data-testid='username-input']").fill(ADMIN_USERNAME)
-                    page.locator("[data-testid='password-input']").fill(adminPassword)
+                            // Enter admin credentials
+                            page.locator("[data-testid='username-input']").fill(ADMIN_USERNAME)
+                            page.locator("[data-testid='password-input']").fill(adminPassword)
 
-                    // Click login button
-                    page.locator("[data-testid='login-button']").click()
+                            // Click login button
+                            page.locator("[data-testid='login-button']").click()
 
-                    // Wait for redirect to admin portal
-                    page.waitForURL("**/admin", Page.WaitForURLOptions().setTimeout(10000.0))
+                            // Wait for redirect to admin portal
+                            page.waitForURL("**/admin", Page.WaitForURLOptions().setTimeout(10000.0))
 
-                    // Verify we're on the admin portal
-                    val adminPortal = page.locator("[data-testid='admin-portal']")
-                    assertThat(adminPortal).isVisible()
+                            // Verify we're on the admin portal
+                            val adminPortal = page.locator("[data-testid='admin-portal']")
+                            assertThat(adminPortal).isVisible()
 
-                    val adminTitle = page.locator("[data-testid='admin-title']")
-                    assertThat(adminTitle).hasText("Admin Portal")
+                            val adminTitle = page.locator("[data-testid='admin-title']")
+                            assertThat(adminTitle).hasText("Admin Portal")
 
-                    log.info("✓ Login successful - admin portal loaded")
+                            log.info("✓ Login successful - admin portal loaded")
+                        }
+                    } finally {
+                        // Save trace
+                        val tracesDir = Paths.get("build/playwright-traces")
+                        Files.createDirectories(tracesDir)
+                        val tracePath = tracesDir.resolve("DockerLoginE2ETest_should_successfully_login.zip")
+                        context.tracing().stop(Tracing.StopOptions().setPath(tracePath))
+                        log.info("Trace saved to: {}", tracePath.toAbsolutePath())
+                    }
                 }
             }
         }
