@@ -64,11 +64,23 @@ The application will be available at `http://localhost:8080`.
 
 A reference Docker Compose configuration is available in the repository at [`src/test/resources/docker-compose-e2e.yml`](https://github.com/orange-buffalo/aionify/blob/main/src/test/resources/docker-compose-e2e.yml).
 
-For production use, create your own `docker-compose.yml` file. You can copy the reference file and:
-- Set the `AIONIFY_IMAGE` environment variable before running `docker compose`, OR
-- Replace `${AIONIFY_IMAGE}` with a specific image tag directly in the file
+For production use, you have two options:
 
-Example with explicit image tag:
+### Option 1: Use the reference file with environment variable
+
+Copy the reference file and set the `AIONIFY_IMAGE` environment variable:
+
+```bash
+# Set the image
+export AIONIFY_IMAGE=ghcr.io/orange-buffalo/aionify:latest
+
+# Or inline with the command
+AIONIFY_IMAGE=ghcr.io/orange-buffalo/aionify:latest docker compose -f docker-compose-e2e.yml up -d
+```
+
+### Option 2: Create a production compose file with explicit image
+
+Create your own `docker-compose.yml` file with explicit image tag:
 
 ```yaml
 services:
