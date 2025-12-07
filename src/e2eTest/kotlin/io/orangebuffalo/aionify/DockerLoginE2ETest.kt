@@ -40,38 +40,55 @@ class DockerLoginE2ETest {
 
         log.info("Using Docker image: {}", dockerImage)
 
-        // Find the docker-compose file
-        val composeFile = File("src/test/resources/docker-compose-e2e.yml")
-        if (!composeFile.exists()) {
-            throw IllegalStateException("Docker compose file not found at: ${composeFile.absolutePath}")
-        }
-
-        // Start Docker Compose
-        val composeContainer = ComposeContainer(composeFile)
-            .withExposedService(APP_SERVICE, APP_PORT, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(3)))
-            .withEnv(mapOf("AIONIFY_IMAGE" to dockerImage))
-            .withLocalCompose(true)
-
+        // Create a temporary docker-compose file with the actual image name
+        val tempComposeFile = createTempComposeFile(dockerImage)
+        
         try {
-            log.info("Starting Docker Compose...")
-            composeContainer.start()
+            // Start Docker Compose
+            val composeContainer = ComposeContainer(tempComposeFile)
+                .withExposedService(APP_SERVICE, APP_PORT, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(3)))
+                .withLocalCompose(true)
 
-            // Get the application URL
-            val host = composeContainer.getServiceHost(APP_SERVICE, APP_PORT)
-            val port = composeContainer.getServicePort(APP_SERVICE, APP_PORT)
-            val appUrl = "http://$host:$port"
+            try {
+                log.info("Starting Docker Compose...")
+                composeContainer.start()
 
-            log.info("Application available at: {}", appUrl)
+                // Get the application URL
+                val host = composeContainer.getServiceHost(APP_SERVICE, APP_PORT)
+                val port = composeContainer.getServicePort(APP_SERVICE, APP_PORT)
+                val appUrl = "http://$host:$port"
 
-            // Extract admin password from logs
-            val adminPassword = extractAdminPasswordFromLogs(composeContainer)
-            log.info("Extracted admin password successfully")
+                log.info("Application available at: {}", appUrl)
 
-            // Test login with Playwright
-            testLoginWithPlaywright(appUrl, adminPassword)
+                // Extract admin password from logs
+                val adminPassword = extractAdminPasswordFromLogs(composeContainer)
+                log.info("Extracted admin password successfully")
+
+                // Test login with Playwright
+                testLoginWithPlaywright(appUrl, adminPassword)
+            } finally {
+                composeContainer.stop()
+            }
         } finally {
-            composeContainer.stop()
+            // Clean up temporary file
+            tempComposeFile.delete()
         }
+    }
+
+    private fun createTempComposeFile(dockerImage: String): File {
+        val tempFile = File.createTempFile("docker-compose-e2e-", ".yml")
+        
+        // Read the template compose file
+        val templateFile = File("src/test/resources/docker-compose-e2e.yml")
+        val template = templateFile.readText()
+        
+        // Replace the environment variable with the actual image name
+        val content = template.replace("\${AIONIFY_IMAGE}", dockerImage)
+        
+        tempFile.writeText(content)
+        log.info("Created temporary compose file at: {}", tempFile.absolutePath)
+        
+        return tempFile
     }
 
     private fun testLoginWithPlaywright(appUrl: String, adminPassword: String) {
