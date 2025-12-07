@@ -75,14 +75,11 @@ class DockerLoginE2ETest {
     }
 
     private fun testLoginWithPlaywright(appUrl: String, adminPassword: String) {
-        val playwright = Playwright.create()
-        try {
-            val browser = playwright.chromium().launch(
+        Playwright.create().use { playwright ->
+            playwright.chromium().launch(
                 BrowserType.LaunchOptions().setHeadless(true)
-            )
-            try {
-                val page = browser.newPage()
-                try {
+            ).use { browser ->
+                browser.newPage().use { page ->
                     // Navigate to login page
                     page.navigate("$appUrl/login")
 
@@ -108,14 +105,8 @@ class DockerLoginE2ETest {
                     assertThat(adminTitle).hasText("Admin Portal")
 
                     log.info("✓ Login successful - admin portal loaded")
-                } finally {
-                    page.close()
                 }
-            } finally {
-                browser.close()
             }
-        } finally {
-            playwright.close()
         }
     }
 
