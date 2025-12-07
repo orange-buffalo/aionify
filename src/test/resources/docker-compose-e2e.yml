@@ -1,6 +1,6 @@
 services:
   aionify:
-    image: ${AIONIFY_IMAGE:-ghcr.io/orange-buffalo/aionify:latest}
+    image: ${AIONIFY_IMAGE}
     ports:
       - "8080:8080"
     environment:
