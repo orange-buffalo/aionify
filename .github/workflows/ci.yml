@@ -64,6 +64,7 @@ jobs:
       - name: Run E2E tests against Docker image
         env:
           AIONIFY_DOCKER_IMAGE: ghcr.io/orange-buffalo/aionify:${{ steps.prepare-tag.outputs.tag }}
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
         run: |
           ./gradlew e2eTest \
             -Daionify.docker.image=$AIONIFY_DOCKER_IMAGE \
