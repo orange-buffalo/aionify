@@ -29,7 +29,8 @@ class AuthService(
             token = token,
             userName = user.userName,
             greeting = user.greeting,
-            isAdmin = user.isAdmin
+            isAdmin = user.isAdmin,
+            languageCode = user.languageCode
         )
     }
 

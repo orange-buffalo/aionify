@@ -1,5 +1,6 @@
 import { useEffect, useState, ReactNode } from "react"
 import { useLocation } from "react-router"
+import { useTranslation } from "react-i18next"
 import { Settings, Users, BarChart, Clock, Calendar, FileText } from "lucide-react"
 import { TopNav, NavItem } from "@/components/navigation/TopNav"
 import { LAST_USERNAME_KEY } from "@/lib/constants"
@@ -10,6 +11,7 @@ interface PortalLayoutProps {
 }
 
 export function PortalLayout({ children, testId }: PortalLayoutProps) {
+  const { t } = useTranslation()
   const [userInfo, setUserInfo] = useState<{ userName: string; greeting: string } | null>(null)
   const location = useLocation()
   const isAdmin = location.pathname.startsWith("/admin")
@@ -26,15 +28,15 @@ export function PortalLayout({ children, testId }: PortalLayoutProps) {
   }, [])
 
   const adminMenuItems: NavItem[] = [
-    { label: "Users", icon: <Users className="h-4 w-4 mr-2" /> },
-    { label: "Reports", icon: <BarChart className="h-4 w-4 mr-2" /> },
-    { label: "Settings", icon: <Settings className="h-4 w-4 mr-2" /> },
+    { label: t("nav.users"), icon: <Users className="h-4 w-4 mr-2" /> },
+    { label: t("nav.reports"), icon: <BarChart className="h-4 w-4 mr-2" /> },
+    { label: t("nav.settings"), icon: <Settings className="h-4 w-4 mr-2" /> },
   ]
 
   const userMenuItems: NavItem[] = [
-    { label: "Time Entry", icon: <Clock className="h-4 w-4 mr-2" /> },
-    { label: "Calendar", icon: <Calendar className="h-4 w-4 mr-2" /> },
-    { label: "Reports", icon: <FileText className="h-4 w-4 mr-2" /> },
+    { label: t("nav.timeEntry"), icon: <Clock className="h-4 w-4 mr-2" /> },
+    { label: t("nav.calendar"), icon: <Calendar className="h-4 w-4 mr-2" /> },
+    { label: t("nav.reports"), icon: <FileText className="h-4 w-4 mr-2" /> },
   ]
 
   const menuItems = isAdmin ? adminMenuItems : userMenuItems

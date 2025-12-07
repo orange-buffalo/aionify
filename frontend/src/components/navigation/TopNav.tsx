@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from "react-router"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -28,6 +29,7 @@ export interface TopNavProps {
 export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
   const navigate = useNavigate()
   const location = useLocation()
+  const { t } = useTranslation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleLogout = () => {
@@ -101,7 +103,7 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
                   className="w-56 rounded-sm dark bg-popover text-popover-foreground"
                   data-testid="mobile-menu-dropdown"
                 >
-                  <DropdownMenuLabel>Navigation</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t("nav.dashboard")}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {menuItems.map((item, index) => (
                     <DropdownMenuItem
@@ -150,7 +152,7 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
                   data-testid="settings-menu-item"
                 >
                   <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
+                  <span>{t("nav.settings")}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={handleLogout}
@@ -158,7 +160,7 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
                   data-testid="logout-button"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Logout</span>
+                  <span>{t("nav.logout")}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

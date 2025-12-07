@@ -145,8 +145,9 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
         assertThat(greetingInput).hasValue("Привіт")
         
+        // UI is in Ukrainian, so language label is in Ukrainian
         val languageSelect = page.locator("[data-testid='profile-language-select']")
-        assertThat(languageSelect).containsText("Ukrainian")
+        assertThat(languageSelect).containsText("Українська")
         
         val localeSelect = page.locator("[data-testid='profile-locale-select']")
         assertThat(localeSelect).hasText("Ukrainian (Ukraine)")
@@ -253,16 +254,17 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // Submit
         page.locator("[data-testid='profile-save-button']").click()
 
-        // Wait for success message and verify
+        // Wait for success message and verify (it should be in Ukrainian after language switch)
         val successMessage = page.locator("[data-testid='profile-success']")
         assertThat(successMessage).isVisible()
-        assertThat(successMessage).containsText("Profile updated successfully")
+        assertThat(successMessage).containsText("успішно оновлено")
 
         // Verify data was persisted by reloading
         page.reload()
         
         assertThat(greetingInput).hasValue("Updated Greeting")
-        assertThat(page.locator("[data-testid='profile-language-select']")).containsText("Ukrainian")
+        // After reload, UI is in Ukrainian, so language label is in Ukrainian
+        assertThat(page.locator("[data-testid='profile-language-select']")).containsText("Українська")
         assertThat(page.locator("[data-testid='profile-locale-select']")).hasText("Ukrainian (Ukraine)")
     }
 
