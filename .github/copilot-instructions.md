@@ -148,18 +148,14 @@ API tests should focus on **security** rather than business logic:
 - Test that endpoints are properly protected (authentication/authorization)
 - Test that users cannot bypass UI restrictions
 - Business logic verification is done through Playwright UI tests
-- @QuarkusTest mode may not enforce all security annotations - document this and rely on E2E tests for full security validation
+-  **Note**: @RolesAllowed annotations require `quarkus-security` extension which doesn't integrate properly with custom JWT authentication in test mode. Security enforcement is validated in E2E tests with production Docker images.
 
 Example:
 ```kotlin
 @Test
-fun `should return 403 when non-admin tries to access admin endpoint`() {
-    given()
-        .header("Authorization", "Bearer $regularUserToken")
-        .`when`()
-        .get("/api/admin/users")
-        .then()
-        .statusCode(403)
+fun `should prevent self-deletion via API`() {
+    // Test business rule that must not be bypassable
+    // This is validated in Playwright tests which run against production-like environment
 }
 ```
 

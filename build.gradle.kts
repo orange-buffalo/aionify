@@ -33,7 +33,6 @@ dependencies {
 
     // Security / Password hashing
     implementation("io.quarkus:quarkus-elytron-security-common")
-    implementation("io.quarkus:quarkus-security")
 
     // JWT authentication - using Auth0 java-jwt for native image compatibility
     implementation("com.auth0:java-jwt:4.4.0")
