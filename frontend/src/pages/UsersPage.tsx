@@ -5,6 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { FormMessage } from "@/components/ui/form-message"
+import { apiGet, apiRequest } from "@/lib/api"
 import { MoreVertical, ChevronLeft, ChevronRight } from "lucide-react"
 
 interface User {
@@ -52,18 +54,7 @@ export function UsersPage() {
     setSuccessMessage(null)
     
     try {
-      const token = localStorage.getItem("aionify_token")
-      const response = await fetch(`/api/admin/users?page=${page}&size=${size}`, {
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
-      })
-      
-      if (!response.ok) {
-        throw new Error("Failed to load users")
-      }
-      
-      const data: UsersListResponse = await response.json()
+      const data = await apiGet<UsersListResponse>(`/api/admin/users?page=${page}&size=${size}`)
       setUsers(data.users)
       setTotal(data.total)
     } catch (err) {
@@ -79,18 +70,9 @@ export function UsersPage() {
 
   const handleDelete = async (userId: number) => {
     try {
-      const token = localStorage.getItem("aionify_token")
-      const response = await fetch(`/api/admin/users/${userId}`, {
-        method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
+      await apiRequest(`/api/admin/users/${userId}`, {
+        method: "DELETE"
       })
-      
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to delete user")
-      }
       
       setDeletePopoverOpen(null)
       
@@ -121,14 +103,14 @@ export function UsersPage() {
           </div>
 
           {error && (
-            <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded" data-testid="users-error">
-              {error}
+            <div className="mb-4">
+              <FormMessage type="error" message={error} testId="users-error" />
             </div>
           )}
 
           {successMessage && (
-            <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded" data-testid="users-success">
-              {successMessage}
+            <div className="mb-4">
+              <FormMessage type="success" message={successMessage} testId="users-success" />
             </div>
           )}
 

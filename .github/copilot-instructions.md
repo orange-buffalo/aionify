@@ -95,6 +95,8 @@ To run a specific test class:
 - Use path aliases: `@/components`, `@/lib`, `@/hooks`
 - Add `data-testid` attributes to elements that need E2E testing
 - Use Tailwind CSS v4 for styling
+- **Always use the `apiRequest`, `apiGet`, `apiPost`, `apiPut` helpers from `@/lib/api` for API calls** instead of manual `fetch` calls
+- **Use the `FormMessage` component from `@/components/ui/form-message`** for displaying error and success messages
 
 ## Testing Guidelines
 
@@ -106,6 +108,12 @@ Playwright tests should extend `PlaywrightTestBase` which provides:
 - Automatic browser lifecycle management
 - Trace recording for debugging
 - Clean test structure without boilerplate
+
+**Important Playwright Testing Rules:**
+- **Never use `page.waitForTimeout()` or similar time-based waits** - these make tests flaky
+- **Always use Playwright's built-in auto-waiting assertions** like `assertThat().isVisible()`, `assertThat().containsText()`, etc.
+- These assertions automatically retry until the condition is met or timeout occurs
+- When verifying pagination or table content changes, check actual content (e.g., usernames) not just counts
 
 Example:
 ```kotlin
@@ -133,6 +141,27 @@ E2E tests validate the application running in Docker. These tests:
 - Are located in `src/e2eTest/kotlin`
 
 E2E tests run automatically in CI after the Docker image is built and pushed.
+
+### API Testing Guidelines
+
+API tests should focus on **security** rather than business logic:
+- Test that endpoints are properly protected (authentication/authorization)
+- Test that users cannot bypass UI restrictions
+- Business logic verification is done through Playwright UI tests
+- @QuarkusTest mode may not enforce all security annotations - document this and rely on E2E tests for full security validation
+
+Example:
+```kotlin
+@Test
+fun `should return 403 when non-admin tries to access admin endpoint`() {
+    given()
+        .header("Authorization", "Bearer $regularUserToken")
+        .`when`()
+        .get("/api/admin/users")
+        .then()
+        .statusCode(403)
+}
+```
 
 ## Database
 

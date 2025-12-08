@@ -260,6 +260,10 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
         val paginationInfo = page.locator("[data-testid='pagination-info']")
         assertThat(paginationInfo).containsText("Page 1 of 2")
 
+        // Verify first user on page 1
+        val firstUserOnPage1 = page.locator("[data-testid='user-username-admin']")
+        assertThat(firstUserOnPage1).isVisible()
+
         // Verify previous button is disabled
         val previousButton = page.locator("[data-testid='pagination-previous']")
         assertThat(previousButton).isDisabled()
@@ -269,9 +273,11 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
         assertThat(nextButton).isEnabled()
         nextButton.click()
 
-        // Verify we're on page 2
-        page.waitForTimeout(500.0) // Wait for page to update
+        // Verify we're on page 2 by checking pagination info
         assertThat(paginationInfo).containsText("Page 2 of 2")
+
+        // Verify first user on page 1 is no longer visible (table content has changed)
+        assertThat(firstUserOnPage1).not().isVisible()
 
         // Verify next button is disabled on last page
         assertThat(nextButton).isDisabled()
@@ -283,8 +289,10 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
         previousButton.click()
 
         // Verify we're back on page 1
-        page.waitForTimeout(500.0) // Wait for page to update
         assertThat(paginationInfo).containsText("Page 1 of 2")
+
+        // Verify first user on page 1 is visible again (table content has changed back)
+        assertThat(firstUserOnPage1).isVisible()
     }
 
     @Test
@@ -305,17 +313,24 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
         loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
 
-        // Count rows on page 1 (should be 20)
-        val page1Rows = page.locator("tbody tr").count()
-        assert(page1Rows == 20) { "Page 1 should have 20 rows, but has $page1Rows" }
+        // Verify usernames on page 1 (should be first 20 users alphabetically)
+        val page1Usernames = page.locator("tbody tr td:nth-child(1)").allTextContents()
+        assert(page1Usernames.size == 20) { "Page 1 should have 20 rows, but has ${page1Usernames.size}" }
+        // First user should be "admin" (alphabetically first)
+        assert(page1Usernames[0] == "admin") { "First user should be admin, but was ${page1Usernames[0]}" }
 
         // Go to page 2
         page.locator("[data-testid='pagination-next']").click()
-        page.waitForTimeout(500.0)
 
-        // Count rows on page 2 (should be 7: 25 total + 2 created in setup = 27, minus 20 on page 1 = 7)
-        val page2Rows = page.locator("tbody tr").count()
-        assert(page2Rows == 7) { "Page 2 should have 7 rows, but has $page2Rows" }
+        // Verify pagination info updates
+        val paginationInfo = page.locator("[data-testid='pagination-info']")
+        assertThat(paginationInfo).containsText("Page 2 of 2")
+
+        // Verify usernames on page 2 (should be remaining 7 users)
+        val page2Usernames = page.locator("tbody tr td:nth-child(1)").allTextContents()
+        assert(page2Usernames.size == 7) { "Page 2 should have 7 rows, but has ${page2Usernames.size}" }
+        // Verify these are different users than page 1 (checking first username differs)
+        assert(page2Usernames[0] != page1Usernames[0]) { "Page 2 should have different users than page 1" }
     }
 
     @Test
