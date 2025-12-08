@@ -67,6 +67,21 @@ class UserAdminResourceTest {
         )
     }
 
+    private fun createTestUsers(count: Int) {
+        for (i in 1..count) {
+            userRepository.insert(
+                User(
+                    userName = "user$i",
+                    passwordHash = BcryptUtil.bcryptHash(testPassword),
+                    greeting = "User $i",
+                    isAdmin = false,
+                    locale = Locale.ENGLISH,
+                    languageCode = "en"
+                )
+            )
+        }
+    }
+
     @Test
     fun `should list users when authenticated as admin`() {
         given()
@@ -128,18 +143,7 @@ class UserAdminResourceTest {
     @Test
     fun `should support pagination with custom page and size`() {
         // Create 25 additional users
-        for (i in 1..25) {
-            userRepository.insert(
-                User(
-                    userName = "user$i",
-                    passwordHash = BcryptUtil.bcryptHash(testPassword),
-                    greeting = "User $i",
-                    isAdmin = false,
-                    locale = Locale.ENGLISH,
-                    languageCode = "en"
-                )
-            )
-        }
+        createTestUsers(25)
 
         // Get first page with size 10
         given()

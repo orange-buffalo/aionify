@@ -15,7 +15,6 @@ class UserAdminResource(private val userRepository: UserRepository) {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Authenticated
     fun listUsers(
         @QueryParam("page") @DefaultValue("0") page: Int,
         @QueryParam("size") @DefaultValue("20") size: Int
@@ -54,7 +53,6 @@ class UserAdminResource(private val userRepository: UserRepository) {
     @DELETE
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Authenticated
     fun deleteUser(@PathParam("id") id: Long, @Context securityContext: SecurityContext): Response {
         val currentUserName = securityContext.userPrincipal?.name
             ?: return Response.status(Response.Status.UNAUTHORIZED)
