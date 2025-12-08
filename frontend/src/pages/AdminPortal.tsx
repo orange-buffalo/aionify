@@ -1,5 +1,7 @@
 import { useTranslation } from "react-i18next"
+import { Link } from "react-router"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Settings, Users, BarChart } from "lucide-react"
 import { PortalLayout } from "@/components/layout/PortalLayout"
 
@@ -25,7 +27,11 @@ export function AdminPortal() {
                 <CardDescription>{t("portal.admin.users.description")}</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground text-sm">{t("portal.admin.users.comingSoon")}</p>
+                <Link to="/admin/users">
+                  <Button variant="outline" size="sm" data-testid="admin-users-link">
+                    {t("portal.admin.users.manage")}
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
 

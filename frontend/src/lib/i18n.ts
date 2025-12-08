@@ -79,7 +79,31 @@ const resources = {
           users: {
             title: "Users",
             description: "Manage user accounts",
-            comingSoon: "User management coming soon...",
+            manage: "Manage Users",
+            subtitle: "View and manage system users",
+            deleteSuccess: "User deleted successfully",
+            table: {
+              username: "Username",
+              greeting: "Greeting",
+              type: "Type",
+              actions: "Actions",
+              admin: "Admin",
+              regularUser: "Regular User",
+              delete: "Delete",
+              noUsers: "No users found",
+            },
+            deleteConfirm: {
+              title: "Delete User",
+              message: "Are you sure you want to delete user {{userName}}? This action cannot be undone.",
+              confirm: "Delete",
+              cancel: "Cancel",
+            },
+            pagination: {
+              showing: "Showing {{start}} to {{end}} of {{total}} users",
+              previous: "Previous",
+              next: "Next",
+              page: "Page {{page}} of {{total}}",
+            },
           },
           reports: {
             title: "Reports",
@@ -123,6 +147,7 @@ const resources = {
       // Common
       common: {
         error: "An error occurred",
+        loading: "Loading...",
       },
       // Error codes for API errors
       errorCodes: {
@@ -216,7 +241,31 @@ const resources = {
           users: {
             title: "Користувачі",
             description: "Керування обліковими записами",
-            comingSoon: "Керування користувачами скоро з'явиться...",
+            manage: "Керувати користувачами",
+            subtitle: "Перегляд та керування користувачами системи",
+            deleteSuccess: "Користувача успішно видалено",
+            table: {
+              username: "Ім'я користувача",
+              greeting: "Привітання",
+              type: "Тип",
+              actions: "Дії",
+              admin: "Адміністратор",
+              regularUser: "Звичайний користувач",
+              delete: "Видалити",
+              noUsers: "Користувачів не знайдено",
+            },
+            deleteConfirm: {
+              title: "Видалити користувача",
+              message: "Ви впевнені, що хочете видалити користувача {{userName}}? Цю дію неможливо скасувати.",
+              confirm: "Видалити",
+              cancel: "Скасувати",
+            },
+            pagination: {
+              showing: "Показано {{start}} - {{end}} з {{total}} користувачів",
+              previous: "Попередня",
+              next: "Наступна",
+              page: "Сторінка {{page}} з {{total}}",
+            },
           },
           reports: {
             title: "Звіти",
@@ -260,6 +309,7 @@ const resources = {
       // Common
       common: {
         error: "Сталася помилка",
+        loading: "Завантаження...",
       },
       // Error codes for API errors
       errorCodes: {

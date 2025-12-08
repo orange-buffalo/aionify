@@ -3,6 +3,7 @@ import { LoginPage } from "@/pages/LoginPage"
 import { AdminPortal } from "@/pages/AdminPortal"
 import { UserPortal } from "@/pages/UserPortal"
 import { SettingsPage } from "@/pages/SettingsPage"
+import { UsersPage } from "@/pages/UsersPage"
 
 export function App() {
   return (
@@ -10,6 +11,7 @@ export function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/admin" element={<AdminPortal />} />
+        <Route path="/admin/users" element={<UsersPage />} />
         <Route path="/admin/settings" element={<SettingsPage />} />
         <Route path="/portal" element={<UserPortal />} />
         <Route path="/portal/settings" element={<SettingsPage />} />
