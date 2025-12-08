@@ -49,9 +49,6 @@ The E2E tests validate the application running from the Docker image. To run the
   -Dquarkus.container-image.tag=local-test \
   --build-cache --console=plain
 
-# Install Playwright browsers if not already installed
-./gradlew installPlaywrightBrowsers
-
 # Run E2E tests
 ./gradlew e2eTest -Daionify.docker.image=ghcr.io/orange-buffalo/aionify:local-test
 ```

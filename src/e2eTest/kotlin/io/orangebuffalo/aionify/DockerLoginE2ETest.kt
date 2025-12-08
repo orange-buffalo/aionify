@@ -112,10 +112,10 @@ class DockerLoginE2ETest {
             val browser = playwright.chromium().launch(
                 BrowserType.LaunchOptions().setHeadless(true)
             )
-            
+
             browser.use {
                 val context = browser.newContext()
-                
+
                 context.use {
                     // Start tracing
                     context.tracing().start(
@@ -124,10 +124,10 @@ class DockerLoginE2ETest {
                             .setSnapshots(true)
                             .setSources(true)
                     )
-                    
+
                     try {
                         val page = context.newPage()
-                        
+
                         page.use {
                             // Navigate to login page
                             page.navigate("$appUrl/login")
