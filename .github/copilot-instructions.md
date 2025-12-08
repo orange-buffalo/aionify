@@ -37,6 +37,27 @@ This ensures:
 - All tests pass
 - No regressions are introduced
 
+**After every task implementation, the E2E tests must pass:**
+
+The E2E tests validate the application running from the Docker image. To run them locally:
+
+```bash
+# First, build the Docker image
+./gradlew build \
+  -Dquarkus.package.jar.enabled=false -Dquarkus.native.enabled=true \
+  -Dquarkus.container-image.build=true \
+  -Dquarkus.container-image.tag=local-test \
+  --build-cache --console=plain
+
+# Run E2E tests
+./gradlew e2eTest -Daionify.docker.image=ghcr.io/orange-buffalo/aionify:local-test
+```
+
+The E2E tests ensure that:
+- The Docker image builds correctly
+- The application starts successfully in a production-like environment
+- Critical user flows (like login) work end-to-end
+
 ### Running Specific Tests
 
 To run a specific test class:
@@ -49,7 +70,8 @@ To run a specific test class:
 - `src/main/kotlin/io/orangebuffalo/aionify/` - Main Kotlin application code
   - `config/` - Configuration classes (e.g., JDBI setup)
   - `domain/` - Domain models and repositories
-- `src/test/kotlin/io/orangebuffalo/aionify/` - Test code
+- `src/test/kotlin/io/orangebuffalo/aionify/` - Unit tests (Quarkus test mode)
+- `src/e2eTest/kotlin/io/orangebuffalo/aionify/` - E2E tests (Docker image tests)
 - `frontend/` - React frontend application
   - `src/components/ui/` - shadcn-ui components
   - `src/lib/` - Utility functions
@@ -78,7 +100,7 @@ To run a specific test class:
 
 We focus on UI-level testing using Playwright. The REST API is considered an internal implementation detail.
 
-### Playwright Tests
+### Unit Tests (src/test)
 
 Playwright tests should extend `PlaywrightTestBase` which provides:
 - Automatic browser lifecycle management
@@ -101,6 +123,16 @@ class MyPlaywrightTest : PlaywrightTestBase() {
 ```
 
 Traces are saved to `build/playwright-traces/` and uploaded as CI artifacts.
+
+### E2E Tests (src/e2eTest)
+
+E2E tests validate the application running in Docker. These tests:
+- Use Testcontainers to start the application with Docker Compose
+- Test the production Docker image (native binary)
+- Validate critical user flows in a production-like environment
+- Are located in `src/e2eTest/kotlin`
+
+E2E tests run automatically in CI after the Docker image is built and pushed.
 
 ## Database
 

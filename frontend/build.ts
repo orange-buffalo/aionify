@@ -33,12 +33,11 @@ if (!buildResult.success) {
   process.exit(1)
 }
 
-// Build CSS with Tailwind CLI via npx (more stable than bunx)
 const cssInput = join(import.meta.dir, "src/styles.css")
 const cssOutput = join(outDir, "styles.css")
 
 const cssProcess = Bun.spawn([
-  "npx",
+  "bunx",
   "@tailwindcss/cli",
   "-i", cssInput,
   "-o", cssOutput,

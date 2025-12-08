@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "2.2.20"
     kotlin("plugin.allopen") version "2.2.20"
+    kotlin("plugin.serialization") version "2.2.20"
     id("io.quarkus")
 }
 
@@ -16,7 +17,7 @@ val quarkusPlatformVersion: String by project
 dependencies {
     implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
     implementation("io.quarkus:quarkus-rest")
-    implementation("io.quarkus:quarkus-rest-jackson")
+    implementation("io.quarkus:quarkus-rest-kotlin-serialization")
     implementation("io.quarkus:quarkus-kotlin")
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-container-image-docker")
@@ -33,10 +34,8 @@ dependencies {
     // Security / Password hashing
     implementation("io.quarkus:quarkus-elytron-security-common")
 
-    // JWT authentication - using jjwt for both generation and validation
-    implementation("io.jsonwebtoken:jjwt-api:0.12.6")
-    implementation("io.jsonwebtoken:jjwt-impl:0.12.6")
-    implementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
+    // JWT authentication - using Auth0 java-jwt for native image compatibility
+    implementation("com.auth0:java-jwt:4.4.0")
 
     // Validation
     implementation("io.quarkus:quarkus-hibernate-validator")
@@ -45,6 +44,32 @@ dependencies {
     testImplementation("com.microsoft.playwright:playwright:1.52.0")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.rest-assured:kotlin-extensions")
+}
+
+// E2E tests source set
+sourceSets {
+    create("e2eTest") {
+        kotlin {
+            srcDir("src/e2eTest/kotlin")
+        }
+        resources {
+            srcDir("src/e2eTest/resources")
+        }
+        compileClasspath += sourceSets.main.get().output + configurations.testRuntimeClasspath.get()
+        runtimeClasspath += output + compileClasspath
+    }
+}
+
+// E2E test dependencies
+val e2eTestImplementation by configurations.getting {
+    extendsFrom(configurations.testImplementation.get())
+}
+
+dependencies {
+    e2eTestImplementation("org.testcontainers:testcontainers:1.20.4")
+    e2eTestImplementation("org.testcontainers:junit-jupiter:1.20.4")
+    e2eTestImplementation("com.microsoft.playwright:playwright:1.52.0")
+    e2eTestImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
 }
 
 group = "io.orange-buffalo"
@@ -57,6 +82,9 @@ java {
 
 tasks.withType<Test> {
     systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
+    testLogging {
+        events("passed", "skipped", "failed", "standardOut", "standardError")
+    }
 }
 
 allOpen {
@@ -105,4 +133,40 @@ tasks.register<JavaExec>("installPlaywrightBrowsers") {
     classpath = playwrightConfig
     mainClass.set("com.microsoft.playwright.CLI")
     args("install", "--with-deps", "chromium")
+}
+
+// E2E test task
+val e2eTest by tasks.registering(Test::class) {
+    description = "Runs E2E tests against Docker image"
+    group = "verification"
+
+    testClassesDirs = sourceSets["e2eTest"].output.classesDirs
+    classpath = sourceSets["e2eTest"].runtimeClasspath
+
+    // Must run after the image is built
+    mustRunAfter(tasks.build)
+
+    systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
+
+    // Pass the Docker image tag to tests via system property
+    // Check is deferred to execution time via doFirst
+    doFirst {
+        val dockerImage = System.getenv("AIONIFY_DOCKER_IMAGE")
+            ?: System.getProperty("aionify.docker.image")
+            ?: throw GradleException("E2E tests require AIONIFY_DOCKER_IMAGE environment variable or -Daionify.docker.image system property to be set")
+
+        systemProperty("aionify.docker.image", dockerImage)
+    }
+
+    useJUnitPlatform()
+
+    // Generate test reports
+    reports {
+        html.required.set(true)
+        junitXml.required.set(true)
+    }
+
+    testLogging {
+        events("passed", "skipped", "failed", "standardOut", "standardError")
+    }
 }

@@ -61,6 +61,15 @@ jobs:
             -Dquarkus.container-image.tag=${{ steps.prepare-tag.outputs.tag }} \
             --build-cache --console=plain
 
+      - name: Run E2E tests against Docker image
+        env:
+          AIONIFY_DOCKER_IMAGE: ghcr.io/orange-buffalo/aionify:${{ steps.prepare-tag.outputs.tag }}
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: |
+          ./gradlew e2eTest \
+            -Daionify.docker.image=$AIONIFY_DOCKER_IMAGE \
+            --build-cache --console=plain
+
       - name: Upload Playwright traces
         uses: actions/upload-artifact@v4
         if: always()
@@ -69,3 +78,13 @@ jobs:
           path: build/playwright-traces/
           retention-days: 10
           if-no-files-found: ignore
+
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v5
+        if: always()
+        with:
+          report_paths: '**/build/test-results/**/TEST-*.xml'
+          check_name: Test Results
+          summary: true
+          detailed_summary: true
+          fail_on_failure: true

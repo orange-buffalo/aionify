@@ -1,0 +1,34 @@
+services:
+  aionify:
+    image: ${AIONIFY_IMAGE}
+    # For Production deployment, uncomment and map to the desired port
+    #ports:
+    #  - "8080:8080"
+    environment:
+      AIONIFY_DB_URL: jdbc:postgresql://db:5432/aionify
+      AIONIFY_DB_USERNAME: aionify
+      # For Production deployment, use secure password
+      AIONIFY_DB_PASSWORD: test-password
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: aionify
+      POSTGRES_USER: aionify
+      # For Production deployment, use secure password
+      POSTGRES_PASSWORD: test-password
+    # For Production deployment, you might want to setup the persistent volume
+    #volumes:
+    #  - postgres_data:/var/lib/postgresql/data  # Persist data across restarts
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aionify -d aionify"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+# For Production deployment, you might want to setup the persistent volume
+#volumes:
+#  postgres_data:

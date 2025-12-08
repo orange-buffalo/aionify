@@ -1,19 +1,23 @@
 package io.orangebuffalo.aionify.auth
 
-import io.jsonwebtoken.Claims
-import io.jsonwebtoken.Jwts
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.interfaces.DecodedJWT
 import io.quarkus.runtime.StartupEvent
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.enterprise.event.Observes
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.jboss.logging.Logger
 import java.security.KeyPair
+import java.security.KeyPairGenerator
+import java.security.interfaces.RSAPrivateKey
+import java.security.interfaces.RSAPublicKey
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.Date
 
 /**
- * Service for generating and validating JWT tokens.
+ * Service for generating and validating JWT tokens using Auth0 java-jwt library.
  * 
  * This service automatically generates an RSA key pair at startup for signing and validating JWTs.
  * The keys are ephemeral and kept in-memory only - they exist only for the lifetime of the application instance.
@@ -32,12 +36,20 @@ class JwtTokenService(
     private val log = Logger.getLogger(JwtTokenService::class.java)
     
     @Volatile
-    private lateinit var keyPair: KeyPair
+    private lateinit var algorithm: Algorithm
 
     fun init(@Observes event: StartupEvent) {
         // Generate a new RSA key pair for signing JWTs at startup
         // Keys are kept in-memory only, no file storage
-        keyPair = Jwts.SIG.RS256.keyPair().build()
+        val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
+        keyPairGenerator.initialize(2048)
+        val keyPair: KeyPair = keyPairGenerator.generateKeyPair()
+        
+        algorithm = Algorithm.RSA256(
+            keyPair.public as RSAPublicKey,
+            keyPair.private as RSAPrivateKey
+        )
+        
         log.info("JWT RSA key pair generated and ready for use (in-memory only)")
     }
 
@@ -53,31 +65,29 @@ class JwtTokenService(
         val now = Instant.now()
         val expirationTime = now.plus(jwtExpirationMinutes, ChronoUnit.MINUTES)
 
-        return Jwts.builder()
-            .issuer(jwtIssuer)
-            .subject(userName)
-            .claim("upn", userName)  // User Principal Name
-            .claim("preferred_username", userName)
-            .claim("userId", userId)
-            .claim("isAdmin", isAdmin)
-            .claim("greeting", greeting)
-            .issuedAt(Date.from(now))
-            .expiration(Date.from(expirationTime))
-            .signWith(keyPair.private)
-            .compact()
+        return JWT.create()
+            .withIssuer(jwtIssuer)
+            .withSubject(userName)
+            .withClaim("upn", userName)  // User Principal Name
+            .withClaim("preferred_username", userName)
+            .withClaim("userId", userId)
+            .withClaim("isAdmin", isAdmin)
+            .withClaim("greeting", greeting)
+            .withIssuedAt(Date.from(now))
+            .withExpiresAt(Date.from(expirationTime))
+            .sign(algorithm)
     }
 
     /**
-     * Validates a JWT token and returns its claims.
+     * Validates a JWT token and returns the decoded JWT.
      * 
-     * @throws io.jsonwebtoken.JwtException if the token is invalid
+     * @throws com.auth0.jwt.exceptions.JWTVerificationException if the token is invalid
      */
-    fun validateToken(token: String): Claims {
-        return Jwts.parser()
-            .verifyWith(keyPair.public)
-            .requireIssuer(jwtIssuer)
+    fun validateToken(token: String): DecodedJWT {
+        val verifier = JWT.require(algorithm)
+            .withIssuer(jwtIssuer)
             .build()
-            .parseSignedClaims(token)
-            .payload
+        
+        return verifier.verify(token)
     }
 }

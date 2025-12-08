@@ -7,7 +7,7 @@ This guide explains how to deploy Aionify in a production environment.
 Aionify is distributed as a container image available from GitHub Container Registry:
 
 ```
-ghcr.io/orange-buffalo/aionify:latest
+ghcr.io/orange-buffalo/aionify:main
 ```
 
 ## Prerequisites
@@ -55,52 +55,28 @@ docker run -d \
   -e AIONIFY_DB_URL="jdbc:postgresql://db.example.com:5432/aionify" \
   -e AIONIFY_DB_USERNAME="aionify" \
   -e AIONIFY_DB_PASSWORD="your-secure-password" \
-  ghcr.io/orange-buffalo/aionify:latest
+  ghcr.io/orange-buffalo/aionify:main
 ```
 
 The application will be available at `http://localhost:8080`.
 
 ## Running with Docker Compose
 
-Create a `docker-compose.yml` file:
+A reference Docker Compose configuration is available in the repository at [`src/test/resources/docker-compose-e2e.yml`](https://github.com/orange-buffalo/aionify/blob/main/src/test/resources/docker-compose-e2e.yml).
 
-```yaml
-services:
-  aionify:
-    image: ghcr.io/orange-buffalo/aionify:latest
-    ports:
-      - "8080:8080"
-    environment:
-      AIONIFY_DB_URL: jdbc:postgresql://db:5432/aionify
-      AIONIFY_DB_USERNAME: aionify
-      AIONIFY_DB_PASSWORD: your-secure-password
-    depends_on:
-      db:
-        condition: service_healthy
-
-  db:
-    image: postgres:17
-    environment:
-      POSTGRES_DB: aionify
-      POSTGRES_USER: aionify
-      POSTGRES_PASSWORD: your-secure-password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U aionify -d aionify"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-volumes:
-  postgres_data:
-```
-
-Start the application:
+For production use, copy the reference file and set the `AIONIFY_IMAGE` environment variable:
 
 ```bash
-docker compose up -d
+# Set the image
+export AIONIFY_IMAGE=ghcr.io/orange-buffalo/aionify:main
+
+# Or inline with the command
+AIONIFY_IMAGE=ghcr.io/orange-buffalo/aionify:main docker compose -f docker-compose-e2e.yml up -d
 ```
+
+**Important**: 
+- Change password to a strong, unique password
+- The `postgres_data` volume ensures database data persists across container restarts
 
 ## Database Migrations
 

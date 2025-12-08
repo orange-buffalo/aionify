@@ -9,6 +9,7 @@ import jakarta.ws.rs.core.Context
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.core.SecurityContext
+import kotlinx.serialization.Serializable
 import java.util.Locale
 
 @Path("/api/users")
@@ -83,6 +84,7 @@ class UserResource(private val userRepository: UserRepository) {
     }
 }
 
+@Serializable
 data class ProfileResponse(
     val userName: String,
     val greeting: String,
@@ -90,6 +92,7 @@ data class ProfileResponse(
     val locale: String
 )
 
+@Serializable
 data class UpdateProfileRequest(
     @field:NotBlank(message = "Greeting cannot be blank")
     @field:Size(max = 255, message = "Greeting cannot exceed 255 characters")
@@ -102,10 +105,12 @@ data class UpdateProfileRequest(
     val locale: String
 )
 
+@Serializable
 data class ProfileSuccessResponse(
     val message: String
 )
 
+@Serializable
 data class ProfileErrorResponse(
     val error: String,
     val errorCode: String

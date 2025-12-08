@@ -15,7 +15,7 @@ import java.util.Locale
 /**
  * Playwright tests for the login functionality.
  * 
- * Note: The application uses jjwt library to auto-generate RSA key pairs for both JWT
+ * Note: The application uses Auth0 java-jwt library to auto-generate RSA key pairs for both JWT
  * signing and validation at startup. All keys are kept in-memory only, with no file
  * storage required. This approach works in all modes (dev, test, production) and
  * eliminates issues with shared files between test forks or multiple instances.
