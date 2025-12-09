@@ -17,12 +17,12 @@ import java.io.InputStream
 @Secured(SecurityRule.IS_ANONYMOUS)
 open class SpaRoutingController {
 
-    @Get(uri = "/{path:(?!api/).*}", produces = [MediaType.TEXT_HTML])
+    @Get(uri = "/{path:(?!api/|.*\\.(css|js)).*}", produces = [MediaType.TEXT_HTML])
     open fun serveIndex(path: String?, request: HttpRequest<*>): HttpResponse<InputStream> {
         val inputStream = Thread.currentThread().contextClassLoader
             .getResourceAsStream("META-INF/resources/index.html")
             ?: return HttpResponse.notFound()
-        
+
         return HttpResponse.ok(inputStream).contentType(MediaType.TEXT_HTML_TYPE)
     }
 }
