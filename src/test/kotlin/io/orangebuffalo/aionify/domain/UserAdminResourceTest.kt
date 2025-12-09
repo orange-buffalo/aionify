@@ -1,21 +1,18 @@
 package io.orangebuffalo.aionify.domain
 
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.TestAuthSupport
 import io.orangebuffalo.aionify.TestDatabaseSupport
-import io.quarkus.elytron.security.common.BcryptUtil
-import io.quarkus.test.junit.QuarkusTest
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.Locale
+import org.mindrot.jbcrypt.BCrypt
 
 /**
  * API endpoint tests for user admin resource.
  * 
- * **Security Testing Limitation**
- * Method-level security annotations (@RolesAllowed) cannot be properly tested in @QuarkusTest mode
- * when using custom JWT authentication (non-OIDC). The security filter runs, but role-based
- * authorization is not enforced in test mode.
+ * **Testing Approach**
+ * Per project guidelines, this test validates security only, not business logic.
  * 
  * **Security is validated in E2E tests:**
  * - E2E tests run against production Docker images with full security enforcement
@@ -23,10 +20,10 @@ import java.util.Locale
  * - See: src/e2eTest/kotlin for production-like security validation
  * 
  * **This test validates:**
- * - Self-deletion prevention (critical business rule that must not be bypassable)
- * - This is tested at the business logic level, independent of security framework
+ * - Security enforcement is tested in Playwright E2E tests
+ * - Business logic (like self-deletion prevention) is tested in Playwright tests
  */
-@QuarkusTest
+@MicronautTest
 class UserAdminResourceTest {
 
     @Inject
@@ -46,26 +43,30 @@ class UserAdminResourceTest {
         testDatabaseSupport.truncateAllTables()
 
         // Create admin user
-        adminUser = userRepository.insert(
-            User(
+        adminUser = userRepository.save(
+            User.create(
                 userName = "admin",
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Admin User",
                 isAdmin = true,
-                locale = Locale.ENGLISH,
+                locale = java.util.Locale.ENGLISH,
                 languageCode = "en"
             )
         )
     }
 
     @Test
-    fun `self-deletion prevention is tested in Playwright tests`() {
-        // Security tests for @RolesAllowed cannot be run in @QuarkusTest mode with custom JWT auth
-        // All security validation including self-deletion prevention is comprehensively tested in:
+    fun `security validation is tested in Playwright tests`() {
+        // Per project guidelines, security tests are run in Playwright E2E tests
+        // All security validation including:
+        // - Admin-only access to user management endpoints
+        // - Self-deletion prevention
+        // - Proper authentication and authorization
+        // Are comprehensively tested in:
         // - src/test/kotlin/io/orangebuffalo/aionify/UsersPagePlaywrightTest.kt
         // - E2E tests in production Docker images
         
-        // This placeholder test documents the testing approach
+        // This test documents the testing approach
         assert(true)
     }
 }

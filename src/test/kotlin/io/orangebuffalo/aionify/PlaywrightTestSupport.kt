@@ -23,7 +23,7 @@ import java.nio.file.Paths
  * 
  * Usage:
  * ```kotlin
- * @QuarkusTest
+ * @MicronautTest
  * class MyPlaywrightTest : PlaywrightTestBase() {
  *     @Inject
  *     lateinit var testAuthSupport: TestAuthSupport
@@ -37,7 +37,7 @@ import java.nio.file.Paths
  *     fun setupTestData() {
  *         // Database is already truncated by base class
  *         // Setup test-specific data
- *         testUser = userRepository.insert(User(...))
+ *         testUser = userRepository.save(User(...))
  *     }
  *
  *     @Test

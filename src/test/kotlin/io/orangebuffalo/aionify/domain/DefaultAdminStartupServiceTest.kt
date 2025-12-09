@@ -1,15 +1,14 @@
 package io.orangebuffalo.aionify.domain
 
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.TestDatabaseSupport
-import io.quarkus.elytron.security.common.BcryptUtil
-import io.quarkus.test.junit.QuarkusTest
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.Locale
+import org.mindrot.jbcrypt.BCrypt
 
-@QuarkusTest
+@MicronautTest
 class DefaultAdminStartupServiceTest {
 
     @Inject
@@ -37,30 +36,30 @@ class DefaultAdminStartupServiceTest {
         // Then: Admin should be created with correct values
         assertNotNull(password, "Password should be returned for new admin")
         
-        val sudoUser = userRepository.findByUserName("sudo")
+        val sudoUser = userRepository.findByUserName("sudo").orElse(null)
         assertNotNull(sudoUser, "Default admin 'sudo' should exist")
         assertEquals("sudo", sudoUser!!.userName)
         assertEquals("Administrator", sudoUser.greeting)
         assertTrue(sudoUser.isAdmin)
-        assertEquals(Locale.ENGLISH, sudoUser.locale)
+        assertEquals(java.util.Locale.ENGLISH, sudoUser.locale)
         assertEquals("en", sudoUser.languageCode)
         assertNotNull(sudoUser.passwordHash)
         assertTrue(sudoUser.passwordHash.isNotEmpty())
         
         // Verify the password matches
-        assertTrue(BcryptUtil.matches(password, sudoUser.passwordHash), "Password should match the hash")
+        assertTrue(BCrypt.checkpw(password, sudoUser.passwordHash), "Password should match the hash")
     }
 
     @Test
     fun `should not create duplicate admin when admin already exists`() {
         // Given: An admin user already exists
-        userRepository.insert(
-            User(
+        userRepository.save(
+            User.create(
                 userName = "existingAdmin",
-                passwordHash = BcryptUtil.bcryptHash("password"),
+                passwordHash = BCrypt.hashpw("password", BCrypt.gensalt()),
                 greeting = "Existing Admin",
                 isAdmin = true,
-                locale = Locale.ENGLISH,
+                locale = java.util.Locale.ENGLISH,
                 languageCode = "en"
             )
         )
@@ -73,10 +72,10 @@ class DefaultAdminStartupServiceTest {
         assertNull(password)
         
         // And: The original admin still exists and no 'sudo' user was created
-        val sudoUser = userRepository.findByUserName("sudo")
+        val sudoUser = userRepository.findByUserName("sudo").orElse(null)
         assertNull(sudoUser, "sudo user should not have been created")
         
-        val existingAdmin = userRepository.findByUserName("existingAdmin")
+        val existingAdmin = userRepository.findByUserName("existingAdmin").orElse(null)
         assertNotNull(existingAdmin, "Original admin should still exist")
     }
 }
