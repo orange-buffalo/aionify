@@ -2,7 +2,8 @@ package io.orangebuffalo.aionify
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import io.micronaut.context.annotation.Property
+import io.micronaut.runtime.server.EmbeddedServer
+import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -14,8 +15,8 @@ import java.net.URL
 @MicronautTest
 class FrontendNavigationPlaywrightTest : PlaywrightTestBase() {
 
-    @Property(name = "micronaut.server.port")
-    var serverPort: Int = 0
+        @Inject
+    lateinit var server: EmbeddedServer
 
 
     lateinit var url: URL

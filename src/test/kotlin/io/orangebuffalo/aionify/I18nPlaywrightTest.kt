@@ -5,7 +5,7 @@ import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserRepository
 import org.mindrot.jbcrypt.BCrypt
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import io.micronaut.context.annotation.Property
+import io.micronaut.runtime.server.EmbeddedServer
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -15,8 +15,8 @@ import java.util.Locale
 @MicronautTest
 class I18nPlaywrightTest : PlaywrightTestBase() {
 
-    @Property(name = "micronaut.server.port")
-    var serverPort: Int = 0
+        @Inject
+    lateinit var server: EmbeddedServer
 
 
     lateinit var baseUrl: URL
@@ -42,10 +42,10 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
     @BeforeEach
     fun setupTestData() {
         // Initialize URLs
-        baseUrl = URL("http://localhost:$serverPort/base")
-        loginUrl = URL("http://localhost:$serverPort/login")
-        portalUrl = URL("http://localhost:$serverPort/portal")
-        userSettingsUrl = URL("http://localhost:$serverPort/userSettings")
+        baseUrl = URL("http://localhost:${server.port}/base")
+        loginUrl = URL("http://localhost:${server.port}/login")
+        portalUrl = URL("http://localhost:${server.port}/portal")
+        userSettingsUrl = URL("http://localhost:${server.port}/userSettings")
 
         // Create test user with English language
         regularUser = userRepository.save(
