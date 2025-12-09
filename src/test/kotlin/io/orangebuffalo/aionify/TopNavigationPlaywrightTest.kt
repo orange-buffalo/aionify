@@ -3,34 +3,25 @@ package io.orangebuffalo.aionify
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserRepository
-import org.mindrot.jbcrypt.BCrypt
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import io.micronaut.runtime.server.EmbeddedServer
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.net.URL
-import java.util.Locale
 
 @MicronautTest
+
+    @Inject
+    lateinit var testUsers: TestUsers
 class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
-        @Inject
-    lateinit var server: EmbeddedServer
 
 
-    lateinit var baseUrl: URL
 
-    lateinit var loginUrl: URL
 
-    lateinit var portalUrl: URL
 
-    lateinit var adminUrl: URL
 
-    @Inject
     lateinit var userRepository: UserRepository
 
-    @Inject
     lateinit var testAuthSupport: TestAuthSupport
 
     private val testPassword = "testPassword123"
@@ -45,10 +36,6 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
     @BeforeEach
     fun setupTestData() {
         // Initialize URLs
-        baseUrl = URL("http://localhost:${server.port}/base")
-        loginUrl = URL("http://localhost:${server.port}/login")
-        portalUrl = URL("http://localhost:${server.port}/portal")
-        adminUrl = URL("http://localhost:${server.port}/admin")
 
         // Create test users with known credentials
         regularUser = userRepository.save(
@@ -75,11 +62,11 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
     }
 
     private fun navigateToPortalViaToken() {
-        loginViaToken(baseUrl, portalUrl, regularUser, testAuthSupport)
+        loginViaToken("/portal", regularUser, testAuthSupport)
     }
 
     private fun navigateToAdminViaToken() {
-        loginViaToken(baseUrl, adminUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin", adminUser, testAuthSupport)
     }
 
     @Test

@@ -51,12 +51,21 @@ abstract class PlaywrightTestBase {
 
     @Inject
     lateinit var testDatabaseSupport: TestDatabaseSupport
+    
+    @Inject
+    lateinit var server: EmbeddedServer
 
     private lateinit var playwright: Playwright
     private lateinit var browser: Browser
     private lateinit var browserContext: BrowserContext
     private lateinit var _page: Page
     private lateinit var testInfo: TestInfo
+    
+    /**
+     * Base URL for the application, set automatically from the embedded server.
+     */
+    protected val baseUrl: String
+        get() = "http://localhost:${server.port}"
 
     protected val page: Page
         get() = _page
@@ -81,7 +90,11 @@ abstract class PlaywrightTestBase {
         browser = playwright.chromium().launch(
             BrowserType.LaunchOptions().setHeadless(true)
         )
-        browserContext = browser.newContext()
+        
+        // Create context with base URL for simpler navigation
+        browserContext = browser.newContext(
+            Browser.NewContextOptions().setBaseURL(baseUrl)
+        )
         
         // Start tracing for this test
         browserContext.tracing().start(
@@ -98,8 +111,8 @@ abstract class PlaywrightTestBase {
      * Performs UI-based login for tests that need to test the actual login flow.
      * Use this when testing login functionality itself.
      */
-    protected fun loginViaUI(loginUrl: URL, userName: String, password: String, expectedRedirectPattern: String) {
-        page.navigate(loginUrl.toString())
+    protected fun loginViaUI(userName: String, password: String, expectedRedirectPattern: String) {
+        page.navigate("/login")
         page.locator("[data-testid='username-input']").fill(userName)
         page.locator("[data-testid='password-input']").fill(password)
         page.locator("[data-testid='login-button']").click()
@@ -110,17 +123,16 @@ abstract class PlaywrightTestBase {
      * Authenticates via JWT token and navigates to the target page.
      * This is much faster than UI login and should be used for tests that don't need to test login.
      * 
-     * @param baseUrl The base URL of the application (used to set localStorage in correct origin)
-     * @param targetUrl The URL to navigate to after authentication
+     * @param targetPath The path to navigate to after authentication (relative to base URL)
      * @param user The user to authenticate as
      * @param testAuthSupport The auth support instance for generating tokens
      */
-    protected fun loginViaToken(baseUrl: URL, targetUrl: URL, user: User, testAuthSupport: TestAuthSupport) {
+    protected fun loginViaToken(targetPath: String, user: User, testAuthSupport: TestAuthSupport) {
         val authData = testAuthSupport.generateAuthStorageData(user)
         
         // Navigate to a page first to set the origin for localStorage
-        // Using a simple page that doesn't require auth
-        page.navigate(baseUrl.toString())
+        // Using the base URL
+        page.navigate("/")
         
         // Set authentication data in localStorage
         page.evaluate("""
@@ -138,7 +150,7 @@ abstract class PlaywrightTestBase {
         ))
         
         // Now navigate to the target page
-        page.navigate(targetUrl.toString())
+        page.navigate(targetPath)
     }
 
     @AfterEach

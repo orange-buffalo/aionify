@@ -2,21 +2,20 @@ package io.orangebuffalo.aionify
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import io.micronaut.runtime.server.EmbeddedServer
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import java.net.URL
 
 /**
  * Another Playwright test class demonstrating the reusable PlaywrightTestSupport setup.
  */
 @MicronautTest
+
+    @Inject
+    lateinit var testUsers: TestUsers
 class FrontendNavigationPlaywrightTest : PlaywrightTestBase() {
 
-        @Inject
-    lateinit var server: EmbeddedServer
 
 
     lateinit var url: URL

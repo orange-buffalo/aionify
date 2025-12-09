@@ -30,10 +30,6 @@ data class User(
     @field:MappedProperty("language_code")
     val languageCode: String
 ) {
-    @get:Transient
-    val locale: Locale
-        get() = Locale.forLanguageTag(localeTag)
-    
     companion object {
         fun create(
             id: Long? = null,

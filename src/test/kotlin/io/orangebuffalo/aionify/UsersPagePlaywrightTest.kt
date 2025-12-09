@@ -3,36 +3,28 @@ package io.orangebuffalo.aionify
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserRepository
-import org.mindrot.jbcrypt.BCrypt
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import io.micronaut.runtime.server.EmbeddedServer
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.net.URL
-import java.util.Locale
 
 /**
  * Playwright tests for the users overview page functionality.
  * Tests admin-only access, table display, pagination, and delete functionality.
  */
 @MicronautTest
+
+    @Inject
+    lateinit var testUsers: TestUsers
 class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
-        @Inject
-    lateinit var server: EmbeddedServer
 
 
-    lateinit var baseUrl: URL
 
-    lateinit var usersUrl: URL
 
-    lateinit var loginUrl: URL
 
-    @Inject
     lateinit var userRepository: UserRepository
 
-    @Inject
     lateinit var testAuthSupport: TestAuthSupport
 
     private val testPassword = "testPassword123"
@@ -42,9 +34,6 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
     @BeforeEach
     fun setupTestData() {
         // Initialize URLs
-        baseUrl = URL("http://localhost:${server.port}/base")
-        usersUrl = URL("http://localhost:${server.port}/users")
-        loginUrl = URL("http://localhost:${server.port}/login")
 
         // Create admin user
         adminUser = userRepository.save(

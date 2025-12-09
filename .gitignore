@@ -44,3 +44,6 @@ nb-configuration.xml
 # Frontend
 frontend/node_modules/
 frontend/dist/
+
+# Micronaut Test Resources
+.micronaut/

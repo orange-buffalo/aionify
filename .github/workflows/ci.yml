@@ -54,12 +54,13 @@ jobs:
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
         run: |
-          ./gradlew build \
-            -Dquarkus.package.jar.enabled=false -Dquarkus.native.enabled=true \
-            -Dquarkus.container-image.build=true \
-            -Dquarkus.container-image.push=true \
-            -Dquarkus.container-image.tag=${{ steps.prepare-tag.outputs.tag }} \
+          ./gradlew build nativeCompile \
             --build-cache --console=plain
+          
+          docker build -f src/main/docker/Dockerfile.native \
+            -t ghcr.io/orange-buffalo/aionify:${{ steps.prepare-tag.outputs.tag }} .
+          
+          docker push ghcr.io/orange-buffalo/aionify:${{ steps.prepare-tag.outputs.tag }}
 
       - name: Run E2E tests against Docker image
         env:

@@ -3,36 +3,26 @@ package io.orangebuffalo.aionify
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserRepository
-import org.mindrot.jbcrypt.BCrypt
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import io.micronaut.runtime.server.EmbeddedServer
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.net.URL
-import java.util.Locale
 
 @MicronautTest
+
+    @Inject
+    lateinit var testUsers: TestUsers
 class SettingsPlaywrightTest : PlaywrightTestBase() {
 
-        @Inject
-    lateinit var server: EmbeddedServer
 
 
-    lateinit var baseUrl: URL
 
-    lateinit var loginUrl: URL
 
-    lateinit var portalUrl: URL
 
-    lateinit var userSettingsUrl: URL
 
-    lateinit var adminSettingsUrl: URL
 
-    @Inject
     lateinit var userRepository: UserRepository
 
-    @Inject
     lateinit var testAuthSupport: TestAuthSupport
 
     private val testPassword = "testPassword123"
@@ -44,11 +34,6 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
     @BeforeEach
     fun setupTestData() {
         // Initialize URLs
-        baseUrl = URL("http://localhost:${server.port}/base")
-        loginUrl = URL("http://localhost:${server.port}/login")
-        portalUrl = URL("http://localhost:${server.port}/portal")
-        userSettingsUrl = URL("http://localhost:${server.port}/userSettings")
-        adminSettingsUrl = URL("http://localhost:${server.port}/adminSettings")
 
         // Create test user with known credentials
         regularUser = userRepository.save(
@@ -64,11 +49,11 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
     }
 
     private fun navigateToSettingsViaToken() {
-        loginViaToken(baseUrl, userSettingsUrl, regularUser, testAuthSupport)
+        loginViaToken("/userSettings", regularUser, testAuthSupport)
     }
 
     private fun navigateToPortalViaToken() {
-        loginViaToken(baseUrl, portalUrl, regularUser, testAuthSupport)
+        loginViaToken("/portal", regularUser, testAuthSupport)
     }
 
     // === Full Test Suite for Regular User ===
@@ -145,7 +130,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
             )
         )
 
-        loginViaToken(baseUrl, userSettingsUrl, ukUser, testAuthSupport)
+        loginViaToken("/userSettings", ukUser, testAuthSupport)
 
         // Wait for profile to load and verify Ukrainian data is loaded
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
@@ -173,7 +158,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
             )
         )
 
-        loginViaToken(baseUrl, userSettingsUrl, deUser, testAuthSupport)
+        loginViaToken("/userSettings", deUser, testAuthSupport)
 
         // Wait for profile to load and verify data is loaded
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
@@ -629,7 +614,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         )
 
         // Use token-based auth for admin
-        loginViaToken(baseUrl, adminSettingsUrl, adminUser, testAuthSupport)
+        loginViaToken("/adminSettings", adminUser, testAuthSupport)
 
         // Verify settings page is displayed
         val settingsPage = page.locator("[data-testid='settings-page']")

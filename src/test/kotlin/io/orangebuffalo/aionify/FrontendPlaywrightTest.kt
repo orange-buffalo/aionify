@@ -2,16 +2,15 @@ package io.orangebuffalo.aionify
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import io.micronaut.runtime.server.EmbeddedServer
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Test
-import java.net.URL
 
 @MicronautTest
+
+    @Inject
+    lateinit var testUsers: TestUsers
 class FrontendPlaywrightTest : PlaywrightTestBase() {
 
-        @Inject
-    lateinit var server: EmbeddedServer
 
 
     lateinit var url: URL

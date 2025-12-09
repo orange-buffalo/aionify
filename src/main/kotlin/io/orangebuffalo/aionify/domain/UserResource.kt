@@ -39,7 +39,7 @@ open class UserResource(
                 userName = user.userName,
                 greeting = user.greeting,
                 languageCode = user.languageCode,
-                locale = user.locale.toLanguageTag()
+                locale = user.localeTag
             )
         )
     }
