@@ -138,7 +138,10 @@ class UserAdminResourceTest {
         
         // Then: Request should be rejected with bad request
         assertEquals(HttpStatus.BAD_REQUEST, exception.status)
-        assertTrue(exception.message?.contains("Cannot delete your own user account") == true)
+        // Check the response body contains the error message
+        val responseBody = exception.response.getBody(String::class.java).orElse("")
+        assertTrue(responseBody.contains("Cannot delete your own user account"), 
+            "Expected error message in response body, got: $responseBody")
     }
 
     @Test

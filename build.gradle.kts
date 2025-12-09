@@ -4,6 +4,7 @@ plugins {
     id("com.google.devtools.ksp") version "2.1.0-1.0.29"
     id("io.micronaut.application") version "4.4.4"
     id("io.micronaut.docker") version "4.4.4"
+    id("io.micronaut.test-resources") version "4.4.4"
 }
 
 val micronautVersion: String by project
@@ -52,6 +53,11 @@ dependencies {
     testImplementation("io.micronaut:micronaut-http-client")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.rest-assured:kotlin-extensions")
+    testImplementation("org.testcontainers:testcontainers:1.20.4")
+    testImplementation("org.testcontainers:postgresql:1.20.4")
+    testImplementation("org.testcontainers:junit-jupiter:1.20.4")
+    testImplementation("io.micronaut.testresources:micronaut-test-resources-client")
+    testRuntimeOnly("io.micronaut.testresources:micronaut-test-resources-testcontainers")
 }
 
 // E2E tests source set

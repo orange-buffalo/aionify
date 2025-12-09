@@ -4,6 +4,7 @@ import io.micronaut.data.annotation.GeneratedValue
 import io.micronaut.data.annotation.Id
 import io.micronaut.data.annotation.MappedEntity
 import io.micronaut.data.annotation.MappedProperty
+import io.micronaut.data.annotation.Transient
 import java.util.Locale
 
 @MappedEntity("app_user")
@@ -29,6 +30,7 @@ data class User(
     @field:MappedProperty("language_code")
     val languageCode: String
 ) {
+    @get:Transient
     val locale: Locale
         get() = Locale.forLanguageTag(localeTag)
     
