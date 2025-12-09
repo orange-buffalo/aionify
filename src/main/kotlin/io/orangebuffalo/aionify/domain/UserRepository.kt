@@ -17,25 +17,22 @@ interface UserRepository : CrudRepository<User, Long> {
     @Query(
         """UPDATE app_user 
            SET password_hash = :passwordHash 
-           WHERE user_name = :userName""",
-        nativeQuery = true
+           WHERE user_name = :userName"""
     )
-    fun updatePasswordHash(userName: String, passwordHash: String)
+    fun updatePasswordHash(userName: String, passwordHash: String): Int
     
     @Query(
         """UPDATE app_user 
            SET greeting = :greeting, language_code = :languageCode, locale = :localeTag 
-           WHERE user_name = :userName""",
-        nativeQuery = true
+           WHERE user_name = :userName"""
     )
-    fun updateProfile(userName: String, greeting: String, languageCode: String, localeTag: String)
+    fun updateProfile(userName: String, greeting: String, languageCode: String, localeTag: String): Int
     
     @Query(
         """SELECT id, user_name, password_hash, greeting, is_admin, locale, language_code 
            FROM app_user 
            ORDER BY user_name
-           LIMIT :size OFFSET :offset""",
-        nativeQuery = true
+           LIMIT :size OFFSET :offset"""
     )
     fun findAllPaginated(offset: Int, size: Int): List<User>
     
