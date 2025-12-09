@@ -3,31 +3,30 @@ package io.orangebuffalo.aionify
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserRepository
-import io.quarkus.elytron.security.common.BcryptUtil
-import io.quarkus.test.common.http.TestHTTPResource
-import io.quarkus.test.junit.QuarkusTest
+import org.mindrot.jbcrypt.BCrypt
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import io.micronaut.context.annotation.Property
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.net.URL
 import java.util.Locale
 
-@QuarkusTest
+@MicronautTest
 class SettingsPlaywrightTest : PlaywrightTestBase() {
 
-    @TestHTTPResource("/")
+    @Property(name = "micronaut.server.port")
+    var serverPort: Int = 0
+
+
     lateinit var baseUrl: URL
 
-    @TestHTTPResource("/login")
     lateinit var loginUrl: URL
 
-    @TestHTTPResource("/portal")
     lateinit var portalUrl: URL
 
-    @TestHTTPResource("/portal/settings")
     lateinit var userSettingsUrl: URL
 
-    @TestHTTPResource("/admin/settings")
     lateinit var adminSettingsUrl: URL
 
     @Inject
@@ -44,14 +43,21 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupTestData() {
+        // Initialize URLs
+        baseUrl = URL("http://localhost:$serverPort/base")
+        loginUrl = URL("http://localhost:$serverPort/login")
+        portalUrl = URL("http://localhost:$serverPort/portal")
+        userSettingsUrl = URL("http://localhost:$serverPort/userSettings")
+        adminSettingsUrl = URL("http://localhost:$serverPort/adminSettings")
+
         // Create test user with known credentials
-        regularUser = userRepository.insert(
-            User(
+        regularUser = userRepository.save(
+            User.create(
                 userName = regularUserName,
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = regularUserGreeting,
                 isAdmin = false,
-                locale = Locale.ENGLISH,
+                locale = java.util.Locale.ENGLISH,
                 languageCode = "en"
             )
         )
@@ -128,13 +134,13 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should display profile with Ukrainian language and locale`() {
         // Create user with Ukrainian settings
-        val ukUser = userRepository.insert(
-            User(
+        val ukUser = userRepository.save(
+            User.create(
                 userName = "ukrainianUser",
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Привіт",
                 isAdmin = false,
-                locale = Locale.forLanguageTag("uk-UA"),
+                locale = java.util.Locale.forLanguageTag("uk-UA"),
                 languageCode = "uk"
             )
         )
@@ -156,13 +162,13 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should display profile with German locale`() {
         // Create user with German locale
-        val deUser = userRepository.insert(
-            User(
+        val deUser = userRepository.save(
+            User.create(
                 userName = "germanUser",
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Hallo",
                 isAdmin = false,
-                locale = Locale.forLanguageTag("de-DE"),
+                locale = java.util.Locale.forLanguageTag("de-DE"),
                 languageCode = "en"
             )
         )
@@ -611,13 +617,13 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
     fun `admin should be able to access settings and change password`() {
         // Create a test admin user
         val testAdminPassword = "adminPassword123"
-        val adminUser = userRepository.insert(
-            User(
+        val adminUser = userRepository.save(
+            User.create(
                 userName = "settingsTestAdmin",
-                passwordHash = BcryptUtil.bcryptHash(testAdminPassword),
+                passwordHash = BCrypt.hashpw(testAdminPassword, BCrypt.gensalt()),
                 greeting = "Settings Test Admin",
                 isAdmin = true,
-                locale = Locale.ENGLISH,
+                locale = java.util.Locale.ENGLISH,
                 languageCode = "en"
             )
         )

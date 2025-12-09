@@ -3,9 +3,9 @@ package io.orangebuffalo.aionify
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserRepository
-import io.quarkus.elytron.security.common.BcryptUtil
-import io.quarkus.test.common.http.TestHTTPResource
-import io.quarkus.test.junit.QuarkusTest
+import org.mindrot.jbcrypt.BCrypt
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import io.micronaut.context.annotation.Property
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -20,16 +20,17 @@ import java.util.Locale
  * storage required. This approach works in all modes (dev, test, production) and
  * eliminates issues with shared files between test forks or multiple instances.
  */
-@QuarkusTest
+@MicronautTest
 class LoginPlaywrightTest : PlaywrightTestBase() {
 
-    @TestHTTPResource("/login")
+    @Property(name = "micronaut.server.port")
+    var serverPort: Int = 0
+
+
     lateinit var loginUrl: URL
 
-    @TestHTTPResource("/admin")
     lateinit var adminUrl: URL
 
-    @TestHTTPResource("/portal")
     lateinit var userPortalUrl: URL
 
     @Inject
@@ -43,14 +44,19 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupTestData() {
+        // Initialize URLs
+        loginUrl = URL("http://localhost:$serverPort/login")
+        adminUrl = URL("http://localhost:$serverPort/admin")
+        userPortalUrl = URL("http://localhost:$serverPort/portal")
+
         // Create test user with known credentials
-        regularUser = userRepository.insert(
-            User(
+        regularUser = userRepository.save(
+            User.create(
                 userName = regularUserName,
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = regularUserGreeting,
                 isAdmin = false,
-                locale = Locale.ENGLISH,
+                locale = java.util.Locale.ENGLISH,
                 languageCode = "en"
             )
         )
@@ -163,13 +169,13 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
         // Create a test admin with a known password
         val testAdminName = "testadmin"
         val testAdminPassword = "adminPass123"
-        userRepository.insert(
-            User(
+        userRepository.save(
+            User.create(
                 userName = testAdminName,
-                passwordHash = BcryptUtil.bcryptHash(testAdminPassword),
+                passwordHash = BCrypt.hashpw(testAdminPassword, BCrypt.gensalt()),
                 greeting = "Test Admin",
                 isAdmin = true,
-                locale = Locale.ENGLISH,
+                locale = java.util.Locale.ENGLISH,
                 languageCode = "en"
             )
         )
@@ -246,13 +252,13 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
     fun `should allow logout from admin portal`() {
         val testAdminName = "testadmin2"
         val testAdminPassword = "adminPass456"
-        userRepository.insert(
-            User(
+        userRepository.save(
+            User.create(
                 userName = testAdminName,
-                passwordHash = BcryptUtil.bcryptHash(testAdminPassword),
+                passwordHash = BCrypt.hashpw(testAdminPassword, BCrypt.gensalt()),
                 greeting = "Test Admin 2",
                 isAdmin = true,
-                locale = Locale.ENGLISH,
+                locale = java.util.Locale.ENGLISH,
                 languageCode = "en"
             )
         )

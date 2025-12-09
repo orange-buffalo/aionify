@@ -3,28 +3,28 @@ package io.orangebuffalo.aionify
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserRepository
-import io.quarkus.elytron.security.common.BcryptUtil
-import io.quarkus.test.common.http.TestHTTPResource
-import io.quarkus.test.junit.QuarkusTest
+import org.mindrot.jbcrypt.BCrypt
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import io.micronaut.context.annotation.Property
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.net.URL
 import java.util.Locale
 
-@QuarkusTest
+@MicronautTest
 class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
-    @TestHTTPResource("/")
+    @Property(name = "micronaut.server.port")
+    var serverPort: Int = 0
+
+
     lateinit var baseUrl: URL
 
-    @TestHTTPResource("/login")
     lateinit var loginUrl: URL
 
-    @TestHTTPResource("/portal")
     lateinit var portalUrl: URL
 
-    @TestHTTPResource("/admin")
     lateinit var adminUrl: URL
 
     @Inject
@@ -44,25 +44,31 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupTestData() {
+        // Initialize URLs
+        baseUrl = URL("http://localhost:$serverPort/base")
+        loginUrl = URL("http://localhost:$serverPort/login")
+        portalUrl = URL("http://localhost:$serverPort/portal")
+        adminUrl = URL("http://localhost:$serverPort/admin")
+
         // Create test users with known credentials
-        regularUser = userRepository.insert(
-            User(
+        regularUser = userRepository.save(
+            User.create(
                 userName = regularUserName,
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = regularUserGreeting,
                 isAdmin = false,
-                locale = Locale.ENGLISH,
+                locale = java.util.Locale.ENGLISH,
                 languageCode = "en"
             )
         )
 
-        adminUser = userRepository.insert(
-            User(
+        adminUser = userRepository.save(
+            User.create(
                 userName = adminUserName,
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = adminUserGreeting,
                 isAdmin = true,
-                locale = Locale.ENGLISH,
+                locale = java.util.Locale.ENGLISH,
                 languageCode = "en"
             )
         )

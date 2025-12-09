@@ -49,6 +49,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("com.microsoft.playwright:playwright:1.52.0")
     testImplementation("io.micronaut.test:micronaut-test-rest-assured")
+    testImplementation("io.micronaut:micronaut-http-client")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.rest-assured:kotlin-extensions")
 }

@@ -1,15 +1,18 @@
 package io.orangebuffalo.aionify
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
-import io.quarkus.test.common.http.TestHTTPResource
-import io.quarkus.test.junit.QuarkusTest
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import io.micronaut.context.annotation.Property
 import org.junit.jupiter.api.Test
 import java.net.URL
 
-@QuarkusTest
+@MicronautTest
 class FrontendPlaywrightTest : PlaywrightTestBase() {
 
-    @TestHTTPResource("/")
+    @Property(name = "micronaut.server.port")
+    var serverPort: Int = 0
+
+
     lateinit var url: URL
 
     @Test

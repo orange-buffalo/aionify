@@ -3,9 +3,9 @@ package io.orangebuffalo.aionify
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserRepository
-import io.quarkus.elytron.security.common.BcryptUtil
-import io.quarkus.test.common.http.TestHTTPResource
-import io.quarkus.test.junit.QuarkusTest
+import org.mindrot.jbcrypt.BCrypt
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import io.micronaut.context.annotation.Property
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -16,16 +16,17 @@ import java.util.Locale
  * Playwright tests for the users overview page functionality.
  * Tests admin-only access, table display, pagination, and delete functionality.
  */
-@QuarkusTest
+@MicronautTest
 class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
-    @TestHTTPResource("/")
+    @Property(name = "micronaut.server.port")
+    var serverPort: Int = 0
+
+
     lateinit var baseUrl: URL
 
-    @TestHTTPResource("/admin/users")
     lateinit var usersUrl: URL
 
-    @TestHTTPResource("/login")
     lateinit var loginUrl: URL
 
     @Inject
@@ -40,26 +41,31 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupTestData() {
+        // Initialize URLs
+        baseUrl = URL("http://localhost:$serverPort/base")
+        usersUrl = URL("http://localhost:$serverPort/users")
+        loginUrl = URL("http://localhost:$serverPort/login")
+
         // Create admin user
-        adminUser = userRepository.insert(
-            User(
+        adminUser = userRepository.save(
+            User.create(
                 userName = "admin",
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Admin User",
                 isAdmin = true,
-                locale = Locale.ENGLISH,
+                locale = java.util.Locale.ENGLISH,
                 languageCode = "en"
             )
         )
 
         // Create regular user
-        regularUser = userRepository.insert(
-            User(
+        regularUser = userRepository.save(
+            User.create(
                 userName = "regularuser",
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Regular User",
                 isAdmin = false,
-                locale = Locale.ENGLISH,
+                locale = java.util.Locale.ENGLISH,
                 languageCode = "en"
             )
         )
@@ -211,13 +217,13 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
     fun `should display pagination when there are more than 20 users`() {
         // Create 25 users to test pagination
         for (i in 1..25) {
-            userRepository.insert(
-                User(
+            userRepository.save(
+                User.create(
                     userName = "user$i",
-                    passwordHash = BcryptUtil.bcryptHash(testPassword),
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                     greeting = "User $i",
                     isAdmin = false,
-                    locale = Locale.ENGLISH,
+                    locale = java.util.Locale.ENGLISH,
                     languageCode = "en"
                 )
             )
@@ -242,13 +248,13 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
     fun `should navigate between pages using pagination controls`() {
         // Create 25 users to test pagination
         for (i in 1..25) {
-            userRepository.insert(
-                User(
+            userRepository.save(
+                User.create(
                     userName = "user$i",
-                    passwordHash = BcryptUtil.bcryptHash(testPassword),
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                     greeting = "User $i",
                     isAdmin = false,
-                    locale = Locale.ENGLISH,
+                    locale = java.util.Locale.ENGLISH,
                     languageCode = "en"
                 )
             )
@@ -299,13 +305,13 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
     fun `should display correct number of users on each page`() {
         // Create 25 users
         for (i in 1..25) {
-            userRepository.insert(
-                User(
+            userRepository.save(
+                User.create(
                     userName = "user$i",
-                    passwordHash = BcryptUtil.bcryptHash(testPassword),
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                     greeting = "User $i",
                     isAdmin = false,
-                    locale = Locale.ENGLISH,
+                    locale = java.util.Locale.ENGLISH,
                     languageCode = "en"
                 )
             )
@@ -336,23 +342,23 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should display users sorted by username`() {
         // Create users with names that would be out of order if not sorted
-        userRepository.insert(
-            User(
+        userRepository.save(
+            User.create(
                 userName = "zebra",
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Zebra User",
                 isAdmin = false,
-                locale = Locale.ENGLISH,
+                locale = java.util.Locale.ENGLISH,
                 languageCode = "en"
             )
         )
-        userRepository.insert(
-            User(
+        userRepository.save(
+            User.create(
                 userName = "apple",
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Apple User",
                 isAdmin = false,
-                locale = Locale.ENGLISH,
+                locale = java.util.Locale.ENGLISH,
                 languageCode = "en"
             )
         )

@@ -3,28 +3,28 @@ package io.orangebuffalo.aionify
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserRepository
-import io.quarkus.elytron.security.common.BcryptUtil
-import io.quarkus.test.common.http.TestHTTPResource
-import io.quarkus.test.junit.QuarkusTest
+import org.mindrot.jbcrypt.BCrypt
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import io.micronaut.context.annotation.Property
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.net.URL
 import java.util.Locale
 
-@QuarkusTest
+@MicronautTest
 class I18nPlaywrightTest : PlaywrightTestBase() {
 
-    @TestHTTPResource("/")
+    @Property(name = "micronaut.server.port")
+    var serverPort: Int = 0
+
+
     lateinit var baseUrl: URL
 
-    @TestHTTPResource("/login")
     lateinit var loginUrl: URL
 
-    @TestHTTPResource("/portal")
     lateinit var portalUrl: URL
 
-    @TestHTTPResource("/portal/settings")
     lateinit var userSettingsUrl: URL
 
     @Inject
@@ -41,14 +41,20 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupTestData() {
+        // Initialize URLs
+        baseUrl = URL("http://localhost:$serverPort/base")
+        loginUrl = URL("http://localhost:$serverPort/login")
+        portalUrl = URL("http://localhost:$serverPort/portal")
+        userSettingsUrl = URL("http://localhost:$serverPort/userSettings")
+
         // Create test user with English language
-        regularUser = userRepository.insert(
-            User(
+        regularUser = userRepository.save(
+            User.create(
                 userName = regularUserName,
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = regularUserGreeting,
                 isAdmin = false,
-                locale = Locale.ENGLISH,
+                locale = java.util.Locale.ENGLISH,
                 languageCode = "en"
             )
         )
@@ -95,13 +101,13 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should switch UI to user's preferred language upon login`() {
         // Create a user with Ukrainian language preference
-        val ukUser = userRepository.insert(
-            User(
+        val ukUser = userRepository.save(
+            User.create(
                 userName = "ukrainianTestUser",
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Тестовий користувач",
                 isAdmin = false,
-                locale = Locale.forLanguageTag("uk-UA"),
+                locale = java.util.Locale.forLanguageTag("uk-UA"),
                 languageCode = "uk"
             )
         )
