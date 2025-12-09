@@ -1,6 +1,7 @@
 package io.orangebuffalo.aionify.auth
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import io.micronaut.core.annotation.Introspected
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
@@ -47,11 +48,13 @@ open class AuthResource(private val authService: AuthService) {
     }
 }
 
+@Introspected
 data class LoginRequest(
     val userName: String,
     val password: String
 )
 
+@Introspected
 data class LoginResponse(
     val token: String,
     val userName: String,
@@ -60,11 +63,13 @@ data class LoginResponse(
     val languageCode: String
 )
 
+@Introspected
 data class LoginErrorResponse(
     val error: String,
     val errorCode: String = "INVALID_CREDENTIALS"
 )
 
+@Introspected
 data class ChangePasswordRequest(
     @field:NotBlank(message = "Current password cannot be empty")
     val currentPassword: String,
@@ -74,10 +79,12 @@ data class ChangePasswordRequest(
     val newPassword: String
 )
 
+@Introspected
 data class ChangePasswordSuccessResponse(
     val message: String
 )
 
+@Introspected
 data class ChangePasswordErrorResponse(
     val error: String,
     val errorCode: String

@@ -1,5 +1,6 @@
 package io.orangebuffalo.aionify.domain
 
+import io.micronaut.core.annotation.Introspected
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Delete
@@ -77,6 +78,7 @@ open class UserAdminResource(
     }
 }
 
+@Introspected
 data class UserDto(
     val id: Long,
     val userName: String,
@@ -84,6 +86,7 @@ data class UserDto(
     val isAdmin: Boolean
 )
 
+@Introspected
 data class UsersListResponse(
     val users: List<UserDto>,
     val total: Long,
@@ -91,10 +94,12 @@ data class UsersListResponse(
     val size: Int
 )
 
+@Introspected
 data class SuccessResponse(
     val message: String
 )
 
+@Introspected
 data class ErrorResponse(
     val error: String
 )

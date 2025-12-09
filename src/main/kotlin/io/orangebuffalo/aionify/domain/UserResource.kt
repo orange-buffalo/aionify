@@ -1,5 +1,6 @@
 package io.orangebuffalo.aionify.domain
 
+import io.micronaut.core.annotation.Introspected
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
@@ -79,6 +80,7 @@ open class UserResource(
     }
 }
 
+@Introspected
 data class ProfileResponse(
     val userName: String,
     val greeting: String,
@@ -86,6 +88,7 @@ data class ProfileResponse(
     val locale: String
 )
 
+@Introspected
 data class UpdateProfileRequest(
     @field:NotBlank(message = "Greeting cannot be blank")
     @field:Size(max = 255, message = "Greeting cannot exceed 255 characters")
@@ -98,10 +101,12 @@ data class UpdateProfileRequest(
     val locale: String
 )
 
+@Introspected
 data class ProfileSuccessResponse(
     val message: String
 )
 
+@Introspected
 data class ProfileErrorResponse(
     val error: String,
     val errorCode: String
