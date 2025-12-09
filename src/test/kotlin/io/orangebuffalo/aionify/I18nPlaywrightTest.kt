@@ -13,9 +13,6 @@ import org.mindrot.jbcrypt.BCrypt
 class I18nPlaywrightTest : PlaywrightTestBase() {
 
     @Inject
-    lateinit var testUsers: TestUsers
-
-    @Inject
     lateinit var userRepository: UserRepository
 
     @Inject
@@ -29,7 +26,6 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupTestData() {
-        // Initialize URLs
         // Create test user with English language
         regularUser = userRepository.save(
             User.create(

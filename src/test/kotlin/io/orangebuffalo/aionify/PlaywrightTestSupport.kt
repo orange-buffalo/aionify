@@ -54,6 +54,9 @@ abstract class PlaywrightTestBase {
     
     @Inject
     lateinit var server: EmbeddedServer
+    
+    @Inject
+    lateinit var testUsers: TestUsers
 
     private lateinit var playwright: Playwright
     private lateinit var browser: Browser

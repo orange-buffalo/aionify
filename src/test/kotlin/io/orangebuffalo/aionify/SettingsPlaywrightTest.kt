@@ -13,9 +13,6 @@ import org.mindrot.jbcrypt.BCrypt
 class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Inject
-    lateinit var testUsers: TestUsers
-
-    @Inject
     lateinit var userRepository: UserRepository
 
     @Inject
@@ -29,7 +26,6 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupTestData() {
-        // Initialize URLs
         // Create test user with known credentials
         regularUser = userRepository.save(
             User.create(

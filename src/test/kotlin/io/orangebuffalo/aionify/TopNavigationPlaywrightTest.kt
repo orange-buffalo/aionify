@@ -13,9 +13,6 @@ import org.mindrot.jbcrypt.BCrypt
 class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
     @Inject
-    lateinit var testUsers: TestUsers
-
-    @Inject
     lateinit var userRepository: UserRepository
 
     @Inject
@@ -32,7 +29,7 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupTestData() {
-        // Initialize URLs        // Create test users with known credentials
+        // Create test users with known credentials
         regularUser = userRepository.save(
             User.create(
                 userName = regularUserName,

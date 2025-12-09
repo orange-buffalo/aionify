@@ -8,9 +8,6 @@ import org.junit.jupiter.api.Test
 @MicronautTest
 class FrontendPlaywrightTest : PlaywrightTestBase() {
 
-    @Inject
-    lateinit var testUsers: TestUsers
-
     @Test
     fun `should display login page with title and form`() {
         page.navigate("/")

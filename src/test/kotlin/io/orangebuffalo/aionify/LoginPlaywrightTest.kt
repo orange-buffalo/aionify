@@ -17,9 +17,6 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
     @Inject
     lateinit var userRepository: UserRepository
-    
-    @Inject
-    lateinit var testUsers: TestUsers
 
     private lateinit var regularUser: User
     private lateinit var adminUser: User

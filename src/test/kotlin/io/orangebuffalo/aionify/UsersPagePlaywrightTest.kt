@@ -17,9 +17,6 @@ import org.mindrot.jbcrypt.BCrypt
 class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
     @Inject
-    lateinit var testUsers: TestUsers
-
-    @Inject
     lateinit var userRepository: UserRepository
 
     @Inject
@@ -31,7 +28,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupTestData() {
-        // Initialize URLs        // Create admin user
+        // Create admin user
         adminUser = userRepository.save(
             User.create(
                 userName = "admin",

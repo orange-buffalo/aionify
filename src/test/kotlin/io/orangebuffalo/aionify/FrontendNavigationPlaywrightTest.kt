@@ -13,9 +13,6 @@ import org.junit.jupiter.api.Test
 @MicronautTest
 class FrontendNavigationPlaywrightTest : PlaywrightTestBase() {
 
-    @Inject
-    lateinit var testUsers: TestUsers
-
     @Test
     fun `should navigate to root page successfully`() {
         val response = page.navigate("/")
