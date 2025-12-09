@@ -13,18 +13,15 @@ import org.junit.jupiter.api.Test
  * Tests admin-only access, table display, pagination, and delete functionality.
  */
 @MicronautTest
+class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
     @Inject
     lateinit var testUsers: TestUsers
-class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
-
-
-
-
-
+    @Inject
     lateinit var userRepository: UserRepository
 
+    @Inject
     lateinit var testAuthSupport: TestAuthSupport
 
     private val testPassword = "testPassword123"
@@ -33,9 +30,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupTestData() {
-        // Initialize URLs
-
-        // Create admin user
+        // Initialize URLs        // Create admin user
         adminUser = userRepository.save(
             User.create(
                 userName = "admin",
@@ -62,7 +57,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should display users page with table for admin user`() {
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Verify users page is displayed
         val usersPage = page.locator("[data-testid='users-page']")
@@ -80,7 +75,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should display all users in the table`() {
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Verify admin user row
         val adminRow = page.locator("[data-testid='user-row-admin']")
@@ -111,7 +106,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should not show actions menu for own user`() {
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Admin user should not have actions menu (cannot delete self)
         val adminActions = page.locator("[data-testid='user-actions-admin']")
@@ -124,7 +119,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should display delete confirmation dialog when delete is clicked`() {
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Click actions menu for regular user
         page.locator("[data-testid='user-actions-regularuser']").click()
@@ -149,7 +144,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should cancel deletion when cancel button is clicked`() {
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Click actions menu and delete
         page.locator("[data-testid='user-actions-regularuser']").click()
@@ -169,7 +164,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should delete user and show success message when confirmed`() {
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Click actions menu and delete
         page.locator("[data-testid='user-actions-regularuser']").click()
@@ -218,7 +213,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
             )
         }
 
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Verify pagination is displayed
         val pagination = page.locator("[data-testid='users-pagination']")
@@ -249,7 +244,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
             )
         }
 
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Verify we're on page 1
         val paginationInfo = page.locator("[data-testid='pagination-info']")
@@ -306,7 +301,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
             )
         }
 
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Verify usernames on page 1 (should be first 20 users alphabetically)
         val page1Usernames = page.locator("tbody tr td:nth-child(1)").allTextContents()
@@ -352,7 +347,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
 
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Get all username cells in order
         val usernames = page.locator("tbody tr td:nth-child(1)").allTextContents()
@@ -366,7 +361,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should hide actions button for current user`() {
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Admin user logged in - verify they cannot delete themselves
         val adminActionsButton = page.locator("[data-testid='user-actions-admin']")

@@ -7,21 +7,18 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mindrot.jbcrypt.BCrypt
 
 @MicronautTest
+class I18nPlaywrightTest : PlaywrightTestBase() {
 
     @Inject
     lateinit var testUsers: TestUsers
-class I18nPlaywrightTest : PlaywrightTestBase() {
 
-
-
-
-
-
-
+    @Inject
     lateinit var userRepository: UserRepository
 
+    @Inject
     lateinit var testAuthSupport: TestAuthSupport
 
     private val testPassword = "testPassword123"
@@ -33,7 +30,6 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
     @BeforeEach
     fun setupTestData() {
         // Initialize URLs
-
         // Create test user with English language
         regularUser = userRepository.save(
             User.create(

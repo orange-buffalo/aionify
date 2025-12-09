@@ -6,12 +6,12 @@ import com.microsoft.playwright.BrowserType
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.Playwright
 import com.microsoft.playwright.Tracing
+import io.micronaut.runtime.server.EmbeddedServer
 import io.orangebuffalo.aionify.domain.User
 import jakarta.inject.Inject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInfo
-import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
 

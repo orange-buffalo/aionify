@@ -239,7 +239,7 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `root path should redirect to login`() {
-        page.navigate(loginUrl.toString().replace("/login", "/"))
+        page.navigate("/".replace("/login", "/"))
 
         // Should redirect to login
         page.waitForURL("**/login")

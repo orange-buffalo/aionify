@@ -11,18 +11,14 @@ import org.junit.jupiter.api.Test
  * Another Playwright test class demonstrating the reusable PlaywrightTestSupport setup.
  */
 @MicronautTest
+class FrontendNavigationPlaywrightTest : PlaywrightTestBase() {
 
     @Inject
     lateinit var testUsers: TestUsers
-class FrontendNavigationPlaywrightTest : PlaywrightTestBase() {
-
-
-
-    lateinit var url: URL
 
     @Test
     fun `should navigate to root page successfully`() {
-        val response = page.navigate(url.toString())
+        val response = page.navigate("/")
         
         // Verify the navigation was successful
         assertTrue(response?.ok() == true, "Navigation should succeed with OK status")
@@ -30,7 +26,7 @@ class FrontendNavigationPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should have correct viewport and page state`() {
-        page.navigate(url.toString())
+        page.navigate("/")
         
         // Verify the page is not closed
         assertFalse(page.isClosed, "Page should not be closed")
