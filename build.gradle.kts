@@ -1,7 +1,6 @@
 plugins {
     kotlin("jvm") version "2.1.0"
     kotlin("plugin.allopen") version "2.1.0"
-    kotlin("kapt") version "2.1.0"
     id("com.google.devtools.ksp") version "2.1.0-1.0.29"
     id("io.micronaut.application") version "4.4.4"
     id("io.micronaut.docker") version "4.4.4"
@@ -30,6 +29,9 @@ dependencies {
     
     // Micronaut Data annotation processors
     ksp("io.micronaut.data:micronaut-data-processor")
+    ksp("io.micronaut:micronaut-http-validation")
+    ksp("io.micronaut.serde:micronaut-serde-processor")
+    ksp("io.micronaut.validation:micronaut-validation-processor")
 
     // Security - JWT authentication
     implementation("io.micronaut.security:micronaut-security-jwt")
@@ -41,6 +43,7 @@ dependencies {
 
     // Logging
     runtimeOnly("ch.qos.logback:logback-classic")
+    runtimeOnly("org.yaml:snakeyaml")
 
     testImplementation("io.micronaut.test:micronaut-test-junit5")
     testImplementation("org.junit.jupiter:junit-jupiter")

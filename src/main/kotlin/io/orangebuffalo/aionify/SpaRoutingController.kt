@@ -18,7 +18,7 @@ import java.io.InputStream
 open class SpaRoutingController {
 
     @Get(uri = "/{path:(?!api/).*}", produces = [MediaType.TEXT_HTML])
-    open fun serveIndex(request: HttpRequest<*>): HttpResponse<InputStream> {
+    open fun serveIndex(path: String?, request: HttpRequest<*>): HttpResponse<InputStream> {
         val inputStream = Thread.currentThread().contextClassLoader
             .getResourceAsStream("META-INF/resources/index.html")
             ?: return HttpResponse.notFound()
