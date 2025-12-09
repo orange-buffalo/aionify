@@ -1,56 +1,32 @@
 package io.orangebuffalo.aionify.auth
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
-import com.auth0.jwt.interfaces.DecodedJWT
-import io.quarkus.runtime.StartupEvent
-import jakarta.enterprise.context.ApplicationScoped
-import jakarta.enterprise.event.Observes
-import org.eclipse.microprofile.config.inject.ConfigProperty
-import org.jboss.logging.Logger
-import java.security.KeyPair
-import java.security.KeyPairGenerator
-import java.security.interfaces.RSAPrivateKey
-import java.security.interfaces.RSAPublicKey
+import com.nimbusds.jwt.JWTClaimsSet
+import io.micronaut.context.event.ApplicationEventListener
+import io.micronaut.runtime.event.ApplicationStartupEvent
+import io.micronaut.security.token.jwt.generator.JwtTokenGenerator
+import io.micronaut.security.token.jwt.validator.JwtTokenValidator
+import jakarta.inject.Singleton
+import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-import java.util.Date
+import java.util.*
 
 /**
- * Service for generating and validating JWT tokens using Auth0 java-jwt library.
+ * Service for generating and validating JWT tokens using Micronaut Security JWT.
  * 
- * This service automatically generates an RSA key pair at startup for signing and validating JWTs.
- * The keys are ephemeral and kept in-memory only - they exist only for the lifetime of the application instance.
- * This means:
- * - Users will need to log in again after application restart
- * - The application is designed for single-instance deployments
- * - No key storage or management is required
+ * Token generation and validation is handled by Micronaut Security JWT library.
+ * The signing key is configured in application.yml (JWT_SECRET environment variable or default).
  */
-@ApplicationScoped
+@Singleton
 class JwtTokenService(
-    @param:ConfigProperty(name = "aionify.jwt.issuer", defaultValue = "aionify")
-    private val jwtIssuer: String,
-    @param:ConfigProperty(name = "aionify.jwt.expiration-minutes", defaultValue = "1440")
-    private val jwtExpirationMinutes: Long
-) {
-    private val log = Logger.getLogger(JwtTokenService::class.java)
+    private val jwtTokenGenerator: JwtTokenGenerator,
+    private val jwtTokenValidators: Collection<JwtTokenValidator<*>>
+) : ApplicationEventListener<ApplicationStartupEvent> {
     
-    @Volatile
-    private lateinit var algorithm: Algorithm
-
-    fun init(@Observes event: StartupEvent) {
-        // Generate a new RSA key pair for signing JWTs at startup
-        // Keys are kept in-memory only, no file storage
-        val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
-        keyPairGenerator.initialize(2048)
-        val keyPair: KeyPair = keyPairGenerator.generateKeyPair()
-        
-        algorithm = Algorithm.RSA256(
-            keyPair.public as RSAPublicKey,
-            keyPair.private as RSAPrivateKey
-        )
-        
-        log.info("JWT RSA key pair generated and ready for use (in-memory only)")
+    private val log = LoggerFactory.getLogger(JwtTokenService::class.java)
+    
+    override fun onApplicationEvent(event: ApplicationStartupEvent) {
+        log.info("JWT token service initialized with Micronaut Security")
     }
 
     /**
@@ -62,32 +38,31 @@ class JwtTokenService(
         isAdmin: Boolean,
         greeting: String
     ): String {
-        val now = Instant.now()
-        val expirationTime = now.plus(jwtExpirationMinutes, ChronoUnit.MINUTES)
-
-        return JWT.create()
-            .withIssuer(jwtIssuer)
-            .withSubject(userName)
-            .withClaim("upn", userName)  // User Principal Name
-            .withClaim("preferred_username", userName)
-            .withClaim("userId", userId)
-            .withClaim("isAdmin", isAdmin)
-            .withClaim("greeting", greeting)
-            .withIssuedAt(Date.from(now))
-            .withExpiresAt(Date.from(expirationTime))
-            .sign(algorithm)
+        val claims = mapOf(
+            "sub" to userName,
+            "upn" to userName,
+            "preferred_username" to userName,
+            "userId" to userId,
+            "isAdmin" to isAdmin,
+            "greeting" to greeting
+        )
+        
+        val token = jwtTokenGenerator.generateToken(claims)
+        return token.orElseThrow { RuntimeException("Failed to generate JWT token") }
     }
 
     /**
-     * Validates a JWT token and returns the decoded JWT.
+     * Validates a JWT token and returns the claims.
      * 
-     * @throws com.auth0.jwt.exceptions.JWTVerificationException if the token is invalid
+     * @throws Exception if the token is invalid
      */
-    fun validateToken(token: String): DecodedJWT {
-        val verifier = JWT.require(algorithm)
-            .withIssuer(jwtIssuer)
-            .build()
-        
-        return verifier.verify(token)
+    fun validateToken(token: String): JWTClaimsSet {
+        for (validator in jwtTokenValidators) {
+            val result = validator.validateToken(token, null)
+            if (result.isPresent) {
+                return result.get() as JWTClaimsSet
+            }
+        }
+        throw RuntimeException("Invalid JWT token")
     }
 }

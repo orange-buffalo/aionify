@@ -1,39 +1,37 @@
 package io.orangebuffalo.aionify.domain
 
-import io.quarkus.security.Authenticated
-import jakarta.annotation.security.RolesAllowed
-import jakarta.ws.rs.*
-import jakarta.ws.rs.core.Context
-import jakarta.ws.rs.core.MediaType
-import jakarta.ws.rs.core.Response
-import jakarta.ws.rs.core.SecurityContext
-import kotlinx.serialization.Serializable
+import io.micronaut.http.HttpResponse
+import io.micronaut.http.annotation.Controller
+import io.micronaut.http.annotation.Delete
+import io.micronaut.http.annotation.Get
+import io.micronaut.http.annotation.PathVariable
+import io.micronaut.http.annotation.QueryValue
+import io.micronaut.security.annotation.Secured
+import java.security.Principal
 
-@Path("/api/admin/users")
-@RolesAllowed("admin")
-class UserAdminResource(private val userRepository: UserRepository) {
+@Controller("/api/admin/users")
+@Secured("admin")
+class UserAdminResource(
+    private val userRepository: UserRepository,
+    private val userService: UserService
+) {
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Get
     fun listUsers(
-        @QueryParam("page") @DefaultValue("0") page: Int,
-        @QueryParam("size") @DefaultValue("20") size: Int
-    ): Response {
+        @QueryValue(defaultValue = "0") page: Int,
+        @QueryValue(defaultValue = "20") size: Int
+    ): HttpResponse<*> {
         if (page < 0) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                .entity(ErrorResponse("Page must be non-negative"))
-                .build()
+            return HttpResponse.badRequest(ErrorResponse("Page must be non-negative"))
         }
         
         if (size <= 0 || size > 100) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                .entity(ErrorResponse("Size must be between 1 and 100"))
-                .build()
+            return HttpResponse.badRequest(ErrorResponse("Size must be between 1 and 100"))
         }
         
-        val pagedUsers = userRepository.findAllPaginated(page, size)
+        val pagedUsers = userService.findAllPaginated(page, size)
         
-        return Response.ok(
+        return HttpResponse.ok(
             UsersListResponse(
                 users = pagedUsers.users.map { user ->
                     UserDto(
@@ -47,43 +45,35 @@ class UserAdminResource(private val userRepository: UserRepository) {
                 page = pagedUsers.page,
                 size = pagedUsers.size
             )
-        ).build()
+        )
     }
 
-    @DELETE
-    @Path("/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    fun deleteUser(@PathParam("id") id: Long, @Context securityContext: SecurityContext): Response {
-        val currentUserName = securityContext.userPrincipal?.name
-            ?: return Response.status(Response.Status.UNAUTHORIZED)
-                .entity(ErrorResponse("User not authenticated"))
-                .build()
+    @Delete("/{id}")
+    fun deleteUser(@PathVariable id: Long, principal: Principal?): HttpResponse<*> {
+        val currentUserName = principal?.name
+            ?: return HttpResponse.unauthorized<ErrorResponse>()
+                .body(ErrorResponse("User not authenticated"))
         
-        val currentUser = userRepository.findByUserName(currentUserName)
-            ?: return Response.status(Response.Status.UNAUTHORIZED)
-                .entity(ErrorResponse("User not found"))
-                .build()
+        val currentUser = userRepository.findByUserName(currentUserName).orElse(null)
+            ?: return HttpResponse.unauthorized<ErrorResponse>()
+                .body(ErrorResponse("User not found"))
         
         // Prevent self-deletion
         if (currentUser.id == id) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                .entity(ErrorResponse("Cannot delete your own user account"))
-                .build()
+            return HttpResponse.badRequest(ErrorResponse("Cannot delete your own user account"))
         }
         
-        val deleted = userRepository.deleteById(id)
+        val deleted = userRepository.deleteById(id).isPresent
         
         return if (deleted) {
-            Response.ok(SuccessResponse("User deleted successfully")).build()
+            HttpResponse.ok(SuccessResponse("User deleted successfully"))
         } else {
-            Response.status(Response.Status.NOT_FOUND)
-                .entity(ErrorResponse("User not found"))
-                .build()
+            HttpResponse.notFound<ErrorResponse>()
+                .body(ErrorResponse("User not found"))
         }
     }
 }
 
-@Serializable
 data class UserDto(
     val id: Long,
     val userName: String,
@@ -91,7 +81,6 @@ data class UserDto(
     val isAdmin: Boolean
 )
 
-@Serializable
 data class UsersListResponse(
     val users: List<UserDto>,
     val total: Long,
@@ -99,12 +88,10 @@ data class UsersListResponse(
     val size: Int
 )
 
-@Serializable
 data class SuccessResponse(
     val message: String
 )
 
-@Serializable
 data class ErrorResponse(
     val error: String
 )

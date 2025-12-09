@@ -1,0 +1,61 @@
+micronaut:
+  application:
+    name: aionify
+  server:
+    port: 8080
+    cors:
+      enabled: true
+  router:
+    static-resources:
+      default:
+        enabled: true
+        paths: classpath:META-INF/resources
+        mapping: /**
+  security:
+    authentication: bearer
+    token:
+      jwt:
+        signatures:
+          secret:
+            generator:
+              secret: "${JWT_SECRET:}"
+              jws-algorithm: HS256
+        generator:
+          access-token:
+            expiration: 86400  # 24 hours in seconds
+    intercept-url-map:
+      - pattern: /api/auth/login
+        http-method: POST
+        access:
+          - isAnonymous()
+      - pattern: /api/**
+        access:
+          - isAuthenticated()
+      - pattern: /**
+        access:
+          - isAnonymous()
+
+datasources:
+  default:
+    url: ${AIONIFY_DB_URL:`jdbc:postgresql://localhost:5432/aionify`}
+    driverClassName: org.postgresql.Driver
+    username: ${AIONIFY_DB_USERNAME:`aionify`}
+    password: ${AIONIFY_DB_PASSWORD:`aionify`}
+    maximum-pool-size: 10
+
+flyway:
+  datasources:
+    default:
+      enabled: true
+
+jackson:
+  serialization:
+    writeDatesAsTimestamps: false
+  deserialization:
+    adjust-dates-to-context-time-zone: false
+  serialization-inclusion: non-absent
+
+netty:
+  default:
+    allocator:
+      max-order: 3

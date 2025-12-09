@@ -1,47 +1,51 @@
 plugins {
     kotlin("jvm") version "2.2.20"
     kotlin("plugin.allopen") version "2.2.20"
-    kotlin("plugin.serialization") version "2.2.20"
-    id("io.quarkus")
+    kotlin("kapt") version "2.2.20"
+    id("com.google.devtools.ksp") version "2.2.20-1.0.29"
+    id("io.micronaut.application") version "4.4.4"
+    id("io.micronaut.docker") version "4.4.4"
 }
+
+val micronautVersion: String by project
 
 repositories {
     mavenCentral()
-    mavenLocal()
 }
 
-val quarkusPlatformGroupId: String by project
-val quarkusPlatformArtifactId: String by project
-val quarkusPlatformVersion: String by project
-
 dependencies {
-    implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
-    implementation("io.quarkus:quarkus-rest")
-    implementation("io.quarkus:quarkus-rest-kotlin-serialization")
-    implementation("io.quarkus:quarkus-kotlin")
-    implementation("io.quarkus:quarkus-arc")
-    implementation("io.quarkus:quarkus-container-image-docker")
+    // Micronaut core
+    implementation("io.micronaut:micronaut-http-server-netty")
+    implementation("io.micronaut.kotlin:micronaut-kotlin-runtime")
+    implementation("io.micronaut:micronaut-jackson-databind")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
 
-    // Database persistence
-    implementation("io.quarkus:quarkus-jdbc-postgresql")
-    implementation("io.quarkus:quarkus-flyway")
+    // Database persistence with Micronaut Data JDBC
+    implementation("io.micronaut.sql:micronaut-jdbc-hikari")
+    implementation("io.micronaut.flyway:micronaut-flyway")
+    implementation("io.micronaut.data:micronaut-data-jdbc")
+    implementation("org.postgresql:postgresql")
     implementation("org.flywaydb:flyway-database-postgresql")
-    implementation("io.quarkiverse.jdbi:quarkus-jdbi:1.7.0")
-    implementation("org.jdbi:jdbi3-kotlin:3.49.1")
-    implementation("org.jdbi:jdbi3-kotlin-sqlobject:3.49.1")
+    
+    // Micronaut Data annotation processors
+    ksp("io.micronaut.data:micronaut-data-processor")
 
-    // Security / Password hashing
-    implementation("io.quarkus:quarkus-elytron-security-common")
-
-    // JWT authentication - using Auth0 java-jwt for native image compatibility
-    implementation("com.auth0:java-jwt:4.4.0")
+    // Security - JWT authentication
+    implementation("io.micronaut.security:micronaut-security-jwt")
+    implementation("org.mindrot:jbcrypt:0.4")
 
     // Validation
-    implementation("io.quarkus:quarkus-hibernate-validator")
+    implementation("io.micronaut.validation:micronaut-validation")
+    implementation("jakarta.validation:jakarta.validation-api")
 
-    testImplementation("io.quarkus:quarkus-junit5")
+    // Logging
+    runtimeOnly("ch.qos.logback:logback-classic")
+
+    testImplementation("io.micronaut.test:micronaut-test-junit5")
+    testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("com.microsoft.playwright:playwright:1.52.0")
+    testImplementation("io.micronaut.test:micronaut-test-rest-assured")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.rest-assured:kotlin-extensions")
 }
@@ -80,18 +84,31 @@ java {
     targetCompatibility = JavaVersion.VERSION_21
 }
 
+micronaut {
+    version.set(micronautVersion)
+    runtime("netty")
+    testRuntime("junit5")
+    processing {
+        incremental(true)
+        annotations("io.orangebuffalo.aionify.*")
+    }
+}
+
+application {
+    mainClass.set("io.orangebuffalo.aionify.Application")
+}
+
 tasks.withType<Test> {
-    systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
+    useJUnitPlatform()
     testLogging {
         events("passed", "skipped", "failed", "standardOut", "standardError")
     }
 }
 
 allOpen {
-    annotation("jakarta.ws.rs.Path")
-    annotation("jakarta.enterprise.context.ApplicationScoped")
-    annotation("jakarta.persistence.Entity")
-    annotation("io.quarkus.test.junit.QuarkusTest")
+    annotation("io.micronaut.aop.Around")
+    annotation("jakarta.inject.Singleton")
+    annotation("io.micronaut.data.annotation.Repository")
 }
 
 kotlin {
@@ -145,8 +162,6 @@ val e2eTest by tasks.registering(Test::class) {
 
     // Must run after the image is built
     mustRunAfter(tasks.build)
-
-    systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
 
     // Pass the Docker image tag to tests via system property
     // Check is deferred to execution time via doFirst
