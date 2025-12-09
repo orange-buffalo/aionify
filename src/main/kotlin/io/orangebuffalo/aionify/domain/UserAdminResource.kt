@@ -11,13 +11,13 @@ import java.security.Principal
 
 @Controller("/api/admin/users")
 @Secured("admin")
-class UserAdminResource(
+open class UserAdminResource(
     private val userRepository: UserRepository,
     private val userService: UserService
 ) {
 
     @Get
-    fun listUsers(
+    open fun listUsers(
         @QueryValue(defaultValue = "0") page: Int,
         @QueryValue(defaultValue = "20") size: Int
     ): HttpResponse<*> {
@@ -49,7 +49,7 @@ class UserAdminResource(
     }
 
     @Delete("/{id}")
-    fun deleteUser(@PathVariable id: Long, principal: Principal?): HttpResponse<*> {
+    open fun deleteUser(@PathVariable id: Long, principal: Principal?): HttpResponse<*> {
         val currentUserName = principal?.name
             ?: return HttpResponse.unauthorized<ErrorResponse>()
                 .body(ErrorResponse("User not authenticated"))
@@ -63,7 +63,10 @@ class UserAdminResource(
             return HttpResponse.badRequest(ErrorResponse("Cannot delete your own user account"))
         }
         
-        val deleted = userRepository.deleteById(id).isPresent
+        val deleted = userRepository.existsById(id)
+        if (deleted) {
+            userRepository.deleteById(id)
+        }
         
         return if (deleted) {
             HttpResponse.ok(SuccessResponse("User deleted successfully"))

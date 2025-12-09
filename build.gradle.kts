@@ -1,8 +1,8 @@
 plugins {
-    kotlin("jvm") version "2.2.20"
-    kotlin("plugin.allopen") version "2.2.20"
-    kotlin("kapt") version "2.2.20"
-    id("com.google.devtools.ksp") version "2.2.20-1.0.29"
+    kotlin("jvm") version "2.1.0"
+    kotlin("plugin.allopen") version "2.1.0"
+    kotlin("kapt") version "2.1.0"
+    id("com.google.devtools.ksp") version "2.1.0-1.0.29"
     id("io.micronaut.application") version "4.4.4"
     id("io.micronaut.docker") version "4.4.4"
 }
@@ -109,6 +109,7 @@ allOpen {
     annotation("io.micronaut.aop.Around")
     annotation("jakarta.inject.Singleton")
     annotation("io.micronaut.data.annotation.Repository")
+    annotation("io.micronaut.http.annotation.Controller")
 }
 
 kotlin {

@@ -15,7 +15,7 @@ import java.util.Locale
 
 @Controller("/api/users")
 @Secured(SecurityRule.IS_AUTHENTICATED)
-class UserResource(
+open class UserResource(
     private val userRepository: UserRepository,
     private val userService: UserService
 ) {
@@ -25,7 +25,7 @@ class UserResource(
     }
 
     @Get("/profile")
-    fun getProfile(principal: Principal?): HttpResponse<*> {
+    open fun getProfile(principal: Principal?): HttpResponse<*> {
         val userName = principal?.name
             ?: return HttpResponse.unauthorized<ProfileErrorResponse>()
                 .body(ProfileErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
@@ -45,7 +45,7 @@ class UserResource(
     }
 
     @Put("/profile")
-    fun updateProfile(@Valid @Body request: UpdateProfileRequest, principal: Principal?): HttpResponse<*> {
+    open fun updateProfile(@Valid @Body request: UpdateProfileRequest, principal: Principal?): HttpResponse<*> {
         val userName = principal?.name
             ?: return HttpResponse.unauthorized<ProfileErrorResponse>()
                 .body(ProfileErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))

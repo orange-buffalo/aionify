@@ -13,11 +13,11 @@ import jakarta.validation.constraints.Size
 import java.security.Principal
 
 @Controller("/api/auth")
-class AuthResource(private val authService: AuthService) {
+open class AuthResource(private val authService: AuthService) {
 
     @Post("/login")
     @Secured(SecurityRule.IS_ANONYMOUS)
-    fun login(@Valid @Body request: LoginRequest): HttpResponse<*> {
+    open fun login(@Valid @Body request: LoginRequest): HttpResponse<*> {
         return try {
             val response = authService.authenticate(request.userName, request.password)
             HttpResponse.ok(response)
@@ -29,7 +29,7 @@ class AuthResource(private val authService: AuthService) {
 
     @Post("/change-password")
     @Secured(SecurityRule.IS_AUTHENTICATED)
-    fun changePassword(@Valid @Body request: ChangePasswordRequest, principal: Principal?): HttpResponse<*> {
+    open fun changePassword(@Valid @Body request: ChangePasswordRequest, principal: Principal?): HttpResponse<*> {
         val userName = principal?.name
             ?: return HttpResponse.unauthorized<ChangePasswordErrorResponse>()
                 .body(ChangePasswordErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
