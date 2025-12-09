@@ -94,4 +94,86 @@ class UserRepository(private val jdbi: Jdbi) {
                 .execute()
         }
     }
+
+    fun findAllPaginated(page: Int, size: Int): PagedUsers {
+        return jdbi.withHandle<PagedUsers, Exception> { handle ->
+            val offset = page * size
+            
+            val total = handle.createQuery("SELECT COUNT(*) FROM app_user")
+                .mapTo<Long>()
+                .one()
+            
+            val users = handle.createQuery(
+                """
+                SELECT id, user_name, password_hash, greeting, is_admin, locale, language_code 
+                FROM app_user 
+                ORDER BY user_name
+                LIMIT :size OFFSET :offset
+                """.trimIndent()
+            )
+                .bind("size", size)
+                .bind("offset", offset)
+                .map { rs, _ ->
+                    User(
+                        id = rs.getLong("id"),
+                        userName = rs.getString("user_name"),
+                        passwordHash = rs.getString("password_hash"),
+                        greeting = rs.getString("greeting"),
+                        isAdmin = rs.getBoolean("is_admin"),
+                        locale = Locale.forLanguageTag(rs.getString("locale")),
+                        languageCode = rs.getString("language_code")
+                    )
+                }
+                .list()
+            
+            PagedUsers(
+                users = users,
+                total = total,
+                page = page,
+                size = size
+            )
+        }
+    }
+
+    fun deleteById(id: Long): Boolean {
+        return jdbi.withHandle<Boolean, Exception> { handle ->
+            val rowsDeleted = handle.createUpdate("DELETE FROM app_user WHERE id = :id")
+                .bind("id", id)
+                .execute()
+            rowsDeleted > 0
+        }
+    }
+
+    fun findById(id: Long): User? {
+        return jdbi.withHandle<User?, Exception> { handle ->
+            handle.createQuery(
+                """
+                SELECT id, user_name, password_hash, greeting, is_admin, locale, language_code 
+                FROM app_user 
+                WHERE id = :id
+                """.trimIndent()
+            )
+                .bind("id", id)
+                .map { rs, _ ->
+                    User(
+                        id = rs.getLong("id"),
+                        userName = rs.getString("user_name"),
+                        passwordHash = rs.getString("password_hash"),
+                        greeting = rs.getString("greeting"),
+                        isAdmin = rs.getBoolean("is_admin"),
+                        locale = Locale.forLanguageTag(rs.getString("locale")),
+                        languageCode = rs.getString("language_code")
+                    )
+                }
+                .findOne()
+                .orElse(null)
+        }
+    }
 }
+
+data class PagedUsers(
+    val users: List<User>,
+    val total: Long,
+    val page: Int,
+    val size: Int
+)
