@@ -16,7 +16,7 @@ Project documentation is organized as follows:
 
 ## Tech Stack Overview
 
-- **Backend**: Quarkus framework with Kotlin
+- **Backend**: Micronaut framework with Kotlin
 - **Frontend**: React with TypeScript, shadcn-ui components, and Tailwind CSS v4
 - **Build Tools**: Gradle for backend, **Bun for frontend** (never commit `package-lock.json`)
 - **Database**: PostgreSQL with Flyway migrations and JDBI for data access
@@ -43,11 +43,9 @@ The E2E tests validate the application running from the Docker image. To run the
 
 ```bash
 # First, build the Docker image
-./gradlew build \
-  -Dquarkus.package.jar.enabled=false -Dquarkus.native.enabled=true \
-  -Dquarkus.container-image.build=true \
-  -Dquarkus.container-image.tag=local-test \
-  --build-cache --console=plain
+./gradlew nativeCompile
+docker build -f src/main/docker/Dockerfile.native \
+  -t ghcr.io/orange-buffalo/aionify:local-test .
 
 # Run E2E tests
 ./gradlew e2eTest -Daionify.docker.image=ghcr.io/orange-buffalo/aionify:local-test
@@ -70,7 +68,7 @@ To run a specific test class:
 - `src/main/kotlin/io/orangebuffalo/aionify/` - Main Kotlin application code
   - `config/` - Configuration classes (e.g., JDBI setup)
   - `domain/` - Domain models and repositories
-- `src/test/kotlin/io/orangebuffalo/aionify/` - Unit tests (Quarkus test mode)
+- `src/test/kotlin/io/orangebuffalo/aionify/` - Unit tests (Micronaut test mode)
 - `src/e2eTest/kotlin/io/orangebuffalo/aionify/` - E2E tests (Docker image tests)
 - `frontend/` - React frontend application
   - `src/components/ui/` - shadcn-ui components
@@ -117,7 +115,7 @@ Playwright tests should extend `PlaywrightTestBase` which provides:
 
 Example:
 ```kotlin
-@QuarkusTest
+@MicronautTest
 class MyPlaywrightTest : PlaywrightTestBase() {
     @TestHTTPResource("/")
     lateinit var url: URL
@@ -148,7 +146,7 @@ API tests should focus on **security** rather than business logic:
 - Test that endpoints are properly protected (authentication/authorization)
 - Test that users cannot bypass UI restrictions
 - Business logic verification is done through Playwright UI tests
--  **Note**: @RolesAllowed annotations require `quarkus-security` extension which doesn't integrate properly with custom JWT authentication in test mode. Security enforcement is validated in E2E tests with production Docker images.
+-  **Note**: Security enforcement is validated comprehensively in E2E tests with production Docker images. API endpoint tests use HTTP client to verify security at the API level (see UserAdminResourceTest for examples).
 
 Example:
 ```kotlin
