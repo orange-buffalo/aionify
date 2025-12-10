@@ -28,7 +28,8 @@ dependencies {
     implementation("org.postgresql:postgresql")
     implementation("org.flywaydb:flyway-database-postgresql")
     
-    // Micronaut Data annotation processors
+    // Micronaut annotation processors
+    ksp("io.micronaut:micronaut-inject-kotlin")  // CRITICAL: For @Controller, @Singleton, etc.
     ksp("io.micronaut.data:micronaut-data-processor")
     ksp("io.micronaut:micronaut-http-validation")
     ksp("io.micronaut.serde:micronaut-serde-processor")
