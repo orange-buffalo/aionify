@@ -54,7 +54,7 @@ jobs:
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
         run: |
-          ./gradlew build nativeCompile \
+          ./gradlew build \
             --build-cache --console=plain
           
           docker build -f src/main/docker/Dockerfile.native \
