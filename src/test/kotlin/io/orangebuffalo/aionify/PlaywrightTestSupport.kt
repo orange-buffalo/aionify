@@ -1,11 +1,6 @@
 package io.orangebuffalo.aionify
 
-import com.microsoft.playwright.Browser
-import com.microsoft.playwright.BrowserContext
-import com.microsoft.playwright.BrowserType
-import com.microsoft.playwright.Page
-import com.microsoft.playwright.Playwright
-import com.microsoft.playwright.Tracing
+import com.microsoft.playwright.*
 import io.micronaut.runtime.server.EmbeddedServer
 import io.orangebuffalo.aionify.domain.User
 import jakarta.inject.Inject
@@ -18,21 +13,21 @@ import java.nio.file.Paths
 /**
  * Base class for Playwright tests that provides browser lifecycle management, automatic trace recording,
  * and database cleanup before each test.
- * 
+ *
  * Traces are saved to `build/playwright-traces/` with a filename based on the test class and method names.
- * 
+ *
  * Usage:
  * ```kotlin
  * @MicronautTest
  * class MyPlaywrightTest : PlaywrightTestBase() {
  *     @Inject
  *     lateinit var testAuthSupport: TestAuthSupport
- *     
+ *
  *     @Inject
  *     lateinit var userRepository: UserRepository
- *     
+ *
  *     private lateinit var testUser: User
- *     
+ *
  *     @BeforeEach
  *     fun setupTestData() {
  *         // Database is already truncated by base class
@@ -51,19 +46,22 @@ abstract class PlaywrightTestBase {
 
     @Inject
     lateinit var testDatabaseSupport: TestDatabaseSupport
-    
+
     @Inject
     lateinit var server: EmbeddedServer
-    
+
     @Inject
     lateinit var testUsers: TestUsers
+
+    @Inject
+    lateinit var transactionHelper: TestTransactionHelper
 
     private lateinit var playwright: Playwright
     private lateinit var browser: Browser
     private lateinit var browserContext: BrowserContext
     private lateinit var _page: Page
     private lateinit var testInfo: TestInfo
-    
+
     /**
      * Base URL for the application, set automatically from the embedded server.
      */
@@ -76,7 +74,7 @@ abstract class PlaywrightTestBase {
     companion object {
         private const val TRACES_DIR = "build/playwright-traces"
         private val SANITIZE_REGEX = Regex("[^a-zA-Z0-9_-]")
-        
+
         // Local storage keys matching frontend constants
         const val TOKEN_KEY = "aionify_token"
         const val LAST_USERNAME_KEY = "aionify_last_username"
@@ -85,20 +83,20 @@ abstract class PlaywrightTestBase {
     @BeforeEach
     fun setupPlaywright(testInfo: TestInfo) {
         this.testInfo = testInfo
-        
+
         // Clean up database before each test for isolation
         testDatabaseSupport.truncateAllTables()
-        
+
         playwright = Playwright.create()
         browser = playwright.chromium().launch(
             BrowserType.LaunchOptions().setHeadless(true)
         )
-        
+
         // Create context with base URL for simpler navigation
         browserContext = browser.newContext(
             Browser.NewContextOptions().setBaseURL(baseUrl)
         )
-        
+
         // Start tracing for this test
         browserContext.tracing().start(
             Tracing.StartOptions()
@@ -106,7 +104,7 @@ abstract class PlaywrightTestBase {
                 .setSnapshots(true)
                 .setSources(true)
         )
-        
+
         _page = browserContext.newPage()
     }
 
@@ -125,18 +123,18 @@ abstract class PlaywrightTestBase {
     /**
      * Authenticates via JWT token and navigates to the target page.
      * This is much faster than UI login and should be used for tests that don't need to test login.
-     * 
+     *
      * @param targetPath The path to navigate to after authentication (relative to base URL)
      * @param user The user to authenticate as
      * @param testAuthSupport The auth support instance for generating tokens
      */
     protected fun loginViaToken(targetPath: String, user: User, testAuthSupport: TestAuthSupport) {
         val authData = testAuthSupport.generateAuthStorageData(user)
-        
+
         // Navigate to a page first to set the origin for localStorage
         // Using the base URL
         page.navigate("/")
-        
+
         // Set authentication data in localStorage
         page.evaluate("""
             (data) => {
@@ -151,7 +149,7 @@ abstract class PlaywrightTestBase {
             "userName" to authData.userName,
             "greeting" to authData.greeting
         ))
-        
+
         // Now navigate to the target page
         page.navigate(targetPath)
     }

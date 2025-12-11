@@ -194,7 +194,7 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
         // Should redirect to login
         page.waitForURL("**/login")
-        
+
         val loginPage = page.locator("[data-testid='login-page']")
         assertThat(loginPage).isVisible()
     }
@@ -203,16 +203,20 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
     fun `should allow logout from admin portal`() {
         val testAdminName = "testadmin2"
         val testAdminPassword = "adminPass456"
-        userRepository.save(
-            User.create(
-                userName = testAdminName,
-                passwordHash = BCrypt.hashpw(testAdminPassword, BCrypt.gensalt()),
-                greeting = "Test Admin 2",
-                isAdmin = true,
-                locale = java.util.Locale.ENGLISH,
-                languageCode = "en"
+
+        // Create user in a separate transaction to ensure it's committed
+        transactionHelper.inTransaction {
+            userRepository.save(
+                User.create(
+                    userName = testAdminName,
+                    passwordHash = BCrypt.hashpw(testAdminPassword, BCrypt.gensalt()),
+                    greeting = "Test Admin 2",
+                    isAdmin = true,
+                    locale = java.util.Locale.ENGLISH,
+                    languageCode = "en"
+                )
             )
-        )
+        }
 
         page.navigate("/login")
 
@@ -230,7 +234,7 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
         // Should redirect to login
         page.waitForURL("**/login")
-        
+
         val loginPage = page.locator("[data-testid='login-page']")
         assertThat(loginPage).isVisible()
     }
@@ -241,7 +245,7 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
         // Should redirect to login
         page.waitForURL("**/login")
-        
+
         val loginPage = page.locator("[data-testid='login-page']")
         assertThat(loginPage).isVisible()
     }
