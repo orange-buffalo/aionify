@@ -30,27 +30,32 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
     @BeforeEach
     fun setupTestData() {
         // Create test users with known credentials
-        regularUser = userRepository.save(
-            User.create(
-                userName = regularUserName,
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = regularUserGreeting,
-                isAdmin = false,
-                locale = java.util.Locale.ENGLISH,
-                languageCode = "en"
+        // Wrap in transaction to commit immediately and make visible to browser HTTP requests
+        regularUser = transactionHelper.inTransaction {
+            userRepository.save(
+                User.create(
+                    userName = regularUserName,
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = regularUserGreeting,
+                    isAdmin = false,
+                    locale = java.util.Locale.ENGLISH,
+                    languageCode = "en"
+                )
             )
-        )
+        }
 
-        adminUser = userRepository.save(
-            User.create(
-                userName = adminUserName,
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = adminUserGreeting,
-                isAdmin = true,
-                locale = java.util.Locale.ENGLISH,
-                languageCode = "en"
+        adminUser = transactionHelper.inTransaction {
+            userRepository.save(
+                User.create(
+                    userName = adminUserName,
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = adminUserGreeting,
+                    isAdmin = true,
+                    locale = java.util.Locale.ENGLISH,
+                    languageCode = "en"
+                )
             )
-        )
+        }
     }
 
     private fun navigateToPortalViaToken() {

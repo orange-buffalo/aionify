@@ -27,16 +27,19 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
     @BeforeEach
     fun setupTestData() {
         // Create test user with known credentials
-        regularUser = userRepository.save(
-            User.create(
-                userName = regularUserName,
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = regularUserGreeting,
-                isAdmin = false,
-                locale = java.util.Locale.ENGLISH,
-                languageCode = "en"
+        // Wrap in transaction to commit immediately and make visible to browser HTTP requests
+        regularUser = transactionHelper.inTransaction {
+            userRepository.save(
+                User.create(
+                    userName = regularUserName,
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = regularUserGreeting,
+                    isAdmin = false,
+                    locale = java.util.Locale.ENGLISH,
+                    languageCode = "en"
+                )
             )
-        )
+        }
     }
 
     private fun navigateToSettingsViaToken() {
@@ -110,16 +113,19 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should display profile with Ukrainian language and locale`() {
         // Create user with Ukrainian settings
-        val ukUser = userRepository.save(
-            User.create(
-                userName = "ukrainianUser",
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = "Привіт",
-                isAdmin = false,
-                locale = java.util.Locale.forLanguageTag("uk-UA"),
-                languageCode = "uk"
+        // Wrap in transaction to commit immediately and make visible to browser HTTP requests
+        val ukUser = transactionHelper.inTransaction {
+            userRepository.save(
+                User.create(
+                    userName = "ukrainianUser",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "Привіт",
+                    isAdmin = false,
+                    locale = java.util.Locale.forLanguageTag("uk-UA"),
+                    languageCode = "uk"
+                )
             )
-        )
+        }
 
         loginViaToken("/userSettings", ukUser, testAuthSupport)
 
@@ -138,16 +144,19 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should display profile with German locale`() {
         // Create user with German locale
-        val deUser = userRepository.save(
-            User.create(
-                userName = "germanUser",
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = "Hallo",
-                isAdmin = false,
-                locale = java.util.Locale.forLanguageTag("de-DE"),
-                languageCode = "en"
+        // Wrap in transaction to commit immediately and make visible to browser HTTP requests
+        val deUser = transactionHelper.inTransaction {
+            userRepository.save(
+                User.create(
+                    userName = "germanUser",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "Hallo",
+                    isAdmin = false,
+                    locale = java.util.Locale.forLanguageTag("de-DE"),
+                    languageCode = "en"
+                )
             )
-        )
+        }
 
         loginViaToken("/userSettings", deUser, testAuthSupport)
 
@@ -593,16 +602,19 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
     fun `admin should be able to access settings and change password`() {
         // Create a test admin user
         val testAdminPassword = "adminPassword123"
-        val adminUser = userRepository.save(
-            User.create(
-                userName = "settingsTestAdmin",
-                passwordHash = BCrypt.hashpw(testAdminPassword, BCrypt.gensalt()),
-                greeting = "Settings Test Admin",
-                isAdmin = true,
-                locale = java.util.Locale.ENGLISH,
-                languageCode = "en"
+        // Wrap in transaction to commit immediately and make visible to browser HTTP requests
+        val adminUser = transactionHelper.inTransaction {
+            userRepository.save(
+                User.create(
+                    userName = "settingsTestAdmin",
+                    passwordHash = BCrypt.hashpw(testAdminPassword, BCrypt.gensalt()),
+                    greeting = "Settings Test Admin",
+                    isAdmin = true,
+                    locale = java.util.Locale.ENGLISH,
+                    languageCode = "en"
+                )
             )
-        )
+        }
 
         // Use token-based auth for admin
         loginViaToken("/adminSettings", adminUser, testAuthSupport)

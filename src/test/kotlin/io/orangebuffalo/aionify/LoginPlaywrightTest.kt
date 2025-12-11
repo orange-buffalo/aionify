@@ -23,8 +23,8 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupTestData() {
-        regularUser = testUsers.createRegularUser(userRepository)
-        adminUser = testUsers.createAdmin(userRepository)
+        regularUser = testUsers.createRegularUser(userRepository, transactionHelper)
+        adminUser = testUsers.createAdmin(userRepository, transactionHelper)
     }
 
     @Test

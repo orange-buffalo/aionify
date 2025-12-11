@@ -19,8 +19,8 @@ Project documentation is organized as follows:
 - **Backend**: Micronaut framework with Kotlin
 - **Frontend**: React with TypeScript, shadcn-ui components, and Tailwind CSS v4
 - **Build Tools**: Gradle for backend, **Bun for frontend** (never commit `package-lock.json`)
-- **Database**: PostgreSQL with Flyway migrations and JDBI for data access
-- **Testing**: JUnit 5 with Playwright for E2E tests
+- **Database**: PostgreSQL with Flyway migrations and Micronaut Data JDBC for data access
+- **Testing**: JUnit 5 with Playwright for E2E tests and Testcontainers for database integration
 
 ## Development Workflow
 
@@ -81,10 +81,11 @@ To run a specific test class:
 
 ### Kotlin/Backend
 
-- Use data classes for domain models
-- Use `@ApplicationScoped` for CDI beans
-- Use JDBI with Kotlin extensions for database access
+- Use data classes for domain models annotated with `@MappedEntity` for Micronaut Data
+- Use `@Singleton` for dependency injection (Micronaut CDI)
+- Use Micronaut Data JDBC with repository interfaces (`@JdbcRepository`)
 - Follow Kotlin naming conventions (camelCase for functions/properties)
+- All DTOs used in REST endpoints must have `@Introspected` annotation for serialization/validation
 
 ### TypeScript/Frontend
 
@@ -112,18 +113,39 @@ Playwright tests should extend `PlaywrightTestBase` which provides:
 - **Always use Playwright's built-in auto-waiting assertions** like `assertThat().isVisible()`, `assertThat().containsText()`, etc.
 - These assertions automatically retry until the condition is met or timeout occurs
 - When verifying pagination or table content changes, check actual content (e.g., usernames) not just counts
+- **CRITICAL: Always wrap repository.save() calls in `transactionHelper.inTransaction {}`** - This commits the transaction immediately, making test data visible to browser HTTP requests. Without this, browser requests will fail because they run in separate connections and cannot see uncommitted test data.
 
 Example:
 ```kotlin
 @MicronautTest
 class MyPlaywrightTest : PlaywrightTestBase() {
-    @TestHTTPResource("/")
-    lateinit var url: URL
+    @Inject
+    lateinit var userRepository: UserRepository
+    
+    private lateinit var testUser: User
+
+    @BeforeEach
+    fun setupTestData() {
+        // CRITICAL: Wrap in transactionHelper to commit immediately
+        // This makes the user visible to browser HTTP requests
+        testUser = transactionHelper.inTransaction {
+            userRepository.save(
+                User.create(
+                    userName = "testuser",
+                    passwordHash = BCrypt.hashpw("password", BCrypt.gensalt()),
+                    greeting = "Test User",
+                    isAdmin = false,
+                    locale = Locale.ENGLISH,
+                    languageCode = "en"
+                )
+            )
+        }
+    }
 
     @Test
     fun `my test`() {
-        page.navigate(url.toString())
-        // assertions...
+        page.navigate("/login")
+        // Now testUser is visible to login endpoint
     }
 }
 ```
