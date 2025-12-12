@@ -105,6 +105,17 @@ micronaut {
     }
 }
 
+graalvmNative {
+    binaries {
+        named("main") {
+            imageName.set(
+                project.findProperty("micronaut.docker.nativeImage.imageName")?.toString() 
+                    ?: "aionify:latest"
+            )
+        }
+    }
+}
+
 application {
     mainClass.set("io.orangebuffalo.aionify.Application")
 }
