@@ -55,7 +55,7 @@ jobs:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
           DOCKER_IMAGE_TAG: ${{ steps.prepare-tag.outputs.tag }}
         run: |
-          ./gradlew test dockerBuildNative dockerPushNative \
+          ./gradlew test dockerBuild dockerPush \
             --build-cache --console=plain
 
       - name: Run E2E tests against Docker image

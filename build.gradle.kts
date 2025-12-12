@@ -107,7 +107,7 @@ micronaut {
 
 val dockerImageTag = System.getenv("DOCKER_IMAGE_TAG") ?: "latest"
 val dockerImage = "ghcr.io/orange-buffalo/aionify:$dockerImageTag"
-tasks.dockerBuildNative {
+tasks.dockerBuild {
     images.set(listOf(dockerImage))
 }
 
