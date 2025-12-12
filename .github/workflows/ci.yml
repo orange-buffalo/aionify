@@ -50,28 +50,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and test
+      - name: Build, test and push Docker image
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+          DOCKER_IMAGE_TAG: ${{ steps.prepare-tag.outputs.tag }}
         run: |
-          ./gradlew build \
-            --build-cache --console=plain
-      
-      - name: Build and push native Docker image
-        env:
-          DOCKER_IMAGE_TAG: ghcr.io/orange-buffalo/aionify:${{ steps.prepare-tag.outputs.tag }}
-        run: |
-          ./gradlew dockerBuildNative dockerPushNative \
-            -Pmicronaut.docker.nativeImage.imageName=$DOCKER_IMAGE_TAG \
+          ./gradlew test dockerBuildNative dockerPushNative \
             --build-cache --console=plain
 
       - name: Run E2E tests against Docker image
         env:
-          AIONIFY_DOCKER_IMAGE: ghcr.io/orange-buffalo/aionify:${{ steps.prepare-tag.outputs.tag }}
+          DOCKER_IMAGE_TAG: ${{ steps.prepare-tag.outputs.tag }}
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
         run: |
           ./gradlew e2eTest \
-            -Daionify.docker.image=$AIONIFY_DOCKER_IMAGE \
             --build-cache --console=plain
 
       - name: Upload Playwright traces

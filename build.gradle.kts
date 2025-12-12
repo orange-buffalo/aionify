@@ -27,7 +27,7 @@ dependencies {
     implementation("io.micronaut.data:micronaut-data-jdbc")
     implementation("org.postgresql:postgresql")
     implementation("org.flywaydb:flyway-database-postgresql")
-    
+
     // Micronaut annotation processors
     ksp("io.micronaut:micronaut-inject-kotlin")  // CRITICAL: For @Controller, @Singleton, etc.
     ksp("io.micronaut.data:micronaut-data-processor")
@@ -105,15 +105,10 @@ micronaut {
     }
 }
 
-graalvmNative {
-    binaries {
-        named("main") {
-            imageName.set(
-                project.findProperty("micronaut.docker.nativeImage.imageName")?.toString() 
-                    ?: "aionify:latest"
-            )
-        }
-    }
+val dockerImageTag = System.getenv("DOCKER_IMAGE_TAG") ?: "latest"
+val dockerImage = "ghcr.io/orange-buffalo/aionify:$dockerImageTag"
+tasks.dockerBuildNative {
+    images.set(listOf(dockerImage))
 }
 
 application {
@@ -189,10 +184,6 @@ val e2eTest by tasks.registering(Test::class) {
     // Pass the Docker image tag to tests via system property
     // Check is deferred to execution time via doFirst
     doFirst {
-        val dockerImage = System.getenv("AIONIFY_DOCKER_IMAGE")
-            ?: System.getProperty("aionify.docker.image")
-            ?: throw GradleException("E2E tests require AIONIFY_DOCKER_IMAGE environment variable or -Daionify.docker.image system property to be set")
-
         systemProperty("aionify.docker.image", dockerImage)
     }
 
