@@ -43,7 +43,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
     }
 
     private fun navigateToSettingsViaToken() {
-        loginViaToken("/userSettings", regularUser, testAuthSupport)
+        loginViaToken("/portal/settings", regularUser, testAuthSupport)
     }
 
     private fun navigateToPortalViaToken() {
@@ -98,10 +98,10 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // Verify form elements are visible
         val languageSelect = page.locator("[data-testid='profile-language-select']")
         assertThat(languageSelect).isVisible()
-        
+
         val localeSelect = page.locator("[data-testid='profile-locale-select']")
         assertThat(localeSelect).isVisible()
-        
+
         val saveButton = page.locator("[data-testid='profile-save-button']")
         assertThat(saveButton).isVisible()
 
@@ -127,16 +127,16 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
             )
         }
 
-        loginViaToken("/userSettings", ukUser, testAuthSupport)
+        loginViaToken("/portal/settings", ukUser, testAuthSupport)
 
         // Wait for profile to load and verify Ukrainian data is loaded
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
         assertThat(greetingInput).hasValue("Привіт")
-        
+
         // UI is in Ukrainian, so language label is in Ukrainian
         val languageSelect = page.locator("[data-testid='profile-language-select']")
         assertThat(languageSelect).containsText("Українська")
-        
+
         val localeSelect = page.locator("[data-testid='profile-locale-select']")
         assertThat(localeSelect).hasText("Ukrainian (Ukraine)")
     }
@@ -158,7 +158,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
             )
         }
 
-        loginViaToken("/userSettings", deUser, testAuthSupport)
+        loginViaToken("/portal/settings", deUser, testAuthSupport)
 
         // Wait for profile to load and verify data is loaded
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
@@ -233,11 +233,11 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Update profile data
         greetingInput.fill("Updated Greeting")
-        
+
         // Change language to Ukrainian
         page.locator("[data-testid='profile-language-select']").click()
         page.locator("[data-testid='language-option-uk']").click()
-        
+
         // Change locale to Ukrainian (Ukraine)
         page.locator("[data-testid='profile-locale-select']").click()
         page.locator("[data-testid='locale-option-uk-UA']").click()
@@ -252,7 +252,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Verify data was persisted by reloading
         page.reload()
-        
+
         assertThat(greetingInput).hasValue("Updated Greeting")
         // After reload, UI is in Ukrainian, so language label is in Ukrainian
         assertThat(page.locator("[data-testid='profile-language-select']")).containsText("Українська")
@@ -291,10 +291,10 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // Verify options
         val dropdown = page.locator("[data-testid='profile-language-dropdown']")
         assertThat(dropdown).isVisible()
-        
+
         val englishOption = page.locator("[data-testid='language-option-en']")
         val ukrainianOption = page.locator("[data-testid='language-option-uk']")
-        
+
         assertThat(englishOption).isVisible()
         assertThat(ukrainianOption).isVisible()
     }
@@ -313,11 +313,11 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // Verify some options are visible
         val dropdown = page.locator("[data-testid='profile-locale-dropdown']")
         assertThat(dropdown).isVisible()
-        
+
         val usOption = page.locator("[data-testid='locale-option-en-US']")
         val ukOption = page.locator("[data-testid='locale-option-uk-UA']")
         val deOption = page.locator("[data-testid='locale-option-de-DE']")
-        
+
         assertThat(usOption).isVisible()
         assertThat(ukOption).isVisible()
         assertThat(deOption).isVisible()
@@ -475,7 +475,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // The input has maxLength=50, so we need to bypass it by evaluating JS
         val longPassword = "a".repeat(51)
         page.locator("[data-testid='current-password-input']").fill(testPassword)
-        
+
         // Use evaluate to bypass maxLength
         page.locator("[data-testid='new-password-input']").evaluate("el => el.maxLength = 100")
         page.locator("[data-testid='new-password-input']").fill(longPassword)
@@ -617,7 +617,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         }
 
         // Use token-based auth for admin
-        loginViaToken("/adminSettings", adminUser, testAuthSupport)
+        loginViaToken("/admin/settings", adminUser, testAuthSupport)
 
         // Verify settings page is displayed
         val settingsPage = page.locator("[data-testid='settings-page']")

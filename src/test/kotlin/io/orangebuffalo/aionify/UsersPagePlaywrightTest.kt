@@ -84,26 +84,26 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
         // Verify admin user row
         val adminRow = page.locator("[data-testid='user-row-admin']")
         assertThat(adminRow).isVisible()
-        
+
         val adminUsername = page.locator("[data-testid='user-username-admin']")
         assertThat(adminUsername).hasText("admin")
-        
+
         val adminGreeting = page.locator("[data-testid='user-greeting-admin']")
         assertThat(adminGreeting).hasText("Admin User")
-        
+
         val adminType = page.locator("[data-testid='user-type-admin']")
         assertThat(adminType).hasText("Admin")
 
         // Verify regular user row
         val regularUserRow = page.locator("[data-testid='user-row-regularuser']")
         assertThat(regularUserRow).isVisible()
-        
+
         val regularUsername = page.locator("[data-testid='user-username-regularuser']")
         assertThat(regularUsername).hasText("regularuser")
-        
+
         val regularGreeting = page.locator("[data-testid='user-greeting-regularuser']")
         assertThat(regularGreeting).hasText("Regular User")
-        
+
         val regularType = page.locator("[data-testid='user-type-regularuser']")
         assertThat(regularType).hasText("Regular User")
     }
@@ -198,7 +198,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
         // Verify user is deleted from database
         val deletedUser = userRepository.findByUserName("regularuser")
-        assert(deletedUser == null) { "User should be deleted from database" }
+        assert(deletedUser.isEmpty ) { "User should be deleted from database" }
     }
 
     @Test
@@ -370,8 +370,8 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
         // Verify they are sorted alphabetically
         val expectedOrder = listOf("admin", "apple", "regularuser", "zebra")
-        assert(usernames == expectedOrder) { 
-            "Users should be sorted by username. Expected: $expectedOrder, Got: $usernames" 
+        assert(usernames == expectedOrder) {
+            "Users should be sorted by username. Expected: $expectedOrder, Got: $usernames"
         }
     }
 
@@ -382,7 +382,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
         // Admin user logged in - verify they cannot delete themselves
         val adminActionsButton = page.locator("[data-testid='user-actions-admin']")
         assertThat(adminActionsButton).not().isVisible()
-        
+
         // But they can delete other users
         val regularUserActionsButton = page.locator("[data-testid='user-actions-regularuser']")
         assertThat(regularUserActionsButton).isVisible()
