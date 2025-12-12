@@ -50,17 +50,26 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build, test and publish container image
+      - name: Build and test
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
         run: |
           ./gradlew build \
             --build-cache --console=plain
-          
-          docker build -f src/main/docker/Dockerfile.native \
-            -t ghcr.io/orange-buffalo/aionify:${{ steps.prepare-tag.outputs.tag }} .
-          
-          docker push ghcr.io/orange-buffalo/aionify:${{ steps.prepare-tag.outputs.tag }}
+      
+      - name: Build native Docker image
+        env:
+          DOCKER_IMAGE_TAG: ghcr.io/orange-buffalo/aionify:${{ steps.prepare-tag.outputs.tag }}
+        run: |
+          ./gradlew dockerBuildNative \
+            -Pmicronaut.docker.nativeImage.imageName=$DOCKER_IMAGE_TAG \
+            --build-cache --console=plain
+      
+      - name: Push Docker image
+        env:
+          DOCKER_IMAGE_TAG: ghcr.io/orange-buffalo/aionify:${{ steps.prepare-tag.outputs.tag }}
+        run: |
+          docker push $DOCKER_IMAGE_TAG
 
       - name: Run E2E tests against Docker image
         env:
