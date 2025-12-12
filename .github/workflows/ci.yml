@@ -57,19 +57,13 @@ jobs:
           ./gradlew build \
             --build-cache --console=plain
       
-      - name: Build native Docker image
+      - name: Build and push native Docker image
         env:
           DOCKER_IMAGE_TAG: ghcr.io/orange-buffalo/aionify:${{ steps.prepare-tag.outputs.tag }}
         run: |
-          ./gradlew dockerBuildNative \
+          ./gradlew dockerBuildNative dockerPushNative \
             -Pmicronaut.docker.nativeImage.imageName=$DOCKER_IMAGE_TAG \
             --build-cache --console=plain
-      
-      - name: Push Docker image
-        env:
-          DOCKER_IMAGE_TAG: ghcr.io/orange-buffalo/aionify:${{ steps.prepare-tag.outputs.tag }}
-        run: |
-          docker push $DOCKER_IMAGE_TAG
 
       - name: Run E2E tests against Docker image
         env:
