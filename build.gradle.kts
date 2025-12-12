@@ -2,9 +2,9 @@ plugins {
     kotlin("jvm") version "2.1.0"
     kotlin("plugin.allopen") version "2.1.0"
     id("com.google.devtools.ksp") version "2.1.0-1.0.29"
-    id("io.micronaut.application") version "4.4.4"
-    id("io.micronaut.docker") version "4.4.4"
-    id("io.micronaut.test-resources") version "4.4.4"
+    id("io.micronaut.application") version "4.6.1"
+    id("io.micronaut.docker") version "4.6.1"
+    id("io.micronaut.test-resources") version "4.6.1"
 }
 
 val micronautVersion: String by project
@@ -184,7 +184,8 @@ val e2eTest by tasks.registering(Test::class) {
     // Pass the Docker image tag to tests via system property
     // Check is deferred to execution time via doFirst
     doFirst {
-        systemProperty("aionify.docker.image", dockerImage)
+        val targetImage = System.getProperty("aionify.docker.image") ?: dockerImage
+        systemProperty("aionify.docker.image", targetImage)
     }
 
     useJUnitPlatform()
