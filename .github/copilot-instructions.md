@@ -184,3 +184,4 @@ fun `should prevent self-deletion via API`() {
 - Use Flyway for database migrations (place in `src/main/resources/db/migration/`)
 - Use JDBI for database access with Kotlin extensions
 - PostgreSQL is the target database
+- **Testing**: Use Testcontainers JDBC URL (`jdbc:tc:postgresql:17:///test`) for automatic database provisioning in tests. The Micronaut Test Resources plugin is NOT used as it's redundant with Testcontainers JDBC.
