@@ -18,6 +18,7 @@ const resources = {
         signIn: "Sign in",
         signingIn: "Signing in...",
         invalidCredentials: "Invalid username or password",
+        sessionExpired: "Your session has expired, please login again",
       },
       // Settings Page
       settings: {
@@ -180,6 +181,7 @@ const resources = {
         signIn: "Увійти",
         signingIn: "Вхід...",
         invalidCredentials: "Невірне ім'я користувача або пароль",
+        sessionExpired: "Ваш сеанс закінчився, будь ласка, увійдіть знову",
       },
       // Settings Page
       settings: {
