@@ -3,6 +3,7 @@ package io.orangebuffalo.aionify.domain
 import io.micronaut.core.annotation.Introspected
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
@@ -31,7 +32,7 @@ open class ActivationResource(
         
         // Check rate limiting
         if (rateLimitingService.isRateLimited(clientId)) {
-            return HttpResponse.status<ValidateTokenErrorResponse>(429)
+            return HttpResponse.status<ValidateTokenErrorResponse>(HttpStatus.TOO_MANY_REQUESTS)
                 .body(ValidateTokenErrorResponse(
                     error = "Too many validation attempts. Please try again later.",
                     errorCode = "RATE_LIMIT_EXCEEDED"
@@ -68,7 +69,7 @@ open class ActivationResource(
         
         // Check rate limiting
         if (rateLimitingService.isRateLimited(clientId)) {
-            return HttpResponse.status<SetPasswordErrorResponse>(429)
+            return HttpResponse.status<SetPasswordErrorResponse>(HttpStatus.TOO_MANY_REQUESTS)
                 .body(SetPasswordErrorResponse(
                     error = "Too many attempts. Please try again later.",
                     errorCode = "RATE_LIMIT_EXCEEDED"
