@@ -1,0 +1,23 @@
+micronaut:
+  server:
+    port: -1  # Random port for tests
+  security:
+    token:
+      jwt:
+        signatures:
+          secret:
+            generator:
+              secret: "test-secret-key-for-testing-purposes-only-min-256-bits"
+              jws-algorithm: HS256
+
+datasources:
+  default:
+    url: jdbc:tc:postgresql:17:///test
+    driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
+    username: test
+    password: test
+
+flyway:
+  datasources:
+    default:
+      enabled: true

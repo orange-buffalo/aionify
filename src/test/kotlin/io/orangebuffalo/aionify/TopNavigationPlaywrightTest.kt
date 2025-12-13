@@ -3,29 +3,14 @@ package io.orangebuffalo.aionify
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserRepository
-import io.quarkus.elytron.security.common.BcryptUtil
-import io.quarkus.test.common.http.TestHTTPResource
-import io.quarkus.test.junit.QuarkusTest
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.net.URL
-import java.util.Locale
+import org.mindrot.jbcrypt.BCrypt
 
-@QuarkusTest
+@MicronautTest
 class TopNavigationPlaywrightTest : PlaywrightTestBase() {
-
-    @TestHTTPResource("/")
-    lateinit var baseUrl: URL
-
-    @TestHTTPResource("/login")
-    lateinit var loginUrl: URL
-
-    @TestHTTPResource("/portal")
-    lateinit var portalUrl: URL
-
-    @TestHTTPResource("/admin")
-    lateinit var adminUrl: URL
 
     @Inject
     lateinit var userRepository: UserRepository
@@ -45,35 +30,40 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
     @BeforeEach
     fun setupTestData() {
         // Create test users with known credentials
-        regularUser = userRepository.insert(
-            User(
-                userName = regularUserName,
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
-                greeting = regularUserGreeting,
-                isAdmin = false,
-                locale = Locale.ENGLISH,
-                languageCode = "en"
+        // Wrap in transaction to commit immediately and make visible to browser HTTP requests
+        regularUser = transactionHelper.inTransaction {
+            userRepository.save(
+                User.create(
+                    userName = regularUserName,
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = regularUserGreeting,
+                    isAdmin = false,
+                    locale = java.util.Locale.ENGLISH,
+                    languageCode = "en"
+                )
             )
-        )
+        }
 
-        adminUser = userRepository.insert(
-            User(
-                userName = adminUserName,
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
-                greeting = adminUserGreeting,
-                isAdmin = true,
-                locale = Locale.ENGLISH,
-                languageCode = "en"
+        adminUser = transactionHelper.inTransaction {
+            userRepository.save(
+                User.create(
+                    userName = adminUserName,
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = adminUserGreeting,
+                    isAdmin = true,
+                    locale = java.util.Locale.ENGLISH,
+                    languageCode = "en"
+                )
             )
-        )
+        }
     }
 
     private fun navigateToPortalViaToken() {
-        loginViaToken(baseUrl, portalUrl, regularUser, testAuthSupport)
+        loginViaToken("/portal", regularUser, testAuthSupport)
     }
 
     private fun navigateToAdminViaToken() {
-        loginViaToken(baseUrl, adminUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin", adminUser, testAuthSupport)
     }
 
     @Test

@@ -1,15 +1,18 @@
 package io.orangebuffalo.aionify
 
-import jakarta.enterprise.context.ApplicationScoped
-import org.jdbi.v3.core.Jdbi
-import org.jdbi.v3.core.kotlin.mapTo
+import io.micronaut.context.ApplicationContext
+import jakarta.inject.Singleton
+import javax.sql.DataSource
 
 /**
  * Support class for database operations in tests.
  * Provides utilities for database cleanup and setup.
  */
-@ApplicationScoped
-class TestDatabaseSupport(private val jdbi: Jdbi) {
+@Singleton
+class TestDatabaseSupport(
+    private val dataSource: DataSource,
+    private val applicationContext: ApplicationContext
+) {
 
     /**
      * Truncates all application tables, resetting the database to a clean state.
@@ -17,23 +20,28 @@ class TestDatabaseSupport(private val jdbi: Jdbi) {
      * The flyway_schema_history table is preserved to maintain migration history.
      */
     fun truncateAllTables() {
-        jdbi.useHandle<Exception> { handle ->
-            // Get all table names from the public schema, excluding Flyway's metadata table
-            val tables = handle.createQuery(
-                """
-                SELECT tablename FROM pg_tables 
-                WHERE schemaname = 'public' 
-                AND tablename != 'flyway_schema_history'
-                ORDER BY tablename
-                """.trimIndent()
-            )
-                .mapTo<String>()
-                .list()
+        dataSource.connection.use { connection ->
+            connection.createStatement().use { statement ->
+                // Get all table names from the public schema, excluding Flyway's metadata table
+                val tables = mutableListOf<String>()
+                statement.executeQuery(
+                    """
+                    SELECT tablename FROM pg_tables 
+                    WHERE schemaname = 'public' 
+                    AND tablename != 'flyway_schema_history'
+                    ORDER BY tablename
+                    """.trimIndent()
+                ).use { rs ->
+                    while (rs.next()) {
+                        tables.add(rs.getString(1))
+                    }
+                }
 
-            // Truncate all tables with CASCADE to handle any foreign key constraints
-            if (tables.isNotEmpty()) {
-                val tableList = tables.joinToString(", ") { "\"$it\"" }
-                handle.execute("TRUNCATE TABLE $tableList CASCADE")
+                // Truncate all tables with CASCADE to handle any foreign key constraints
+                if (tables.isNotEmpty()) {
+                    val tableList = tables.joinToString(", ") { "\"$it\"" }
+                    statement.execute("TRUNCATE TABLE $tableList CASCADE")
+                }
             }
         }
     }

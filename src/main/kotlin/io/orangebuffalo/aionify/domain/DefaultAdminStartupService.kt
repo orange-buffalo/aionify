@@ -1,20 +1,22 @@
 package io.orangebuffalo.aionify.domain
 
-import io.quarkus.elytron.security.common.BcryptUtil
-import io.quarkus.runtime.StartupEvent
-import jakarta.enterprise.context.ApplicationScoped
-import jakarta.enterprise.event.Observes
-import org.jboss.logging.Logger
+import io.micronaut.context.event.ApplicationEventListener
+import io.micronaut.runtime.event.ApplicationStartupEvent
+import jakarta.inject.Singleton
+import org.mindrot.jbcrypt.BCrypt
+import org.slf4j.LoggerFactory
 import java.security.SecureRandom
 import java.util.Base64
 import java.util.Locale
 
-@ApplicationScoped
-class DefaultAdminStartupService(private val userRepository: UserRepository) {
+@Singleton
+class DefaultAdminStartupService(
+    private val userRepository: UserRepository
+) : ApplicationEventListener<ApplicationStartupEvent> {
 
-    private val log = Logger.getLogger(DefaultAdminStartupService::class.java)
+    private val log = LoggerFactory.getLogger(DefaultAdminStartupService::class.java)
 
-    fun onStart(@Observes event: StartupEvent) {
+    override fun onApplicationEvent(event: ApplicationStartupEvent) {
         createDefaultAdminIfNeeded()
     }
 
@@ -25,16 +27,16 @@ class DefaultAdminStartupService(private val userRepository: UserRepository) {
         }
 
         val randomPassword = generateRandomPassword()
-        val defaultAdmin = User(
+        val defaultAdmin = User.create(
             userName = "sudo",
-            passwordHash = BcryptUtil.bcryptHash(randomPassword),
+            passwordHash = BCrypt.hashpw(randomPassword, BCrypt.gensalt()),
             greeting = "Administrator",
             isAdmin = true,
             locale = Locale.ENGLISH,
             languageCode = "en"
         )
 
-        userRepository.insert(defaultAdmin)
+        userRepository.save(defaultAdmin)
         log.warn("Created default admin user 'sudo'. Please check the application output for the generated password.")
         // Print directly to stdout to avoid password appearing in log files
         println("=".repeat(60))

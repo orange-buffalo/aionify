@@ -3,62 +3,33 @@ package io.orangebuffalo.aionify
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserRepository
-import io.quarkus.elytron.security.common.BcryptUtil
-import io.quarkus.test.common.http.TestHTTPResource
-import io.quarkus.test.junit.QuarkusTest
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.net.URL
-import java.util.Locale
+import org.mindrot.jbcrypt.BCrypt
 
 /**
  * Playwright tests for the login functionality.
- * 
- * Note: The application uses Auth0 java-jwt library to auto-generate RSA key pairs for both JWT
- * signing and validation at startup. All keys are kept in-memory only, with no file
- * storage required. This approach works in all modes (dev, test, production) and
- * eliminates issues with shared files between test forks or multiple instances.
  */
-@QuarkusTest
+@MicronautTest
 class LoginPlaywrightTest : PlaywrightTestBase() {
-
-    @TestHTTPResource("/login")
-    lateinit var loginUrl: URL
-
-    @TestHTTPResource("/admin")
-    lateinit var adminUrl: URL
-
-    @TestHTTPResource("/portal")
-    lateinit var userPortalUrl: URL
 
     @Inject
     lateinit var userRepository: UserRepository
 
-    private val testPassword = "testPassword123"
-    private val regularUserName = "testuser"
-    private val regularUserGreeting = "Test User"
-
     private lateinit var regularUser: User
+    private lateinit var adminUser: User
 
     @BeforeEach
     fun setupTestData() {
-        // Create test user with known credentials
-        regularUser = userRepository.insert(
-            User(
-                userName = regularUserName,
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
-                greeting = regularUserGreeting,
-                isAdmin = false,
-                locale = Locale.ENGLISH,
-                languageCode = "en"
-            )
-        )
+        regularUser = testUsers.createRegularUser(userRepository, transactionHelper)
+        adminUser = testUsers.createAdmin(userRepository, transactionHelper)
     }
 
     @Test
     fun `should display login page with all required elements`() {
-        page.navigate(loginUrl.toString())
+        page.navigate("/login")
 
         // Verify login page is displayed
         val loginPage = page.locator("[data-testid='login-page']")
@@ -89,7 +60,7 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should toggle password visibility`() {
-        page.navigate(loginUrl.toString())
+        page.navigate("/login")
 
         val passwordInput = page.locator("[data-testid='password-input']")
         val toggleButton = page.locator("[data-testid='toggle-password-visibility']")
@@ -108,7 +79,7 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show error for invalid credentials`() {
-        page.navigate(loginUrl.toString())
+        page.navigate("/login")
 
         // Enter invalid credentials
         page.locator("[data-testid='username-input']").fill("wronguser")
@@ -123,10 +94,10 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show error for wrong password`() {
-        page.navigate(loginUrl.toString())
+        page.navigate("/login")
 
         // Enter valid username but wrong password
-        page.locator("[data-testid='username-input']").fill(regularUserName)
+        page.locator("[data-testid='username-input']").fill(TestUsers.REGULAR_USERNAME)
         page.locator("[data-testid='password-input']").fill("wrongpassword")
         page.locator("[data-testid='login-button']").click()
 
@@ -138,11 +109,11 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should redirect regular user to user portal after successful login`() {
-        page.navigate(loginUrl.toString())
+        page.navigate("/login")
 
         // Enter valid credentials for regular user
-        page.locator("[data-testid='username-input']").fill(regularUserName)
-        page.locator("[data-testid='password-input']").fill(testPassword)
+        page.locator("[data-testid='username-input']").fill(TestUsers.REGULAR_USERNAME)
+        page.locator("[data-testid='password-input']").fill(TestUsers.TEST_PASSWORD)
         page.locator("[data-testid='login-button']").click()
 
         // Wait for redirect to user portal
@@ -158,25 +129,11 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should redirect admin user to admin portal after successful login`() {
-        page.navigate(loginUrl.toString())
+        page.navigate("/login")
 
-        // Create a test admin with a known password
-        val testAdminName = "testadmin"
-        val testAdminPassword = "adminPass123"
-        userRepository.insert(
-            User(
-                userName = testAdminName,
-                passwordHash = BcryptUtil.bcryptHash(testAdminPassword),
-                greeting = "Test Admin",
-                isAdmin = true,
-                locale = Locale.ENGLISH,
-                languageCode = "en"
-            )
-        )
-
-        // Enter valid credentials for admin user
-        page.locator("[data-testid='username-input']").fill(testAdminName)
-        page.locator("[data-testid='password-input']").fill(testAdminPassword)
+        // Enter valid credentials for admin user (created in @BeforeEach)
+        page.locator("[data-testid='username-input']").fill(TestUsers.ADMIN_USERNAME)
+        page.locator("[data-testid='password-input']").fill(TestUsers.TEST_PASSWORD)
         page.locator("[data-testid='login-button']").click()
 
         // Wait for redirect to admin portal
@@ -192,11 +149,11 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should remember last logged in user`() {
-        page.navigate(loginUrl.toString())
+        page.navigate("/login")
 
         // Login with regular user
-        page.locator("[data-testid='username-input']").fill(regularUserName)
-        page.locator("[data-testid='password-input']").fill(testPassword)
+        page.locator("[data-testid='username-input']").fill(TestUsers.REGULAR_USERNAME)
+        page.locator("[data-testid='password-input']").fill(TestUsers.TEST_PASSWORD)
         page.locator("[data-testid='login-button']").click()
 
         // Wait for redirect to user portal
@@ -211,21 +168,21 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
         // Verify the username is pre-filled
         val usernameInput = page.locator("[data-testid='username-input']")
-        assertThat(usernameInput).hasValue(regularUserName)
+        assertThat(usernameInput).hasValue(TestUsers.REGULAR_USERNAME)
 
         // Verify welcome back message
         val welcomeBackMessage = page.locator("[data-testid='welcome-back-message']")
         assertThat(welcomeBackMessage).isVisible()
-        assertThat(welcomeBackMessage).containsText(regularUserGreeting)
+        assertThat(welcomeBackMessage).containsText(TestUsers.REGULAR_GREETING)
     }
 
     @Test
     fun `should allow logout from user portal`() {
-        page.navigate(loginUrl.toString())
+        page.navigate("/login")
 
         // Login
-        page.locator("[data-testid='username-input']").fill(regularUserName)
-        page.locator("[data-testid='password-input']").fill(testPassword)
+        page.locator("[data-testid='username-input']").fill(TestUsers.REGULAR_USERNAME)
+        page.locator("[data-testid='password-input']").fill(TestUsers.TEST_PASSWORD)
         page.locator("[data-testid='login-button']").click()
 
         // Wait for user portal
@@ -237,7 +194,7 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
         // Should redirect to login
         page.waitForURL("**/login")
-        
+
         val loginPage = page.locator("[data-testid='login-page']")
         assertThat(loginPage).isVisible()
     }
@@ -246,18 +203,22 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
     fun `should allow logout from admin portal`() {
         val testAdminName = "testadmin2"
         val testAdminPassword = "adminPass456"
-        userRepository.insert(
-            User(
-                userName = testAdminName,
-                passwordHash = BcryptUtil.bcryptHash(testAdminPassword),
-                greeting = "Test Admin 2",
-                isAdmin = true,
-                locale = Locale.ENGLISH,
-                languageCode = "en"
-            )
-        )
 
-        page.navigate(loginUrl.toString())
+        // Create user in a separate transaction to ensure it's committed
+        transactionHelper.inTransaction {
+            userRepository.save(
+                User.create(
+                    userName = testAdminName,
+                    passwordHash = BCrypt.hashpw(testAdminPassword, BCrypt.gensalt()),
+                    greeting = "Test Admin 2",
+                    isAdmin = true,
+                    locale = java.util.Locale.ENGLISH,
+                    languageCode = "en"
+                )
+            )
+        }
+
+        page.navigate("/login")
 
         // Login as admin
         page.locator("[data-testid='username-input']").fill(testAdminName)
@@ -273,18 +234,18 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
         // Should redirect to login
         page.waitForURL("**/login")
-        
+
         val loginPage = page.locator("[data-testid='login-page']")
         assertThat(loginPage).isVisible()
     }
 
     @Test
     fun `root path should redirect to login`() {
-        page.navigate(loginUrl.toString().replace("/login", "/"))
+        page.navigate("/".replace("/login", "/"))
 
         // Should redirect to login
         page.waitForURL("**/login")
-        
+
         val loginPage = page.locator("[data-testid='login-page']")
         assertThat(loginPage).isVisible()
     }

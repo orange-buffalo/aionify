@@ -1,25 +1,21 @@
 package io.orangebuffalo.aionify.auth
 
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.TestDatabaseSupport
 import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserRepository
-import io.quarkus.elytron.security.common.BcryptUtil
-import io.quarkus.test.junit.QuarkusTest
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.Locale
+import org.mindrot.jbcrypt.BCrypt
 
 /**
  * Test for AuthService to verify JWT token generation and authentication.
  * 
- * The application uses the Auth0 java-jwt library to auto-generate RSA key pairs for both JWT
- * signing and validation at startup. All keys are kept in-memory only, with no file
- * storage required. This eliminates issues with shared files between test forks or
- * multiple application instances.
+ * The application uses Micronaut Security JWT to generate tokens with configured signing keys.
  */
-@QuarkusTest
+@MicronautTest
 class AuthServiceTest {
 
     @Inject
@@ -43,13 +39,13 @@ class AuthServiceTest {
     @Test
     fun `should authenticate and return valid JWT token`() {
         // Given: A user exists in the database
-        val user = userRepository.insert(
-            User(
+        val user = userRepository.save(
+            User.create(
                 userName = testUserName,
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = testGreeting,
                 isAdmin = false,
-                locale = Locale.ENGLISH,
+                locale = java.util.Locale.ENGLISH,
                 languageCode = "en"
             )
         )
@@ -82,13 +78,13 @@ class AuthServiceTest {
     @Test
     fun `should throw exception for invalid password`() {
         // Given: A user exists
-        userRepository.insert(
-            User(
+        userRepository.save(
+            User.create(
                 userName = testUserName,
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = testGreeting,
                 isAdmin = false,
-                locale = Locale.ENGLISH,
+                locale = java.util.Locale.ENGLISH,
                 languageCode = "en"
             )
         )
@@ -102,13 +98,13 @@ class AuthServiceTest {
     @Test
     fun `should generate token for admin user`() {
         // Given: An admin user exists
-        val adminUser = userRepository.insert(
-            User(
+        val adminUser = userRepository.save(
+            User.create(
                 userName = "admin",
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Admin User",
                 isAdmin = true,
-                locale = Locale.ENGLISH,
+                locale = java.util.Locale.ENGLISH,
                 languageCode = "en"
             )
         )

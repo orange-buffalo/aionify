@@ -1,70 +1,60 @@
 package io.orangebuffalo.aionify.auth
 
-import io.quarkus.security.Authenticated
+import com.fasterxml.jackson.annotation.JsonProperty
+import io.micronaut.core.annotation.Introspected
+import io.micronaut.http.HttpResponse
+import io.micronaut.http.annotation.Body
+import io.micronaut.http.annotation.Controller
+import io.micronaut.http.annotation.Post
+import io.micronaut.security.annotation.Secured
+import io.micronaut.security.rules.SecurityRule
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
-import jakarta.ws.rs.Consumes
-import jakarta.ws.rs.POST
-import jakarta.ws.rs.Path
-import jakarta.ws.rs.Produces
-import jakarta.ws.rs.core.Context
-import jakarta.ws.rs.core.MediaType
-import jakarta.ws.rs.core.Response
-import jakarta.ws.rs.core.SecurityContext
-import kotlinx.serialization.Serializable
+import java.security.Principal
 
-@Path("/api/auth")
-class AuthResource(private val authService: AuthService) {
+@Controller("/api/auth")
+open class AuthResource(private val authService: AuthService) {
 
-    @POST
-    @Path("/login")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    fun login(@Valid request: LoginRequest): Response {
+    @Post("/login")
+    @Secured(SecurityRule.IS_ANONYMOUS)
+    open fun login(@Valid @Body request: LoginRequest): HttpResponse<*> {
         return try {
             val response = authService.authenticate(request.userName, request.password)
-            Response.ok(response).build()
+            HttpResponse.ok(response)
         } catch (e: AuthenticationException) {
-            Response.status(Response.Status.UNAUTHORIZED)
-                .entity(LoginErrorResponse(e.message ?: "Authentication failed"))
-                .build()
+            HttpResponse.unauthorized<LoginErrorResponse>()
+                .body(LoginErrorResponse(e.message ?: "Authentication failed"))
         }
     }
 
-    @POST
-    @Path("/change-password")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Authenticated
-    fun changePassword(@Valid request: ChangePasswordRequest, @Context securityContext: SecurityContext): Response {
-        val userName = securityContext.userPrincipal?.name
-            ?: return Response.status(Response.Status.UNAUTHORIZED)
-                .entity(ChangePasswordErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
-                .build()
+    @Post("/change-password")
+    @Secured(SecurityRule.IS_AUTHENTICATED)
+    open fun changePassword(@Valid @Body request: ChangePasswordRequest, principal: Principal?): HttpResponse<*> {
+        val userName = principal?.name
+            ?: return HttpResponse.unauthorized<ChangePasswordErrorResponse>()
+                .body(ChangePasswordErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
 
         return try {
             authService.changePassword(userName, request.currentPassword, request.newPassword)
-            Response.ok(ChangePasswordSuccessResponse("Password changed successfully")).build()
+            HttpResponse.ok(ChangePasswordSuccessResponse("Password changed successfully"))
         } catch (e: AuthenticationException) {
             val errorCode = when (e.message) {
                 "Current password is incorrect" -> "CURRENT_PASSWORD_INCORRECT"
                 else -> "UNKNOWN_ERROR"
             }
-            Response.status(Response.Status.BAD_REQUEST)
-                .entity(ChangePasswordErrorResponse(e.message ?: "Failed to change password", errorCode))
-                .build()
+            HttpResponse.badRequest(ChangePasswordErrorResponse(e.message ?: "Failed to change password", errorCode))
         }
     }
 }
 
-@Serializable
+@Introspected
 data class LoginRequest(
     val userName: String,
     val password: String
 )
 
-@Serializable
+@Introspected
 data class LoginResponse(
     val token: String,
     val userName: String,
@@ -73,13 +63,13 @@ data class LoginResponse(
     val languageCode: String
 )
 
-@Serializable
+@Introspected
 data class LoginErrorResponse(
     val error: String,
     val errorCode: String = "INVALID_CREDENTIALS"
 )
 
-@Serializable
+@Introspected
 data class ChangePasswordRequest(
     @field:NotBlank(message = "Current password cannot be empty")
     val currentPassword: String,
@@ -89,12 +79,12 @@ data class ChangePasswordRequest(
     val newPassword: String
 )
 
-@Serializable
+@Introspected
 data class ChangePasswordSuccessResponse(
     val message: String
 )
 
-@Serializable
+@Introspected
 data class ChangePasswordErrorResponse(
     val error: String,
     val errorCode: String

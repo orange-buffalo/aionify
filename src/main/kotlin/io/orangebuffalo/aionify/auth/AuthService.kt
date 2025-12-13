@@ -1,20 +1,20 @@
 package io.orangebuffalo.aionify.auth
 
 import io.orangebuffalo.aionify.domain.UserRepository
-import io.quarkus.elytron.security.common.BcryptUtil
-import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Singleton
+import org.mindrot.jbcrypt.BCrypt
 
-@ApplicationScoped
+@Singleton
 class AuthService(
     private val userRepository: UserRepository,
     private val jwtTokenService: JwtTokenService
 ) {
 
     fun authenticate(userName: String, password: String): LoginResponse {
-        val user = userRepository.findByUserName(userName)
+        val user = userRepository.findByUserName(userName).orElse(null)
             ?: throw AuthenticationException("Invalid username or password")
 
-        if (!BcryptUtil.matches(password, user.passwordHash)) {
+        if (!BCrypt.checkpw(password, user.passwordHash)) {
             throw AuthenticationException("Invalid username or password")
         }
 
@@ -35,14 +35,14 @@ class AuthService(
     }
 
     fun changePassword(userName: String, currentPassword: String, newPassword: String) {
-        val user = userRepository.findByUserName(userName)
+        val user = userRepository.findByUserName(userName).orElse(null)
             ?: throw AuthenticationException("User not found")
 
-        if (!BcryptUtil.matches(currentPassword, user.passwordHash)) {
+        if (!BCrypt.checkpw(currentPassword, user.passwordHash)) {
             throw AuthenticationException("Current password is incorrect")
         }
 
-        val newPasswordHash = BcryptUtil.bcryptHash(newPassword)
+        val newPasswordHash = BCrypt.hashpw(newPassword, BCrypt.gensalt())
         userRepository.updatePasswordHash(userName, newPasswordHash)
     }
 }

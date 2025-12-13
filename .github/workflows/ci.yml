@@ -50,24 +50,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build, test and publish container image
+      - name: Build, test and push Docker image
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+          DOCKER_IMAGE_TAG: ${{ steps.prepare-tag.outputs.tag }}
+        # switch to dockerBuildNative dockerPushNative once we enable native build back
         run: |
-          ./gradlew build \
-            -Dquarkus.package.jar.enabled=false -Dquarkus.native.enabled=true \
-            -Dquarkus.container-image.build=true \
-            -Dquarkus.container-image.push=true \
-            -Dquarkus.container-image.tag=${{ steps.prepare-tag.outputs.tag }} \
+          ./gradlew test dockerBuild dockerPush \
             --build-cache --console=plain
 
       - name: Run E2E tests against Docker image
         env:
-          AIONIFY_DOCKER_IMAGE: ghcr.io/orange-buffalo/aionify:${{ steps.prepare-tag.outputs.tag }}
+          DOCKER_IMAGE_TAG: ${{ steps.prepare-tag.outputs.tag }}
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
         run: |
           ./gradlew e2eTest \
-            -Daionify.docker.image=$AIONIFY_DOCKER_IMAGE \
             --build-cache --console=plain
 
       - name: Upload Playwright traces

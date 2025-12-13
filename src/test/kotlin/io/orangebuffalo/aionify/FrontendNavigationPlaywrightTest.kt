@@ -1,25 +1,21 @@
 package io.orangebuffalo.aionify
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
-import io.quarkus.test.common.http.TestHTTPResource
-import io.quarkus.test.junit.QuarkusTest
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import java.net.URL
 
 /**
  * Another Playwright test class demonstrating the reusable PlaywrightTestSupport setup.
  */
-@QuarkusTest
+@MicronautTest
 class FrontendNavigationPlaywrightTest : PlaywrightTestBase() {
-
-    @TestHTTPResource("/")
-    lateinit var url: URL
 
     @Test
     fun `should navigate to root page successfully`() {
-        val response = page.navigate(url.toString())
+        val response = page.navigate("/")
         
         // Verify the navigation was successful
         assertTrue(response?.ok() == true, "Navigation should succeed with OK status")
@@ -27,7 +23,7 @@ class FrontendNavigationPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should have correct viewport and page state`() {
-        page.navigate(url.toString())
+        page.navigate("/")
         
         // Verify the page is not closed
         assertFalse(page.isClosed, "Page should not be closed")

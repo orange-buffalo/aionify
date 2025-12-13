@@ -2,13 +2,13 @@ package io.orangebuffalo.aionify
 
 import io.orangebuffalo.aionify.auth.JwtTokenService
 import io.orangebuffalo.aionify.domain.User
-import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Singleton
 
 /**
  * Support class for authentication-related test utilities.
  * Provides methods for generating JWT tokens and creating test users.
  */
-@ApplicationScoped
+@Singleton
 class TestAuthSupport(
     private val jwtTokenService: JwtTokenService
 ) {

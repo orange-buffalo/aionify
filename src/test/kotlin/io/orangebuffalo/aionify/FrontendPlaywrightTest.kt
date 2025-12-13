@@ -1,20 +1,16 @@
 package io.orangebuffalo.aionify
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
-import io.quarkus.test.common.http.TestHTTPResource
-import io.quarkus.test.junit.QuarkusTest
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import jakarta.inject.Inject
 import org.junit.jupiter.api.Test
-import java.net.URL
 
-@QuarkusTest
+@MicronautTest
 class FrontendPlaywrightTest : PlaywrightTestBase() {
-
-    @TestHTTPResource("/")
-    lateinit var url: URL
 
     @Test
     fun `should display login page with title and form`() {
-        page.navigate(url.toString())
+        page.navigate("/")
 
         // Verify the page title
         assertThat(page).hasTitle("Aionify - Time Tracking")
@@ -31,7 +27,7 @@ class FrontendPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should have properly styled login components`() {
-        page.navigate(url.toString())
+        page.navigate("/")
 
         // Verify the login page container is present
         val loginPage = page.locator("[data-testid='login-page']")

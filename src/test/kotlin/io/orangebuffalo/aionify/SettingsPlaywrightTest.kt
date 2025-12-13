@@ -3,32 +3,14 @@ package io.orangebuffalo.aionify
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserRepository
-import io.quarkus.elytron.security.common.BcryptUtil
-import io.quarkus.test.common.http.TestHTTPResource
-import io.quarkus.test.junit.QuarkusTest
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.net.URL
-import java.util.Locale
+import org.mindrot.jbcrypt.BCrypt
 
-@QuarkusTest
+@MicronautTest
 class SettingsPlaywrightTest : PlaywrightTestBase() {
-
-    @TestHTTPResource("/")
-    lateinit var baseUrl: URL
-
-    @TestHTTPResource("/login")
-    lateinit var loginUrl: URL
-
-    @TestHTTPResource("/portal")
-    lateinit var portalUrl: URL
-
-    @TestHTTPResource("/portal/settings")
-    lateinit var userSettingsUrl: URL
-
-    @TestHTTPResource("/admin/settings")
-    lateinit var adminSettingsUrl: URL
 
     @Inject
     lateinit var userRepository: UserRepository
@@ -45,24 +27,27 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
     @BeforeEach
     fun setupTestData() {
         // Create test user with known credentials
-        regularUser = userRepository.insert(
-            User(
-                userName = regularUserName,
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
-                greeting = regularUserGreeting,
-                isAdmin = false,
-                locale = Locale.ENGLISH,
-                languageCode = "en"
+        // Wrap in transaction to commit immediately and make visible to browser HTTP requests
+        regularUser = transactionHelper.inTransaction {
+            userRepository.save(
+                User.create(
+                    userName = regularUserName,
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = regularUserGreeting,
+                    isAdmin = false,
+                    locale = java.util.Locale.ENGLISH,
+                    languageCode = "en"
+                )
             )
-        )
+        }
     }
 
     private fun navigateToSettingsViaToken() {
-        loginViaToken(baseUrl, userSettingsUrl, regularUser, testAuthSupport)
+        loginViaToken("/portal/settings", regularUser, testAuthSupport)
     }
 
     private fun navigateToPortalViaToken() {
-        loginViaToken(baseUrl, portalUrl, regularUser, testAuthSupport)
+        loginViaToken("/portal", regularUser, testAuthSupport)
     }
 
     // === Full Test Suite for Regular User ===
@@ -113,10 +98,10 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // Verify form elements are visible
         val languageSelect = page.locator("[data-testid='profile-language-select']")
         assertThat(languageSelect).isVisible()
-        
+
         val localeSelect = page.locator("[data-testid='profile-locale-select']")
         assertThat(localeSelect).isVisible()
-        
+
         val saveButton = page.locator("[data-testid='profile-save-button']")
         assertThat(saveButton).isVisible()
 
@@ -128,27 +113,30 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should display profile with Ukrainian language and locale`() {
         // Create user with Ukrainian settings
-        val ukUser = userRepository.insert(
-            User(
-                userName = "ukrainianUser",
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
-                greeting = "Привіт",
-                isAdmin = false,
-                locale = Locale.forLanguageTag("uk-UA"),
-                languageCode = "uk"
+        // Wrap in transaction to commit immediately and make visible to browser HTTP requests
+        val ukUser = transactionHelper.inTransaction {
+            userRepository.save(
+                User.create(
+                    userName = "ukrainianUser",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "Привіт",
+                    isAdmin = false,
+                    locale = java.util.Locale.forLanguageTag("uk-UA"),
+                    languageCode = "uk"
+                )
             )
-        )
+        }
 
-        loginViaToken(baseUrl, userSettingsUrl, ukUser, testAuthSupport)
+        loginViaToken("/portal/settings", ukUser, testAuthSupport)
 
         // Wait for profile to load and verify Ukrainian data is loaded
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
         assertThat(greetingInput).hasValue("Привіт")
-        
+
         // UI is in Ukrainian, so language label is in Ukrainian
         val languageSelect = page.locator("[data-testid='profile-language-select']")
         assertThat(languageSelect).containsText("Українська")
-        
+
         val localeSelect = page.locator("[data-testid='profile-locale-select']")
         assertThat(localeSelect).hasText("Ukrainian (Ukraine)")
     }
@@ -156,18 +144,21 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should display profile with German locale`() {
         // Create user with German locale
-        val deUser = userRepository.insert(
-            User(
-                userName = "germanUser",
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
-                greeting = "Hallo",
-                isAdmin = false,
-                locale = Locale.forLanguageTag("de-DE"),
-                languageCode = "en"
+        // Wrap in transaction to commit immediately and make visible to browser HTTP requests
+        val deUser = transactionHelper.inTransaction {
+            userRepository.save(
+                User.create(
+                    userName = "germanUser",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "Hallo",
+                    isAdmin = false,
+                    locale = java.util.Locale.forLanguageTag("de-DE"),
+                    languageCode = "en"
+                )
             )
-        )
+        }
 
-        loginViaToken(baseUrl, userSettingsUrl, deUser, testAuthSupport)
+        loginViaToken("/portal/settings", deUser, testAuthSupport)
 
         // Wait for profile to load and verify data is loaded
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
@@ -242,11 +233,11 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Update profile data
         greetingInput.fill("Updated Greeting")
-        
+
         // Change language to Ukrainian
         page.locator("[data-testid='profile-language-select']").click()
         page.locator("[data-testid='language-option-uk']").click()
-        
+
         // Change locale to Ukrainian (Ukraine)
         page.locator("[data-testid='profile-locale-select']").click()
         page.locator("[data-testid='locale-option-uk-UA']").click()
@@ -261,7 +252,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Verify data was persisted by reloading
         page.reload()
-        
+
         assertThat(greetingInput).hasValue("Updated Greeting")
         // After reload, UI is in Ukrainian, so language label is in Ukrainian
         assertThat(page.locator("[data-testid='profile-language-select']")).containsText("Українська")
@@ -300,10 +291,10 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // Verify options
         val dropdown = page.locator("[data-testid='profile-language-dropdown']")
         assertThat(dropdown).isVisible()
-        
+
         val englishOption = page.locator("[data-testid='language-option-en']")
         val ukrainianOption = page.locator("[data-testid='language-option-uk']")
-        
+
         assertThat(englishOption).isVisible()
         assertThat(ukrainianOption).isVisible()
     }
@@ -322,11 +313,11 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // Verify some options are visible
         val dropdown = page.locator("[data-testid='profile-locale-dropdown']")
         assertThat(dropdown).isVisible()
-        
+
         val usOption = page.locator("[data-testid='locale-option-en-US']")
         val ukOption = page.locator("[data-testid='locale-option-uk-UA']")
         val deOption = page.locator("[data-testid='locale-option-de-DE']")
-        
+
         assertThat(usOption).isVisible()
         assertThat(ukOption).isVisible()
         assertThat(deOption).isVisible()
@@ -484,7 +475,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // The input has maxLength=50, so we need to bypass it by evaluating JS
         val longPassword = "a".repeat(51)
         page.locator("[data-testid='current-password-input']").fill(testPassword)
-        
+
         // Use evaluate to bypass maxLength
         page.locator("[data-testid='new-password-input']").evaluate("el => el.maxLength = 100")
         page.locator("[data-testid='new-password-input']").fill(longPassword)
@@ -611,19 +602,22 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
     fun `admin should be able to access settings and change password`() {
         // Create a test admin user
         val testAdminPassword = "adminPassword123"
-        val adminUser = userRepository.insert(
-            User(
-                userName = "settingsTestAdmin",
-                passwordHash = BcryptUtil.bcryptHash(testAdminPassword),
-                greeting = "Settings Test Admin",
-                isAdmin = true,
-                locale = Locale.ENGLISH,
-                languageCode = "en"
+        // Wrap in transaction to commit immediately and make visible to browser HTTP requests
+        val adminUser = transactionHelper.inTransaction {
+            userRepository.save(
+                User.create(
+                    userName = "settingsTestAdmin",
+                    passwordHash = BCrypt.hashpw(testAdminPassword, BCrypt.gensalt()),
+                    greeting = "Settings Test Admin",
+                    isAdmin = true,
+                    locale = java.util.Locale.ENGLISH,
+                    languageCode = "en"
+                )
             )
-        )
+        }
 
         // Use token-based auth for admin
-        loginViaToken(baseUrl, adminSettingsUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/settings", adminUser, testAuthSupport)
 
         // Verify settings page is displayed
         val settingsPage = page.locator("[data-testid='settings-page']")

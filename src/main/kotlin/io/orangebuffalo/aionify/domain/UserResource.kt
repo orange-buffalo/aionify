@@ -1,79 +1,75 @@
 package io.orangebuffalo.aionify.domain
 
-import io.quarkus.security.Authenticated
+import io.micronaut.core.annotation.Introspected
+import io.micronaut.http.HttpResponse
+import io.micronaut.http.annotation.Body
+import io.micronaut.http.annotation.Controller
+import io.micronaut.http.annotation.Get
+import io.micronaut.http.annotation.Put
+import io.micronaut.security.annotation.Secured
+import io.micronaut.security.rules.SecurityRule
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
-import jakarta.ws.rs.*
-import jakarta.ws.rs.core.Context
-import jakarta.ws.rs.core.MediaType
-import jakarta.ws.rs.core.Response
-import jakarta.ws.rs.core.SecurityContext
-import kotlinx.serialization.Serializable
+import java.security.Principal
 import java.util.Locale
 
-@Path("/api/users")
-class UserResource(private val userRepository: UserRepository) {
+@Controller("/api/users")
+@Secured(SecurityRule.IS_AUTHENTICATED)
+open class UserResource(
+    private val userRepository: UserRepository,
+    private val userService: UserService
+) {
 
     companion object {
         private val SUPPORTED_LANGUAGES = setOf("en", "uk")
     }
 
-    @GET
-    @Path("/profile")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Authenticated
-    fun getProfile(@Context securityContext: SecurityContext): Response {
-        val userName = securityContext.userPrincipal?.name
-            ?: return Response.status(Response.Status.UNAUTHORIZED)
-                .entity(ProfileErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
-                .build()
+    @Get("/profile")
+    open fun getProfile(principal: Principal?): HttpResponse<*> {
+        val userName = principal?.name
+            ?: return HttpResponse.unauthorized<ProfileErrorResponse>()
+                .body(ProfileErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
 
-        val user = userRepository.findByUserName(userName)
-            ?: return Response.status(Response.Status.NOT_FOUND)
-                .entity(ProfileErrorResponse("User not found", "USER_NOT_FOUND"))
-                .build()
+        val user = userRepository.findByUserName(userName).orElse(null)
+            ?: return HttpResponse.notFound<ProfileErrorResponse>()
+                .body(ProfileErrorResponse("User not found", "USER_NOT_FOUND"))
 
-        return Response.ok(
+        return HttpResponse.ok(
             ProfileResponse(
                 userName = user.userName,
                 greeting = user.greeting,
                 languageCode = user.languageCode,
-                locale = user.locale.toLanguageTag()
+                locale = user.localeTag
             )
-        ).build()
+        )
     }
 
-    @PUT
-    @Path("/profile")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Authenticated
-    fun updateProfile(@Valid request: UpdateProfileRequest, @Context securityContext: SecurityContext): Response {
-        val userName = securityContext.userPrincipal?.name
-            ?: return Response.status(Response.Status.UNAUTHORIZED)
-                .entity(ProfileErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
-                .build()
+    @Put("/profile")
+    open fun updateProfile(@Valid @Body request: UpdateProfileRequest, principal: Principal?): HttpResponse<*> {
+        val userName = principal?.name
+            ?: return HttpResponse.unauthorized<ProfileErrorResponse>()
+                .body(ProfileErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
 
         if (request.languageCode !in SUPPORTED_LANGUAGES) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                .entity(ProfileErrorResponse("Language must be either 'en' (English) or 'uk' (Ukrainian)", "LANGUAGE_NOT_SUPPORTED"))
-                .build()
+            return HttpResponse.badRequest(
+                ProfileErrorResponse("Language must be either 'en' (English) or 'uk' (Ukrainian)", "LANGUAGE_NOT_SUPPORTED")
+            )
         }
 
         val locale = parseLocale(request.locale)
-            ?: return Response.status(Response.Status.BAD_REQUEST)
-                .entity(ProfileErrorResponse("Invalid locale format", "INVALID_LOCALE"))
-                .build()
+            ?: return HttpResponse.badRequest(
+                ProfileErrorResponse("Invalid locale format", "INVALID_LOCALE")
+            )
 
-        userRepository.updateProfile(
+        userService.updateProfile(
             userName = userName,
             greeting = request.greeting,
             languageCode = request.languageCode,
             locale = locale
         )
 
-        return Response.ok(ProfileSuccessResponse("Profile updated successfully")).build()
+        return HttpResponse.ok(ProfileSuccessResponse("Profile updated successfully"))
     }
 
     private fun parseLocale(localeTag: String): Locale? {
@@ -84,7 +80,7 @@ class UserResource(private val userRepository: UserRepository) {
     }
 }
 
-@Serializable
+@Introspected
 data class ProfileResponse(
     val userName: String,
     val greeting: String,
@@ -92,7 +88,7 @@ data class ProfileResponse(
     val locale: String
 )
 
-@Serializable
+@Introspected
 data class UpdateProfileRequest(
     @field:NotBlank(message = "Greeting cannot be blank")
     @field:Size(max = 255, message = "Greeting cannot exceed 255 characters")
@@ -105,12 +101,12 @@ data class UpdateProfileRequest(
     val locale: String
 )
 
-@Serializable
+@Introspected
 data class ProfileSuccessResponse(
     val message: String
 )
 
-@Serializable
+@Introspected
 data class ProfileErrorResponse(
     val error: String,
     val errorCode: String

@@ -3,30 +3,18 @@ package io.orangebuffalo.aionify
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserRepository
-import io.quarkus.elytron.security.common.BcryptUtil
-import io.quarkus.test.common.http.TestHTTPResource
-import io.quarkus.test.junit.QuarkusTest
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.net.URL
-import java.util.Locale
+import org.mindrot.jbcrypt.BCrypt
 
 /**
  * Playwright tests for the users overview page functionality.
  * Tests admin-only access, table display, pagination, and delete functionality.
  */
-@QuarkusTest
+@MicronautTest
 class UsersPagePlaywrightTest : PlaywrightTestBase() {
-
-    @TestHTTPResource("/")
-    lateinit var baseUrl: URL
-
-    @TestHTTPResource("/admin/users")
-    lateinit var usersUrl: URL
-
-    @TestHTTPResource("/login")
-    lateinit var loginUrl: URL
 
     @Inject
     lateinit var userRepository: UserRepository
@@ -41,33 +29,39 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
     @BeforeEach
     fun setupTestData() {
         // Create admin user
-        adminUser = userRepository.insert(
-            User(
-                userName = "admin",
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
-                greeting = "Admin User",
-                isAdmin = true,
-                locale = Locale.ENGLISH,
-                languageCode = "en"
+        // Wrap in transaction to commit immediately and make visible to browser HTTP requests
+        adminUser = transactionHelper.inTransaction {
+            userRepository.save(
+                User.create(
+                    userName = "admin",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "Admin User",
+                    isAdmin = true,
+                    locale = java.util.Locale.ENGLISH,
+                    languageCode = "en"
+                )
             )
-        )
+        }
 
         // Create regular user
-        regularUser = userRepository.insert(
-            User(
-                userName = "regularuser",
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
-                greeting = "Regular User",
-                isAdmin = false,
-                locale = Locale.ENGLISH,
-                languageCode = "en"
+        // Wrap in transaction to commit immediately and make visible to browser HTTP requests
+        regularUser = transactionHelper.inTransaction {
+            userRepository.save(
+                User.create(
+                    userName = "regularuser",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "Regular User",
+                    isAdmin = false,
+                    locale = java.util.Locale.ENGLISH,
+                    languageCode = "en"
+                )
             )
-        )
+        }
     }
 
     @Test
     fun `should display users page with table for admin user`() {
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Verify users page is displayed
         val usersPage = page.locator("[data-testid='users-page']")
@@ -85,38 +79,38 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should display all users in the table`() {
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Verify admin user row
         val adminRow = page.locator("[data-testid='user-row-admin']")
         assertThat(adminRow).isVisible()
-        
+
         val adminUsername = page.locator("[data-testid='user-username-admin']")
         assertThat(adminUsername).hasText("admin")
-        
+
         val adminGreeting = page.locator("[data-testid='user-greeting-admin']")
         assertThat(adminGreeting).hasText("Admin User")
-        
+
         val adminType = page.locator("[data-testid='user-type-admin']")
         assertThat(adminType).hasText("Admin")
 
         // Verify regular user row
         val regularUserRow = page.locator("[data-testid='user-row-regularuser']")
         assertThat(regularUserRow).isVisible()
-        
+
         val regularUsername = page.locator("[data-testid='user-username-regularuser']")
         assertThat(regularUsername).hasText("regularuser")
-        
+
         val regularGreeting = page.locator("[data-testid='user-greeting-regularuser']")
         assertThat(regularGreeting).hasText("Regular User")
-        
+
         val regularType = page.locator("[data-testid='user-type-regularuser']")
         assertThat(regularType).hasText("Regular User")
     }
 
     @Test
     fun `should not show actions menu for own user`() {
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Admin user should not have actions menu (cannot delete self)
         val adminActions = page.locator("[data-testid='user-actions-admin']")
@@ -129,7 +123,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should display delete confirmation dialog when delete is clicked`() {
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Click actions menu for regular user
         page.locator("[data-testid='user-actions-regularuser']").click()
@@ -154,7 +148,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should cancel deletion when cancel button is clicked`() {
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Click actions menu and delete
         page.locator("[data-testid='user-actions-regularuser']").click()
@@ -174,7 +168,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should delete user and show success message when confirmed`() {
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Click actions menu and delete
         page.locator("[data-testid='user-actions-regularuser']").click()
@@ -204,26 +198,29 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
         // Verify user is deleted from database
         val deletedUser = userRepository.findByUserName("regularuser")
-        assert(deletedUser == null) { "User should be deleted from database" }
+        assert(deletedUser.isEmpty ) { "User should be deleted from database" }
     }
 
     @Test
     fun `should display pagination when there are more than 20 users`() {
         // Create 25 users to test pagination
-        for (i in 1..25) {
-            userRepository.insert(
-                User(
-                    userName = "user$i",
-                    passwordHash = BcryptUtil.bcryptHash(testPassword),
-                    greeting = "User $i",
-                    isAdmin = false,
-                    locale = Locale.ENGLISH,
-                    languageCode = "en"
+        // Wrap in transaction to commit immediately and make visible to browser HTTP requests
+        transactionHelper.inTransaction {
+            for (i in 1..25) {
+                userRepository.save(
+                    User.create(
+                        userName = "user$i",
+                        passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                        greeting = "User $i",
+                        isAdmin = false,
+                        locale = java.util.Locale.ENGLISH,
+                        languageCode = "en"
+                    )
                 )
-            )
+            }
         }
 
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Verify pagination is displayed
         val pagination = page.locator("[data-testid='users-pagination']")
@@ -241,20 +238,23 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should navigate between pages using pagination controls`() {
         // Create 25 users to test pagination
-        for (i in 1..25) {
-            userRepository.insert(
-                User(
-                    userName = "user$i",
-                    passwordHash = BcryptUtil.bcryptHash(testPassword),
-                    greeting = "User $i",
-                    isAdmin = false,
-                    locale = Locale.ENGLISH,
-                    languageCode = "en"
+        // Wrap in transaction to commit immediately and make visible to browser HTTP requests
+        transactionHelper.inTransaction {
+            for (i in 1..25) {
+                userRepository.save(
+                    User.create(
+                        userName = "user$i",
+                        passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                        greeting = "User $i",
+                        isAdmin = false,
+                        locale = java.util.Locale.ENGLISH,
+                        languageCode = "en"
+                    )
                 )
-            )
+            }
         }
 
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Verify we're on page 1
         val paginationInfo = page.locator("[data-testid='pagination-info']")
@@ -298,20 +298,23 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should display correct number of users on each page`() {
         // Create 25 users
-        for (i in 1..25) {
-            userRepository.insert(
-                User(
-                    userName = "user$i",
-                    passwordHash = BcryptUtil.bcryptHash(testPassword),
-                    greeting = "User $i",
-                    isAdmin = false,
-                    locale = Locale.ENGLISH,
-                    languageCode = "en"
+        // Wrap in transaction to commit immediately and make visible to browser HTTP requests
+        transactionHelper.inTransaction {
+            for (i in 1..25) {
+                userRepository.save(
+                    User.create(
+                        userName = "user$i",
+                        passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                        greeting = "User $i",
+                        isAdmin = false,
+                        locale = java.util.Locale.ENGLISH,
+                        languageCode = "en"
+                    )
                 )
-            )
+            }
         }
 
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Verify usernames on page 1 (should be first 20 users alphabetically)
         val page1Usernames = page.locator("tbody tr td:nth-child(1)").allTextContents()
@@ -336,47 +339,50 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should display users sorted by username`() {
         // Create users with names that would be out of order if not sorted
-        userRepository.insert(
-            User(
-                userName = "zebra",
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
-                greeting = "Zebra User",
-                isAdmin = false,
-                locale = Locale.ENGLISH,
-                languageCode = "en"
+        // Wrap in transaction to commit immediately and make visible to browser HTTP requests
+        transactionHelper.inTransaction {
+            userRepository.save(
+                User.create(
+                    userName = "zebra",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "Zebra User",
+                    isAdmin = false,
+                    locale = java.util.Locale.ENGLISH,
+                    languageCode = "en"
+                )
             )
-        )
-        userRepository.insert(
-            User(
-                userName = "apple",
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
-                greeting = "Apple User",
-                isAdmin = false,
-                locale = Locale.ENGLISH,
-                languageCode = "en"
+            userRepository.save(
+                User.create(
+                    userName = "apple",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "Apple User",
+                    isAdmin = false,
+                    locale = java.util.Locale.ENGLISH,
+                    languageCode = "en"
+                )
             )
-        )
+        }
 
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Get all username cells in order
         val usernames = page.locator("tbody tr td:nth-child(1)").allTextContents()
 
         // Verify they are sorted alphabetically
         val expectedOrder = listOf("admin", "apple", "regularuser", "zebra")
-        assert(usernames == expectedOrder) { 
-            "Users should be sorted by username. Expected: $expectedOrder, Got: $usernames" 
+        assert(usernames == expectedOrder) {
+            "Users should be sorted by username. Expected: $expectedOrder, Got: $usernames"
         }
     }
 
     @Test
     fun `should hide actions button for current user`() {
-        loginViaToken(baseUrl, usersUrl, adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
 
         // Admin user logged in - verify they cannot delete themselves
         val adminActionsButton = page.locator("[data-testid='user-actions-admin']")
         assertThat(adminActionsButton).not().isVisible()
-        
+
         // But they can delete other users
         val regularUserActionsButton = page.locator("[data-testid='user-actions-regularuser']")
         assertThat(regularUserActionsButton).isVisible()

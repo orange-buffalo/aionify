@@ -34,41 +34,20 @@ This will:
 ### 3. Run in development mode
 
 ```bash
-./gradlew quarkusDev
+./gradlew run
 ```
 
 The application will be available at http://localhost:8080
 
-**Note**: Quarkus Dev Services automatically starts a PostgreSQL container via Testcontainers. No database setup is required for development.
+**Note**: For development, you'll need a running PostgreSQL database. See "Using an External Database" section below for setup instructions.
 
 ## Development with Persistent Database
 
-By default, when using `quarkusDev`, the database container is stopped when Quarkus stops, and all data is lost. To persist data between development sessions:
+For development, you can use Docker to run a PostgreSQL database:
 
-### Enable Container Reuse
+### Using Docker for PostgreSQL
 
-1. Create or edit `~/.testcontainers.properties`:
-   ```properties
-   testcontainers.reuse.enable=true
-   ```
-
-2. Run with reuse enabled:
-   ```bash
-   ./gradlew quarkusDev -Dquarkus.datasource.devservices.reuse=true
-   ```
-
-The PostgreSQL container will now persist between application restarts, preserving your test data.
-
-To stop and remove the reusable container when no longer needed:
-```bash
-docker ps -a --filter "label=org.testcontainers.reuse=true" -q | xargs -r docker rm -f
-```
-
-### Using External PostgreSQL
-
-Alternatively, you can use a local PostgreSQL instance:
-
-1. Start PostgreSQL (e.g., via Docker Compose):
+1. Start PostgreSQL (via Docker Compose):
    ```bash
    docker compose -f docker-compose.dev.yml up -d
    ```
@@ -91,13 +70,18 @@ Alternatively, you can use a local PostgreSQL instance:
      aionify_dev_data:
    ```
 
-2. Run Quarkus with the external database:
+2. Run the application with the database:
    ```bash
-   ./gradlew quarkusDev \
-     -Dquarkus.datasource.devservices.enabled=false \
-     -Dquarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/aionify_dev \
-     -Dquarkus.datasource.username=aionify \
-     -Dquarkus.datasource.password=aionify
+   ./gradlew run
+   ```
+
+   The application will use the default database connection settings (localhost:5432).
+   To customize, set environment variables:
+   ```bash
+   AIONIFY_DB_URL=jdbc:postgresql://localhost:5432/aionify_dev \
+   AIONIFY_DB_USERNAME=aionify \
+   AIONIFY_DB_PASSWORD=aionify \
+   ./gradlew run
    ```
 
 ## Project Structure
@@ -149,11 +133,11 @@ Playwright browsers are installed automatically during the build. To install man
 
 ### Frontend hot reload
 
-In development mode (`quarkusDev`), frontend changes require rebuilding. For faster frontend development:
+For faster frontend development:
 
 1. In one terminal, run the backend:
    ```bash
-   ./gradlew quarkusDev
+   ./gradlew run
    ```
 
 2. In another terminal, rebuild frontend on changes:
@@ -201,9 +185,9 @@ Run:
 
 ### Port already in use
 
-If port 8080 is in use, specify a different port:
+If port 8080 is in use, specify a different port via environment variable:
 ```bash
-./gradlew quarkusDev -Dquarkus.http.port=8081
+MICRONAUT_SERVER_PORT=8081 ./gradlew run
 ```
 
 ### Frontend build fails

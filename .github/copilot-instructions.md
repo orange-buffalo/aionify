@@ -16,11 +16,11 @@ Project documentation is organized as follows:
 
 ## Tech Stack Overview
 
-- **Backend**: Quarkus framework with Kotlin
+- **Backend**: Micronaut framework with Kotlin
 - **Frontend**: React with TypeScript, shadcn-ui components, and Tailwind CSS v4
 - **Build Tools**: Gradle for backend, **Bun for frontend** (never commit `package-lock.json`)
-- **Database**: PostgreSQL with Flyway migrations and JDBI for data access
-- **Testing**: JUnit 5 with Playwright for E2E tests
+- **Database**: PostgreSQL with Flyway migrations and Micronaut Data JDBC for data access
+- **Testing**: JUnit 5 with Playwright for E2E tests and Testcontainers for database integration
 
 ## Development Workflow
 
@@ -43,11 +43,9 @@ The E2E tests validate the application running from the Docker image. To run the
 
 ```bash
 # First, build the Docker image
-./gradlew build \
-  -Dquarkus.package.jar.enabled=false -Dquarkus.native.enabled=true \
-  -Dquarkus.container-image.build=true \
-  -Dquarkus.container-image.tag=local-test \
-  --build-cache --console=plain
+./gradlew nativeCompile
+docker build -f src/main/docker/Dockerfile.native \
+  -t ghcr.io/orange-buffalo/aionify:local-test .
 
 # Run E2E tests
 ./gradlew e2eTest -Daionify.docker.image=ghcr.io/orange-buffalo/aionify:local-test
@@ -70,7 +68,7 @@ To run a specific test class:
 - `src/main/kotlin/io/orangebuffalo/aionify/` - Main Kotlin application code
   - `config/` - Configuration classes (e.g., JDBI setup)
   - `domain/` - Domain models and repositories
-- `src/test/kotlin/io/orangebuffalo/aionify/` - Unit tests (Quarkus test mode)
+- `src/test/kotlin/io/orangebuffalo/aionify/` - Unit tests (Micronaut test mode)
 - `src/e2eTest/kotlin/io/orangebuffalo/aionify/` - E2E tests (Docker image tests)
 - `frontend/` - React frontend application
   - `src/components/ui/` - shadcn-ui components
@@ -83,10 +81,11 @@ To run a specific test class:
 
 ### Kotlin/Backend
 
-- Use data classes for domain models
-- Use `@ApplicationScoped` for CDI beans
-- Use JDBI with Kotlin extensions for database access
+- Use data classes for domain models annotated with `@MappedEntity` for Micronaut Data
+- Use `@Singleton` for dependency injection (Micronaut CDI)
+- Use Micronaut Data JDBC with repository interfaces (`@JdbcRepository`)
 - Follow Kotlin naming conventions (camelCase for functions/properties)
+- All DTOs used in REST endpoints must have `@Introspected` annotation for serialization/validation
 
 ### TypeScript/Frontend
 
@@ -114,18 +113,39 @@ Playwright tests should extend `PlaywrightTestBase` which provides:
 - **Always use Playwright's built-in auto-waiting assertions** like `assertThat().isVisible()`, `assertThat().containsText()`, etc.
 - These assertions automatically retry until the condition is met or timeout occurs
 - When verifying pagination or table content changes, check actual content (e.g., usernames) not just counts
+- **CRITICAL: Always wrap repository.save() calls in `transactionHelper.inTransaction {}`** - This commits the transaction immediately, making test data visible to browser HTTP requests. Without this, browser requests will fail because they run in separate connections and cannot see uncommitted test data.
 
 Example:
 ```kotlin
-@QuarkusTest
+@MicronautTest
 class MyPlaywrightTest : PlaywrightTestBase() {
-    @TestHTTPResource("/")
-    lateinit var url: URL
+    @Inject
+    lateinit var userRepository: UserRepository
+    
+    private lateinit var testUser: User
+
+    @BeforeEach
+    fun setupTestData() {
+        // CRITICAL: Wrap in transactionHelper to commit immediately
+        // This makes the user visible to browser HTTP requests
+        testUser = transactionHelper.inTransaction {
+            userRepository.save(
+                User.create(
+                    userName = "testuser",
+                    passwordHash = BCrypt.hashpw("password", BCrypt.gensalt()),
+                    greeting = "Test User",
+                    isAdmin = false,
+                    locale = Locale.ENGLISH,
+                    languageCode = "en"
+                )
+            )
+        }
+    }
 
     @Test
     fun `my test`() {
-        page.navigate(url.toString())
-        // assertions...
+        page.navigate("/login")
+        // Now testUser is visible to login endpoint
     }
 }
 ```
@@ -148,7 +168,7 @@ API tests should focus on **security** rather than business logic:
 - Test that endpoints are properly protected (authentication/authorization)
 - Test that users cannot bypass UI restrictions
 - Business logic verification is done through Playwright UI tests
--  **Note**: @RolesAllowed annotations require `quarkus-security` extension which doesn't integrate properly with custom JWT authentication in test mode. Security enforcement is validated in E2E tests with production Docker images.
+-  **Note**: Security enforcement is validated comprehensively in E2E tests with production Docker images. API endpoint tests use HTTP client to verify security at the API level (see UserAdminResourceTest for examples).
 
 Example:
 ```kotlin

@@ -1,33 +1,34 @@
 package io.orangebuffalo.aionify.domain
 
+import io.micronaut.http.HttpRequest
+import io.micronaut.http.HttpStatus
+import io.micronaut.http.client.HttpClient
+import io.micronaut.http.client.annotation.Client
+import io.micronaut.http.client.exceptions.HttpClientResponseException
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.TestAuthSupport
 import io.orangebuffalo.aionify.TestDatabaseSupport
-import io.quarkus.elytron.security.common.BcryptUtil
-import io.quarkus.test.junit.QuarkusTest
 import jakarta.inject.Inject
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.Locale
+import org.mindrot.jbcrypt.BCrypt
 
 /**
- * API endpoint tests for user admin resource.
+ * API endpoint security tests for user admin resource.
  * 
- * **Security Testing Limitation**
- * Method-level security annotations (@RolesAllowed) cannot be properly tested in @QuarkusTest mode
- * when using custom JWT authentication (non-OIDC). The security filter runs, but role-based
- * authorization is not enforced in test mode.
+ * Per project guidelines, this test validates SECURITY ONLY, not business logic.
  * 
- * **Security is validated in E2E tests:**
- * - E2E tests run against production Docker images with full security enforcement
- * - Playwright tests verify admin-only access and proper authentication/authorization
- * - See: src/e2eTest/kotlin for production-like security validation
- * 
- * **This test validates:**
- * - Self-deletion prevention (critical business rule that must not be bypassable)
- * - This is tested at the business logic level, independent of security framework
+ * Tests verify:
+ * 1. Admin role is required to access /api/admin/users endpoints
+ * 2. Self-deletion is prevented at the API level
  */
-@QuarkusTest
+@MicronautTest
 class UserAdminResourceTest {
+
+    @Inject
+    @field:Client("/")
+    lateinit var client: HttpClient
 
     @Inject
     lateinit var userRepository: UserRepository
@@ -40,32 +41,145 @@ class UserAdminResourceTest {
 
     private val testPassword = "testPassword123"
     private lateinit var adminUser: User
+    private lateinit var regularUser: User
 
     @BeforeEach
     fun setupTestData() {
         testDatabaseSupport.truncateAllTables()
 
         // Create admin user
-        adminUser = userRepository.insert(
-            User(
+        adminUser = userRepository.save(
+            User.create(
                 userName = "admin",
-                passwordHash = BcryptUtil.bcryptHash(testPassword),
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Admin User",
                 isAdmin = true,
-                locale = Locale.ENGLISH,
+                locale = java.util.Locale.ENGLISH,
+                languageCode = "en"
+            )
+        )
+        
+        // Create regular user
+        regularUser = userRepository.save(
+            User.create(
+                userName = "user",
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                greeting = "Regular User",
+                isAdmin = false,
+                locale = java.util.Locale.ENGLISH,
                 languageCode = "en"
             )
         )
     }
 
     @Test
-    fun `self-deletion prevention is tested in Playwright tests`() {
-        // Security tests for @RolesAllowed cannot be run in @QuarkusTest mode with custom JWT auth
-        // All security validation including self-deletion prevention is comprehensively tested in:
-        // - src/test/kotlin/io/orangebuffalo/aionify/UsersPagePlaywrightTest.kt
-        // - E2E tests in production Docker images
+    fun `should require admin role to list users`() {
+        // Given: A regular (non-admin) user token
+        val regularUserToken = testAuthSupport.generateToken(regularUser)
         
-        // This placeholder test documents the testing approach
-        assert(true)
+        // When: Trying to access admin endpoint with non-admin token
+        val exception = assertThrows(HttpClientResponseException::class.java) {
+            client.toBlocking().exchange(
+                HttpRequest.GET<Any>("/api/admin/users")
+                    .bearerAuth(regularUserToken),
+                String::class.java
+            )
+        }
+        
+        // Then: Access should be forbidden
+        assertEquals(HttpStatus.FORBIDDEN, exception.status)
+    }
+
+    @Test
+    fun `should allow admin role to list users`() {
+        // Given: An admin user token
+        val adminToken = testAuthSupport.generateToken(adminUser)
+        
+        // When: Accessing admin endpoint with admin token
+        val response = client.toBlocking().exchange(
+            HttpRequest.GET<Any>("/api/admin/users")
+                .bearerAuth(adminToken),
+            UsersListResponse::class.java
+        )
+        
+        // Then: Request should succeed
+        assertEquals(HttpStatus.OK, response.status)
+        assertNotNull(response.body())
+    }
+
+    @Test
+    fun `should require authentication to list users`() {
+        // When: Trying to access admin endpoint without authentication
+        val exception = assertThrows(HttpClientResponseException::class.java) {
+            client.toBlocking().exchange(
+                HttpRequest.GET<Any>("/api/admin/users"),
+                String::class.java
+            )
+        }
+        
+        // Then: Access should be unauthorized
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+    }
+
+    @Test
+    fun `should prevent self-deletion via API`() {
+        // Given: An admin user token
+        val adminToken = testAuthSupport.generateToken(adminUser)
+        val adminId = requireNotNull(adminUser.id)
+        
+        // When: Admin tries to delete their own account via API
+        val exception = assertThrows(HttpClientResponseException::class.java) {
+            client.toBlocking().exchange(
+                HttpRequest.DELETE<Any>("/api/admin/users/$adminId")
+                    .bearerAuth(adminToken),
+                String::class.java
+            )
+        }
+        
+        // Then: Request should be rejected with bad request
+        assertEquals(HttpStatus.BAD_REQUEST, exception.status)
+        // Check the response body contains the error message
+        val responseBody = exception.response.getBody(String::class.java).orElse("")
+        assertTrue(responseBody.contains("Cannot delete your own user account"), 
+            "Expected error message in response body, got: $responseBody")
+    }
+
+    @Test
+    fun `should allow admin to delete other users`() {
+        // Given: An admin user token and another user to delete
+        val adminToken = testAuthSupport.generateToken(adminUser)
+        val userToDeleteId = requireNotNull(regularUser.id)
+        
+        // When: Admin deletes another user via API
+        val response = client.toBlocking().exchange(
+            HttpRequest.DELETE<Any>("/api/admin/users/$userToDeleteId")
+                .bearerAuth(adminToken),
+            String::class.java
+        )
+        
+        // Then: Request should succeed
+        assertEquals(HttpStatus.OK, response.status)
+        
+        // And: User should be deleted from database
+        assertFalse(userRepository.existsById(userToDeleteId))
+    }
+
+    @Test
+    fun `should require admin role to delete users`() {
+        // Given: A regular (non-admin) user token
+        val regularUserToken = testAuthSupport.generateToken(regularUser)
+        val userToDeleteId = requireNotNull(adminUser.id)
+        
+        // When: Regular user tries to delete another user
+        val exception = assertThrows(HttpClientResponseException::class.java) {
+            client.toBlocking().exchange(
+                HttpRequest.DELETE<Any>("/api/admin/users/$userToDeleteId")
+                    .bearerAuth(regularUserToken),
+                String::class.java
+            )
+        }
+        
+        // Then: Access should be forbidden
+        assertEquals(HttpStatus.FORBIDDEN, exception.status)
     }
 }
