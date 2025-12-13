@@ -38,7 +38,8 @@ function getAuthUser(): AuthUser | null {
     const payload = JSON.parse(atob(base64))
     
     // Check if token has expired (exp claim is in seconds since epoch)
-    if (payload.exp && Date.now() >= payload.exp * 1000) {
+    // Use strict inequality to avoid race conditions at exact expiration time
+    if (payload.exp && Date.now() > payload.exp * 1000) {
       localStorage.removeItem(TOKEN_KEY)
       return null
     }

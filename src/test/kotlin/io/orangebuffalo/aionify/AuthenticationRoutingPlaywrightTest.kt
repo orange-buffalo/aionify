@@ -21,6 +21,19 @@ class AuthenticationRoutingPlaywrightTest : PlaywrightTestBase() {
     @Inject
     lateinit var testAuthSupport: TestAuthSupport
 
+    companion object {
+        /**
+         * JavaScript helper function for base64url encoding in tests.
+         * This matches the base64url encoding used in JWT tokens.
+         */
+        private const val BASE64URL_ENCODE_JS = """
+            function base64urlEncode(str) {
+                const base64 = btoa(str);
+                return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+            }
+        """
+    }
+
     @BeforeEach
     fun setupTestData() {
         // Create test users
@@ -146,12 +159,8 @@ class AuthenticationRoutingPlaywrightTest : PlaywrightTestBase() {
 
         // Set an expired token in localStorage using proper base64url encoding
         page.evaluate("""
-            () => {
-                // Helper function to convert string to base64url
-                function base64urlEncode(str) {
-                    const base64 = btoa(str);
-                    return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-                }
+            (() => {
+                $BASE64URL_ENCODE_JS
                 
                 // Create a JWT with expired timestamp
                 // Header: {"alg":"HS256","typ":"JWT"}
@@ -168,7 +177,7 @@ class AuthenticationRoutingPlaywrightTest : PlaywrightTestBase() {
                 const expiredToken = header + "." + payload + "." + signature
                 
                 localStorage.setItem('aionify_token', expiredToken)
-            }
+            })()
         """.trimIndent())
 
         // Now navigate to a protected route which should check auth and remove expired token
