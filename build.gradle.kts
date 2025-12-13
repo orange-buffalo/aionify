@@ -111,6 +111,9 @@ val dockerImage = "ghcr.io/orange-buffalo/aionify:$dockerImageTag"
 tasks.dockerBuildNative {
     images.set(listOf(dockerImage))
 }
+tasks.dockerPushNative {
+    images.set(listOf(dockerImage))
+}
 
 application {
     mainClass.set("io.orangebuffalo.aionify.Application")

@@ -1,5 +1,6 @@
 package io.orangebuffalo.aionify
 
+import com.github.dockerjava.api.model.ExposedPort
 import com.microsoft.playwright.Browser
 import com.microsoft.playwright.BrowserType
 import com.microsoft.playwright.Page
@@ -66,7 +67,7 @@ class DockerLoginE2ETest {
                 val containerName = "${APP_SERVICE}-1"
                 val container = composeContainer.getContainerByServiceName(containerName).orElseThrow()
                 val bindings = container.currentContainerInfo.networkSettings.ports.bindings
-                val actualPort = bindings.get(com.github.dockerjava.api.model.ExposedPort.tcp(APP_PORT))
+                val actualPort = bindings.get(ExposedPort.tcp(APP_PORT))
                     ?.get(0)?.hostPortSpec
                     ?: throw IllegalStateException("Could not find port binding for $APP_PORT")
                 
