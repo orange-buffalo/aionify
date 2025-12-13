@@ -20,6 +20,13 @@ export function LoginPage() {
   const [lastUserGreeting, setLastUserGreeting] = useState<string | null>(null)
 
   useEffect(() => {
+    // Check if session expired (set by API request handler)
+    const sessionExpired = sessionStorage.getItem("sessionExpired")
+    if (sessionExpired) {
+      setError(t("login.sessionExpired"))
+      sessionStorage.removeItem("sessionExpired")
+    }
+    
     // Load last user's credentials from localStorage (runs once on mount)
     const lastUsername = localStorage.getItem(LAST_USERNAME_KEY)
     if (lastUsername) {

@@ -2,6 +2,7 @@ import { TOKEN_KEY } from "./constants"
 
 /**
  * Makes an authenticated API request with the stored JWT token.
+ * If a 401 Unauthorized response is received, clears the token and redirects to login.
  */
 export async function apiRequest<T>(
   url: string,
@@ -24,6 +25,21 @@ export async function apiRequest<T>(
   })
 
   if (!response.ok) {
+    // Handle 401 Unauthorized - token expired or invalid
+    if (response.status === 401) {
+      // Clear the token
+      localStorage.removeItem(TOKEN_KEY)
+      
+      // Store a flag to show session expired message on login page
+      sessionStorage.setItem("sessionExpired", "true")
+      
+      // Redirect to login page
+      window.location.href = "/login"
+      
+      // Throw error to prevent further processing
+      throw new Error("Session expired")
+    }
+    
     const errorData = await response.json().catch(() => ({}))
     throw new Error(errorData.error || `Request failed with status ${response.status}`)
   }
