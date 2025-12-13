@@ -108,8 +108,7 @@ micronaut {
 
 val dockerImageTag = System.getenv("DOCKER_IMAGE_TAG") ?: "latest"
 val dockerImage = "ghcr.io/orange-buffalo/aionify:$dockerImageTag"
-// TODO change to dockerBuildNative when enabling native build back
-tasks.dockerBuild {
+tasks.dockerBuildNative {
     images.set(listOf(dockerImage))
 }
 
