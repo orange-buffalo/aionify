@@ -13,6 +13,10 @@ class TestAuthSupport(
     private val jwtTokenService: JwtTokenService
 ) {
 
+    companion object {
+        private const val ONE_HOUR_SECONDS = 3600L
+    }
+
     /**
      * Generates a valid JWT token for the given user.
      * This token can be used to authenticate without going through the login page.
@@ -57,7 +61,7 @@ class TestAuthSupport(
         val userId = requireNotNull(user.id) { "User must be persisted (have an ID) before generating a token" }
         
         // Set expiration to 1 hour ago
-        val expiredTime = System.currentTimeMillis() / 1000 - 3600
+        val expiredTime = System.currentTimeMillis() / 1000 - ONE_HOUR_SECONDS
         
         return jwtTokenService.generateTokenWithExpiration(
             userName = user.userName,

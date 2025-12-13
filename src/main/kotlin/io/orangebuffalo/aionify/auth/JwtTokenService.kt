@@ -51,9 +51,10 @@ class JwtTokenService(
 
     /**
      * Generates a JWT token with a custom expiration time.
-     * This is primarily for testing scenarios.
+     * This is primarily for testing scenarios, including expired tokens.
      * 
-     * @param expirationSeconds Unix timestamp in seconds when the token should expire
+     * @param expirationSeconds Unix timestamp in seconds when the token should expire.
+     *                          Can be in the past for testing expired tokens.
      */
     fun generateTokenWithExpiration(
         userName: String,
@@ -74,6 +75,7 @@ class JwtTokenService(
 
         // TokenGenerator expects expiration as an Integer representing seconds from now
         // Calculate relative expiration from the absolute timestamp
+        // For expired tokens (past timestamps), this will be negative, which is valid
         val currentTime = System.currentTimeMillis() / 1000
         val relativeExpiration = (expirationSeconds - currentTime).toInt()
 
