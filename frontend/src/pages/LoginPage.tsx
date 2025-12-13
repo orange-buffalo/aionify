@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, LogIn, User, KeyRound } from "lucide-react"
+import { FormMessage } from "@/components/ui/form-message"
 import { LAST_USERNAME_KEY, TOKEN_KEY } from "@/lib/constants"
 import { initializeLanguage, translateErrorCode } from "@/lib/i18n"
 
@@ -16,6 +17,7 @@ export function LoginPage() {
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [lastUserGreeting, setLastUserGreeting] = useState<string | null>(null)
 
@@ -25,6 +27,13 @@ export function LoginPage() {
     if (sessionExpired) {
       setError(t("login.sessionExpired"))
       sessionStorage.removeItem("sessionExpired")
+    }
+    
+    // Check if coming from successful activation
+    const activationSuccess = sessionStorage.getItem("activationSuccess")
+    if (activationSuccess) {
+      setSuccess(t("login.activationSuccess"))
+      sessionStorage.removeItem("activationSuccess")
     }
     
     // Load last user's credentials from localStorage (runs once on mount)
@@ -161,10 +170,12 @@ export function LoginPage() {
                 </div>
               </div>
 
+              {success && (
+                <FormMessage type="success" message={success} testId="login-success" />
+              )}
+
               {error && (
-                <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md" data-testid="login-error">
-                  {error}
-                </div>
+                <FormMessage type="error" message={error} testId="login-error" />
               )}
 
               <Button 

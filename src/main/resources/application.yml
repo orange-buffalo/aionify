@@ -28,6 +28,9 @@ micronaut:
         http-method: POST
         access:
           - isAnonymous()
+      - pattern: /api/activation/**
+        access:
+          - isAnonymous()
       - pattern: /api/**
         access:
           - isAuthenticated()

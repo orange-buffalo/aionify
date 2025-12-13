@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router"
 import { LoginPage } from "@/pages/LoginPage"
+import { ActivateAccountPage } from "@/pages/ActivateAccountPage"
 import { AdminPortal } from "@/pages/AdminPortal"
 import { UserPortal } from "@/pages/UserPortal"
 import { SettingsPage } from "@/pages/SettingsPage"
@@ -12,6 +13,7 @@ export function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/activate" element={<ActivateAccountPage />} />
         <Route path="/admin" element={
           <ProtectedRoute requireAdmin={true}>
             <AdminPortal />
