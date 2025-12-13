@@ -272,4 +272,30 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
         assertThat(reports).isVisible()
         assertThat(settings).isVisible()
     }
+
+    @Test
+    fun `clicking Users menu item should navigate to Users page`() {
+        navigateToAdminViaToken()
+
+        // Verify we're on the admin portal
+        val adminPortal = page.locator("[data-testid='admin-portal']")
+        assertThat(adminPortal).isVisible()
+
+        // Click on the Users menu item
+        val usersMenuItem = page.locator("[data-testid='nav-item-users']")
+        assertThat(usersMenuItem).isVisible()
+        usersMenuItem.click()
+
+        // Wait for navigation to Users page
+        page.waitForURL("**/admin/users")
+
+        // Verify Users page is displayed
+        val usersPage = page.locator("[data-testid='users-page']")
+        assertThat(usersPage).isVisible()
+
+        // Verify the Users page title
+        val usersTitle = page.locator("[data-testid='users-title']")
+        assertThat(usersTitle).isVisible()
+        assertThat(usersTitle).containsText("Users")
+    }
 }

@@ -28,7 +28,7 @@ export function PortalLayout({ children, testId }: PortalLayoutProps) {
   }, [])
 
   const adminMenuItems: NavItem[] = [
-    { label: t("nav.users"), icon: <Users className="h-4 w-4 mr-2" /> },
+    { label: t("nav.users"), icon: <Users className="h-4 w-4 mr-2" />, href: "/admin/users" },
     { label: t("nav.reports"), icon: <BarChart className="h-4 w-4 mr-2" /> },
     { label: t("nav.settings"), icon: <Settings className="h-4 w-4 mr-2" /> },
   ]
