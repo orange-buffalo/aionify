@@ -37,13 +37,6 @@ function getAuthUser(): AuthUser | null {
     }
     const payload = JSON.parse(atob(base64))
     
-    // Check if token has expired (exp claim is in seconds since epoch)
-    // Use strict inequality to avoid race conditions at exact expiration time
-    if (payload.exp && Date.now() > payload.exp * 1000) {
-      localStorage.removeItem(TOKEN_KEY)
-      return null
-    }
-
     // Extract the isAdmin flag - Micronaut JWT uses roles array
     const roles: string[] = payload.roles || []
     const isAdmin = roles.includes("admin")
@@ -61,8 +54,8 @@ function getAuthUser(): AuthUser | null {
 
 /**
  * Hook that checks if there's a valid JWT token and extracts user role information.
- * Note: This does NOT validate the token's signature - that's handled by the backend.
- * It does check for token expiration client-side to avoid unnecessary API calls.
+ * Note: This does NOT validate the token's signature or expiration - that's handled by the backend.
+ * Token expiration is checked server-side when making API calls (401 response handling).
  * 
  * This hook performs a synchronous check to avoid race conditions during initial render.
  */

@@ -48,4 +48,23 @@ class TestAuthSupport(
             greeting = user.greeting
         )
     }
+
+    /**
+     * Generates an expired JWT token for testing token expiration scenarios.
+     * The token is properly signed but has an expiration time in the past.
+     */
+    fun generateExpiredToken(user: User): String {
+        val userId = requireNotNull(user.id) { "User must be persisted (have an ID) before generating a token" }
+        
+        // Set expiration to 1 hour ago
+        val expiredTime = System.currentTimeMillis() / 1000 - 3600
+        
+        return jwtTokenService.generateTokenWithExpiration(
+            userName = user.userName,
+            userId = userId,
+            isAdmin = user.isAdmin,
+            greeting = user.greeting,
+            expirationSeconds = expiredTime
+        )
+    }
 }

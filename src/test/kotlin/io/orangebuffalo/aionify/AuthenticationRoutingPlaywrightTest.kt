@@ -21,19 +21,6 @@ class AuthenticationRoutingPlaywrightTest : PlaywrightTestBase() {
     @Inject
     lateinit var testAuthSupport: TestAuthSupport
 
-    companion object {
-        /**
-         * JavaScript helper function for base64url encoding in tests.
-         * This matches the base64url encoding used in JWT tokens.
-         */
-        private const val BASE64URL_ENCODE_JS = """
-            function base64urlEncode(str) {
-                const base64 = btoa(str);
-                return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-            }
-        """
-    }
-
     @BeforeEach
     fun setupTestData() {
         // Create test users
@@ -153,44 +140,37 @@ class AuthenticationRoutingPlaywrightTest : PlaywrightTestBase() {
     }
 
     @Test
-    fun `expired token should redirect to login with session expired message`() {
-        // Navigate to a page that will trigger an API call with expired token
-        page.navigate("/")
+    fun `expired token should redirect to login with session expired message when making API call`() {
+        // Get regular user
+        val regularUser = userRepository.findByUserName(TestUsers.REGULAR_USERNAME).get()
 
-        // Set an expired token in localStorage using proper base64url encoding
+        // Generate an expired token using Micronaut's token generator
+        val expiredToken = testAuthSupport.generateExpiredToken(regularUser)
+
+        // Navigate to login page first to set up the origin for localStorage
+        page.navigate("/login")
+
+        // Set the expired token in localStorage
         page.evaluate("""
-            (() => {
-                $BASE64URL_ENCODE_JS
-                
-                // Create a JWT with expired timestamp
-                // Header: {"alg":"HS256","typ":"JWT"}
-                const header = base64urlEncode(JSON.stringify({"alg":"HS256","typ":"JWT"}))
-                // Payload with expired timestamp (1 hour ago)
-                const expiredTime = Math.floor(Date.now() / 1000) - 3600
-                const payload = base64urlEncode(JSON.stringify({
-                    "sub": "testuser",
-                    "roles": ["user"],
-                    "exp": expiredTime
-                }))
-                // Signature (fake, but format is correct for base64url)
-                const signature = "fake-signature-abc123"
-                const expiredToken = header + "." + payload + "." + signature
-                
-                localStorage.setItem('aionify_token', expiredToken)
-            })()
-        """.trimIndent())
+            (token) => {
+                localStorage.setItem('aionify_token', token);
+            }
+        """.trimIndent(), expiredToken)
 
-        // Now navigate to a protected route which should check auth and remove expired token
-        page.navigate("/portal")
+        // Navigate to a page that makes an API call (settings page loads profile)
+        page.navigate("/portal/settings")
 
-        // Should be redirected to login
+        // Should be redirected to login due to 401 response from API
         page.waitForURL("**/login")
 
+        // Verify login page is shown
         val loginPage = page.locator("[data-testid='login-page']")
         assertThat(loginPage).isVisible()
 
-        // Note: The session expired message from API 401 is tested separately
-        // because it requires an actual API call, which we'll test in a different scenario
+        // Verify session expired message is displayed
+        val errorMessage = page.locator("[data-testid='login-error']")
+        assertThat(errorMessage).isVisible()
+        assertThat(errorMessage).containsText("session has expired")
     }
 
     @Test

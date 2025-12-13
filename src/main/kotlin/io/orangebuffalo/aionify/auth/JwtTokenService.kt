@@ -48,4 +48,32 @@ class JwtTokenService(
             RuntimeException("Failed to generate JWT token. Did you provide the secret via AIONIFY_JWT_SECRET?")
         }
     }
+
+    /**
+     * Generates a JWT token with a custom expiration time.
+     * This is primarily for testing scenarios.
+     */
+    fun generateTokenWithExpiration(
+        userName: String,
+        userId: Long,
+        isAdmin: Boolean,
+        greeting: String,
+        expirationSeconds: Long
+    ): String {
+        val roles = if (isAdmin) listOf("admin", "user") else listOf("user")
+
+        val attributes = mutableMapOf<String, Any>(
+            "userId" to userId,
+            "greeting" to greeting,
+            "isAdmin" to isAdmin,
+            "exp" to expirationSeconds
+        )
+
+        val authentication = Authentication.build(userName, roles, attributes)
+
+        val token = tokenGenerator.generateToken(authentication, expirationSeconds.toInt())
+        return token.orElseThrow {
+            RuntimeException("Failed to generate JWT token. Did you provide the secret via AIONIFY_JWT_SECRET?")
+        }
+    }
 }
