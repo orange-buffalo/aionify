@@ -274,7 +274,7 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should handle rate limiting on token validation`() {
         // Create a token for rate limiting test
-        val rateLimitToken = transactionHelper.inTransaction {
+        transactionHelper.inTransaction {
             activationTokenRepository.save(
                 ActivationToken(
                     userId = requireNotNull(testUser.id),
