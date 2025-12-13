@@ -60,8 +60,8 @@ function getAuthUser(): AuthUser | null {
 
 /**
  * Hook that checks if there's a valid JWT token and extracts user role information.
- * Note: This does NOT validate the token's signature or expiration - that's handled by the backend.
- * It only checks if a token exists and extracts basic claims for routing decisions.
+ * Note: This does NOT validate the token's signature - that's handled by the backend.
+ * It does check for token expiration client-side to avoid unnecessary API calls.
  * 
  * This hook performs a synchronous check to avoid race conditions during initial render.
  */

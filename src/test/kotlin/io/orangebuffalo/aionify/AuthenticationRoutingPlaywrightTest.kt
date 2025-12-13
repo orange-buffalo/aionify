@@ -144,21 +144,27 @@ class AuthenticationRoutingPlaywrightTest : PlaywrightTestBase() {
         // Navigate to a page that will trigger an API call with expired token
         page.navigate("/")
 
-        // Set an expired token in localStorage
+        // Set an expired token in localStorage using proper base64url encoding
         page.evaluate("""
             () => {
+                // Helper function to convert string to base64url
+                function base64urlEncode(str) {
+                    const base64 = btoa(str);
+                    return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+                }
+                
                 // Create a JWT with expired timestamp
                 // Header: {"alg":"HS256","typ":"JWT"}
-                const header = btoa(JSON.stringify({"alg":"HS256","typ":"JWT"}))
+                const header = base64urlEncode(JSON.stringify({"alg":"HS256","typ":"JWT"}))
                 // Payload with expired timestamp (1 hour ago)
                 const expiredTime = Math.floor(Date.now() / 1000) - 3600
-                const payload = btoa(JSON.stringify({
+                const payload = base64urlEncode(JSON.stringify({
                     "sub": "testuser",
                     "roles": ["user"],
                     "exp": expiredTime
                 }))
-                // Signature (fake, but format is correct)
-                const signature = "fake-signature"
+                // Signature (fake, but format is correct for base64url)
+                const signature = "fake-signature-abc123"
                 const expiredToken = header + "." + payload + "." + signature
                 
                 localStorage.setItem('aionify_token', expiredToken)

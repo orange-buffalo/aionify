@@ -1,4 +1,4 @@
-import { TOKEN_KEY, LAST_USERNAME_KEY } from "./constants"
+import { TOKEN_KEY } from "./constants"
 
 /**
  * Makes an authenticated API request with the stored JWT token.
