@@ -153,7 +153,7 @@ class AuthenticationRoutingPlaywrightTest : PlaywrightTestBase() {
         // Set the expired token in localStorage
         page.evaluate("""
             (token) => {
-                localStorage.setItem('aionify_token', token);
+                localStorage.setItem('$TOKEN_KEY', token);
             }
         """.trimIndent(), expiredToken)
 

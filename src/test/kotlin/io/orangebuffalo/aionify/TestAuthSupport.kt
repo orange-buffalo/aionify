@@ -60,8 +60,9 @@ class TestAuthSupport(
     fun generateExpiredToken(user: User): String {
         val userId = requireNotNull(user.id) { "User must be persisted (have an ID) before generating a token" }
         
-        // Set expiration to 1 hour ago
-        val expiredTime = System.currentTimeMillis() / 1000 - ONE_HOUR_SECONDS
+        // Set expiration to 1 hour ago using consistent time reference
+        val currentTime = System.currentTimeMillis() / 1000
+        val expiredTime = currentTime - ONE_HOUR_SECONDS
         
         return jwtTokenService.generateTokenWithExpiration(
             userName = user.userName,
