@@ -8,6 +8,7 @@ import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Put
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule
+import io.micronaut.serde.annotation.Serdeable
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
@@ -80,6 +81,7 @@ open class UserResource(
     }
 }
 
+@Serdeable
 @Introspected
 data class ProfileResponse(
     val userName: String,
@@ -88,6 +90,7 @@ data class ProfileResponse(
     val locale: String
 )
 
+@Serdeable
 @Introspected
 data class UpdateProfileRequest(
     @field:NotBlank(message = "Greeting cannot be blank")
@@ -101,11 +104,13 @@ data class UpdateProfileRequest(
     val locale: String
 )
 
+@Serdeable
 @Introspected
 data class ProfileSuccessResponse(
     val message: String
 )
 
+@Serdeable
 @Introspected
 data class ProfileErrorResponse(
     val error: String,

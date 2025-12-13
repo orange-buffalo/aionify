@@ -8,6 +8,7 @@ import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.QueryValue
 import io.micronaut.security.annotation.Secured
+import io.micronaut.serde.annotation.Serdeable
 import java.security.Principal
 
 @Controller("/api/admin/users")
@@ -78,6 +79,7 @@ open class UserAdminResource(
     }
 }
 
+@Serdeable
 @Introspected
 data class UserDto(
     val id: Long,
@@ -86,6 +88,7 @@ data class UserDto(
     val isAdmin: Boolean
 )
 
+@Serdeable
 @Introspected
 data class UsersListResponse(
     val users: List<UserDto>,
@@ -94,11 +97,13 @@ data class UsersListResponse(
     val size: Int
 )
 
+@Serdeable
 @Introspected
 data class SuccessResponse(
     val message: String
 )
 
+@Serdeable
 @Introspected
 data class ErrorResponse(
     val error: String

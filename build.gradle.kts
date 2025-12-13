@@ -18,6 +18,7 @@ dependencies {
     implementation("io.micronaut:micronaut-http-server-netty")
     implementation("io.micronaut.kotlin:micronaut-kotlin-runtime")
     implementation("io.micronaut:micronaut-jackson-databind")
+    implementation("io.micronaut.serde:micronaut-serde-jackson")  // Required for native image serialization
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
@@ -107,8 +108,10 @@ micronaut {
 
 val dockerImageTag = System.getenv("DOCKER_IMAGE_TAG") ?: "latest"
 val dockerImage = "ghcr.io/orange-buffalo/aionify:$dockerImageTag"
-// TODO change to dockerBuildNative when enabling native build back
-tasks.dockerBuild {
+tasks.dockerBuildNative {
+    images.set(listOf(dockerImage))
+}
+tasks.dockerPushNative {
     images.set(listOf(dockerImage))
 }
 

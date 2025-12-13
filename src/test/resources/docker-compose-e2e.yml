@@ -1,9 +1,8 @@
 services:
   aionify:
     image: ${AIONIFY_IMAGE}
-    # For Production deployment, uncomment and map to the desired port
-    #ports:
-    #  - "8080:8080"
+    ports:
+      - "8080"
     environment:
       AIONIFY_DB_URL: jdbc:postgresql://db:5432/aionify
       AIONIFY_DB_USERNAME: aionify
