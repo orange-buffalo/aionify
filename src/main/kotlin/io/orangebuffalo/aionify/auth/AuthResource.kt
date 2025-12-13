@@ -8,6 +8,7 @@ import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Post
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule
+import io.micronaut.serde.annotation.Serdeable
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
@@ -48,12 +49,14 @@ open class AuthResource(private val authService: AuthService) {
     }
 }
 
+@Serdeable
 @Introspected
 data class LoginRequest(
     val userName: String,
     val password: String
 )
 
+@Serdeable
 @Introspected
 data class LoginResponse(
     val token: String,
@@ -63,12 +66,14 @@ data class LoginResponse(
     val languageCode: String
 )
 
+@Serdeable
 @Introspected
 data class LoginErrorResponse(
     val error: String,
     val errorCode: String = "INVALID_CREDENTIALS"
 )
 
+@Serdeable
 @Introspected
 data class ChangePasswordRequest(
     @field:NotBlank(message = "Current password cannot be empty")
@@ -79,11 +84,13 @@ data class ChangePasswordRequest(
     val newPassword: String
 )
 
+@Serdeable
 @Introspected
 data class ChangePasswordSuccessResponse(
     val message: String
 )
 
+@Serdeable
 @Introspected
 data class ChangePasswordErrorResponse(
     val error: String,

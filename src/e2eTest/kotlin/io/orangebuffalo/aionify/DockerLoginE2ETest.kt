@@ -60,10 +60,18 @@ class DockerLoginE2ETest {
                 log.info("Starting Docker Compose...")
                 composeContainer.start()
 
-                // Get the application URL
+                // Get the application URL  
+                // Note: getServicePort returns incorrect port with dynamic port mapping,
+                // so we get the actual bound port from the container
+                val containerName = "${APP_SERVICE}-1"
+                val container = composeContainer.getContainerByServiceName(containerName).orElseThrow()
+                val bindings = container.currentContainerInfo.networkSettings.ports.bindings
+                val actualPort = bindings.get(com.github.dockerjava.api.model.ExposedPort.tcp(APP_PORT))
+                    ?.get(0)?.hostPortSpec
+                    ?: throw IllegalStateException("Could not find port binding for $APP_PORT")
+                
                 val host = composeContainer.getServiceHost(APP_SERVICE, APP_PORT)
-                val port = composeContainer.getServicePort(APP_SERVICE, APP_PORT)
-                val appUrl = "http://$host:$port"
+                val appUrl = "http://$host:$actualPort"
 
                 log.info("Application available at: {}", appUrl)
 
