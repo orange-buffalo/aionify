@@ -9,6 +9,8 @@ services:
       AIONIFY_DB_USERNAME: aionify
       # For Production deployment, use secure password
       AIONIFY_DB_PASSWORD: test-password
+      # For Production deployment, use secure secret
+      AIONIFY_JWT_SECRET: test-secret-key-for-testing-purposes-only-min-256-bits
     depends_on:
       db:
         condition: service_healthy

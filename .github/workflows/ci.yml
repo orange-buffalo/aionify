@@ -54,6 +54,7 @@ jobs:
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
           DOCKER_IMAGE_TAG: ${{ steps.prepare-tag.outputs.tag }}
+        # switch to dockerBuildNative dockerPushNative once we enable native build back
         run: |
           ./gradlew test dockerBuild dockerPush \
             --build-cache --console=plain

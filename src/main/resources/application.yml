@@ -18,7 +18,7 @@ micronaut:
         signatures:
           secret:
             generator:
-              secret: "${JWT_SECRET:}"
+              secret: "${AIONIFY_JWT_SECRET:}"
               jws-algorithm: HS256
         generator:
           access-token:

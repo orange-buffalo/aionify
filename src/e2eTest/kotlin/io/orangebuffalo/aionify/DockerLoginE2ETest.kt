@@ -50,7 +50,9 @@ class DockerLoginE2ETest {
         try {
             // Start Docker Compose
             val composeContainer = ComposeContainer(tempComposeFile)
-                .withExposedService(APP_SERVICE, APP_PORT, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(3)))
+                .withExposedService(APP_SERVICE, APP_PORT,
+                    Wait.forLogMessage(".*?Startup completed in.*", 1))
+                        .withStartupTimeout(Duration.ofMinutes(2))
                 .withLocalCompose(true)
                 .withLogConsumer(APP_SERVICE, Slf4jLogConsumer(log))
 
@@ -191,7 +193,7 @@ class DockerLoginE2ETest {
         // Please change this password after first login!
         // ============================================================
 
-        val passwordPattern = Regex("""Password:\s*([^\s]+)""")
+        val passwordPattern = Regex(""".*?Password:\s*([^\s]+)""")
         val match = passwordPattern.find(logs)
             ?: throw IllegalStateException(
                 "Could not find admin password in logs. Logs:\n${logs.take(MAX_LOG_OUTPUT_LENGTH)}"
