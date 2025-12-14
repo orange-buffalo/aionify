@@ -20,9 +20,9 @@ class ActivationTokenService(
     
     /**
      * Creates a new activation token for the given user.
-     * Expires in 24 hours by default.
+     * Expires in 10 days (240 hours) by default.
      */
-    fun createToken(userId: Long, expirationHours: Long = 24): ActivationToken {
+    fun createToken(userId: Long, expirationHours: Long = 240): ActivationToken {
         val token = generateSecureToken()
         val expiresAt = Instant.now().plus(expirationHours, ChronoUnit.HOURS)
         
