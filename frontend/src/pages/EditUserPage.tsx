@@ -84,7 +84,7 @@ export function EditUserPage() {
 
     try {
       await apiPut(`/api/admin/users/${id}`, {
-        userName: userName.trim()
+        userName: userName
       })
       
       setSuccessMessage(t("portal.admin.users.edit.updateSuccess"))
@@ -189,7 +189,7 @@ export function EditUserPage() {
                       id="userName"
                       type="text"
                       value={userName}
-                      onChange={(e) => setUserName(e.target.value)}
+                      onChange={(e) => setUserName(e.target.value.trim())}
                       placeholder={t("portal.admin.users.edit.usernamePlaceholder")}
                       required
                       data-testid="username-input"
