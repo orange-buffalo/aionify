@@ -5,6 +5,7 @@ import { AdminPortal } from "@/pages/AdminPortal"
 import { UserPortal } from "@/pages/UserPortal"
 import { SettingsPage } from "@/pages/SettingsPage"
 import { UsersPage } from "@/pages/UsersPage"
+import { EditUserPage } from "@/pages/EditUserPage"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { RootRedirect } from "@/components/auth/RootRedirect"
 
@@ -22,6 +23,11 @@ export function App() {
         <Route path="/admin/users" element={
           <ProtectedRoute requireAdmin={true}>
             <UsersPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/users/:id" element={
+          <ProtectedRoute requireAdmin={true}>
+            <EditUserPage />
           </ProtectedRoute>
         } />
         <Route path="/admin/settings" element={

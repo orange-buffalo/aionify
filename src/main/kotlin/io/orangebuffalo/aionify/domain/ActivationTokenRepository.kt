@@ -12,6 +12,8 @@ interface ActivationTokenRepository : CrudRepository<ActivationToken, Long> {
     
     fun findByToken(token: String): Optional<ActivationToken>
     
+    fun findByUserId(userId: Long): Optional<ActivationToken>
+    
     @Query("DELETE FROM activation_token WHERE expires_at < :now")
     fun deleteExpiredTokens(now: Instant): Int
     

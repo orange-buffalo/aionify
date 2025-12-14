@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router"
 import { PortalLayout } from "@/components/layout/PortalLayout"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
@@ -25,6 +26,7 @@ interface UsersListResponse {
 
 export function UsersPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const [users, setUsers] = useState<User[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(0)
@@ -155,6 +157,12 @@ export function UsersPage() {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
+                                    <DropdownMenuItem
+                                      data-testid={`user-edit-${user.userName}`}
+                                      onClick={() => navigate(`/admin/users/${user.id}`)}
+                                    >
+                                      {t("portal.admin.users.table.edit")}
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem
                                       data-testid={`user-delete-${user.userName}`}
                                       onClick={() => setDeletePopoverOpen(user.id)}

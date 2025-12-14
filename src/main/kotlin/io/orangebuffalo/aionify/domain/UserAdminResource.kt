@@ -2,20 +2,29 @@ package io.orangebuffalo.aionify.domain
 
 import io.micronaut.core.annotation.Introspected
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Delete
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.PathVariable
+import io.micronaut.http.annotation.Post
+import io.micronaut.http.annotation.Put
 import io.micronaut.http.annotation.QueryValue
 import io.micronaut.security.annotation.Secured
 import io.micronaut.serde.annotation.Serdeable
+import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Size
 import java.security.Principal
+import java.time.Instant
 
 @Controller("/api/admin/users")
 @Secured("admin")
 open class UserAdminResource(
     private val userRepository: UserRepository,
-    private val userService: UserService
+    private val userService: UserService,
+    private val activationTokenRepository: ActivationTokenRepository,
+    private val activationTokenService: ActivationTokenService
 ) {
 
     @Get
@@ -46,6 +55,77 @@ open class UserAdminResource(
                 total = pagedUsers.total,
                 page = pagedUsers.page,
                 size = pagedUsers.size
+            )
+        )
+    }
+
+    @Get("/{id}")
+    open fun getUser(@PathVariable id: Long): HttpResponse<*> {
+        val user = userRepository.findById(id).orElse(null)
+            ?: return HttpResponse.notFound<ErrorResponse>()
+                .body(ErrorResponse("User not found"))
+        
+        // Check for activation token
+        val activationToken = activationTokenRepository.findByUserId(id).orElse(null)
+        val activationTokenInfo = if (activationToken != null && activationToken.expiresAt.isAfter(Instant.now())) {
+            ActivationTokenInfo(
+                token = activationToken.token,
+                expiresAt = activationToken.expiresAt
+            )
+        } else {
+            null
+        }
+        
+        return HttpResponse.ok(
+            UserDetailDto(
+                id = requireNotNull(user.id) { "User must have an ID" },
+                userName = user.userName,
+                greeting = user.greeting,
+                isAdmin = user.isAdmin,
+                activationToken = activationTokenInfo
+            )
+        )
+    }
+
+    @Put("/{id}")
+    open fun updateUser(
+        @PathVariable id: Long,
+        @Valid @Body request: UpdateUserRequest,
+        principal: Principal?
+    ): HttpResponse<*> {
+        val user = userRepository.findById(id).orElse(null)
+            ?: return HttpResponse.notFound<ErrorResponse>()
+                .body(ErrorResponse("User not found"))
+        
+        // Check if username is being changed
+        if (request.userName != user.userName) {
+            // Check for username uniqueness
+            val existingUser = userRepository.findByUserName(request.userName).orElse(null)
+            if (existingUser != null) {
+                return HttpResponse.badRequest(ErrorResponse("Username already exists"))
+            }
+            
+            // Update the user with new username
+            val updatedUser = user.copy(userName = request.userName)
+            userRepository.update(updatedUser)
+        }
+        
+        return HttpResponse.ok(SuccessResponse("User updated successfully"))
+    }
+
+    @Post("/{id}/regenerate-activation-token")
+    open fun regenerateActivationToken(@PathVariable id: Long): HttpResponse<*> {
+        val user = userRepository.findById(id).orElse(null)
+            ?: return HttpResponse.notFound<ErrorResponse>()
+                .body(ErrorResponse("User not found"))
+        
+        // Generate new activation token
+        val activationToken = activationTokenService.createToken(requireNotNull(user.id))
+        
+        return HttpResponse.ok(
+            ActivationTokenResponse(
+                token = activationToken.token,
+                expiresAt = activationToken.expiresAt
             )
         )
     }
@@ -95,6 +175,38 @@ data class UsersListResponse(
     val total: Long,
     val page: Int,
     val size: Int
+)
+
+@Serdeable
+@Introspected
+data class UserDetailDto(
+    val id: Long,
+    val userName: String,
+    val greeting: String,
+    val isAdmin: Boolean,
+    val activationToken: ActivationTokenInfo?
+)
+
+@Serdeable
+@Introspected
+data class ActivationTokenInfo(
+    val token: String,
+    val expiresAt: Instant
+)
+
+@Serdeable
+@Introspected
+data class UpdateUserRequest(
+    @field:NotBlank(message = "Username cannot be blank")
+    @field:Size(max = 255, message = "Username cannot exceed 255 characters")
+    val userName: String
+)
+
+@Serdeable
+@Introspected
+data class ActivationTokenResponse(
+    val token: String,
+    val expiresAt: Instant
 )
 
 @Serdeable
