@@ -31,7 +31,7 @@ mkdir -p "$OUTPUT_DIR"
 
 # Create a temporary working directory
 TEMP_DIR=$(mktemp -d)
-trap "rm -rf $TEMP_DIR" EXIT
+trap "rm -rf '$TEMP_DIR'" EXIT
 
 echo "Extracting images from trace files in $INPUT_DIR..."
 
@@ -67,8 +67,14 @@ while IFS= read -r -d '' trace_file; do
     while IFS= read -r -d '' image_file; do
         ((total_images++))
         
-        # Get file size in KB
-        file_size=$(stat -f%z "$image_file" 2>/dev/null || stat -c%s "$image_file" 2>/dev/null)
+        # Get file size in bytes (cross-platform: macOS uses -f, Linux uses -c)
+        if file_size=$(stat -c %s "$image_file" 2>/dev/null); then
+            : # Linux stat succeeded
+        elif file_size=$(stat -f %z "$image_file" 2>/dev/null); then
+            : # macOS stat succeeded
+        else
+            file_size=0
+        fi
         file_size_kb=$((file_size / 1024))
         
         # Filter out blank pages (less than 5 KB)
