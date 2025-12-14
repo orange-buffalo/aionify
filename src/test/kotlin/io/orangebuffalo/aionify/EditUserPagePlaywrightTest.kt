@@ -200,7 +200,8 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
         // Verify activation URL is displayed
         val activationUrl = page.locator("[data-testid='activation-url']")
         assertThat(activationUrl).isVisible()
-        assertThat(activationUrl).hasValue("http://localhost:${page.url().split(":")[2].split("/")[0]}/activate?token=test-activation-token-123")
+        val expectedUrl = buildActivationUrl("test-activation-token-123")
+        assertThat(activationUrl).hasValue(expectedUrl)
 
         // Verify activation note is displayed
         val activationNote = page.locator("[data-testid='activation-note']")
@@ -210,6 +211,10 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
         // Verify regenerate button is displayed
         val regenerateButton = page.locator("[data-testid='regenerate-token-button']")
         assertThat(regenerateButton).isVisible()
+    }
+    
+    private fun buildActivationUrl(token: String): String {
+        return "$baseUrl/activate?token=$token"
     }
 
     @Test

@@ -105,9 +105,18 @@ open class UserAdminResource(
                 return HttpResponse.badRequest(ErrorResponse("Username already exists"))
             }
             
-            // Update the user with new username
-            val updatedUser = user.copy(userName = request.userName)
-            userRepository.update(updatedUser)
+            // Update the user with new username using Micronaut Data's update
+            userRepository.update(
+                User(
+                    id = user.id,
+                    userName = request.userName,
+                    passwordHash = user.passwordHash,
+                    greeting = user.greeting,
+                    isAdmin = user.isAdmin,
+                    localeTag = user.localeTag,
+                    languageCode = user.languageCode
+                )
+            )
         }
         
         return HttpResponse.ok(SuccessResponse("User updated successfully"))

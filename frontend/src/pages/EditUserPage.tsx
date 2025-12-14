@@ -9,15 +9,22 @@ import { FormMessage } from "@/components/ui/form-message"
 import { apiGet, apiPut, apiPost } from "@/lib/api"
 import { ArrowLeft } from "lucide-react"
 
+interface ActivationTokenInfo {
+  token: string
+  expiresAt: string
+}
+
 interface UserDetail {
   id: number
   userName: string
   greeting: string
   isAdmin: boolean
-  activationToken: {
-    token: string
-    expiresAt: string
-  } | null
+  activationToken: ActivationTokenInfo | null
+}
+
+interface ActivationTokenResponse {
+  token: string
+  expiresAt: string
 }
 
 export function EditUserPage() {
@@ -79,7 +86,7 @@ export function EditUserPage() {
     setRegenerating(true)
 
     try {
-      const response = await apiPost<{ token: string; expiresAt: string }>(
+      const response = await apiPost<ActivationTokenResponse>(
         `/api/admin/users/${id}/regenerate-activation-token`,
         {}
       )
