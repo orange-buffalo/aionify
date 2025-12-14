@@ -117,7 +117,7 @@ export function UsersPage() {
           )}
 
           {loading ? (
-            <div className="text-center py-8" data-testid="users-loading">
+            <div className="text-center py-8 text-foreground" data-testid="users-loading">
               {t("common.loading")}
             </div>
           ) : (
@@ -156,7 +156,7 @@ export function UsersPage() {
                                       <MoreVertical className="h-4 w-4" />
                                     </Button>
                                   </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
+                                  <DropdownMenuContent align="end" className="dark">
                                     <DropdownMenuItem
                                       data-testid={`user-edit-${user.userName}`}
                                       onClick={() => navigate(`/admin/users/${user.id}`)}

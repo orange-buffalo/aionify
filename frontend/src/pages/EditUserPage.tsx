@@ -145,7 +145,7 @@ export function EditUserPage() {
               variant="ghost"
               size="sm"
               onClick={handleBack}
-              className="mb-4"
+              className="mb-4 text-foreground"
               data-testid="back-button"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -184,7 +184,7 @@ export function EditUserPage() {
                 
                 <form onSubmit={handleSave} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="userName">{t("portal.admin.users.edit.username")}</Label>
+                    <Label htmlFor="userName" className="text-foreground">{t("portal.admin.users.edit.username")}</Label>
                     <Input
                       id="userName"
                       type="text"
@@ -192,6 +192,7 @@ export function EditUserPage() {
                       onChange={(e) => setUserName(e.target.value.trim())}
                       placeholder={t("portal.admin.users.edit.usernamePlaceholder")}
                       required
+                      className="text-foreground"
                       data-testid="username-input"
                     />
                   </div>
@@ -241,13 +242,13 @@ export function EditUserPage() {
                 {user.activationToken ? (
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="activationUrl">{t("portal.admin.users.edit.activationUrl")}</Label>
+                      <Label htmlFor="activationUrl" className="text-foreground">{t("portal.admin.users.edit.activationUrl")}</Label>
                       <Input
                         id="activationUrl"
                         type="text"
                         value={getActivationUrl(user.activationToken.token)}
                         readOnly
-                        className="font-mono text-xs"
+                        className="font-mono text-xs text-foreground"
                         data-testid="activation-url"
                       />
                       <p className="text-xs text-muted-foreground mt-1" data-testid="activation-note">
