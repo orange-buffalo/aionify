@@ -9,6 +9,13 @@ import { Eye, EyeOff, LogIn, User, KeyRound } from "lucide-react"
 import { FormMessage } from "@/components/ui/form-message"
 import { LAST_USERNAME_KEY, TOKEN_KEY } from "@/lib/constants"
 import { initializeLanguage, translateErrorCode } from "@/lib/i18n"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -20,6 +27,7 @@ export function LoginPage() {
   const [success, setSuccess] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [lastUserGreeting, setLastUserGreeting] = useState<string | null>(null)
+  const [showForgotPasswordDialog, setShowForgotPasswordDialog] = useState(false)
 
   useEffect(() => {
     // Check if session expired (set by API request handler)
@@ -141,7 +149,7 @@ export function LoginPage() {
                     type="button"
                     className="text-sm text-primary hover:underline"
                     data-testid="lost-password-link"
-                    onClick={() => {/* Dummy - no action */}}
+                    onClick={() => setShowForgotPasswordDialog(true)}
                   >
                     {t("login.lostPassword")}
                   </button>
@@ -196,6 +204,26 @@ export function LoginPage() {
             </form>
           </CardContent>
         </Card>
+
+        {/* Forgot Password Dialog */}
+        <Dialog open={showForgotPasswordDialog} onOpenChange={setShowForgotPasswordDialog}>
+          <DialogContent data-testid="forgot-password-dialog">
+            <DialogHeader>
+              <DialogTitle className="text-foreground">{t("login.lostPasswordDialog.title")}</DialogTitle>
+              <DialogDescription className="text-foreground">
+                {t("login.lostPasswordDialog.message")}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end">
+              <Button
+                onClick={() => setShowForgotPasswordDialog(false)}
+                data-testid="forgot-password-dialog-close"
+              >
+                {t("login.lostPasswordDialog.close")}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
     </div>
   )
 }
