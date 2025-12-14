@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Note: Not using 'set -e' because the while-read loops naturally return non-zero
+# when reaching end of input, which would cause premature exit. Error handling
+# is done explicitly for critical operations instead.
 set -uo pipefail
 
 # Script to extract PNG and JPEG images from Playwright trace files
@@ -51,10 +54,10 @@ while IFS= read -r -d '' trace_file; do
     mkdir -p "$trace_temp"
     
     # Extract the trace file
-    unzip -q "$trace_file" -d "$trace_temp" 2>/dev/null || {
-        echo "  Warning: Failed to extract $trace_file"
+    if ! unzip -q "$trace_file" -d "$trace_temp" 2>&1; then
+        echo "  Warning: Failed to extract $trace_file (may be corrupted or not a valid zip file)"
         continue
-    }
+    fi
     
     # Check if resources directory exists
     if [ ! -d "$trace_temp/resources" ]; then
