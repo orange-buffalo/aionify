@@ -70,7 +70,7 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
         // Verify activation title
         val activationTitle = page.locator("[data-testid='activate-title']")
         assertThat(activationTitle).isVisible()
-        assertThat(activationTitle).hasText("Activate Account")
+        assertThat(activationTitle).hasText("Set Your Password")
 
         // Verify greeting message
         val greetingMessage = page.locator("[data-testid='greeting-message']")
