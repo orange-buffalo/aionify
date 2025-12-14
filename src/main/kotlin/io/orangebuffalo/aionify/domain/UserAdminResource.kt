@@ -33,11 +33,11 @@ open class UserAdminResource(
         @QueryValue(defaultValue = "20") size: Int
     ): HttpResponse<*> {
         if (page < 0) {
-            return HttpResponse.badRequest(ErrorResponse("Page must be non-negative"))
+            return HttpResponse.badRequest(ErrorResponse("Page must be non-negative", "INVALID_PAGE"))
         }
         
         if (size <= 0 || size > 100) {
-            return HttpResponse.badRequest(ErrorResponse("Size must be between 1 and 100"))
+            return HttpResponse.badRequest(ErrorResponse("Size must be between 1 and 100", "INVALID_SIZE"))
         }
         
         val pagedUsers = userService.findAllPaginated(page, size)
@@ -63,7 +63,7 @@ open class UserAdminResource(
     open fun getUser(@PathVariable id: Long): HttpResponse<*> {
         val user = userRepository.findById(id).orElse(null)
             ?: return HttpResponse.notFound<ErrorResponse>()
-                .body(ErrorResponse("User not found"))
+                .body(ErrorResponse("User not found", "USER_NOT_FOUND"))
         
         // Check for activation token
         val activationToken = activationTokenRepository.findByUserId(id).orElse(null)
@@ -95,14 +95,14 @@ open class UserAdminResource(
     ): HttpResponse<*> {
         val user = userRepository.findById(id).orElse(null)
             ?: return HttpResponse.notFound<ErrorResponse>()
-                .body(ErrorResponse("User not found"))
+                .body(ErrorResponse("User not found", "USER_NOT_FOUND"))
         
         // Check if username is being changed
         if (request.userName != user.userName) {
             // Check for username uniqueness
             val existingUser = userRepository.findByUserName(request.userName).orElse(null)
             if (existingUser != null) {
-                return HttpResponse.badRequest(ErrorResponse("Username already exists"))
+                return HttpResponse.badRequest(ErrorResponse("Username already exists", "USERNAME_ALREADY_EXISTS"))
             }
             
             // Update the user with new username using Micronaut Data's update
@@ -126,7 +126,7 @@ open class UserAdminResource(
     open fun regenerateActivationToken(@PathVariable id: Long): HttpResponse<*> {
         val user = userRepository.findById(id).orElse(null)
             ?: return HttpResponse.notFound<ErrorResponse>()
-                .body(ErrorResponse("User not found"))
+                .body(ErrorResponse("User not found", "USER_NOT_FOUND"))
         
         // Generate new activation token
         val activationToken = activationTokenService.createToken(requireNotNull(user.id))
@@ -143,15 +143,15 @@ open class UserAdminResource(
     open fun deleteUser(@PathVariable id: Long, principal: Principal?): HttpResponse<*> {
         val currentUserName = principal?.name
             ?: return HttpResponse.unauthorized<ErrorResponse>()
-                .body(ErrorResponse("User not authenticated"))
+                .body(ErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
         
         val currentUser = userRepository.findByUserName(currentUserName).orElse(null)
             ?: return HttpResponse.unauthorized<ErrorResponse>()
-                .body(ErrorResponse("User not found"))
+                .body(ErrorResponse("User not found", "USER_NOT_FOUND"))
         
         // Prevent self-deletion
         if (currentUser.id == id) {
-            return HttpResponse.badRequest(ErrorResponse("Cannot delete your own user account"))
+            return HttpResponse.badRequest(ErrorResponse("Cannot delete your own user account", "CANNOT_DELETE_SELF"))
         }
         
         val deleted = userRepository.existsById(id)
@@ -163,7 +163,7 @@ open class UserAdminResource(
             HttpResponse.ok(SuccessResponse("User deleted successfully"))
         } else {
             HttpResponse.notFound<ErrorResponse>()
-                .body(ErrorResponse("User not found"))
+                .body(ErrorResponse("User not found", "USER_NOT_FOUND"))
         }
     }
 }
@@ -227,5 +227,6 @@ data class SuccessResponse(
 @Serdeable
 @Introspected
 data class ErrorResponse(
-    val error: String
+    val error: String,
+    val errorCode: String
 )

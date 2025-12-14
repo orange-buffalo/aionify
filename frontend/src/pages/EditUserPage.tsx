@@ -49,7 +49,12 @@ export function EditUserPage() {
       setUser(data)
       setUserName(data.userName)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+      const errorCode = (err as any).errorCode
+      if (errorCode) {
+        setError(t(`errorCodes.${errorCode}`, { defaultValue: err instanceof Error ? err.message : "An error occurred" }))
+      } else {
+        setError(err instanceof Error ? err.message : "An error occurred")
+      }
     } finally {
       setLoading(false)
     }
@@ -63,18 +68,35 @@ export function EditUserPage() {
     e.preventDefault()
     setError(null)
     setSuccessMessage(null)
+
+    // Client-side validation
+    if (!userName || userName.trim() === "") {
+      setError(t("validation.usernameBlank"))
+      return
+    }
+
+    if (userName.length > 255) {
+      setError(t("validation.usernameTooLong"))
+      return
+    }
+
     setSaving(true)
 
     try {
       await apiPut(`/api/admin/users/${id}`, {
-        userName
+        userName: userName.trim()
       })
       
       setSuccessMessage(t("portal.admin.users.edit.updateSuccess"))
       // Reload user to get updated data
       await loadUser()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+      const errorCode = (err as any).errorCode
+      if (errorCode) {
+        setError(t(`errorCodes.${errorCode}`, { defaultValue: err instanceof Error ? err.message : "An error occurred" }))
+      } else {
+        setError(err instanceof Error ? err.message : "An error occurred")
+      }
     } finally {
       setSaving(false)
     }
@@ -95,7 +117,12 @@ export function EditUserPage() {
       // Reload user to get updated activation token
       await loadUser()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+      const errorCode = (err as any).errorCode
+      if (errorCode) {
+        setError(t(`errorCodes.${errorCode}`, { defaultValue: err instanceof Error ? err.message : "An error occurred" }))
+      } else {
+        setError(err instanceof Error ? err.message : "An error occurred")
+      }
     } finally {
       setRegenerating(false)
     }

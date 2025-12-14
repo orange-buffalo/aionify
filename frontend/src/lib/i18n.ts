@@ -189,6 +189,8 @@ const resources = {
         passwordsDoNotMatch: "Passwords do not match",
         currentPasswordIncorrect: "Current password is incorrect",
         passwordTooLong: "Password cannot exceed 50 characters",
+        usernameBlank: "Username cannot be blank",
+        usernameTooLong: "Username cannot exceed 255 characters",
       },
       // Common
       common: {
@@ -210,6 +212,10 @@ const resources = {
         CURRENT_PASSWORD_INCORRECT: "Current password is incorrect",
         INVALID_TOKEN: "Invalid or expired activation token",
         RATE_LIMIT_EXCEEDED: "Too many attempts. Please try again later.",
+        USERNAME_ALREADY_EXISTS: "Username already exists",
+        CANNOT_DELETE_SELF: "Cannot delete your own user account",
+        INVALID_PAGE: "Page must be non-negative",
+        INVALID_SIZE: "Size must be between 1 and 100",
       },
     },
   },
@@ -399,6 +405,8 @@ const resources = {
         passwordsDoNotMatch: "Паролі не співпадають",
         currentPasswordIncorrect: "Поточний пароль невірний",
         passwordTooLong: "Пароль не може перевищувати 50 символів",
+        usernameBlank: "Ім'я користувача не може бути порожнім",
+        usernameTooLong: "Ім'я користувача не може перевищувати 255 символів",
       },
       // Common
       common: {
@@ -420,6 +428,10 @@ const resources = {
         CURRENT_PASSWORD_INCORRECT: "Поточний пароль невірний",
         INVALID_TOKEN: "Недійсний або застарілий токен активації",
         RATE_LIMIT_EXCEEDED: "Забагато спроб. Будь ласка, спробуйте пізніше.",
+        USERNAME_ALREADY_EXISTS: "Ім'я користувача вже існує",
+        CANNOT_DELETE_SELF: "Неможливо видалити власний обліковий запис",
+        INVALID_PAGE: "Сторінка має бути невід'ємною",
+        INVALID_SIZE: "Розмір має бути між 1 і 100",
       },
     },
   },

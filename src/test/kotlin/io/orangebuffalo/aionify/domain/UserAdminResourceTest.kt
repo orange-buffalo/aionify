@@ -182,4 +182,116 @@ class UserAdminResourceTest {
         // Then: Access should be forbidden
         assertEquals(HttpStatus.FORBIDDEN, exception.status)
     }
+
+    @Test
+    fun `should require admin role to get user details`() {
+        // Given: A regular (non-admin) user token
+        val regularUserToken = testAuthSupport.generateToken(regularUser)
+        val userId = requireNotNull(adminUser.id)
+        
+        // When: Regular user tries to get user details
+        val exception = assertThrows(HttpClientResponseException::class.java) {
+            client.toBlocking().exchange(
+                HttpRequest.GET<Any>("/api/admin/users/$userId")
+                    .bearerAuth(regularUserToken),
+                String::class.java
+            )
+        }
+        
+        // Then: Access should be forbidden
+        assertEquals(HttpStatus.FORBIDDEN, exception.status)
+    }
+
+    @Test
+    fun `should allow admin to get user details`() {
+        // Given: An admin user token
+        val adminToken = testAuthSupport.generateToken(adminUser)
+        val userId = requireNotNull(regularUser.id)
+        
+        // When: Admin gets user details
+        val response = client.toBlocking().exchange(
+            HttpRequest.GET<Any>("/api/admin/users/$userId")
+                .bearerAuth(adminToken),
+            String::class.java
+        )
+        
+        // Then: Request should succeed
+        assertEquals(HttpStatus.OK, response.status)
+    }
+
+    @Test
+    fun `should require admin role to update user`() {
+        // Given: A regular (non-admin) user token
+        val regularUserToken = testAuthSupport.generateToken(regularUser)
+        val userId = requireNotNull(adminUser.id)
+        
+        // When: Regular user tries to update another user
+        val exception = assertThrows(HttpClientResponseException::class.java) {
+            client.toBlocking().exchange(
+                HttpRequest.PUT("/api/admin/users/$userId", mapOf("userName" to "newname"))
+                    .bearerAuth(regularUserToken),
+                String::class.java
+            )
+        }
+        
+        // Then: Access should be forbidden
+        assertEquals(HttpStatus.FORBIDDEN, exception.status)
+    }
+
+    @Test
+    fun `should allow admin to update user`() {
+        // Given: An admin user token and a new username
+        val adminToken = testAuthSupport.generateToken(adminUser)
+        val userId = requireNotNull(regularUser.id)
+        
+        // When: Admin updates user
+        val response = client.toBlocking().exchange(
+            HttpRequest.PUT("/api/admin/users/$userId", mapOf("userName" to "updateduser"))
+                .bearerAuth(adminToken),
+            String::class.java
+        )
+        
+        // Then: Request should succeed
+        assertEquals(HttpStatus.OK, response.status)
+        
+        // And: Username should be updated
+        val updatedUser = userRepository.findById(userId).get()
+        assertEquals("updateduser", updatedUser.userName)
+    }
+
+    @Test
+    fun `should require admin role to regenerate activation token`() {
+        // Given: A regular (non-admin) user token
+        val regularUserToken = testAuthSupport.generateToken(regularUser)
+        val userId = requireNotNull(adminUser.id)
+        
+        // When: Regular user tries to regenerate activation token
+        val exception = assertThrows(HttpClientResponseException::class.java) {
+            client.toBlocking().exchange(
+                HttpRequest.POST("/api/admin/users/$userId/regenerate-activation-token", emptyMap<String, Any>())
+                    .bearerAuth(regularUserToken),
+                String::class.java
+            )
+        }
+        
+        // Then: Access should be forbidden
+        assertEquals(HttpStatus.FORBIDDEN, exception.status)
+    }
+
+    @Test
+    fun `should allow admin to regenerate activation token`() {
+        // Given: An admin user token
+        val adminToken = testAuthSupport.generateToken(adminUser)
+        val userId = requireNotNull(regularUser.id)
+        
+        // When: Admin regenerates activation token
+        val response = client.toBlocking().exchange(
+            HttpRequest.POST("/api/admin/users/$userId/regenerate-activation-token", emptyMap<String, Any>())
+                .bearerAuth(adminToken),
+            String::class.java
+        )
+        
+        // Then: Request should succeed
+        assertEquals(HttpStatus.OK, response.status)
+    }
 }
