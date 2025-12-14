@@ -17,7 +17,7 @@ import java.io.InputStream
 @Secured(SecurityRule.IS_ANONYMOUS)
 open class SpaRoutingController {
 
-    @Get(uri = "/{path:(?!api/|.*\\.(css|js)).*}", produces = [MediaType.TEXT_HTML])
+    @Get(uri = "/{path:(?!api/|.*\\.(css|js|ico|svg|png|jpg|jpeg|gif|woff|woff2|ttf|eot)).*}", produces = [MediaType.TEXT_HTML])
     open fun serveIndex(path: String?, request: HttpRequest<*>): HttpResponse<InputStream> {
         val inputStream = Thread.currentThread().contextClassLoader
             .getResourceAsStream("META-INF/resources/index.html")
