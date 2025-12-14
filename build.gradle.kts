@@ -121,6 +121,15 @@ tasks.withType<Test> {
     testLogging {
         events("passed", "skipped", "failed", "standardOut", "standardError")
     }
+    
+    // Enable parallel test execution based on available CPUs, capped at 4 forks
+    val availableProcessors = Runtime.getRuntime().availableProcessors()
+    maxParallelForks = minOf(availableProcessors, 4)
+    
+    // Log the fork configuration
+    doFirst {
+        logger.lifecycle("Running tests with maxParallelForks = $maxParallelForks (available processors: $availableProcessors)")
+    }
 }
 
 allOpen {
