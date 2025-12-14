@@ -171,14 +171,14 @@ export function EditUserPage() {
           )}
 
           {loading ? (
-            <div className="text-center py-8" data-testid="edit-user-loading">
+            <div className="text-center py-8 text-foreground" data-testid="edit-user-loading">
               {t("common.loading")}
             </div>
           ) : user ? (
             <div className="space-y-8">
               {/* Username Form */}
               <div className="bg-card rounded-lg border p-6">
-                <h2 className="text-xl font-semibold mb-4" data-testid="username-section-title">
+                <h2 className="text-xl font-semibold mb-4 text-foreground" data-testid="username-section-title">
                   {t("portal.admin.users.edit.usernameSection")}
                 </h2>
                 
@@ -208,18 +208,18 @@ export function EditUserPage() {
 
               {/* User Info */}
               <div className="bg-card rounded-lg border p-6">
-                <h2 className="text-xl font-semibold mb-4" data-testid="user-info-title">
+                <h2 className="text-xl font-semibold mb-4 text-foreground" data-testid="user-info-title">
                   {t("portal.admin.users.edit.userInfo")}
                 </h2>
                 
                 <div className="space-y-3 text-sm">
                   <div>
                     <span className="text-muted-foreground">{t("portal.admin.users.edit.greeting")}:</span>
-                    <span className="ml-2" data-testid="user-greeting">{user.greeting}</span>
+                    <span className="ml-2 text-foreground" data-testid="user-greeting">{user.greeting}</span>
                   </div>
                   <div>
                     <span className="text-muted-foreground">{t("portal.admin.users.edit.userType")}:</span>
-                    <span className="ml-2" data-testid="user-type">
+                    <span className="ml-2 text-foreground" data-testid="user-type">
                       {user.isAdmin ? t("portal.admin.users.table.admin") : t("portal.admin.users.table.regularUser")}
                     </span>
                   </div>
@@ -234,7 +234,7 @@ export function EditUserPage() {
 
               {/* Activation Token */}
               <div className="bg-card rounded-lg border p-6">
-                <h2 className="text-xl font-semibold mb-4" data-testid="activation-section-title">
+                <h2 className="text-xl font-semibold mb-4 text-foreground" data-testid="activation-section-title">
                   {t("portal.admin.users.edit.activationSection")}
                 </h2>
                 
@@ -284,7 +284,7 @@ export function EditUserPage() {
 
               {/* Limitations */}
               <div className="bg-card rounded-lg border p-6">
-                <h2 className="text-xl font-semibold mb-4" data-testid="limitations-title">
+                <h2 className="text-xl font-semibold mb-4 text-foreground" data-testid="limitations-title">
                   {t("portal.admin.users.edit.limitations")}
                 </h2>
                 
