@@ -44,7 +44,7 @@ dependencies {
     implementation("jakarta.validation:jakarta.validation-api")
 
     // Logging
-    runtimeOnly("ch.qos.logback:logback-classic")
+    implementation("ch.qos.logback:logback-classic")
     runtimeOnly("org.yaml:snakeyaml")
 
     testImplementation("io.micronaut.test:micronaut-test-junit5")

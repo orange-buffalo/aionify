@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <conversionRule conversionWord="pid" converterClass="io.orangebuffalo.aionify.logging.ProcessIdConverter" />
+    
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [PID:%pid] [%thread] %-5level %logger{36} - %msg%n</pattern>
