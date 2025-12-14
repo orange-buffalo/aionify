@@ -75,6 +75,21 @@ jobs:
           retention-days: 10
           if-no-files-found: ignore
 
+      - name: Extract trace screenshots
+        if: always()
+        run: |
+          chmod +x .github/scripts/extract-trace-images.sh
+          .github/scripts/extract-trace-images.sh build/playwright-traces build/trace-screenshots
+
+      - name: Upload trace screenshots
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trace-screenshots
+          path: build/trace-screenshots/
+          retention-days: 10
+          if-no-files-found: ignore
+
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v5
         if: always()
