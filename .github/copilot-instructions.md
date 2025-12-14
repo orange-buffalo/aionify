@@ -86,6 +86,7 @@ To run a specific test class:
 - Use Micronaut Data JDBC with repository interfaces (`@JdbcRepository`)
 - Follow Kotlin naming conventions (camelCase for functions/properties)
 - All DTOs used in REST endpoints must have `@Introspected` annotation for serialization/validation
+- **CRITICAL: All error responses MUST include an `errorCode` field** for frontend internationalization (see UserResource.kt and UserAdminResource.kt for examples)
 
 ### TypeScript/Frontend
 
@@ -96,6 +97,13 @@ To run a specific test class:
 - Use Tailwind CSS v4 for styling
 - **Always use the `apiRequest`, `apiGet`, `apiPost`, `apiPut` helpers from `@/lib/api` for API calls** instead of manual `fetch` calls
 - **Use the `FormMessage` component from `@/components/ui/form-message`** for displaying error and success messages
+- **CRITICAL: Always translate error messages using `errorCode` from API responses** - check for `errorCode` on error object and translate with `t(\`errorCodes.\${errorCode}\`)` (see EditUserPage.tsx for example)
+- **CRITICAL: Always ensure dark mode compatibility for all UI elements**:
+  - Add `text-foreground` class to all text elements (headings, labels, spans, paragraphs, loading text, etc.)
+  - Add `text-foreground` class to Inputs via className prop
+  - Add `text-foreground` class to Buttons with ghost variant via className prop
+  - Add `dark` class to DropdownMenuContent (like DialogContent has)
+  - All form elements must have explicit text color classes for dark theme compatibility
 
 ## Testing Guidelines
 

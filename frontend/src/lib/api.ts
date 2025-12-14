@@ -41,7 +41,10 @@ export async function apiRequest<T>(
     }
     
     const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.error || `Request failed with status ${response.status}`)
+    const error = new Error(errorData.error || `Request failed with status ${response.status}`)
+    // Attach errorCode to the error for translation
+    ;(error as any).errorCode = errorData.errorCode
+    throw error
   }
 
   return response.json()
