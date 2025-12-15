@@ -59,6 +59,46 @@ open class UserAdminResource(
         )
     }
 
+    @Post
+    open fun createUser(@Valid @Body request: CreateUserRequest): HttpResponse<*> {
+        // Check if username already exists
+        val existingUser = userRepository.findByUserName(request.userName).orElse(null)
+        if (existingUser != null) {
+            return HttpResponse.badRequest(ErrorResponse("Username already exists", "USERNAME_ALREADY_EXISTS"))
+        }
+        
+        // Generate a long random password (100+ characters)
+        val randomPassword = userService.generateRandomPassword(100)
+        
+        // Create the user with default English locale
+        val user = userRepository.save(
+            User.create(
+                userName = request.userName,
+                passwordHash = org.mindrot.jbcrypt.BCrypt.hashpw(randomPassword, org.mindrot.jbcrypt.BCrypt.gensalt()),
+                greeting = request.greeting,
+                isAdmin = request.isAdmin,
+                locale = java.util.Locale.ENGLISH,
+                languageCode = "en"
+            )
+        )
+        
+        // Create activation token with 10 days (240 hours) expiration
+        val activationToken = activationTokenService.createToken(requireNotNull(user.id))
+        
+        return HttpResponse.created(
+            UserCreatedResponse(
+                id = requireNotNull(user.id),
+                userName = user.userName,
+                greeting = user.greeting,
+                isAdmin = user.isAdmin,
+                activationToken = ActivationTokenInfo(
+                    token = activationToken.token,
+                    expiresAt = activationToken.expiresAt
+                )
+            )
+        )
+    }
+
     @Get("/{id}")
     open fun getUser(@PathVariable id: Long): HttpResponse<*> {
         val user = userRepository.findById(id).orElse(null)
@@ -222,6 +262,30 @@ data class ActivationTokenResponse(
 @Introspected
 data class SuccessResponse(
     val message: String
+)
+
+@Serdeable
+@Introspected
+data class CreateUserRequest(
+    @field:NotBlank(message = "Username cannot be blank")
+    @field:Size(max = 255, message = "Username cannot exceed 255 characters")
+    val userName: String,
+    
+    @field:NotBlank(message = "Greeting cannot be blank")
+    @field:Size(max = 255, message = "Greeting cannot exceed 255 characters")
+    val greeting: String,
+    
+    val isAdmin: Boolean
+)
+
+@Serdeable
+@Introspected
+data class UserCreatedResponse(
+    val id: Long,
+    val userName: String,
+    val greeting: String,
+    val isAdmin: Boolean,
+    val activationToken: ActivationTokenInfo
 )
 
 @Serdeable

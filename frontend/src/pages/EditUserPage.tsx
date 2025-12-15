@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
-import { useParams, useNavigate } from "react-router"
+import { useParams, useNavigate, useLocation } from "react-router"
 import { PortalLayout } from "@/components/layout/PortalLayout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,6 +31,7 @@ export function EditUserPage() {
   const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   
   const [user, setUser] = useState<UserDetail | null>(null)
   const [userName, setUserName] = useState("")
@@ -62,7 +63,14 @@ export function EditUserPage() {
 
   useEffect(() => {
     loadUser()
-  }, [id])
+    
+    // Check if we have a success message from navigation state (e.g., after creating a user)
+    if (location.state?.successMessage) {
+      setSuccessMessage(location.state.successMessage)
+      // Clear the state so the message doesn't persist on refresh
+      window.history.replaceState({}, document.title)
+    }
+  }, [id, location.state])
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
