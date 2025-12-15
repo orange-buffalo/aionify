@@ -65,13 +65,10 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
         val greetingInput = page.locator("[data-testid='greeting-input']")
         assertThat(greetingInput).isVisible()
 
-        val regularUserRadio = page.locator("[data-testid='user-type-regular']")
-        assertThat(regularUserRadio).isVisible()
-        assertThat(regularUserRadio).isChecked()
-
-        val adminRadio = page.locator("[data-testid='user-type-admin']")
-        assertThat(adminRadio).isVisible()
-        assertThat(adminRadio).not().isChecked()
+        val userTypeSelect = page.locator("[data-testid='user-type-select']")
+        assertThat(userTypeSelect).isVisible()
+        // Default value should be "Regular User"
+        assertThat(userTypeSelect).containsText("Regular User")
 
         val createButton = page.locator("[data-testid='create-button']")
         assertThat(createButton).isVisible()
@@ -100,7 +97,7 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='username-input']").fill("newuser")
         page.locator("[data-testid='greeting-input']").fill("New User")
         
-        // Regular user is already selected by default, so we don't need to click it
+        // Regular user is already selected by default in the dropdown
         
         // Click create button
         page.locator("[data-testid='create-button']").click()
@@ -143,7 +140,8 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='username-input']").fill("newadmin")
         page.locator("[data-testid='greeting-input']").fill("New Admin")
         
-        // Select admin user type
+        // Select admin user type from dropdown
+        page.locator("[data-testid='user-type-select']").click()
         page.locator("[data-testid='user-type-admin']").click()
         
         // Click create button

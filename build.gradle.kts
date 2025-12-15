@@ -130,6 +130,12 @@ tasks.withType<Test> {
     doFirst {
         logger.lifecycle("Running tests with maxParallelForks = $maxParallelForks (available processors: $availableProcessors)")
     }
+    
+    // Configure inputs to invalidate cache when test files change
+    // This ensures new test classes are detected and cache is invalidated
+    inputs.files(sourceSets["test"].allSource)
+        .withPropertyName("testSourceFiles")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
 }
 
 allOpen {

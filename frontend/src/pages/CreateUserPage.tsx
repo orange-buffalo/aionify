@@ -5,6 +5,7 @@ import { PortalLayout } from "@/components/layout/PortalLayout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { FormMessage } from "@/components/ui/form-message"
 import { apiPost } from "@/lib/api"
 import { ArrowLeft } from "lucide-react"
@@ -26,7 +27,7 @@ export function CreateUserPage() {
   
   const [userName, setUserName] = useState("")
   const [greeting, setGreeting] = useState("")
-  const [isAdmin, setIsAdmin] = useState(false)
+  const [userType, setUserType] = useState("regular")
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -61,15 +62,14 @@ export function CreateUserPage() {
       const response = await apiPost<CreateUserResponse>("/api/admin/users", {
         userName: userName.trim(),
         greeting: greeting.trim(),
-        isAdmin
+        isAdmin: userType === "admin"
       })
       
-      // Navigate to edit page with success message parameter
-      navigate(`/admin/users/${response.id}`, {
-        state: { 
-          successMessage: t("portal.admin.users.create.createSuccess")
-        }
-      })
+      // Save success message to session storage
+      sessionStorage.setItem("userCreated", "true")
+      
+      // Navigate to edit page
+      navigate(`/admin/users/${response.id}`)
     } catch (err) {
       const errorCode = (err as any).errorCode
       if (errorCode) {
@@ -143,29 +143,20 @@ export function CreateUserPage() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-foreground">{t("portal.admin.users.create.userType")}</Label>
-                <div className="flex gap-4">
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="userType"
-                      checked={!isAdmin}
-                      onChange={() => setIsAdmin(false)}
-                      data-testid="user-type-regular"
-                    />
-                    <span className="text-foreground">{t("portal.admin.users.create.regularUser")}</span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="userType"
-                      checked={isAdmin}
-                      onChange={() => setIsAdmin(true)}
-                      data-testid="user-type-admin"
-                    />
-                    <span className="text-foreground">{t("portal.admin.users.create.admin")}</span>
-                  </label>
-                </div>
+                <Label htmlFor="userType" className="text-foreground">{t("portal.admin.users.create.userType")}</Label>
+                <Select value={userType} onValueChange={setUserType}>
+                  <SelectTrigger id="userType" className="text-foreground" data-testid="user-type-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="regular" data-testid="user-type-regular">
+                      {t("portal.admin.users.create.regularUser")}
+                    </SelectItem>
+                    <SelectItem value="admin" data-testid="user-type-admin">
+                      {t("portal.admin.users.create.admin")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <Button 
