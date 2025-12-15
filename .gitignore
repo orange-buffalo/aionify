@@ -47,3 +47,4 @@ frontend/dist/
 
 # Micronaut Test Resources
 .micronaut/
+docker-compose.dev.yml
