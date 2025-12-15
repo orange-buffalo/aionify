@@ -33,8 +33,11 @@ class FrontendPlaywrightTest : PlaywrightTestBase() {
         val loginPage = page.locator("[data-testid='login-page']")
         assertThat(loginPage).isVisible()
 
-        // Verify the card component is rendered
-        val card = page.locator(".rounded-lg.border")
-        assertThat(card).isVisible()
+        // Verify the login form elements are visible (styling details are tested visually)
+        val usernameInput = page.locator("[data-testid='username-input']")
+        assertThat(usernameInput).isVisible()
+        
+        val loginButton = page.locator("[data-testid='login-button']")
+        assertThat(loginButton).isVisible()
     }
 }
