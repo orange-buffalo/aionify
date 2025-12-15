@@ -89,33 +89,14 @@ Aionify uses JWT (JSON Web Tokens) for authentication. JWT signing keys are auto
 - Users will need to log in again after the application restarts
 - The application is designed for single-instance deployments
 
-## Default Admin User
+## User Administration
 
-On first startup, if no admin user exists in the database, Aionify automatically creates a default admin user:
+After deployment, you'll need to set up user accounts. See the [User Administration Guide](administration.md) for:
 
-- **Username**: `sudo`
-- **Password**: Generated randomly
-
-The generated password is printed to the application output (stdout) on startup:
-
-```
-============================================================
-DEFAULT ADMIN CREATED
-Username: sudo
-Password: <random-generated-password>
-Please change this password after first login!
-============================================================
-```
-
-**Important**: 
-- Check the container logs immediately after first startup to retrieve the password
-- The password is only displayed once and is not stored anywhere
-- Change the password after first login for security
-
-To view the password in Docker:
-```bash
-docker logs aionify 2>&1 | grep -A5 "DEFAULT ADMIN CREATED"
-```
+- Accessing the default admin account
+- Creating and managing users
+- User onboarding with activation tokens
+- Password management and security best practices
 
 ## Network Configuration
 
@@ -166,14 +147,7 @@ The application is healthy when it successfully connects to the database and com
 
 ### Cannot find default admin password
 
-The password is only shown in logs during first startup. If you missed it and cannot log in:
-
-1. Stop the application
-2. Delete the admin user from the database:
-   ```sql
-   DELETE FROM users WHERE user_name = 'sudo';
-   ```
-3. Restart the application to regenerate a new admin user
+See the [User Administration Guide](administration.md#cannot-find-default-admin-password) for recovery steps.
 
 ### Database connection errors
 

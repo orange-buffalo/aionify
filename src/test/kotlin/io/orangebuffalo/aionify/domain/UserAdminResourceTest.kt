@@ -294,4 +294,68 @@ class UserAdminResourceTest {
         // Then: Request should succeed
         assertEquals(HttpStatus.OK, response.status)
     }
+
+    @Test
+    fun `should require admin role to create users`() {
+        // Given: A regular (non-admin) user token
+        val regularUserToken = testAuthSupport.generateToken(regularUser)
+        
+        // When: Regular user tries to create a user
+        val exception = assertThrows(HttpClientResponseException::class.java) {
+            client.toBlocking().exchange(
+                HttpRequest.POST("/api/admin/users", mapOf(
+                    "userName" to "newuser",
+                    "greeting" to "New User",
+                    "isAdmin" to false
+                )).bearerAuth(regularUserToken),
+                String::class.java
+            )
+        }
+        
+        // Then: Access should be forbidden
+        assertEquals(HttpStatus.FORBIDDEN, exception.status)
+    }
+
+    @Test
+    fun `should allow admin to create users`() {
+        // Given: An admin user token
+        val adminToken = testAuthSupport.generateToken(adminUser)
+        
+        // When: Admin creates a user
+        val response = client.toBlocking().exchange(
+            HttpRequest.POST("/api/admin/users", mapOf(
+                "userName" to "newuser",
+                "greeting" to "New User",
+                "isAdmin" to false
+            )).bearerAuth(adminToken),
+            String::class.java
+        )
+        
+        // Then: Request should succeed with CREATED status
+        assertEquals(HttpStatus.CREATED, response.status)
+        
+        // And: User should exist in database
+        val createdUser = userRepository.findByUserName("newuser").orElse(null)
+        assertNotNull(createdUser)
+        assertEquals("New User", createdUser.greeting)
+        assertEquals(false, createdUser.isAdmin)
+    }
+
+    @Test
+    fun `should require authentication to create users`() {
+        // When: Trying to create user without authentication
+        val exception = assertThrows(HttpClientResponseException::class.java) {
+            client.toBlocking().exchange(
+                HttpRequest.POST("/api/admin/users", mapOf(
+                    "userName" to "newuser",
+                    "greeting" to "New User",
+                    "isAdmin" to false
+                )),
+                String::class.java
+            )
+        }
+        
+        // Then: Access should be unauthorized
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+    }
 }

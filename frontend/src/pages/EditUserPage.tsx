@@ -62,6 +62,13 @@ export function EditUserPage() {
 
   useEffect(() => {
     loadUser()
+    
+    // Check if we have a success message from session storage (e.g., after creating a user)
+    const userCreated = sessionStorage.getItem("userCreated")
+    if (userCreated) {
+      setSuccessMessage(t("portal.admin.users.create.createSuccess"))
+      sessionStorage.removeItem("userCreated")
+    }
   }, [id])
 
   const handleSave = async (e: React.FormEvent) => {
