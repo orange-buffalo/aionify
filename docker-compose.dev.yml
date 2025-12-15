@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:17
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: aionify
+      POSTGRES_USER: aionify
+      POSTGRES_PASSWORD: aionify
+    volumes:
+      - aionify_dev_data:/var/lib/postgresql/data
+
+volumes:
+  aionify_dev_data:
