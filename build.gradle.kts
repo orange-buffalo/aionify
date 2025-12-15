@@ -44,7 +44,7 @@ dependencies {
     implementation("jakarta.validation:jakarta.validation-api")
 
     // Logging
-    runtimeOnly("ch.qos.logback:logback-classic")
+    implementation("ch.qos.logback:logback-classic")
     runtimeOnly("org.yaml:snakeyaml")
 
     testImplementation("io.micronaut.test:micronaut-test-junit5")
@@ -120,6 +120,15 @@ tasks.withType<Test> {
     useJUnitPlatform()
     testLogging {
         events("passed", "skipped", "failed", "standardOut", "standardError")
+    }
+    
+    // Enable parallel test execution based on available CPUs, capped at 4 forks
+    val availableProcessors = Runtime.getRuntime().availableProcessors()
+    maxParallelForks = minOf(availableProcessors, 4)
+    
+    // Log the fork configuration
+    doFirst {
+        logger.lifecycle("Running tests with maxParallelForks = $maxParallelForks (available processors: $availableProcessors)")
     }
 }
 
