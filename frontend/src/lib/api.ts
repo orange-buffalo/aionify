@@ -76,3 +76,12 @@ export async function apiPut<T>(url: string, body: unknown): Promise<T> {
     body: JSON.stringify(body)
   })
 }
+
+/**
+ * DELETE request helper
+ */
+export async function apiDelete<T>(url: string): Promise<T> {
+  return apiRequest<T>(url, {
+    method: "DELETE"
+  })
+}

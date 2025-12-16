@@ -34,7 +34,7 @@ export function PortalLayout({ children, testId }: PortalLayoutProps) {
   ]
 
   const userMenuItems: NavItem[] = [
-    { label: t("nav.timeEntry"), icon: <Clock className="h-4 w-4 mr-2" /> },
+    { label: t("nav.timeEntry"), icon: <Clock className="h-4 w-4 mr-2" />, href: "/portal/time-logs" },
     { label: t("nav.calendar"), icon: <Calendar className="h-4 w-4 mr-2" /> },
     { label: t("nav.reports"), icon: <FileText className="h-4 w-4 mr-2" /> },
   ]
