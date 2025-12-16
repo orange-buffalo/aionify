@@ -13,5 +13,13 @@ data class TimeEntry(
     val id: Long? = null,
     
     @field:MappedProperty("start_time")
-    val startTime: Instant
+    val startTime: Instant,
+    
+    @field:MappedProperty("end_time")
+    val endTime: Instant? = null,
+    
+    val title: String,
+    
+    @field:MappedProperty("owner_id")
+    val ownerId: Long
 )
