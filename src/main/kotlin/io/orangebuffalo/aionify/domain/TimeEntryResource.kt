@@ -18,9 +18,6 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import java.security.Principal
 import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneOffset
-import java.time.temporal.ChronoUnit
 
 @Controller("/api/time-entries")
 @Secured(SecurityRule.IS_AUTHENTICATED)
@@ -31,7 +28,8 @@ open class TimeEntryResource(
 
     @Get
     open fun listEntries(
-        @QueryValue weekStart: String,
+        @QueryValue startTime: String,
+        @QueryValue endTime: String,
         principal: Principal?
     ): HttpResponse<*> {
         val userName = principal?.name
@@ -44,18 +42,22 @@ open class TimeEntryResource(
 
         val userId = requireNotNull(user.id) { "User must have an ID" }
 
-        // Parse weekStart date
-        val weekStartDate = try {
-            LocalDate.parse(weekStart)
+        // Parse timestamps
+        val startInstant = try {
+            Instant.parse(startTime)
         } catch (e: Exception) {
             return HttpResponse.badRequest(
-                TimeEntryErrorResponse("Invalid weekStart format. Expected ISO date (YYYY-MM-DD)", "INVALID_DATE_FORMAT")
+                TimeEntryErrorResponse("Invalid startTime format. Expected ISO 8601 timestamp", "INVALID_TIMESTAMP_FORMAT")
             )
         }
 
-        // Calculate week range (from weekStartDate 00:00:00 to weekStartDate + 7 days 00:00:00)
-        val startInstant = weekStartDate.atStartOfDay(ZoneOffset.UTC).toInstant()
-        val endInstant = weekStartDate.plusDays(7).atStartOfDay(ZoneOffset.UTC).toInstant()
+        val endInstant = try {
+            Instant.parse(endTime)
+        } catch (e: Exception) {
+            return HttpResponse.badRequest(
+                TimeEntryErrorResponse("Invalid endTime format. Expected ISO 8601 timestamp", "INVALID_TIMESTAMP_FORMAT")
+            )
+        }
 
         val entries = timeEntryRepository.findByOwnerIdAndStartTimeGreaterThanEqualsAndStartTimeLessThanOrderByStartTimeDesc(
             userId,

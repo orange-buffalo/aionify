@@ -169,9 +169,18 @@ export function TimeLogsPage() {
       setLoading(true)
       setError(null)
       
-      const weekStartStr = formatISODate(weekStart)
+      // Calculate week boundaries as ISO timestamps
+      const weekStartTime = new Date(weekStart)
+      weekStartTime.setHours(0, 0, 0, 0)
+      const weekEndTime = new Date(weekStart)
+      weekEndTime.setDate(weekEndTime.getDate() + 7)
+      weekEndTime.setHours(0, 0, 0, 0)
+      
+      const startTimeStr = weekStartTime.toISOString()
+      const endTimeStr = weekEndTime.toISOString()
+      
       const response = await apiGet<{ entries: TimeEntry[] }>(
-        `/api/time-entries?weekStart=${weekStartStr}`
+        `/api/time-entries?startTime=${encodeURIComponent(startTimeStr)}&endTime=${encodeURIComponent(endTimeStr)}`
       )
       
       const locale = i18n.language || 'en'
