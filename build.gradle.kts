@@ -122,14 +122,13 @@ tasks.withType<Test> {
         events("passed", "skipped", "failed", "standardOut", "standardError")
     }
     
-    // Disable parallel execution for Playwright tests to avoid resource contention
-    // Playwright tests are resource-intensive and can cause deadlocks/timeouts when run in parallel
-    // with multiple browser instances and Micronaut contexts competing for resources
-    maxParallelForks = 1
+    // Enable parallel test execution based on available CPUs, capped at 4 forks
+    val availableProcessors = Runtime.getRuntime().availableProcessors()
+    maxParallelForks = minOf(availableProcessors, 4)
     
     // Log the fork configuration
     doFirst {
-        logger.lifecycle("Running tests with maxParallelForks = $maxParallelForks (parallel execution disabled for Playwright test stability)")
+        logger.lifecycle("Running tests with maxParallelForks = $maxParallelForks (available processors: $availableProcessors)")
     }
     
     // Configure inputs to invalidate cache when test files change
