@@ -340,11 +340,11 @@ export function TimeLogsPage() {
     
     const interval = setInterval(() => {
       // Force re-render to update the timer
-      setActiveEntry({ ...activeEntry })
+      setActiveEntry(prev => prev ? { ...prev } : null)
     }, 1000)
     
     return () => clearInterval(interval)
-  }, [activeEntry])
+  }, [activeEntry?.id])
 
   const locale = i18n.language || 'en'
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
