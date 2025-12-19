@@ -28,8 +28,8 @@ open class TimeEntryResource(
 
     @Get
     open fun listEntries(
-        @QueryValue startTime: Instant,
-        @QueryValue endTime: Instant,
+        @QueryValue startTime: String,
+        @QueryValue endTime: String,
         principal: Principal?
     ): HttpResponse<*> {
         val userName = principal?.name
@@ -42,10 +42,27 @@ open class TimeEntryResource(
 
         val userId = requireNotNull(user.id) { "User must have an ID" }
 
+        // Parse timestamps with error handling
+        val startInstant = try {
+            Instant.parse(startTime)
+        } catch (e: Exception) {
+            return HttpResponse.badRequest(
+                TimeEntryErrorResponse("Invalid startTime format. Expected ISO 8601 timestamp", "INVALID_TIMESTAMP_FORMAT")
+            )
+        }
+
+        val endInstant = try {
+            Instant.parse(endTime)
+        } catch (e: Exception) {
+            return HttpResponse.badRequest(
+                TimeEntryErrorResponse("Invalid endTime format. Expected ISO 8601 timestamp", "INVALID_TIMESTAMP_FORMAT")
+            )
+        }
+
         val entries = timeEntryRepository.findByOwnerIdAndStartTimeGreaterThanEqualsAndStartTimeLessThanOrderByStartTimeDesc(
             userId,
-            startTime,
-            endTime
+            startInstant,
+            endInstant
         )
 
         return HttpResponse.ok(
