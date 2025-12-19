@@ -108,9 +108,10 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         val continueButton = page.locator("[data-testid='continue-button']").first()
         continueButton.click()
 
-        // Verify the title is filled in
-        val titleInput = page.locator("[data-testid='new-entry-input']")
-        assertThat(titleInput).hasValue("Previous Task")
+        // Verify the entry is started immediately with the same title
+        assertThat(page.locator("[data-testid='active-timer']")).isVisible()
+        assertThat(page.locator("[data-testid='current-entry-panel']").getByText("Previous Task")).isVisible()
+        assertThat(page.locator("[data-testid='stop-button']")).isVisible()
     }
 
     @Test

@@ -28,6 +28,7 @@ interface DayGroup {
 export function TimeLogsPage() {
   const { t, i18n } = useTranslation()
   const [activeEntry, setActiveEntry] = useState<TimeEntry | null>(null)
+  const [activeDuration, setActiveDuration] = useState<number>(0)
   const [weekStart, setWeekStart] = useState<Date>(getWeekStart(new Date()))
   const [dayGroups, setDayGroups] = useState<DayGroup[]>([])
   const [loading, setLoading] = useState(true)
@@ -262,7 +263,30 @@ export function TimeLogsPage() {
   // Continue with an existing entry's title
   async function handleContinue(entry: TimeEntry) {
     setNewEntryTitle(entry.title)
-    // Focus will happen automatically due to the value change
+    
+    // Start the entry right away
+    try {
+      setIsStarting(true)
+      setError(null)
+      
+      const newEntry = await apiPost<TimeEntry>('/api/time-entries', {
+        title: entry.title
+      })
+      
+      setActiveEntry(newEntry)
+      setNewEntryTitle("")
+      setSuccess(t('timeLogs.success.started'))
+      await loadTimeEntries()
+    } catch (err: any) {
+      const errorCode = (err as any).errorCode
+      if (errorCode) {
+        setError(t(`errorCodes.${errorCode}`))
+      } else {
+        setError(err.message || t('common.error'))
+      }
+    } finally {
+      setIsStarting(false)
+    }
   }
 
   // Open delete confirmation dialog
@@ -334,17 +358,35 @@ export function TimeLogsPage() {
     loadActiveEntry()
   }, [weekStart])
 
+  // Check for date changes periodically (every minute) to auto-update week
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const currentWeekStart = getWeekStart(new Date())
+      if (currentWeekStart.getTime() !== weekStart.getTime()) {
+        setWeekStart(currentWeekStart)
+      }
+    }, 60000) // Check every minute
+    
+    return () => clearInterval(interval)
+  }, [weekStart])
+
   // Auto-refresh active entry timer every second
   useEffect(() => {
-    if (!activeEntry) return
+    if (!activeEntry) {
+      setActiveDuration(0)
+      return
+    }
     
+    // Update duration immediately
+    setActiveDuration(calculateDuration(activeEntry.startTime, null))
+    
+    // Then update every second
     const interval = setInterval(() => {
-      // Force re-render to update the timer
-      setActiveEntry(prev => prev ? { ...prev } : null)
+      setActiveDuration(calculateDuration(activeEntry.startTime, null))
     }, 1000)
     
     return () => clearInterval(interval)
-  }, [activeEntry?.id])
+  }, [activeEntry?.id, activeEntry?.startTime])
 
   const locale = i18n.language || 'en'
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -420,7 +462,7 @@ export function TimeLogsPage() {
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-2xl font-mono font-bold text-foreground" data-testid="active-timer">
-                      {formatDuration(calculateDuration(activeEntry.startTime, null))}
+                      {formatDuration(activeDuration)}
                     </div>
                     <Button
                       onClick={handleStop}
