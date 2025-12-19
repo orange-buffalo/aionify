@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     permissions:
       contents: read
       packages: write
@@ -57,6 +58,37 @@ jobs:
         run: |
           ./gradlew test dockerBuildNative dockerPushNative \
             --build-cache --console=plain
+
+      - name: Collect thread dumps on test failure
+        if: failure()
+        run: |
+          mkdir -p build/thread-dumps
+          # Find all Java processes and collect thread dumps
+          for pid in $(pgrep -f 'java.*gradle'); do
+            echo "Collecting thread dump for PID: $pid"
+            jstack $pid > build/thread-dumps/threaddump-$pid-$(date +%Y%m%d-%H%M%S).txt 2>&1 || true
+          done
+          # Also collect system information
+          echo "=== System Info ===" > build/thread-dumps/system-info.txt
+          date >> build/thread-dumps/system-info.txt
+          echo "" >> build/thread-dumps/system-info.txt
+          echo "=== Running Java Processes ===" >> build/thread-dumps/system-info.txt
+          ps aux | grep java >> build/thread-dumps/system-info.txt || true
+          echo "" >> build/thread-dumps/system-info.txt
+          echo "=== Disk Usage ===" >> build/thread-dumps/system-info.txt
+          df -h >> build/thread-dumps/system-info.txt
+          echo "" >> build/thread-dumps/system-info.txt
+          echo "=== Memory Usage ===" >> build/thread-dumps/system-info.txt
+          free -h >> build/thread-dumps/system-info.txt
+
+      - name: Upload thread dumps
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: thread-dumps
+          path: build/thread-dumps/
+          retention-days: 10
+          if-no-files-found: ignore
 
       - name: Run E2E tests against Docker image
         env:

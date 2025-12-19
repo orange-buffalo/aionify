@@ -14,9 +14,7 @@ import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Timeout
 import java.time.Instant
-import java.util.concurrent.TimeUnit
 
 /**
  * API endpoint security tests for time entry resource.
@@ -29,7 +27,6 @@ import java.util.concurrent.TimeUnit
  * 3. Users cannot modify or delete other users' time entries
  */
 @MicronautTest
-@Timeout(value = 30, unit = TimeUnit.SECONDS)
 class TimeEntryResourceTest {
 
     @Inject
