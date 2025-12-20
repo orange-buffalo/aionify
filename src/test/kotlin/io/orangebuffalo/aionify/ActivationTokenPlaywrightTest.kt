@@ -19,9 +19,6 @@ import java.time.temporal.ChronoUnit
 @MicronautTest(transactional = false)
 class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
 
-    @Inject
-    lateinit var activationTokenRepository: ActivationTokenRepository
-
     private lateinit var testUser: User
     private lateinit var validToken: ActivationToken
 

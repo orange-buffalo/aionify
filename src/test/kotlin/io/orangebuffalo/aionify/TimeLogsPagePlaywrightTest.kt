@@ -21,9 +21,6 @@ import java.time.Instant
 class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @Inject
-    lateinit var timeEntryRepository: TimeEntryRepository
-
-    @Inject
     lateinit var testAuthSupport: TestAuthSupport
 
     private lateinit var testUser: User

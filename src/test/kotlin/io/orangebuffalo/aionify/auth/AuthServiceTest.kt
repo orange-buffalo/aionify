@@ -22,9 +22,6 @@ class AuthServiceTest {
     lateinit var authService: AuthService
 
     @Inject
-    lateinit var userRepository: UserRepository
-
-    @Inject
     lateinit var testDatabaseSupport: TestDatabaseSupport
 
     private val testPassword = "testPassword123"
@@ -39,7 +36,7 @@ class AuthServiceTest {
     @Test
     fun `should authenticate and return valid JWT token`() {
         // Given: A user exists in the database
-        val user = userRepository.save(
+        val user = testDatabaseSupport.insert(
             User.create(
                 userName = testUserName,
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
@@ -78,7 +75,7 @@ class AuthServiceTest {
     @Test
     fun `should throw exception for invalid password`() {
         // Given: A user exists
-        userRepository.save(
+        testDatabaseSupport.insert(
             User.create(
                 userName = testUserName,
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
@@ -98,7 +95,7 @@ class AuthServiceTest {
     @Test
     fun `should generate token for admin user`() {
         // Given: An admin user exists
-        val adminUser = userRepository.save(
+        val adminUser = testDatabaseSupport.insert(
             User.create(
                 userName = "admin",
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),

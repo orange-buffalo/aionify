@@ -53,7 +53,7 @@ class DefaultAdminStartupServiceTest {
     @Test
     fun `should not create duplicate admin when admin already exists`() {
         // Given: An admin user already exists
-        userRepository.save(
+        testDatabaseSupport.insert(
             User.create(
                 userName = "existingAdmin",
                 passwordHash = BCrypt.hashpw("password", BCrypt.gensalt()),

@@ -48,7 +48,7 @@ class UserAdminResourceTest {
         testDatabaseSupport.truncateAllTables()
 
         // Create admin user
-        adminUser = userRepository.save(
+        adminUser = testDatabaseSupport.insert(
             User.create(
                 userName = "admin",
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
@@ -60,7 +60,7 @@ class UserAdminResourceTest {
         )
         
         // Create regular user
-        regularUser = userRepository.save(
+        regularUser = testDatabaseSupport.insert(
             User.create(
                 userName = "user",
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),

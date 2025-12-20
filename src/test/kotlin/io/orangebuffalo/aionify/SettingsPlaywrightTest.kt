@@ -13,9 +13,6 @@ import org.mindrot.jbcrypt.BCrypt
 class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Inject
-    lateinit var userRepository: UserRepository
-
-    @Inject
     lateinit var testAuthSupport: TestAuthSupport
 
     private val testPassword = "testPassword123"

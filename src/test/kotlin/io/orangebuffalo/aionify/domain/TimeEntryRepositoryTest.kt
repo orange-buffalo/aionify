@@ -2,7 +2,6 @@ package io.orangebuffalo.aionify.domain
 
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.TestDatabaseSupport
-import io.orangebuffalo.aionify.TestTransactionHelper
 import io.orangebuffalo.aionify.TestUsers
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -27,9 +26,6 @@ class TimeEntryRepositoryTest {
 
     @Inject
     lateinit var testUsers: TestUsers
-
-    @Inject
-    lateinit var transactionHelper: TestTransactionHelper
 
     private lateinit var testUser: User
 

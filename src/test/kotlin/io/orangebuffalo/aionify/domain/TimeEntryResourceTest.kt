@@ -59,27 +59,23 @@ class TimeEntryResourceTest {
         user2 = testUsers.createRegularUser("user2", "User Two")
 
         // Create time entries for both users
-        user1Entry = testDatabaseSupport.inTransaction {
-            timeEntryRepository.save(
-                TimeEntry(
-                    startTime = Instant.parse("2024-01-15T10:00:00Z"),
-                    endTime = Instant.parse("2024-01-15T11:00:00Z"),
-                    title = "User 1 Task",
-                    ownerId = requireNotNull(user1.id)
-                )
+        user1Entry = testDatabaseSupport.insert(
+            TimeEntry(
+                startTime = Instant.parse("2024-01-15T10:00:00Z"),
+                endTime = Instant.parse("2024-01-15T11:00:00Z"),
+                title = "User 1 Task",
+                ownerId = requireNotNull(user1.id)
             )
-        }
+        )
 
-        user2Entry = testDatabaseSupport.inTransaction {
-            timeEntryRepository.save(
-                TimeEntry(
-                    startTime = Instant.parse("2024-01-15T14:00:00Z"),
-                    endTime = null,
-                    title = "User 2 Task",
-                    ownerId = requireNotNull(user2.id)
-                )
+        user2Entry = testDatabaseSupport.insert(
+            TimeEntry(
+                startTime = Instant.parse("2024-01-15T14:00:00Z"),
+                endTime = null,
+                title = "User 2 Task",
+                ownerId = requireNotNull(user2.id)
             )
-        }
+        )
     }
 
     @Test
