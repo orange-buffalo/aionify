@@ -1,6 +1,7 @@
 package io.orangebuffalo.aionify
 
 import com.microsoft.playwright.Clock
+import com.microsoft.playwright.Locator
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.domain.TimeEntry
@@ -11,6 +12,7 @@ import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Instant
@@ -53,9 +55,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should start and stop a time entry`() {
-        // Install Playwright clock to ensure frontend and backend times are aligned
-        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
-        
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Start a new entry
@@ -88,9 +87,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should continue with an existing entry`() {
-        // Install Playwright clock to ensure frontend shows the correct week
-        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
-        
         // Create a completed entry
         testDatabaseSupport.insert(
             TimeEntry(
@@ -115,9 +111,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should delete a time entry with confirmation`() {
-        // Install Playwright clock to ensure frontend shows the correct week
-        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
-        
         // Create an entry
         testDatabaseSupport.insert(
             TimeEntry(
@@ -161,9 +154,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should navigate between weeks`() {
-        // Install Playwright clock to ensure frontend shows the correct week
-        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
-        
         // Create entries for different weeks
         val lastWeek = FIXED_TEST_TIME.minusSeconds(7 * 24 * 3600)
         
@@ -207,9 +197,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should handle entry spanning two dates`() {
-        // Install Playwright clock to ensure frontend shows the correct week
-        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
-        
         // Create an entry that spans midnight
         // FIXED_TEST_TIME is 2024-03-15T14:30:00Z (Friday afternoon)
         // We'll create an entry that starts on Thursday and ends on Friday
@@ -245,9 +232,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show active entry on page load`() {
-        // Install Playwright clock to ensure frontend shows the correct week
-        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
-        
         // Create an active entry
         testDatabaseSupport.insert(
             TimeEntry(
@@ -281,9 +265,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should allow starting entry by pressing Enter`() {
-        // Install Playwright clock to ensure frontend and backend times are aligned
-        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
-        
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Fill in title and press Enter
@@ -298,9 +279,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should prevent starting new entry while another is active`() {
-        // Install Playwright clock to ensure frontend shows the correct week
-        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
-        
         // Create an active entry
         testDatabaseSupport.insert(
             TimeEntry(
@@ -332,10 +310,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     
     @Test
     fun `should verify active task duration using clock`() {
-        // Install Playwright clock with fixed time for this test
-        // This makes the timer behavior deterministic
-        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
-        
         // Create an active entry that started 30 minutes ago (1800 seconds)
         testDatabaseSupport.insert(
             TimeEntry(
@@ -368,9 +342,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     
     @Test
     fun `should render entries from multiple days with varying entry counts`() {
-        // Install Playwright clock with fixed time for deterministic week display
-        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
-        
         // FIXED_TEST_TIME is 2024-03-15T14:30:00Z (Friday, March 15)
         // Let's create entries for different days in the current week (Mon Mar 11 - Sun Mar 17)
         
@@ -467,9 +438,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     
     @Test
     fun `should handle midnight split scenario correctly`() {
-        // Install Playwright clock with fixed time for deterministic week display
-        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
-        
         // FIXED_TEST_TIME is 2024-03-15T14:30:00Z (Friday afternoon)
         // Create an entry that spans from Thursday 23:00 UTC to Friday 01:00 UTC
         val thursdayEvening = FIXED_TEST_TIME.minusSeconds(55800) // Thursday 23:00 UTC (15.5 hours before)
@@ -486,26 +454,20 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
-        // The entry should appear twice - once in Thursday group and once in Friday group
+        // Verify the entry appears split across 2 time entry elements
         val spanningEntries = page.locator("[data-testid='time-entry']:has-text('Midnight Spanning Task')")
-        
-        // Should see the entry split into 2 parts (one for each day)
         assertEquals(2, spanningEntries.count(), "Entry should be split across two days")
         
-        // Verify both parts are visible
+        // Verify both entry parts are visible and contain the correct title
         assertThat(spanningEntries.first()).isVisible()
-        assertThat(spanningEntries.nth(1)).isVisible()
-        
-        // Both should contain the same title
         assertThat(spanningEntries.first()).containsText("Midnight Spanning Task")
+        
+        assertThat(spanningEntries.nth(1)).isVisible()
         assertThat(spanningEntries.nth(1)).containsText("Midnight Spanning Task")
     }
     
     @Test
     fun `should delete midnight-split entry correctly`() {
-        // Install Playwright clock with fixed time for deterministic week display
-        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
-        
         // Create an entry that spans midnight
         val thursdayEvening = FIXED_TEST_TIME.minusSeconds(55800) // Thursday 23:00 UTC (15.5 hours before)
         val fridayMorning = FIXED_TEST_TIME.minusSeconds(48600) // Friday 01:00 UTC (13.5 hours before)
@@ -521,11 +483,15 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
+        // Verify we have exactly 2 day groups before deletion
+        val dayGroupsBefore = page.locator("[data-testid='day-group']")
+        assertEquals(2, dayGroupsBefore.count(), "Should have exactly 2 day groups before deletion")
+        
         // Verify entry exists in both day groups
-        val entries = page.locator("[data-testid='time-entry']:has-text('Task to Delete')")
-        assertEquals(2, entries.count(), "Entry should be split across two days")
+        val entriesBefore = page.locator("[data-testid='time-entry']:has-text('Task to Delete')")
+        assertEquals(2, entriesBefore.count(), "Entry should be split across two days")
 
-        // Delete the first instance
+        // Delete the first instance (from Friday group)
         val firstEntryMenuButton = page.locator("[data-testid='time-entry']:has-text('Task to Delete')")
             .first()
             .locator("[data-testid='entry-menu-button']")
@@ -549,5 +515,17 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         // Verify no error message
         assertThat(page.locator("[data-testid='time-logs-error']")).not().isVisible()
+        
+        // Verify both day groups are gone (no entries left for those days)
+        // OR verify we show "no entries" message
+        val dayGroupsAfter = page.locator("[data-testid='day-group']")
+        val noEntriesMessage = page.locator("[data-testid='no-entries']")
+        
+        // Either no day groups remain, or we see the no entries message
+        val hasNoDayGroups = dayGroupsAfter.count() == 0
+        val hasNoEntriesMessage = noEntriesMessage.isVisible()
+        
+        assertTrue(hasNoDayGroups || hasNoEntriesMessage, 
+            "After deletion, should either have no day groups or show 'no entries' message")
     }
 }

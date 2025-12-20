@@ -501,11 +501,11 @@ export function TimeLogsPage() {
           ) : (
             <div className="space-y-6">
               {dayGroups.map((group) => (
-                <Card key={group.date} className="bg-card/90">
+                <Card key={group.date} className="bg-card/90" data-testid="day-group">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg text-foreground">{group.displayTitle}</CardTitle>
-                      <div className="text-sm text-muted-foreground">
+                      <CardTitle className="text-lg text-foreground" data-testid="day-title">{group.displayTitle}</CardTitle>
+                      <div className="text-sm text-muted-foreground" data-testid="day-total-duration">
                         {t('timeLogs.totalDuration')}: {formatDuration(group.totalDuration)}
                       </div>
                     </div>
@@ -522,14 +522,14 @@ export function TimeLogsPage() {
                             className="flex items-center justify-between p-3 border border-border rounded-md"
                             data-testid="time-entry"
                           >
-                            <div className="flex-1">
-                              <p className="font-medium text-foreground">{entry.title}</p>
+                             <div className="flex-1">
+                              <p className="font-medium text-foreground" data-testid="entry-title">{entry.title}</p>
                             </div>
                             <div className="flex items-center gap-4 text-sm">
-                              <div className="text-muted-foreground">
+                              <div className="text-muted-foreground" data-testid="entry-time-range">
                                 {formatTime(entry.startTime, locale)} - {entry.endTime ? formatTime(entry.endTime, locale) : t('timeLogs.inProgress')}
                               </div>
-                              <div className="font-mono font-semibold text-foreground min-w-[70px] text-right">
+                              <div className="font-mono font-semibold text-foreground min-w-[70px] text-right" data-testid="entry-duration">
                                 {formatDuration(duration)}
                               </div>
                               <div className="flex items-center gap-2">
