@@ -20,9 +20,6 @@ import java.time.temporal.ChronoUnit
 class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
 
     @Inject
-    lateinit var userRepository: UserRepository
-    
-    @Inject
     lateinit var activationTokenRepository: ActivationTokenRepository
 
     private lateinit var testUser: User
@@ -31,29 +28,25 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
     @BeforeEach
     fun setupTestData() {
         // Create a user without a valid password (will be set via activation)
-        testUser = transactionHelper.inTransaction {
-            userRepository.save(
-                User.create(
-                    userName = "newuser",
-                    passwordHash = BCrypt.hashpw("temporary", BCrypt.gensalt()),
-                    greeting = "New User",
-                    isAdmin = false,
-                    locale = java.util.Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        testUser = testDatabaseSupport.insert(
+            User.create(
+                userName = "newuser",
+                passwordHash = BCrypt.hashpw("temporary", BCrypt.gensalt()),
+                greeting = "New User",
+                isAdmin = false,
+                locale = java.util.Locale.ENGLISH,
+                languageCode = "en"
             )
-        }
+        )
         
         // Create a valid activation token
-        validToken = transactionHelper.inTransaction {
-            activationTokenRepository.save(
-                ActivationToken(
-                    userId = requireNotNull(testUser.id),
-                    token = "valid-test-token-123",
-                    expiresAt = Instant.now().plus(24, ChronoUnit.HOURS)
-                )
+        validToken = testDatabaseSupport.insert(
+            ActivationToken(
+                userId = requireNotNull(testUser.id),
+                token = "valid-test-token-123",
+                expiresAt = Instant.now().plus(24, ChronoUnit.HOURS)
             )
-        }
+        )
     }
 
     @Test
@@ -142,15 +135,13 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should show error for expired token`() {
         // Create an expired token
-        transactionHelper.inTransaction {
-            activationTokenRepository.save(
-                ActivationToken(
-                    userId = requireNotNull(testUser.id),
-                    token = "expired-token-456",
-                    expiresAt = Instant.now().minus(1, ChronoUnit.HOURS)
-                )
+        testDatabaseSupport.insert(
+            ActivationToken(
+                userId = requireNotNull(testUser.id),
+                token = "expired-token-456",
+                expiresAt = Instant.now().minus(1, ChronoUnit.HOURS)
             )
-        }
+        )
 
         page.navigate("/activate?token=expired-token-456")
 
@@ -274,15 +265,13 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should handle rate limiting on token validation`() {
         // Create a token for rate limiting test
-        transactionHelper.inTransaction {
-            activationTokenRepository.save(
-                ActivationToken(
-                    userId = requireNotNull(testUser.id),
-                    token = "rate-limit-token",
-                    expiresAt = Instant.now().plus(24, ChronoUnit.HOURS)
-                )
+        testDatabaseSupport.insert(
+            ActivationToken(
+                userId = requireNotNull(testUser.id),
+                token = "rate-limit-token",
+                expiresAt = Instant.now().plus(24, ChronoUnit.HOURS)
             )
-        }
+        )
 
         // Make multiple validation requests to trigger rate limiting
         // The rate limiter allows 5 attempts per 15 minutes
@@ -313,15 +302,13 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
         
         // Create a token
         val rateLimitTestToken = "rate-limit-set-test"
-        transactionHelper.inTransaction {
-            activationTokenRepository.save(
-                ActivationToken(
-                    userId = requireNotNull(testUser.id),
-                    token = rateLimitTestToken,
-                    expiresAt = Instant.now().plus(24, ChronoUnit.HOURS)
-                )
+        testDatabaseSupport.insert(
+            ActivationToken(
+                userId = requireNotNull(testUser.id),
+                token = rateLimitTestToken,
+                expiresAt = Instant.now().plus(24, ChronoUnit.HOURS)
             )
-        }
+        )
         
         // First attempt should succeed
         page.navigate("/activate?token=$rateLimitTestToken")

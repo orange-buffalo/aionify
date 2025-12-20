@@ -13,9 +13,6 @@ import org.mindrot.jbcrypt.BCrypt
 class I18nPlaywrightTest : PlaywrightTestBase() {
 
     @Inject
-    lateinit var userRepository: UserRepository
-
-    @Inject
     lateinit var testAuthSupport: TestAuthSupport
 
     private val testPassword = "testPassword123"
@@ -28,18 +25,16 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
     fun setupTestData() {
         // Create test user with English language
         // Wrap in transaction to commit immediately and make visible to browser HTTP requests
-        regularUser = transactionHelper.inTransaction {
-            userRepository.save(
-                User.create(
-                    userName = regularUserName,
-                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                    greeting = regularUserGreeting,
-                    isAdmin = false,
-                    locale = java.util.Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        regularUser = testDatabaseSupport.insert(
+            User.create(
+                userName = regularUserName,
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                greeting = regularUserGreeting,
+                isAdmin = false,
+                locale = java.util.Locale.ENGLISH,
+                languageCode = "en"
             )
-        }
+        )
     }
 
     @Test
@@ -84,18 +79,16 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
     fun `should switch UI to user's preferred language upon login`() {
         // Create a user with Ukrainian language preference
         // Wrap in transaction to commit immediately and make visible to browser HTTP requests
-        val ukUser = transactionHelper.inTransaction {
-            userRepository.save(
-                User.create(
-                    userName = "ukrainianTestUser",
-                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                    greeting = "Тестовий користувач",
-                    isAdmin = false,
-                    locale = java.util.Locale.forLanguageTag("uk-UA"),
-                    languageCode = "uk"
-                )
+        val ukUser = testDatabaseSupport.insert(
+            User.create(
+                userName = "ukrainianTestUser",
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                greeting = "Тестовий користувач",
+                isAdmin = false,
+                locale = java.util.Locale.forLanguageTag("uk-UA"),
+                languageCode = "uk"
             )
-        }
+        )
 
         page.navigate("/login")
         page.evaluate("localStorage.clear()")
