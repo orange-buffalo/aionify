@@ -26,7 +26,7 @@ Project documentation is organized as follows:
 
 ### Before Pushing Changes
 
-**Always run the build locally before pushing changes:**
+**CRITICAL: This is an unbreakable rule - Always run tests locally before pushing changes:**
 
 ```bash
 ./gradlew build --build-cache --console=plain
@@ -36,6 +36,8 @@ This ensures:
 - Code compiles correctly
 - All tests pass
 - No regressions are introduced
+
+**You MUST verify that all tests pass locally before marking any task as complete or ready for review. Never hide failing test results. If tests fail locally, you must fix them before proceeding.**
 
 **After every task implementation, the E2E tests must pass:**
 
@@ -116,27 +118,34 @@ Playwright tests should extend `PlaywrightTestBase` which provides:
 - Trace recording for debugging
 - Clean test structure without boilerplate
 
+**CRITICAL Test Transaction Rules:**
+- **ALL `@MicronautTest` classes MUST have `transactional = false`** to avoid deadlocks
+- **ALL database write operations MUST be wrapped in `testDatabaseSupport.inTransaction {}`**
+- This ensures data is committed and visible to HTTP requests from browsers and other connections
+
 **Important Playwright Testing Rules:**
 - **Never use `page.waitForTimeout()` or similar time-based waits** - these make tests flaky
 - **Always use Playwright's built-in auto-waiting assertions** like `assertThat().isVisible()`, `assertThat().containsText()`, etc.
 - These assertions automatically retry until the condition is met or timeout occurs
 - When verifying pagination or table content changes, check actual content (e.g., usernames) not just counts
-- **CRITICAL: Always wrap repository.save() calls in `transactionHelper.inTransaction {}`** - This commits the transaction immediately, making test data visible to browser HTTP requests. Without this, browser requests will fail because they run in separate connections and cannot see uncommitted test data.
 
 Example:
 ```kotlin
-@MicronautTest
+@MicronautTest(transactional = false)  // CRITICAL: Disable test transactions
 class MyPlaywrightTest : PlaywrightTestBase() {
     @Inject
     lateinit var userRepository: UserRepository
+    
+    @Inject
+    lateinit var testDatabaseSupport: TestDatabaseSupport
     
     private lateinit var testUser: User
 
     @BeforeEach
     fun setupTestData() {
-        // CRITICAL: Wrap in transactionHelper to commit immediately
-        // This makes the user visible to browser HTTP requests
-        testUser = transactionHelper.inTransaction {
+        // CRITICAL: Wrap in testDatabaseSupport.inTransaction to commit immediately
+        // This makes the data visible to browser HTTP requests
+        testUser = testDatabaseSupport.inTransaction {
             userRepository.save(
                 User.create(
                     userName = "testuser",

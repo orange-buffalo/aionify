@@ -26,7 +26,7 @@ import java.time.Instant
  * 2. Users can only access their own time entries
  * 3. Users cannot modify or delete other users' time entries
  */
-@MicronautTest
+@MicronautTest(transactional = false)
 class TimeEntryResourceTest {
 
     @Inject
@@ -37,9 +37,6 @@ class TimeEntryResourceTest {
     lateinit var timeEntryRepository: TimeEntryRepository
 
     @Inject
-    lateinit var userRepository: UserRepository
-
-    @Inject
     lateinit var testAuthSupport: TestAuthSupport
 
     @Inject
@@ -47,9 +44,6 @@ class TimeEntryResourceTest {
 
     @Inject
     lateinit var testUsers: TestUsers
-
-    @Inject
-    lateinit var transactionHelper: TestTransactionHelper
 
     private lateinit var user1: User
     private lateinit var user2: User
@@ -61,11 +55,11 @@ class TimeEntryResourceTest {
         testDatabaseSupport.truncateAllTables()
 
         // Create two users
-        user1 = testUsers.createRegularUser(userRepository, transactionHelper, "user1", "User One")
-        user2 = testUsers.createRegularUser(userRepository, transactionHelper, "user2", "User Two")
+        user1 = testUsers.createRegularUser("user1", "User One")
+        user2 = testUsers.createRegularUser("user2", "User Two")
 
         // Create time entries for both users
-        user1Entry = transactionHelper.inTransaction {
+        user1Entry = testDatabaseSupport.inTransaction {
             timeEntryRepository.save(
                 TimeEntry(
                     startTime = Instant.parse("2024-01-15T10:00:00Z"),
@@ -76,7 +70,7 @@ class TimeEntryResourceTest {
             )
         }
 
-        user2Entry = transactionHelper.inTransaction {
+        user2Entry = testDatabaseSupport.inTransaction {
             timeEntryRepository.save(
                 TimeEntry(
                     startTime = Instant.parse("2024-01-15T14:00:00Z"),

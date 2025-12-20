@@ -15,7 +15,7 @@ import org.mindrot.jbcrypt.BCrypt
  * 
  * The application uses Micronaut Security JWT to generate tokens with configured signing keys.
  */
-@MicronautTest
+@MicronautTest(transactional = false)
 class AuthServiceTest {
 
     @Inject

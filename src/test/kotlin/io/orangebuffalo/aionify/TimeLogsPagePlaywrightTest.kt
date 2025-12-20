@@ -17,7 +17,7 @@ import java.time.Instant
 /**
  * Playwright tests for the Time Logs page functionality.
  */
-@MicronautTest
+@MicronautTest(transactional = false)
 class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @Inject
@@ -33,7 +33,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupTestData() {
-        testUser = testUsers.createRegularUser(userRepository, transactionHelper)
+        testUser = testUsers.createRegularUser()
     }
 
     @Test

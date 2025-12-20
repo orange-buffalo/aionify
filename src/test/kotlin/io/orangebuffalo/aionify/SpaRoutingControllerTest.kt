@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test
 /**
  * Tests for SpaRoutingController to ensure static assets are not caught by the SPA routing.
  */
-@MicronautTest
+@MicronautTest(transactional = false)
 class SpaRoutingControllerTest {
 
     @Inject

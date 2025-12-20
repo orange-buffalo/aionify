@@ -12,7 +12,7 @@ import org.mindrot.jbcrypt.BCrypt
 /**
  * Playwright tests for the login functionality.
  */
-@MicronautTest
+@MicronautTest(transactional = false)
 class LoginPlaywrightTest : PlaywrightTestBase() {
 
     @Inject
@@ -23,8 +23,8 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupTestData() {
-        regularUser = testUsers.createRegularUser(userRepository, transactionHelper)
-        adminUser = testUsers.createAdmin(userRepository, transactionHelper)
+        regularUser = testUsers.createRegularUser()
+        adminUser = testUsers.createAdmin()
     }
 
     @Test

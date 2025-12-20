@@ -23,7 +23,7 @@ import org.mindrot.jbcrypt.BCrypt
  * 1. Admin role is required to access /api/admin/users endpoints
  * 2. Self-deletion is prevented at the API level
  */
-@MicronautTest
+@MicronautTest(transactional = false)
 class UserAdminResourceTest {
 
     @Inject

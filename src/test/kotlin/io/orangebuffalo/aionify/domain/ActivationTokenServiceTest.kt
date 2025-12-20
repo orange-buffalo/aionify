@@ -14,7 +14,7 @@ import java.time.Instant
 import java.util.Locale
 import java.util.UUID
 
-@MicronautTest
+@MicronautTest(transactional = false)
 class ActivationTokenServiceTest {
 
     @Inject

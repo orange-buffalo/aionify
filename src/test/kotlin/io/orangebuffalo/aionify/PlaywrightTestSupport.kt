@@ -18,7 +18,7 @@ import java.nio.file.Paths
  *
  * Usage:
  * ```kotlin
- * @MicronautTest
+ * @MicronautTest(transactional = false)
  * class MyPlaywrightTest : PlaywrightTestBase() {
  *     @Inject
  *     lateinit var testAuthSupport: TestAuthSupport

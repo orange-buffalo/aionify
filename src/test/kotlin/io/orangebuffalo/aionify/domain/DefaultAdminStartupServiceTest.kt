@@ -8,7 +8,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mindrot.jbcrypt.BCrypt
 
-@MicronautTest
+@MicronautTest(transactional = false)
 class DefaultAdminStartupServiceTest {
 
     @Inject

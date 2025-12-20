@@ -13,7 +13,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Instant
 
-@MicronautTest
+@MicronautTest(transactional = false)
 class TimeEntryRepositoryTest {
 
     @Inject
@@ -36,7 +36,7 @@ class TimeEntryRepositoryTest {
     @BeforeEach
     fun cleanupDatabase() {
         testDatabaseSupport.truncateAllTables()
-        testUser = testUsers.createRegularUser(userRepository, transactionHelper)
+        testUser = testUsers.createRegularUser()
     }
 
     @Test

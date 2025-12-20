@@ -13,7 +13,7 @@ import org.mindrot.jbcrypt.BCrypt
 /**
  * Playwright tests for the create user page functionality.
  */
-@MicronautTest
+@MicronautTest(transactional = false)
 class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
 
     @Inject

@@ -16,7 +16,7 @@ import java.time.temporal.ChronoUnit
 /**
  * Playwright tests for the edit user page functionality.
  */
-@MicronautTest
+@MicronautTest(transactional = false)
 class EditUserPagePlaywrightTest : PlaywrightTestBase() {
 
     @Inject
