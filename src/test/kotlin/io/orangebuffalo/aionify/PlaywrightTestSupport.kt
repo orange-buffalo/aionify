@@ -115,8 +115,9 @@ abstract class PlaywrightTestBase {
         _page = browserContext.newPage()
         
         // Install Playwright clock with fixed time for deterministic tests
+        // Use pauseAt to prevent automatic time progression - time only advances when explicitly requested
         // This ensures frontend JavaScript Date API uses the same fixed time as backend TimeService
-        _page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
+        _page.clock().pauseAt(FIXED_TEST_TIME.toEpochMilli())
     }
 
     /**
