@@ -150,18 +150,13 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // Wait for dialog to close
         assertThat(confirmButton).not().isVisible()
 
-        // Wait for entry to be removed (this confirms the delete succeeded)
-        // Check for "no entries" message OR verify no time-entry elements exist
+        // Wait for entry to be removed from the list
         page.waitForCondition {
-            page.locator("[data-testid='no-entries']").isVisible() ||
-            page.locator("[data-testid='time-entry']").count() == 0
+            page.locator("[data-testid='time-entry']").filter {hasText("Work Entry")}.count() == 0
         }
 
         // Verify no error message
         assertThat(page.locator("[data-testid='time-logs-error']")).not().isVisible()
-
-        // Verify success message appears
-        assertThat(page.locator("[data-testid='time-logs-success']")).isVisible()
     }
 
     @Test

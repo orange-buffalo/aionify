@@ -22,6 +22,7 @@ import java.time.Instant
 
 @Controller("/api/time-entries")
 @Secured(SecurityRule.IS_AUTHENTICATED)
+@Transactional
 open class TimeEntryResource(
     private val timeEntryRepository: TimeEntryRepository,
     private val userRepository: UserRepository
@@ -78,7 +79,6 @@ open class TimeEntryResource(
     }
 
     @Post
-    @Transactional
     open fun createEntry(
         @Valid @Body request: CreateTimeEntryRequest,
         principal: Principal?
@@ -114,7 +114,6 @@ open class TimeEntryResource(
     }
 
     @Put("/{id}/stop")
-    @Transactional
     open fun stopEntry(
         @PathVariable id: Long,
         principal: Principal?
@@ -149,7 +148,6 @@ open class TimeEntryResource(
     }
 
     @Delete("/{id}")
-    @Transactional
     open fun deleteEntry(
         @PathVariable id: Long,
         principal: Principal?

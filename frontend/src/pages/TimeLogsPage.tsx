@@ -246,7 +246,7 @@ export function TimeLogsPage() {
       await apiPut(`/api/time-entries/${activeEntry.id}/stop`, {})
       
       setActiveEntry(null)
-      setSuccess(t('timeLogs.success.stopped'))
+      setActiveDuration(0)
       await loadTimeEntries()
     } catch (err: any) {
       const errorCode = (err as any).errorCode
@@ -275,7 +275,6 @@ export function TimeLogsPage() {
       
       setActiveEntry(newEntry)
       setNewEntryTitle("")
-      setSuccess(t('timeLogs.success.started'))
       await loadTimeEntries()
     } catch (err: any) {
       const errorCode = (err as any).errorCode
@@ -305,7 +304,7 @@ export function TimeLogsPage() {
       
       await apiDelete(`/api/time-entries/${entryToDelete.id}`)
       
-      setSuccess(t('timeLogs.success.deleted'))
+      setIsDeleting(false)
       setDeleteDialogOpen(false)
       setEntryToDelete(null)
       await loadTimeEntries()
@@ -400,26 +399,71 @@ export function TimeLogsPage() {
             <h1 className="text-3xl font-bold text-foreground mb-2" data-testid="time-logs-title">
               {t('timeLogs.title')}
             </h1>
-            <p className="text-muted-foreground">{t('timeLogs.subtitle')}</p>
+            <div className="text-muted-foreground">{t('timeLogs.subtitle')}</div>
           </div>
 
-          {/* Error/Success Messages */}
+          {/* Error Message */}
           {error && (
             <FormMessage
               type="error"
               message={error}
-              onDismiss={() => setError(null)}
-              data-testid="time-logs-error"
+              testId="time-logs-error"
             />
           )}
-          {success && (
-            <FormMessage
-              type="success"
-              message={success}
-              onDismiss={() => setSuccess(null)}
-              data-testid="time-logs-success"
-            />
-          )}
+
+          {/* Current Entry Panel */}
+          <Card className="mb-6 bg-card/90" data-testid="current-entry-panel">
+            <CardHeader>
+              <CardTitle className="text-foreground">{t('timeLogs.currentEntry.title')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {activeEntry ? (
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="font-semibold text-foreground mb-1">{activeEntry.title}</p>
+                    <div className="text-sm text-muted-foreground">
+                      {t('timeLogs.startedAt')}: {formatTime(activeEntry.startTime, locale)}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="text-2xl font-mono font-bold text-foreground" data-testid="active-timer">
+                      {formatDuration(activeDuration)}
+                    </div>
+                    <Button
+                      onClick={handleStop}
+                      disabled={isStopping}
+                      data-testid="stop-button"
+                    >
+                      <Square className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-4">
+                  <Input
+                    value={newEntryTitle}
+                    onChange={(e) => setNewEntryTitle(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && newEntryTitle.trim()) {
+                        handleStart()
+                      }
+                    }}
+                    placeholder={t('timeLogs.enterTask')}
+                    className="flex-1 text-foreground"
+                    data-testid="new-entry-input"
+                    disabled={isStarting}
+                  />
+                  <Button
+                    onClick={handleStart}
+                    disabled={!newEntryTitle.trim() || isStarting}
+                    data-testid="start-button"
+                  >
+                    <Play className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Week Navigation */}
           <div className="flex items-center justify-between mb-6">
