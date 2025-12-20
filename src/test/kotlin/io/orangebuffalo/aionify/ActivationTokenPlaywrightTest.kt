@@ -41,7 +41,8 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
             ActivationToken(
                 userId = requireNotNull(testUser.id),
                 token = "valid-test-token-123",
-                expiresAt = Instant.now().plus(24, ChronoUnit.HOURS)
+                expiresAt = TestTimeService.FIXED_TEST_TIME.plus(24, ChronoUnit.HOURS),
+                createdAt = TestTimeService.FIXED_TEST_TIME
             )
         )
     }
@@ -136,7 +137,8 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
             ActivationToken(
                 userId = requireNotNull(testUser.id),
                 token = "expired-token-456",
-                expiresAt = Instant.now().minus(1, ChronoUnit.HOURS)
+                expiresAt = TestTimeService.FIXED_TEST_TIME.minus(1, ChronoUnit.HOURS),
+                createdAt = TestTimeService.FIXED_TEST_TIME.minus(2, ChronoUnit.HOURS)
             )
         )
 
@@ -266,7 +268,8 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
             ActivationToken(
                 userId = requireNotNull(testUser.id),
                 token = "rate-limit-token",
-                expiresAt = Instant.now().plus(24, ChronoUnit.HOURS)
+                expiresAt = TestTimeService.FIXED_TEST_TIME.plus(24, ChronoUnit.HOURS),
+                createdAt = TestTimeService.FIXED_TEST_TIME
             )
         )
 
@@ -303,7 +306,8 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
             ActivationToken(
                 userId = requireNotNull(testUser.id),
                 token = rateLimitTestToken,
-                expiresAt = Instant.now().plus(24, ChronoUnit.HOURS)
+                expiresAt = TestTimeService.FIXED_TEST_TIME.plus(24, ChronoUnit.HOURS),
+                createdAt = TestTimeService.FIXED_TEST_TIME
             )
         )
         

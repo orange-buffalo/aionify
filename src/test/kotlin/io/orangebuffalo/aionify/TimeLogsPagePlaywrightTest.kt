@@ -53,6 +53,9 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should start and stop a time entry`() {
+        // Install Playwright clock to ensure frontend and backend times are aligned
+        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
+        
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Start a new entry
@@ -278,6 +281,9 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should allow starting entry by pressing Enter`() {
+        // Install Playwright clock to ensure frontend and backend times are aligned
+        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
+        
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Fill in title and press Enter

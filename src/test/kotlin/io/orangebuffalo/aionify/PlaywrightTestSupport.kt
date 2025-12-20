@@ -82,8 +82,9 @@ abstract class PlaywrightTestBase {
         /**
          * Fixed time for all Playwright tests: 2024-03-15T14:30:00Z (Friday, March 15, 2024 at 2:30 PM UTC)
          * This ensures deterministic behavior for time-sensitive tests.
+         * This is the same time used by TestTimeService for backend operations.
          */
-        val FIXED_TEST_TIME: Instant = ZonedDateTime.of(2024, 3, 15, 14, 30, 0, 0, ZoneId.of("UTC")).toInstant()
+        val FIXED_TEST_TIME: Instant = TestTimeService.FIXED_TEST_TIME
     }
 
     @BeforeEach

@@ -10,7 +10,8 @@ import java.util.Base64
 @Singleton
 class ActivationTokenService(
     private val activationTokenRepository: ActivationTokenRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val timeService: TimeService
 ) {
     
     companion object {
@@ -24,7 +25,7 @@ class ActivationTokenService(
      */
     fun createToken(userId: Long, expirationHours: Long = 240): ActivationToken {
         val token = generateSecureToken()
-        val expiresAt = Instant.now().plus(expirationHours, ChronoUnit.HOURS)
+        val expiresAt = timeService.now().plus(expirationHours, ChronoUnit.HOURS)
         
         // Delete any existing tokens for this user
         activationTokenRepository.deleteByUserId(userId)
@@ -33,7 +34,8 @@ class ActivationTokenService(
             ActivationToken(
                 userId = userId,
                 token = token,
-                expiresAt = expiresAt
+                expiresAt = expiresAt,
+                createdAt = timeService.now()
             )
         )
     }
@@ -47,7 +49,7 @@ class ActivationTokenService(
             ?: return null
         
         // Check if token is expired
-        if (activationToken.expiresAt.isBefore(Instant.now())) {
+        if (activationToken.expiresAt.isBefore(timeService.now())) {
             return null
         }
         
@@ -64,7 +66,7 @@ class ActivationTokenService(
             ?: return false
         
         // Check if token is expired
-        if (activationToken.expiresAt.isBefore(Instant.now())) {
+        if (activationToken.expiresAt.isBefore(timeService.now())) {
             return false
         }
         
@@ -86,7 +88,7 @@ class ActivationTokenService(
      * Cleans up expired tokens from the database.
      */
     fun cleanupExpiredTokens() {
-        activationTokenRepository.deleteExpiredTokens(Instant.now())
+        activationTokenRepository.deleteExpiredTokens(timeService.now())
     }
     
     private fun generateSecureToken(): String {

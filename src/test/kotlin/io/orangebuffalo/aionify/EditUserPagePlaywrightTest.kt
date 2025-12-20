@@ -183,7 +183,8 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
             ActivationToken(
                 userId = requireNotNull(regularUser.id),
                 token = "test-activation-token-123",
-                expiresAt = Instant.now().plus(24, ChronoUnit.HOURS)
+                expiresAt = TestTimeService.FIXED_TEST_TIME.plus(24, ChronoUnit.HOURS),
+                createdAt = TestTimeService.FIXED_TEST_TIME
             )
         )
 
@@ -230,7 +231,8 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
             ActivationToken(
                 userId = requireNotNull(regularUser.id),
                 token = "old-activation-token",
-                expiresAt = Instant.now().plus(24, ChronoUnit.HOURS)
+                expiresAt = TestTimeService.FIXED_TEST_TIME.plus(24, ChronoUnit.HOURS),
+                createdAt = TestTimeService.FIXED_TEST_TIME
             )
         )
 
@@ -356,7 +358,8 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
             ActivationToken(
                 userId = requireNotNull(regularUser.id),
                 token = "expired-token",
-                expiresAt = Instant.now().minus(1, ChronoUnit.HOURS)
+                expiresAt = TestTimeService.FIXED_TEST_TIME.minus(1, ChronoUnit.HOURS),
+                createdAt = TestTimeService.FIXED_TEST_TIME.minus(2, ChronoUnit.HOURS)
             )
         )
 
