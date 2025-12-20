@@ -152,7 +152,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         // Wait for entry to be removed from the list
         page.waitForCondition {
-            page.locator("[data-testid='time-entry']").filter {hasText("Work Entry")}.count() == 0
+            page.locator("[data-testid='time-entry']:has-text('Work Entry')").count() == 0
         }
 
         // Verify no error message

@@ -185,7 +185,7 @@ export function TimeLogsPage() {
       )
       
       const locale = i18n.language || 'en'
-      const groups = groupEntriesByDay(response.entries, locale)
+      const groups = groupEntriesByDay(response.entries || [], locale)
       setDayGroups(groups)
     } catch (err: any) {
       setError(err.message || t('common.error'))
