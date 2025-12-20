@@ -13,6 +13,7 @@ import io.micronaut.http.annotation.QueryValue
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule
 import io.micronaut.serde.annotation.Serdeable
+import jakarta.transaction.Transactional
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
@@ -77,6 +78,7 @@ open class TimeEntryResource(
     }
 
     @Post
+    @Transactional
     open fun createEntry(
         @Valid @Body request: CreateTimeEntryRequest,
         principal: Principal?
@@ -112,6 +114,7 @@ open class TimeEntryResource(
     }
 
     @Put("/{id}/stop")
+    @Transactional
     open fun stopEntry(
         @PathVariable id: Long,
         principal: Principal?
@@ -146,6 +149,7 @@ open class TimeEntryResource(
     }
 
     @Delete("/{id}")
+    @Transactional
     open fun deleteEntry(
         @PathVariable id: Long,
         principal: Principal?

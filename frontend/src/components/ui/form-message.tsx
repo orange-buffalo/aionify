@@ -3,10 +3,11 @@ import { Check, X } from "lucide-react"
 interface FormMessageProps {
   type: "error" | "success"
   message: string
-  testId?: string
+  onDismiss?: () => void
+  "data-testid"?: string
 }
 
-export function FormMessage({ type, message, testId }: FormMessageProps) {
+export function FormMessage({ type, message, onDismiss, "data-testid": testId }: FormMessageProps) {
   if (type === "error") {
     return (
       <div 
@@ -14,7 +15,12 @@ export function FormMessage({ type, message, testId }: FormMessageProps) {
         data-testid={testId}
       >
         <X className="h-4 w-4 flex-shrink-0" />
-        {message}
+        <span className="flex-1">{message}</span>
+        {onDismiss && (
+          <button onClick={onDismiss} className="ml-auto text-foreground hover:text-foreground/80">
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
     )
   }
@@ -25,7 +31,12 @@ export function FormMessage({ type, message, testId }: FormMessageProps) {
       data-testid={testId}
     >
       <Check className="h-4 w-4 flex-shrink-0" />
-      {message}
+      <span className="flex-1">{message}</span>
+      {onDismiss && (
+        <button onClick={onDismiss} className="ml-auto text-foreground hover:text-foreground/80">
+          <X className="h-4 w-4" />
+        </button>
+      )}
     </div>
   )
 }

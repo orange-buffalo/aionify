@@ -147,11 +147,21 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         assertThat(confirmButton).isVisible()
         confirmButton.click()
 
-        // Verify success message
-        assertThat(page.locator("[data-testid='time-logs-success']")).isVisible()
+        // Wait for dialog to close
+        assertThat(confirmButton).not().isVisible()
 
-        // Verify entry is gone
-        assertThat(page.locator("[data-testid='time-entry']")).not().isVisible()
+        // Wait for entry to be removed (this confirms the delete succeeded)
+        // Check for "no entries" message OR verify no time-entry elements exist
+        page.waitForCondition {
+            page.locator("[data-testid='no-entries']").isVisible() ||
+            page.locator("[data-testid='time-entry']").count() == 0
+        }
+
+        // Verify no error message
+        assertThat(page.locator("[data-testid='time-logs-error']")).not().isVisible()
+
+        // Verify success message appears
+        assertThat(page.locator("[data-testid='time-logs-success']")).isVisible()
     }
 
     @Test
@@ -256,8 +266,8 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         assertThat(page.locator("[data-testid='active-timer']")).isVisible()
         assertThat(page.locator("[data-testid='stop-button']")).isVisible()
         
-        // Verify title is shown
-        assertThat(page.locator("text=Active Task")).isVisible()
+        // Verify title is shown in the current entry panel
+        assertThat(page.locator("[data-testid='current-entry-panel']").locator("text=Active Task")).isVisible()
     }
 
     @Test
