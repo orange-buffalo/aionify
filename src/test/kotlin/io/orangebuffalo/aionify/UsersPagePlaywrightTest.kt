@@ -13,7 +13,7 @@ import org.mindrot.jbcrypt.BCrypt
  * Playwright tests for the users overview page functionality.
  * Tests admin-only access, table display, pagination, and delete functionality.
  */
-@MicronautTest
+@MicronautTest(transactional = false)
 class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
     @Inject

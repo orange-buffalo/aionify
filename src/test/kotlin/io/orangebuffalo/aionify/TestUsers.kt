@@ -9,9 +9,15 @@ import java.util.Locale
 /**
  * Singleton that provides commonly used test users and credentials.
  * Simplifies test setup by centralizing user creation patterns.
+ * 
+ * **CRITICAL:** All saves are wrapped in testDatabaseSupport.inTransaction to ensure
+ * they are committed immediately and visible to browser HTTP requests.
  */
 @Singleton
-class TestUsers {
+class TestUsers(
+    private val userRepository: UserRepository,
+    private val testDatabaseSupport: TestDatabaseSupport
+) {
     
     companion object {
         const val TEST_PASSWORD = "testPassword123"
@@ -23,16 +29,14 @@ class TestUsers {
     
     /**
      * Creates and saves an admin user with standard test credentials.
-     * Uses TestTransactionHelper to commit the transaction immediately,
+     * Uses testDatabaseSupport to commit the transaction immediately,
      * making the user visible to browser HTTP requests in Playwright tests.
      */
     fun createAdmin(
-        userRepository: UserRepository,
-        transactionHelper: TestTransactionHelper,
         username: String = ADMIN_USERNAME,
         greeting: String = ADMIN_GREETING
     ): User {
-        return transactionHelper.inTransaction {
+        return testDatabaseSupport.inTransaction {
             userRepository.save(
                 User.create(
                     userName = username,
@@ -48,16 +52,14 @@ class TestUsers {
     
     /**
      * Creates and saves a regular (non-admin) user with standard test credentials.
-     * Uses TestTransactionHelper to commit the transaction immediately,
+     * Uses testDatabaseSupport to commit the transaction immediately,
      * making the user visible to browser HTTP requests in Playwright tests.
      */
     fun createRegularUser(
-        userRepository: UserRepository,
-        transactionHelper: TestTransactionHelper,
         username: String = REGULAR_USERNAME,
         greeting: String = REGULAR_GREETING
     ): User {
-        return transactionHelper.inTransaction {
+        return testDatabaseSupport.inTransaction {
             userRepository.save(
                 User.create(
                     userName = username,
@@ -73,19 +75,17 @@ class TestUsers {
     
     /**
      * Creates and saves a user with custom locale.
-     * Uses TestTransactionHelper to commit the transaction immediately,
+     * Uses testDatabaseSupport to commit the transaction immediately,
      * making the user visible to browser HTTP requests in Playwright tests.
      */
     fun createUserWithLocale(
-        userRepository: UserRepository,
-        transactionHelper: TestTransactionHelper,
         username: String,
         greeting: String,
         isAdmin: Boolean = false,
         locale: Locale,
         languageCode: String
     ): User {
-        return transactionHelper.inTransaction {
+        return testDatabaseSupport.inTransaction {
             userRepository.save(
                 User.create(
                     userName = username,

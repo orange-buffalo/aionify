@@ -1,3 +1,5 @@
+import java.time.Duration
+
 plugins {
     kotlin("jvm") version "2.1.0"
     kotlin("plugin.allopen") version "2.1.0"
@@ -121,6 +123,9 @@ tasks.withType<Test> {
     testLogging {
         events("passed", "skipped", "failed", "standardOut", "standardError")
     }
+    
+    // Global test timeout: 15 minutes
+    timeout.set(Duration.ofMinutes(15))
     
     // Enable parallel test execution based on available CPUs, capped at 4 forks
     val availableProcessors = Runtime.getRuntime().availableProcessors()

@@ -1,15 +1,20 @@
 package io.orangebuffalo.aionify
 
 import io.micronaut.context.ApplicationContext
+import io.micronaut.transaction.TransactionDefinition
+import io.micronaut.transaction.annotation.Transactional
 import jakarta.inject.Singleton
 import javax.sql.DataSource
 
 /**
  * Support class for database operations in tests.
  * Provides utilities for database cleanup and setup.
+ * 
+ * **CRITICAL:** All write operations are wrapped in transactions to ensure
+ * they are committed immediately and visible to other connections (e.g., browser HTTP requests).
  */
 @Singleton
-class TestDatabaseSupport(
+open class TestDatabaseSupport(
     private val dataSource: DataSource,
     private val applicationContext: ApplicationContext
 ) {
@@ -18,8 +23,12 @@ class TestDatabaseSupport(
      * Truncates all application tables, resetting the database to a clean state.
      * Tables are truncated in order to respect foreign key constraints.
      * The flyway_schema_history table is preserved to maintain migration history.
+     * 
+     * This operation is wrapped in a NEW transaction to ensure it commits immediately
+     * and doesn't interfere with test transactions.
      */
-    fun truncateAllTables() {
+    @Transactional(propagation = TransactionDefinition.Propagation.REQUIRES_NEW)
+    open fun truncateAllTables() {
         dataSource.connection.use { connection ->
             connection.createStatement().use { statement ->
                 // Get all table names from the public schema, excluding Flyway's metadata table
@@ -45,4 +54,22 @@ class TestDatabaseSupport(
             }
         }
     }
+    
+    /**
+     * Executes the given block in a new transaction and commits it.
+     * Use this for any database write operations in tests to ensure they are
+     * committed and visible to other connections (e.g., browser HTTP requests).
+     * 
+     * Example:
+     * ```
+     * val user = testDatabaseSupport.inTransaction {
+     *     genericRepository.save(User.create(...))
+     * }
+     * ```
+     */
+    @Transactional(propagation = TransactionDefinition.Propagation.REQUIRES_NEW)
+    open fun <T> inTransaction(block: () -> T): T {
+        return block()
+    }
 }
+

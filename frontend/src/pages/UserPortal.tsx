@@ -1,10 +1,12 @@
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Clock, Calendar, FileText } from "lucide-react"
 import { PortalLayout } from "@/components/layout/PortalLayout"
 
 export function UserPortal() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   
   return (
     <PortalLayout testId="user-portal">
@@ -16,7 +18,10 @@ export function UserPortal() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            <Card className="bg-card/90">
+            <Card 
+              className="bg-card/90 cursor-pointer hover:bg-card/95 transition-colors"
+              onClick={() => navigate("/portal/time-logs")}
+            >
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5" />

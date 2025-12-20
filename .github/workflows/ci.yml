@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     permissions:
       contents: read
       packages: write
@@ -50,6 +51,40 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Start background thread dump collection
+        run: |
+          mkdir -p build/thread-dumps
+          
+          # Create thread dump collection script
+          cat > collect-thread-dumps.sh << 'EOF'
+          #!/bin/bash
+          DUMP_DIR="build/thread-dumps"
+          INTERVAL=30  # Collect thread dumps every 30 seconds
+          
+          echo "Starting thread dump collection (interval: ${INTERVAL}s)"
+          while true; do
+            sleep $INTERVAL
+            TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+            
+            # Find all Gradle worker Java processes
+            for pid in $(pgrep -f 'java.*gradle.*worker' 2>/dev/null); do
+              echo "Collecting thread dump for PID: $pid at $TIMESTAMP"
+              jstack $pid > "${DUMP_DIR}/threaddump-${pid}-${TIMESTAMP}.txt" 2>&1 || true
+            done
+            
+            # Also check for test JVM processes
+            for pid in $(pgrep -f 'java.*GradleWorkerMain' 2>/dev/null); do
+              echo "Collecting thread dump for worker PID: $pid at $TIMESTAMP"
+              jstack $pid > "${DUMP_DIR}/threaddump-worker-${pid}-${TIMESTAMP}.txt" 2>&1 || true
+            done
+          done
+          EOF
+          
+          chmod +x collect-thread-dumps.sh
+          ./collect-thread-dumps.sh &
+          echo $! > thread-dump-collector.pid
+          echo "Thread dump collector started with PID: $(cat thread-dump-collector.pid)"
+
       - name: Build, test and push Docker image
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
@@ -57,6 +92,41 @@ jobs:
         run: |
           ./gradlew test dockerBuildNative dockerPushNative \
             --build-cache --console=plain
+
+      - name: Stop thread dump collection
+        if: always()
+        run: |
+          if [ -f thread-dump-collector.pid ]; then
+            COLLECTOR_PID=$(cat thread-dump-collector.pid)
+            echo "Stopping thread dump collector (PID: $COLLECTOR_PID)"
+            kill $COLLECTOR_PID 2>/dev/null || true
+            rm thread-dump-collector.pid
+          fi
+          
+          # Collect final system information
+          echo "=== System Info ===" > build/thread-dumps/system-info.txt
+          date >> build/thread-dumps/system-info.txt
+          echo "" >> build/thread-dumps/system-info.txt
+          echo "=== Running Java Processes ===" >> build/thread-dumps/system-info.txt
+          ps aux | grep java >> build/thread-dumps/system-info.txt || true
+          echo "" >> build/thread-dumps/system-info.txt
+          echo "=== Disk Usage ===" >> build/thread-dumps/system-info.txt
+          df -h >> build/thread-dumps/system-info.txt
+          echo "" >> build/thread-dumps/system-info.txt
+          echo "=== Memory Usage ===" >> build/thread-dumps/system-info.txt
+          free -h >> build/thread-dumps/system-info.txt
+          echo "" >> build/thread-dumps/system-info.txt
+          echo "=== Thread Dumps Collected ===" >> build/thread-dumps/system-info.txt
+          ls -lh build/thread-dumps/*.txt 2>/dev/null | wc -l >> build/thread-dumps/system-info.txt || echo "0" >> build/thread-dumps/system-info.txt
+
+      - name: Upload thread dumps
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: thread-dumps
+          path: build/thread-dumps/
+          retention-days: 10
+          if-no-files-found: ignore
 
       - name: Run E2E tests against Docker image
         env:

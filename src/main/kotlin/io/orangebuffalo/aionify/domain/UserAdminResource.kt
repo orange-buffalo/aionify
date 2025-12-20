@@ -12,6 +12,7 @@ import io.micronaut.http.annotation.Put
 import io.micronaut.http.annotation.QueryValue
 import io.micronaut.security.annotation.Secured
 import io.micronaut.serde.annotation.Serdeable
+import jakarta.transaction.Transactional
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
@@ -20,6 +21,7 @@ import java.time.Instant
 
 @Controller("/api/admin/users")
 @Secured("admin")
+@Transactional
 open class UserAdminResource(
     private val userRepository: UserRepository,
     private val userService: UserService,

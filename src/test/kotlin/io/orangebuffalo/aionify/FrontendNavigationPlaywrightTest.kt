@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 /**
  * Another Playwright test class demonstrating the reusable PlaywrightTestSupport setup.
  */
-@MicronautTest
+@MicronautTest(transactional = false)
 class FrontendNavigationPlaywrightTest : PlaywrightTestBase() {
 
     @Test

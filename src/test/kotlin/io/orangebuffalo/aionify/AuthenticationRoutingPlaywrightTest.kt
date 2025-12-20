@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test
  * Tests various scenarios involving authenticated/unauthenticated users,
  * root path redirects, and role-based access control.
  */
-@MicronautTest
+@MicronautTest(transactional = false)
 class AuthenticationRoutingPlaywrightTest : PlaywrightTestBase() {
 
     @Inject
@@ -24,8 +24,8 @@ class AuthenticationRoutingPlaywrightTest : PlaywrightTestBase() {
     @BeforeEach
     fun setupTestData() {
         // Create test users
-        testUsers.createRegularUser(userRepository, transactionHelper)
-        testUsers.createAdmin(userRepository, transactionHelper)
+        testUsers.createRegularUser()
+        testUsers.createAdmin()
     }
 
     @Test

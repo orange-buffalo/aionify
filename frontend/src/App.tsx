@@ -7,6 +7,7 @@ import { SettingsPage } from "@/pages/SettingsPage"
 import { UsersPage } from "@/pages/UsersPage"
 import { CreateUserPage } from "@/pages/CreateUserPage"
 import { EditUserPage } from "@/pages/EditUserPage"
+import { TimeLogsPage } from "@/pages/TimeLogsPage"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { RootRedirect } from "@/components/auth/RootRedirect"
 
@@ -44,6 +45,11 @@ export function App() {
         <Route path="/portal" element={
           <ProtectedRoute requireAdmin={false}>
             <UserPortal />
+          </ProtectedRoute>
+        } />
+        <Route path="/portal/time-logs" element={
+          <ProtectedRoute requireAdmin={false}>
+            <TimeLogsPage />
           </ProtectedRoute>
         } />
         <Route path="/portal/settings" element={

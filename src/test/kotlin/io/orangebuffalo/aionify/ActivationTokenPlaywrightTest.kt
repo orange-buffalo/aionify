@@ -16,7 +16,7 @@ import java.time.temporal.ChronoUnit
 /**
  * Playwright tests for the activation token functionality.
  */
-@MicronautTest
+@MicronautTest(transactional = false)
 class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
 
     @Inject
