@@ -35,32 +35,28 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
     @BeforeEach
     fun setupTestData() {
         // Create admin user
-        adminUser = transactionHelper.inTransaction {
-            userRepository.save(
-                User.create(
-                    userName = "admin",
-                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                    greeting = "Admin User",
-                    isAdmin = true,
-                    locale = java.util.Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        adminUser = testDatabaseSupport.insert(
+            User.create(
+                userName = "admin",
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                greeting = "Admin User",
+                isAdmin = true,
+                locale = java.util.Locale.ENGLISH,
+                languageCode = "en"
             )
-        }
+        )
 
         // Create regular user
-        regularUser = transactionHelper.inTransaction {
-            userRepository.save(
-                User.create(
-                    userName = "testuser",
-                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                    greeting = "Test User",
-                    isAdmin = false,
-                    locale = java.util.Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        regularUser = testDatabaseSupport.insert(
+            User.create(
+                userName = "testuser",
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                greeting = "Test User",
+                isAdmin = false,
+                locale = java.util.Locale.ENGLISH,
+                languageCode = "en"
             )
-        }
+        )
     }
 
     @Test
@@ -128,18 +124,16 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should show error when username already exists`() {
         // Create another user with a different username
-        val anotherUser = transactionHelper.inTransaction {
-            userRepository.save(
-                User.create(
-                    userName = "existinguser",
-                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                    greeting = "Existing User",
-                    isAdmin = false,
-                    locale = java.util.Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        val anotherUser = testDatabaseSupport.insert(
+            User.create(
+                userName = "existinguser",
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                greeting = "Existing User",
+                isAdmin = false,
+                locale = java.util.Locale.ENGLISH,
+                languageCode = "en"
             )
-        }
+        )
 
         loginViaToken("/admin/users/${regularUser.id}", adminUser, testAuthSupport)
 
@@ -185,15 +179,13 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should display activation token when it exists`() {
         // Create activation token for the user
-        val activationToken = transactionHelper.inTransaction {
-            activationTokenRepository.save(
-                ActivationToken(
-                    userId = requireNotNull(regularUser.id),
-                    token = "test-activation-token-123",
-                    expiresAt = Instant.now().plus(24, ChronoUnit.HOURS)
-                )
+        val activationToken = testDatabaseSupport.insert(
+            ActivationToken(
+                userId = requireNotNull(regularUser.id),
+                token = "test-activation-token-123",
+                expiresAt = Instant.now().plus(24, ChronoUnit.HOURS)
             )
-        }
+        )
 
         loginViaToken("/admin/users/${regularUser.id}", adminUser, testAuthSupport)
 
@@ -234,15 +226,13 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should regenerate activation token successfully`() {
         // Create activation token for the user
-        val oldToken = transactionHelper.inTransaction {
-            activationTokenRepository.save(
-                ActivationToken(
-                    userId = requireNotNull(regularUser.id),
-                    token = "old-activation-token",
-                    expiresAt = Instant.now().plus(24, ChronoUnit.HOURS)
-                )
+        val oldToken = testDatabaseSupport.insert(
+            ActivationToken(
+                userId = requireNotNull(regularUser.id),
+                token = "old-activation-token",
+                expiresAt = Instant.now().plus(24, ChronoUnit.HOURS)
             )
-        }
+        )
 
         loginViaToken("/admin/users/${regularUser.id}", adminUser, testAuthSupport)
 
@@ -362,15 +352,13 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should not show expired activation token`() {
         // Create expired activation token for the user
-        val expiredToken = transactionHelper.inTransaction {
-            activationTokenRepository.save(
-                ActivationToken(
-                    userId = requireNotNull(regularUser.id),
-                    token = "expired-token",
-                    expiresAt = Instant.now().minus(1, ChronoUnit.HOURS)
-                )
+        val expiredToken = testDatabaseSupport.insert(
+            ActivationToken(
+                userId = requireNotNull(regularUser.id),
+                token = "expired-token",
+                expiresAt = Instant.now().minus(1, ChronoUnit.HOURS)
             )
-        }
+        )
 
         loginViaToken("/admin/users/${regularUser.id}", adminUser, testAuthSupport)
 

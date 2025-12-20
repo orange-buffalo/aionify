@@ -13,9 +13,6 @@ import org.mindrot.jbcrypt.BCrypt
 class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
     @Inject
-    lateinit var userRepository: UserRepository
-
-    @Inject
     lateinit var testAuthSupport: TestAuthSupport
 
     private val testPassword = "testPassword123"
@@ -31,31 +28,27 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
     fun setupTestData() {
         // Create test users with known credentials
         // Wrap in transaction to commit immediately and make visible to browser HTTP requests
-        regularUser = transactionHelper.inTransaction {
-            userRepository.save(
-                User.create(
-                    userName = regularUserName,
-                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                    greeting = regularUserGreeting,
-                    isAdmin = false,
-                    locale = java.util.Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        regularUser = testDatabaseSupport.insert(
+            User.create(
+                userName = regularUserName,
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                greeting = regularUserGreeting,
+                isAdmin = false,
+                locale = java.util.Locale.ENGLISH,
+                languageCode = "en"
             )
-        }
+        )
 
-        adminUser = transactionHelper.inTransaction {
-            userRepository.save(
-                User.create(
-                    userName = adminUserName,
-                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                    greeting = adminUserGreeting,
-                    isAdmin = true,
-                    locale = java.util.Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        adminUser = testDatabaseSupport.insert(
+            User.create(
+                userName = adminUserName,
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                greeting = adminUserGreeting,
+                isAdmin = true,
+                locale = java.util.Locale.ENGLISH,
+                languageCode = "en"
             )
-        }
+        )
     }
 
     private fun navigateToPortalViaToken() {

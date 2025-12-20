@@ -1,7 +1,7 @@
 package io.orangebuffalo.aionify.domain
 
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import io.orangebuffalo.aionify.TestTransactionHelper
+import io.orangebuffalo.aionify.TestDatabaseSupport
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -21,27 +21,22 @@ class ActivationTokenServiceTest {
     lateinit var activationTokenService: ActivationTokenService
     
     @Inject
-    lateinit var userRepository: UserRepository
-    
-    @Inject
     lateinit var activationTokenRepository: ActivationTokenRepository
     
     @Inject
-    lateinit var transactionHelper: TestTransactionHelper
+    lateinit var testDatabaseSupport: TestDatabaseSupport
     
     private fun createTestUser(): User {
-        return transactionHelper.inTransaction {
-            userRepository.save(
-                User.create(
-                    userName = "tokentest-${UUID.randomUUID()}",
-                    passwordHash = BCrypt.hashpw("password", BCrypt.gensalt()),
-                    greeting = "Token Test",
-                    isAdmin = false,
-                    locale = Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        return testDatabaseSupport.insert(
+            User.create(
+                userName = "tokentest-${UUID.randomUUID()}",
+                passwordHash = BCrypt.hashpw("password", BCrypt.gensalt()),
+                greeting = "Token Test",
+                isAdmin = false,
+                locale = Locale.ENGLISH,
+                languageCode = "en"
             )
-        }
+        )
     }
 
     @Test
@@ -49,7 +44,7 @@ class ActivationTokenServiceTest {
         val testUser = createTestUser()
         
         // Create token with default expiration
-        val token = transactionHelper.inTransaction {
+        val token = testDatabaseSupport.inTransaction {
             activationTokenService.createToken(requireNotNull(testUser.id))
         }
         
@@ -77,7 +72,7 @@ class ActivationTokenServiceTest {
         val testUser = createTestUser()
         
         // Create token with custom 48 hour expiration
-        val token = transactionHelper.inTransaction {
+        val token = testDatabaseSupport.inTransaction {
             activationTokenService.createToken(requireNotNull(testUser.id), expirationHours = 48)
         }
         
@@ -104,29 +99,29 @@ class ActivationTokenServiceTest {
         val testUser = createTestUser()
         
         // Create first token
-        val firstToken = transactionHelper.inTransaction {
+        val firstToken = testDatabaseSupport.inTransaction {
             activationTokenService.createToken(requireNotNull(testUser.id))
         }
         
         // Verify it exists
-        val foundFirst = transactionHelper.inTransaction {
+        val foundFirst = testDatabaseSupport.inTransaction {
             activationTokenRepository.findByToken(firstToken.token)
         }
         assertTrue(foundFirst.isPresent)
         
         // Create second token - should delete the first one
-        val secondToken = transactionHelper.inTransaction {
+        val secondToken = testDatabaseSupport.inTransaction {
             activationTokenService.createToken(requireNotNull(testUser.id))
         }
         
         // First token should no longer exist
-        val foundFirstAfter = transactionHelper.inTransaction {
+        val foundFirstAfter = testDatabaseSupport.inTransaction {
             activationTokenRepository.findByToken(firstToken.token)
         }
         assertTrue(foundFirstAfter.isEmpty)
         
         // Second token should exist
-        val foundSecond = transactionHelper.inTransaction {
+        val foundSecond = testDatabaseSupport.inTransaction {
             activationTokenRepository.findByToken(secondToken.token)
         }
         assertTrue(foundSecond.isPresent)

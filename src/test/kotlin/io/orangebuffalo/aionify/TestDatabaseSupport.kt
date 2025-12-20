@@ -3,6 +3,9 @@ package io.orangebuffalo.aionify
 import io.micronaut.context.ApplicationContext
 import io.micronaut.transaction.TransactionDefinition
 import io.micronaut.transaction.annotation.Transactional
+import io.orangebuffalo.aionify.domain.ActivationToken
+import io.orangebuffalo.aionify.domain.TimeEntry
+import io.orangebuffalo.aionify.domain.User
 import jakarta.inject.Singleton
 import javax.sql.DataSource
 
@@ -16,7 +19,8 @@ import javax.sql.DataSource
 @Singleton
 open class TestDatabaseSupport(
     private val dataSource: DataSource,
-    private val applicationContext: ApplicationContext
+    private val applicationContext: ApplicationContext,
+    private val genericRepository: GenericEntityRepository
 ) {
 
     /**
@@ -70,6 +74,46 @@ open class TestDatabaseSupport(
     @Transactional(propagation = TransactionDefinition.Propagation.REQUIRES_NEW)
     open fun <T> inTransaction(block: () -> T): T {
         return block()
+    }
+    
+    /**
+     * Inserts an entity in a new transaction and returns it (potentially with generated ID).
+     * The transaction is committed immediately, making the entity visible to other connections.
+     * 
+     * Example:
+     * ```
+     * val user = testDatabaseSupport.insert(User.create(...))
+     * ```
+     */
+    @Transactional(propagation = TransactionDefinition.Propagation.REQUIRES_NEW)
+    open fun <T : Any> insert(entity: T): T {
+        @Suppress("UNCHECKED_CAST")
+        return when (entity) {
+            is User -> genericRepository.save(entity) as T
+            is TimeEntry -> genericRepository.save(entity) as T
+            is ActivationToken -> genericRepository.save(entity) as T
+            else -> throw IllegalArgumentException("Unsupported entity type: ${entity::class.java.name}")
+        }
+    }
+    
+    /**
+     * Updates an entity in a new transaction and returns it.
+     * The transaction is committed immediately, making the changes visible to other connections.
+     * 
+     * Example:
+     * ```
+     * val updatedUser = testDatabaseSupport.update(user.copy(greeting = "New Greeting"))
+     * ```
+     */
+    @Transactional(propagation = TransactionDefinition.Propagation.REQUIRES_NEW)
+    open fun <T : Any> update(entity: T): T {
+        @Suppress("UNCHECKED_CAST")
+        return when (entity) {
+            is User -> genericRepository.update(entity) as T
+            is TimeEntry -> genericRepository.update(entity) as T
+            is ActivationToken -> genericRepository.update(entity) as T
+            else -> throw IllegalArgumentException("Unsupported entity type: ${entity::class.java.name}")
+        }
     }
 }
 

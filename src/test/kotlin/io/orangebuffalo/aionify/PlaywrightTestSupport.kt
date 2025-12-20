@@ -53,9 +53,6 @@ abstract class PlaywrightTestBase {
     @Inject
     lateinit var testUsers: TestUsers
 
-    @Inject
-    lateinit var transactionHelper: TestTransactionHelper
-
     private lateinit var playwright: Playwright
     private lateinit var browser: Browser
     private lateinit var browserContext: BrowserContext

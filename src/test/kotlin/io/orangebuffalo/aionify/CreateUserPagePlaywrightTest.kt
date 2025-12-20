@@ -31,18 +31,16 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
     @BeforeEach
     fun setupTestData() {
         // Create admin user
-        adminUser = transactionHelper.inTransaction {
-            userRepository.save(
-                User.create(
-                    userName = "admin",
-                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                    greeting = "Admin User",
-                    isAdmin = true,
-                    locale = java.util.Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        adminUser = testDatabaseSupport.insert(
+            User.create(
+                userName = "admin",
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                greeting = "Admin User",
+                isAdmin = true,
+                locale = java.util.Locale.ENGLISH,
+                languageCode = "en"
             )
-        }
+        )
     }
 
     @Test
@@ -167,18 +165,16 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should show error when username already exists`() {
         // Create a user with the same username first
-        transactionHelper.inTransaction {
-            userRepository.save(
-                User.create(
-                    userName = "existinguser",
-                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                    greeting = "Existing User",
-                    isAdmin = false,
-                    locale = java.util.Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        testDatabaseSupport.insert(
+            User.create(
+                userName = "existinguser",
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                greeting = "Existing User",
+                isAdmin = false,
+                locale = java.util.Locale.ENGLISH,
+                languageCode = "en"
             )
-        }
+        )
 
         loginViaToken("/admin/users/create", adminUser, testAuthSupport)
 

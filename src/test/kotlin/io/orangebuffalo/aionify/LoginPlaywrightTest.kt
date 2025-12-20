@@ -2,9 +2,7 @@ package io.orangebuffalo.aionify
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.User
-import io.orangebuffalo.aionify.domain.UserRepository
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mindrot.jbcrypt.BCrypt
@@ -14,9 +12,6 @@ import org.mindrot.jbcrypt.BCrypt
  */
 @MicronautTest(transactional = false)
 class LoginPlaywrightTest : PlaywrightTestBase() {
-
-    @Inject
-    lateinit var userRepository: UserRepository
 
     private lateinit var regularUser: User
     private lateinit var adminUser: User
@@ -205,18 +200,16 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
         val testAdminPassword = "adminPass456"
 
         // Create user in a separate transaction to ensure it's committed
-        transactionHelper.inTransaction {
-            userRepository.save(
-                User.create(
-                    userName = testAdminName,
-                    passwordHash = BCrypt.hashpw(testAdminPassword, BCrypt.gensalt()),
-                    greeting = "Test Admin 2",
-                    isAdmin = true,
-                    locale = java.util.Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        testDatabaseSupport.insert(
+            User.create(
+                userName = testAdminName,
+                passwordHash = BCrypt.hashpw(testAdminPassword, BCrypt.gensalt()),
+                greeting = "Test Admin 2",
+                isAdmin = true,
+                locale = java.util.Locale.ENGLISH,
+                languageCode = "en"
             )
-        }
+        )
 
         page.navigate("/login")
 
