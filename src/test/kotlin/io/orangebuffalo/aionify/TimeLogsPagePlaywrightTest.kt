@@ -292,7 +292,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         // Verify entry is started
         assertThat(page.locator("[data-testid='active-timer']")).isVisible()
-        assertThat(page.locator("text=Quick Entry")).isVisible()
+        assertThat(page.locator("[data-testid='current-entry-panel']").locator("text=Quick Entry")).isVisible()
     }
 
     @Test
