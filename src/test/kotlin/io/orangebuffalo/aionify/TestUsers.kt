@@ -1,7 +1,6 @@
 package io.orangebuffalo.aionify
 
 import io.orangebuffalo.aionify.domain.User
-import io.orangebuffalo.aionify.domain.UserRepository
 import jakarta.inject.Singleton
 import org.mindrot.jbcrypt.BCrypt
 import java.util.Locale
@@ -10,12 +9,11 @@ import java.util.Locale
  * Singleton that provides commonly used test users and credentials.
  * Simplifies test setup by centralizing user creation patterns.
  * 
- * **CRITICAL:** All saves are wrapped in testDatabaseSupport.inTransaction to ensure
+ * **CRITICAL:** All saves are wrapped in testDatabaseSupport.insert to ensure
  * they are committed immediately and visible to browser HTTP requests.
  */
 @Singleton
 class TestUsers(
-    private val userRepository: UserRepository,
     private val testDatabaseSupport: TestDatabaseSupport
 ) {
     
@@ -36,18 +34,16 @@ class TestUsers(
         username: String = ADMIN_USERNAME,
         greeting: String = ADMIN_GREETING
     ): User {
-        return testDatabaseSupport.inTransaction {
-            userRepository.save(
-                User.create(
-                    userName = username,
-                    passwordHash = BCrypt.hashpw(TEST_PASSWORD, BCrypt.gensalt()),
-                    greeting = greeting,
-                    isAdmin = true,
-                    locale = Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        return testDatabaseSupport.insert(
+            User.create(
+                userName = username,
+                passwordHash = BCrypt.hashpw(TEST_PASSWORD, BCrypt.gensalt()),
+                greeting = greeting,
+                isAdmin = true,
+                locale = Locale.ENGLISH,
+                languageCode = "en"
             )
-        }
+        )
     }
     
     /**
@@ -59,18 +55,16 @@ class TestUsers(
         username: String = REGULAR_USERNAME,
         greeting: String = REGULAR_GREETING
     ): User {
-        return testDatabaseSupport.inTransaction {
-            userRepository.save(
-                User.create(
-                    userName = username,
-                    passwordHash = BCrypt.hashpw(TEST_PASSWORD, BCrypt.gensalt()),
-                    greeting = greeting,
-                    isAdmin = false,
-                    locale = Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        return testDatabaseSupport.insert(
+            User.create(
+                userName = username,
+                passwordHash = BCrypt.hashpw(TEST_PASSWORD, BCrypt.gensalt()),
+                greeting = greeting,
+                isAdmin = false,
+                locale = Locale.ENGLISH,
+                languageCode = "en"
             )
-        }
+        )
     }
     
     /**
@@ -85,17 +79,15 @@ class TestUsers(
         locale: Locale,
         languageCode: String
     ): User {
-        return testDatabaseSupport.inTransaction {
-            userRepository.save(
-                User.create(
-                    userName = username,
-                    passwordHash = BCrypt.hashpw(TEST_PASSWORD, BCrypt.gensalt()),
-                    greeting = greeting,
-                    isAdmin = isAdmin,
-                    locale = locale,
-                    languageCode = languageCode
-                )
+        return testDatabaseSupport.insert(
+            User.create(
+                userName = username,
+                passwordHash = BCrypt.hashpw(TEST_PASSWORD, BCrypt.gensalt()),
+                greeting = greeting,
+                isAdmin = isAdmin,
+                locale = locale,
+                languageCode = languageCode
             )
-        }
+        )
     }
 }

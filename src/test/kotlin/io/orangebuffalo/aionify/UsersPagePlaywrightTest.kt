@@ -30,33 +30,29 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
     fun setupTestData() {
         // Create admin user
         // Wrap in transaction to commit immediately and make visible to browser HTTP requests
-        adminUser = transactionHelper.inTransaction {
-            userRepository.save(
-                User.create(
-                    userName = "admin",
-                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                    greeting = "Admin User",
-                    isAdmin = true,
-                    locale = java.util.Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        adminUser = testDatabaseSupport.insert(
+            User.create(
+                userName = "admin",
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                greeting = "Admin User",
+                isAdmin = true,
+                locale = java.util.Locale.ENGLISH,
+                languageCode = "en"
             )
-        }
+        )
 
         // Create regular user
         // Wrap in transaction to commit immediately and make visible to browser HTTP requests
-        regularUser = transactionHelper.inTransaction {
-            userRepository.save(
-                User.create(
-                    userName = "regularuser",
-                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                    greeting = "Regular User",
-                    isAdmin = false,
-                    locale = java.util.Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        regularUser = testDatabaseSupport.insert(
+            User.create(
+                userName = "regularuser",
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                greeting = "Regular User",
+                isAdmin = false,
+                locale = java.util.Locale.ENGLISH,
+                languageCode = "en"
             )
-        }
+        )
     }
 
     @Test
@@ -205,19 +201,17 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
     fun `should display pagination when there are more than 20 users`() {
         // Create 25 users to test pagination
         // Wrap in transaction to commit immediately and make visible to browser HTTP requests
-        transactionHelper.inTransaction {
-            for (i in 1..25) {
-                userRepository.save(
-                    User.create(
-                        userName = "user$i",
-                        passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                        greeting = "User $i",
-                        isAdmin = false,
-                        locale = java.util.Locale.ENGLISH,
-                        languageCode = "en"
-                    )
+        for (i in 1..25) {
+            testDatabaseSupport.insert(
+                User.create(
+                    userName = "user$i",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "User $i",
+                    isAdmin = false,
+                    locale = java.util.Locale.ENGLISH,
+                    languageCode = "en"
                 )
-            }
+            )
         }
 
         loginViaToken("/admin/users", adminUser, testAuthSupport)
@@ -239,19 +233,17 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
     fun `should navigate between pages using pagination controls`() {
         // Create 25 users to test pagination
         // Wrap in transaction to commit immediately and make visible to browser HTTP requests
-        transactionHelper.inTransaction {
-            for (i in 1..25) {
-                userRepository.save(
-                    User.create(
-                        userName = "user$i",
-                        passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                        greeting = "User $i",
-                        isAdmin = false,
-                        locale = java.util.Locale.ENGLISH,
-                        languageCode = "en"
-                    )
+        for (i in 1..25) {
+            testDatabaseSupport.insert(
+                User.create(
+                    userName = "user$i",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "User $i",
+                    isAdmin = false,
+                    locale = java.util.Locale.ENGLISH,
+                    languageCode = "en"
                 )
-            }
+            )
         }
 
         loginViaToken("/admin/users", adminUser, testAuthSupport)
@@ -299,19 +291,17 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
     fun `should display correct number of users on each page`() {
         // Create 25 users
         // Wrap in transaction to commit immediately and make visible to browser HTTP requests
-        transactionHelper.inTransaction {
-            for (i in 1..25) {
-                userRepository.save(
-                    User.create(
-                        userName = "user$i",
-                        passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                        greeting = "User $i",
-                        isAdmin = false,
-                        locale = java.util.Locale.ENGLISH,
-                        languageCode = "en"
-                    )
+        for (i in 1..25) {
+            testDatabaseSupport.insert(
+                User.create(
+                    userName = "user$i",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "User $i",
+                    isAdmin = false,
+                    locale = java.util.Locale.ENGLISH,
+                    languageCode = "en"
                 )
-            }
+            )
         }
 
         loginViaToken("/admin/users", adminUser, testAuthSupport)
@@ -340,28 +330,26 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
     fun `should display users sorted by username`() {
         // Create users with names that would be out of order if not sorted
         // Wrap in transaction to commit immediately and make visible to browser HTTP requests
-        transactionHelper.inTransaction {
-            userRepository.save(
-                User.create(
-                    userName = "zebra",
-                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                    greeting = "Zebra User",
-                    isAdmin = false,
-                    locale = java.util.Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        testDatabaseSupport.insert(
+            User.create(
+                userName = "zebra",
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                greeting = "Zebra User",
+                isAdmin = false,
+                locale = java.util.Locale.ENGLISH,
+                languageCode = "en"
             )
-            userRepository.save(
-                User.create(
-                    userName = "apple",
-                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                    greeting = "Apple User",
-                    isAdmin = false,
-                    locale = java.util.Locale.ENGLISH,
-                    languageCode = "en"
-                )
+        )
+        testDatabaseSupport.insert(
+            User.create(
+                userName = "apple",
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                greeting = "Apple User",
+                isAdmin = false,
+                locale = java.util.Locale.ENGLISH,
+                languageCode = "en"
             )
-        }
+        )
 
         loginViaToken("/admin/users", adminUser, testAuthSupport)
 
