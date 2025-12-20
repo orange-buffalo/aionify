@@ -1,5 +1,6 @@
 package io.orangebuffalo.aionify
 
+import com.microsoft.playwright.Clock
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.domain.TimeEntry
@@ -84,11 +85,14 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should continue with an existing entry`() {
+        // Install Playwright clock to ensure frontend shows the correct week
+        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
+        
         // Create a completed entry
         testDatabaseSupport.insert(
             TimeEntry(
-                startTime = Instant.now().minusSeconds(3600),
-                endTime = Instant.now().minusSeconds(1800),
+                startTime = FIXED_TEST_TIME.minusSeconds(3600),
+                endTime = FIXED_TEST_TIME.minusSeconds(1800),
                 title = "Previous Task",
                 ownerId = requireNotNull(testUser.id)
             )
@@ -108,11 +112,14 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should delete a time entry with confirmation`() {
+        // Install Playwright clock to ensure frontend shows the correct week
+        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
+        
         // Create an entry
         testDatabaseSupport.insert(
             TimeEntry(
-                startTime = Instant.now().minusSeconds(3600),
-                endTime = Instant.now().minusSeconds(1800),
+                startTime = FIXED_TEST_TIME.minusSeconds(3600),
+                endTime = FIXED_TEST_TIME.minusSeconds(1800),
                 title = "Task to Delete",
                 ownerId = requireNotNull(testUser.id)
             )
@@ -151,15 +158,17 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should navigate between weeks`() {
+        // Install Playwright clock to ensure frontend shows the correct week
+        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
+        
         // Create entries for different weeks
-        val now = Instant.now()
-        val lastWeek = now.minusSeconds(7 * 24 * 3600)
+        val lastWeek = FIXED_TEST_TIME.minusSeconds(7 * 24 * 3600)
         
         // Current week entry
         testDatabaseSupport.insert(
             TimeEntry(
-                startTime = now.minusSeconds(3600),
-                endTime = now.minusSeconds(1800),
+                startTime = FIXED_TEST_TIME.minusSeconds(3600),
+                endTime = FIXED_TEST_TIME.minusSeconds(1800),
                 title = "This Week Task",
                 ownerId = requireNotNull(testUser.id)
             )
@@ -195,15 +204,19 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should handle entry spanning two dates`() {
+        // Install Playwright clock to ensure frontend shows the correct week
+        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
+        
         // Create an entry that spans midnight
-        val today = Instant.now()
-        val todayStart = today.minusSeconds(today.epochSecond % 86400) // Start of today
-        val yesterdayEnd = todayStart.minusSeconds(1) // End of yesterday
+        // FIXED_TEST_TIME is 2024-03-15T14:30:00Z (Friday afternoon)
+        // We'll create an entry that starts on Thursday and ends on Friday
+        val yesterdayEvening = FIXED_TEST_TIME.minusSeconds(24 * 3600 - 2 * 3600) // Thursday 16:30:00Z
+        val todayMorning = FIXED_TEST_TIME.minusSeconds(12 * 3600) // Friday 02:30:00Z
         
         testDatabaseSupport.insert(
             TimeEntry(
-                startTime = yesterdayEnd.minusSeconds(7200), // Started 2 hours before midnight
-                endTime = todayStart.plusSeconds(3600), // Ended 1 hour after midnight
+                startTime = yesterdayEvening, // Started on Thursday evening
+                endTime = todayMorning, // Ended on Friday morning
                 title = "Spanning Entry",
                 ownerId = requireNotNull(testUser.id)
             )
@@ -229,10 +242,13 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show active entry on page load`() {
+        // Install Playwright clock to ensure frontend shows the correct week
+        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
+        
         // Create an active entry
         testDatabaseSupport.insert(
             TimeEntry(
-                startTime = Instant.now().minusSeconds(1800),
+                startTime = FIXED_TEST_TIME.minusSeconds(1800),
                 endTime = null,
                 title = "Active Task",
                 ownerId = requireNotNull(testUser.id)
@@ -276,10 +292,13 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should prevent starting new entry while another is active`() {
+        // Install Playwright clock to ensure frontend shows the correct week
+        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
+        
         // Create an active entry
         testDatabaseSupport.insert(
             TimeEntry(
-                startTime = Instant.now().minusSeconds(1800),
+                startTime = FIXED_TEST_TIME.minusSeconds(1800),
                 endTime = null,
                 title = "Active Task",
                 ownerId = requireNotNull(testUser.id)
@@ -303,5 +322,226 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // Verify timezone hint is visible somewhere on the page
         val hint = page.locator("text=/Times shown in/")
         assertThat(hint).isVisible()
+    }
+    
+    @Test
+    fun `should verify active task duration using clock`() {
+        // Install Playwright clock with fixed time for this test
+        // This makes the timer behavior deterministic
+        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
+        
+        // Create an active entry that started 30 minutes ago (1800 seconds)
+        testDatabaseSupport.insert(
+            TimeEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(1800),
+                endTime = null,
+                title = "Active Task",
+                ownerId = requireNotNull(testUser.id)
+            )
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Verify active timer shows the correct duration (30 minutes = 00:30:00)
+        val activeTimer = page.locator("[data-testid='active-timer']")
+        assertThat(activeTimer).isVisible()
+        assertThat(activeTimer).hasText("00:30:00")
+        
+        // Advance the clock by 5 minutes
+        page.clock().runFor(5 * 60 * 1000)
+        
+        // Timer should now show 35 minutes (00:35:00)
+        assertThat(activeTimer).hasText("00:35:00")
+        
+        // Advance another 25 minutes to reach 1 hour
+        page.clock().runFor(25 * 60 * 1000)
+        
+        // Timer should now show 1 hour (01:00:00)
+        assertThat(activeTimer).hasText("01:00:00")
+    }
+    
+    @Test
+    fun `should render entries from multiple days with varying entry counts`() {
+        // Install Playwright clock with fixed time for deterministic week display
+        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
+        
+        // FIXED_TEST_TIME is 2024-03-15T14:30:00Z (Friday, March 15)
+        // Let's create entries for different days in the current week (Mon Mar 11 - Sun Mar 17)
+        
+        // Monday (Mar 11) - 2 entries
+        val monday = FIXED_TEST_TIME.minusSeconds(4 * 24 * 3600) // 4 days before Friday
+        testDatabaseSupport.insert(
+            TimeEntry(
+                startTime = monday.minusSeconds(7200),
+                endTime = monday.minusSeconds(5400),
+                title = "Monday Task 1",
+                ownerId = requireNotNull(testUser.id)
+            )
+        )
+        testDatabaseSupport.insert(
+            TimeEntry(
+                startTime = monday.minusSeconds(3600),
+                endTime = monday.minusSeconds(1800),
+                title = "Monday Task 2",
+                ownerId = requireNotNull(testUser.id)
+            )
+        )
+        
+        // Tuesday (Mar 12) - 1 entry
+        val tuesday = FIXED_TEST_TIME.minusSeconds(3 * 24 * 3600)
+        testDatabaseSupport.insert(
+            TimeEntry(
+                startTime = tuesday.minusSeconds(3600),
+                endTime = tuesday.minusSeconds(1800),
+                title = "Tuesday Task",
+                ownerId = requireNotNull(testUser.id)
+            )
+        )
+        
+        // Wednesday (Mar 13) - 3 entries
+        val wednesday = FIXED_TEST_TIME.minusSeconds(2 * 24 * 3600)
+        testDatabaseSupport.insert(
+            TimeEntry(
+                startTime = wednesday.minusSeconds(10800),
+                endTime = wednesday.minusSeconds(9000),
+                title = "Wednesday Task 1",
+                ownerId = requireNotNull(testUser.id)
+            )
+        )
+        testDatabaseSupport.insert(
+            TimeEntry(
+                startTime = wednesday.minusSeconds(7200),
+                endTime = wednesday.minusSeconds(5400),
+                title = "Wednesday Task 2",
+                ownerId = requireNotNull(testUser.id)
+            )
+        )
+        testDatabaseSupport.insert(
+            TimeEntry(
+                startTime = wednesday.minusSeconds(3600),
+                endTime = wednesday.minusSeconds(1800),
+                title = "Wednesday Task 3",
+                ownerId = requireNotNull(testUser.id)
+            )
+        )
+        
+        // Friday (Mar 15) - today - 1 entry
+        testDatabaseSupport.insert(
+            TimeEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(3600),
+                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                title = "Friday Task",
+                ownerId = requireNotNull(testUser.id)
+            )
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Verify Friday (today) has 1 entry
+        val fridayGroup = page.locator("[data-testid='time-entry']:has-text('Friday Task')")
+        assertThat(fridayGroup).isVisible()
+        
+        // Verify we can see "Today" label for Friday
+        assertThat(page.locator("text=/Today/i")).isVisible()
+        
+        // Verify Wednesday has 3 entries
+        val wednesdayEntries = page.locator("[data-testid='time-entry']:has-text('Wednesday Task')")
+        assertEquals(3, wednesdayEntries.count())
+        assertThat(wednesdayEntries.first()).containsText("Wednesday Task")
+        
+        // Verify Tuesday has 1 entry
+        val tuesdayEntry = page.locator("[data-testid='time-entry']:has-text('Tuesday Task')")
+        assertThat(tuesdayEntry).isVisible()
+        assertEquals(1, tuesdayEntry.count())
+        
+        // Verify Monday has 2 entries
+        val mondayEntries = page.locator("[data-testid='time-entry']:has-text('Monday Task')")
+        assertEquals(2, mondayEntries.count())
+    }
+    
+    @Test
+    fun `should handle midnight split scenario correctly`() {
+        // Install Playwright clock with fixed time for deterministic week display
+        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
+        
+        // FIXED_TEST_TIME is 2024-03-15T14:30:00Z (Friday afternoon)
+        // Create an entry that spans from Thursday 23:00 UTC to Friday 01:00 UTC
+        val thursdayEvening = FIXED_TEST_TIME.minusSeconds(55800) // Thursday 23:00 UTC (15.5 hours before)
+        val fridayMorning = FIXED_TEST_TIME.minusSeconds(48600) // Friday 01:00 UTC (13.5 hours before)
+        
+        testDatabaseSupport.insert(
+            TimeEntry(
+                startTime = thursdayEvening,
+                endTime = fridayMorning,
+                title = "Midnight Spanning Task",
+                ownerId = requireNotNull(testUser.id)
+            )
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // The entry should appear twice - once in Thursday group and once in Friday group
+        val spanningEntries = page.locator("[data-testid='time-entry']:has-text('Midnight Spanning Task')")
+        
+        // Should see the entry split into 2 parts (one for each day)
+        assertEquals(2, spanningEntries.count(), "Entry should be split across two days")
+        
+        // Verify both parts are visible
+        assertThat(spanningEntries.first()).isVisible()
+        assertThat(spanningEntries.nth(1)).isVisible()
+        
+        // Both should contain the same title
+        assertThat(spanningEntries.first()).containsText("Midnight Spanning Task")
+        assertThat(spanningEntries.nth(1)).containsText("Midnight Spanning Task")
+    }
+    
+    @Test
+    fun `should delete midnight-split entry correctly`() {
+        // Install Playwright clock with fixed time for deterministic week display
+        page.clock().install(Clock.InstallOptions().setTime(FIXED_TEST_TIME.toEpochMilli()))
+        
+        // Create an entry that spans midnight
+        val thursdayEvening = FIXED_TEST_TIME.minusSeconds(55800) // Thursday 23:00 UTC (15.5 hours before)
+        val fridayMorning = FIXED_TEST_TIME.minusSeconds(48600) // Friday 01:00 UTC (13.5 hours before)
+        
+        testDatabaseSupport.insert(
+            TimeEntry(
+                startTime = thursdayEvening,
+                endTime = fridayMorning,
+                title = "Task to Delete",
+                ownerId = requireNotNull(testUser.id)
+            )
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Verify entry exists in both day groups
+        val entries = page.locator("[data-testid='time-entry']:has-text('Task to Delete')")
+        assertEquals(2, entries.count(), "Entry should be split across two days")
+
+        // Delete the first instance
+        val firstEntryMenuButton = page.locator("[data-testid='time-entry']:has-text('Task to Delete')")
+            .first()
+            .locator("[data-testid='entry-menu-button']")
+        firstEntryMenuButton.click()
+
+        val deleteMenuItem = page.locator("[data-testid='delete-menu-item']")
+        deleteMenuItem.click()
+
+        // Confirm deletion
+        val confirmButton = page.locator("[data-testid='confirm-delete-button']")
+        assertThat(confirmButton).isVisible()
+        confirmButton.click()
+
+        // Wait for dialog to close
+        assertThat(confirmButton).not().isVisible()
+
+        // Both parts of the entry should be removed (since it's the same entry in DB)
+        page.waitForCondition {
+            page.locator("[data-testid='time-entry']:has-text('Task to Delete')").count() == 0
+        }
+
+        // Verify no error message
+        assertThat(page.locator("[data-testid='time-logs-error']")).not().isVisible()
     }
 }
