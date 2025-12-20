@@ -8,7 +8,6 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.TestAuthSupport
 import io.orangebuffalo.aionify.TestDatabaseSupport
-import io.orangebuffalo.aionify.TestTransactionHelper
 import io.orangebuffalo.aionify.TestUsers
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.*
