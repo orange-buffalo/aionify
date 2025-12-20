@@ -490,61 +490,6 @@ export function TimeLogsPage() {
             </Button>
           </div>
 
-          {/* Current Entry Panel */}
-          <Card className="mb-6 bg-card/90" data-testid="current-entry-panel">
-            <CardHeader>
-              <CardTitle className="text-foreground">{t('timeLogs.currentEntry.title')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {activeEntry ? (
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="font-semibold text-foreground mb-1">{activeEntry.title}</p>
-                    <div className="text-sm text-muted-foreground">
-                      {t('timeLogs.startedAt')}: {formatTime(activeEntry.startTime, locale)}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-2xl font-mono font-bold text-foreground" data-testid="active-timer">
-                      {formatDuration(activeDuration)}
-                    </div>
-                    <Button
-                      onClick={handleStop}
-                      disabled={isStopping}
-                      data-testid="stop-button"
-                    >
-                      <Square className="h-4 w-4 mr-2" />
-                      {isStopping ? t('timeLogs.stopping') : t('timeLogs.stop')}
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-4">
-                  <Input
-                    value={newEntryTitle}
-                    onChange={(e) => setNewEntryTitle(e.target.value)}
-                    placeholder={t('timeLogs.currentEntry.placeholder')}
-                    maxLength={1000}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !isStarting) {
-                        handleStart()
-                      }
-                    }}
-                    data-testid="new-entry-input"
-                    className="text-foreground"
-                  />
-                  <Button
-                    onClick={handleStart}
-                    disabled={isStarting || !newEntryTitle.trim()}
-                    data-testid="start-button"
-                  >
-                    <Play className="h-4 w-4 mr-2" />
-                    {isStarting ? t('timeLogs.starting') : t('timeLogs.start')}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
           {/* Time Entries List */}
           {loading ? (
