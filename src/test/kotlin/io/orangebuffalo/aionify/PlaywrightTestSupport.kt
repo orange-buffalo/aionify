@@ -15,9 +15,11 @@ import java.time.ZonedDateTime
 
 /**
  * Base class for Playwright tests that provides browser lifecycle management, automatic trace recording,
- * and database cleanup before each test.
+ * browser console verification, and database cleanup before each test.
  *
  * Traces are saved to `build/playwright-traces/` with a filename based on the test class and method names.
+ *
+ * Browser console errors and warnings are automatically captured and will cause the test to fail if detected.
  *
  * Usage:
  * ```kotlin
@@ -61,6 +63,7 @@ abstract class PlaywrightTestBase {
     private lateinit var browserContext: BrowserContext
     private lateinit var _page: Page
     private lateinit var testInfo: TestInfo
+    private val consoleMessages = mutableListOf<ConsoleMessage>()
 
     /**
      * Base URL for the application, set automatically from the embedded server.
@@ -94,6 +97,9 @@ abstract class PlaywrightTestBase {
         // Clean up database before each test for isolation
         testDatabaseSupport.truncateAllTables()
 
+        // Clear console messages from previous test
+        consoleMessages.clear()
+
         playwright = Playwright.create()
         browser = playwright.chromium().launch(
             BrowserType.LaunchOptions().setHeadless(true)
@@ -113,6 +119,11 @@ abstract class PlaywrightTestBase {
         )
 
         _page = browserContext.newPage()
+
+        // Add console message listener to capture errors and warnings
+        _page.onConsoleMessage { message ->
+            consoleMessages.add(message)
+        }
         
         // Install Playwright clock with fixed time for deterministic tests
         // Use pauseAt to prevent automatic time progression - time only advances when explicitly requested
@@ -184,6 +195,9 @@ abstract class PlaywrightTestBase {
             browserContext.close()
             browser.close()
             playwright.close()
+
+            // Verify browser console for errors and warnings after cleanup
+            verifyConsoleMessages()
         }
     }
 
@@ -193,5 +207,31 @@ abstract class PlaywrightTestBase {
         // Sanitize method name (replace special characters)
         val sanitizedMethodName = methodName.replace(SANITIZE_REGEX, "_")
         return "${className}_${sanitizedMethodName}.zip"
+    }
+
+    /**
+     * Verifies that no browser console errors or warnings were logged during the test.
+     * Throws an AssertionError if any errors or warnings are found.
+     * 
+     * Note: "Failed to load resource" errors are ignored as they are expected when testing
+     * error scenarios (e.g., 401 Unauthorized, 400 Bad Request responses).
+     */
+    private fun verifyConsoleMessages() {
+        val errorMessages = consoleMessages.filter { message ->
+            val isErrorOrWarning = message.type() == "error" || message.type() == "warning"
+            val isNetworkError = message.text().startsWith("Failed to load resource:")
+            
+            // Filter to only actual errors/warnings, excluding network-related errors
+            isErrorOrWarning && !isNetworkError
+        }
+
+        if (errorMessages.isNotEmpty()) {
+            val formattedMessages = errorMessages.joinToString("\n") { message ->
+                "[${message.type().uppercase()}] ${message.text()} (${message.location()})"
+            }
+            throw AssertionError(
+                "Browser console contained ${errorMessages.size} error(s) or warning(s):\n$formattedMessages"
+            )
+        }
     }
 }

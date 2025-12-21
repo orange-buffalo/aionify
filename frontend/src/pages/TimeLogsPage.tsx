@@ -589,22 +589,20 @@ export function TimeLogsPage() {
           <DialogHeader>
             <DialogTitle className="text-foreground">{t('timeLogs.deleteDialog.title')}</DialogTitle>
             <DialogDescription className="text-foreground">
-              {entryToDelete && (
-                <>
-                  {t('timeLogs.deleteDialog.message')}
-                  <div className="mt-2 p-2 bg-muted rounded text-foreground">
-                    <p className="font-semibold">{entryToDelete.title}</p>
-                    <p className="text-sm">
-                      {formatTime(entryToDelete.startTime, locale)} - {entryToDelete.endTime ? formatTime(entryToDelete.endTime, locale) : t('timeLogs.inProgress')}
-                    </p>
-                    <p className="text-sm">
-                      {t('timeLogs.duration')}: {formatDuration(calculateDuration(entryToDelete.startTime, entryToDelete.endTime))}
-                    </p>
-                  </div>
-                </>
-              )}
+              {t('timeLogs.deleteDialog.message')}
             </DialogDescription>
           </DialogHeader>
+          {entryToDelete && (
+            <div className="mt-2 p-2 bg-muted rounded text-foreground">
+              <div className="font-semibold">{entryToDelete.title}</div>
+              <div className="text-sm">
+                {formatTime(entryToDelete.startTime, locale)} - {entryToDelete.endTime ? formatTime(entryToDelete.endTime, locale) : t('timeLogs.inProgress')}
+              </div>
+              <div className="text-sm">
+                {t('timeLogs.duration')}: {formatDuration(calculateDuration(entryToDelete.startTime, entryToDelete.endTime))}
+              </div>
+            </div>
+          )}
           <DialogFooter>
             <Button
               variant="ghost"
