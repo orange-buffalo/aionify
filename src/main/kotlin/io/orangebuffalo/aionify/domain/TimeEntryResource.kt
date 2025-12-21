@@ -25,7 +25,8 @@ import java.time.Instant
 @Transactional
 open class TimeEntryResource(
     private val timeEntryRepository: TimeEntryRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val timeService: TimeService
 ) {
 
     @Get
@@ -103,7 +104,7 @@ open class TimeEntryResource(
 
         val newEntry = timeEntryRepository.save(
             TimeEntry(
-                startTime = Instant.now(),
+                startTime = timeService.now(),
                 endTime = null,
                 title = request.title,
                 ownerId = userId
@@ -141,7 +142,7 @@ open class TimeEntryResource(
         }
 
         val stoppedEntry = timeEntryRepository.update(
-            entry.copy(endTime = Instant.now())
+            entry.copy(endTime = timeService.now())
         )
 
         return HttpResponse.ok(stoppedEntry.toDto())

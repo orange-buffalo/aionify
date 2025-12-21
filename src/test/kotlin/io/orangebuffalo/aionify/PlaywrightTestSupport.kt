@@ -9,6 +9,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInfo
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 /**
  * Base class for Playwright tests that provides browser lifecycle management, automatic trace recording,
@@ -78,6 +81,13 @@ abstract class PlaywrightTestBase {
         // Local storage keys matching frontend constants
         const val TOKEN_KEY = "aionify_token"
         const val LAST_USERNAME_KEY = "aionify_last_username"
+        
+        /**
+         * Fixed time for all Playwright tests: 2024-03-15T14:30:00Z (Friday, March 15, 2024 at 2:30 PM UTC)
+         * This ensures deterministic behavior for time-sensitive tests.
+         * This is the same time used by TestTimeService for backend operations.
+         */
+        val FIXED_TEST_TIME: Instant = TestTimeService.FIXED_TEST_TIME
     }
 
     @BeforeEach
@@ -114,6 +124,11 @@ abstract class PlaywrightTestBase {
         _page.onConsoleMessage { message ->
             consoleMessages.add(message)
         }
+        
+        // Install Playwright clock with fixed time for deterministic tests
+        // Use pauseAt to prevent automatic time progression - time only advances when explicitly requested
+        // This ensures frontend JavaScript Date API uses the same fixed time as backend TimeService
+        _page.clock().pauseAt(FIXED_TEST_TIME.toEpochMilli())
     }
 
     /**

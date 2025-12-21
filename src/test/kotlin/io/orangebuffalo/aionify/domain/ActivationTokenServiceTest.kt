@@ -2,6 +2,7 @@ package io.orangebuffalo.aionify.domain
 
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.TestDatabaseSupport
+import io.orangebuffalo.aionify.TestTimeService
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -51,8 +52,8 @@ class ActivationTokenServiceTest {
         assertNotNull(token.token)
         assertNotNull(token.expiresAt)
         
-        // Calculate the duration between now and expiration
-        val now = Instant.now()
+        // Calculate the duration between the fixed test time and expiration
+        val now = TestTimeService.FIXED_TEST_TIME
         val duration = Duration.between(now, token.expiresAt)
         
         // Should be approximately 10 days (240 hours)
@@ -79,8 +80,8 @@ class ActivationTokenServiceTest {
         assertNotNull(token.token)
         assertNotNull(token.expiresAt)
         
-        // Calculate the duration
-        val now = Instant.now()
+        // Calculate the duration using the fixed test time
+        val now = TestTimeService.FIXED_TEST_TIME
         val duration = Duration.between(now, token.expiresAt)
         
         // Should be approximately 48 hours

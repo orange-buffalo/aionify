@@ -26,7 +26,8 @@ open class UserAdminResource(
     private val userRepository: UserRepository,
     private val userService: UserService,
     private val activationTokenRepository: ActivationTokenRepository,
-    private val activationTokenService: ActivationTokenService
+    private val activationTokenService: ActivationTokenService,
+    private val timeService: TimeService
 ) {
 
     @Get
@@ -109,7 +110,7 @@ open class UserAdminResource(
         
         // Check for activation token
         val activationToken = activationTokenRepository.findByUserId(id).orElse(null)
-        val activationTokenInfo = if (activationToken != null && activationToken.expiresAt.isAfter(Instant.now())) {
+        val activationTokenInfo = if (activationToken != null && activationToken.expiresAt.isAfter(timeService.now())) {
             ActivationTokenInfo(
                 token = activationToken.token,
                 expiresAt = activationToken.expiresAt
