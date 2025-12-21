@@ -1086,7 +1086,9 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         timeLogsPage.clickSaveEdit()
 
         // Verify the entry now appears in yesterday's group
-        // Duration should be from Thursday 16:00 to Friday 14:30 = 22.5 hours
+        // Duration should be from Thursday 16:00 to Friday 14:30
+        // This spans midnight, so it's split: Yesterday (16:00-23:59:59.999) + Today (00:00-14:30)
+        // Yesterday: 7:59:59, Today: 14:30:00, Total: 22:29:59 (due to millisecond split)
         val updatedState = TimeLogsPageState(
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Cross-Day Task",
