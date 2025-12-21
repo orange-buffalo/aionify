@@ -33,24 +33,8 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     fun `should display time logs page with navigation`() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
-        // Assert initial empty page state
-        val expectedState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.NoActiveEntry(
-                inputVisible = true,
-                startButtonVisible = true,
-                startButtonEnabled = false
-            ),
-            weekNavigation = WeekNavigationState(
-                weekRange = "Mar 11 - Mar 17", // Week containing March 15, 2024
-                previousButtonVisible = true,
-                nextButtonVisible = true
-            ),
-            dayGroups = emptyList(),
-            noEntriesMessageVisible = true,
-            timezoneHintVisible = true
-        )
-        
-        timeLogsPage.assertPageState(expectedState)
+        // Assert initial empty page state - using default state
+        timeLogsPage.assertPageState(TimeLogsPageState())
     }
 
     @Test
@@ -58,16 +42,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify initial state
-        val initialState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.NoActiveEntry(
-                inputVisible = true,
-                startButtonVisible = true,
-                startButtonEnabled = false
-            ),
-            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
-            dayGroups = emptyList(),
-            noEntriesMessageVisible = true
-        )
+        val initialState = TimeLogsPageState()
         timeLogsPage.assertPageState(initialState)
 
         // Start a new entry
@@ -76,15 +51,11 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         // Verify entry is started with active timer
         // Note: Active entries appear in the day groups list immediately
-        val activeState = TimeLogsPageState(
+        val activeState = initialState.copy(
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Test Task",
-                duration = "00:00:00",
-                stopButtonVisible = true,
-                inputVisible = false,
-                startButtonVisible = false
+                duration = "00:00:00"
             ),
-            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
                 DayGroupState(
                     displayTitle = "Today",
@@ -97,8 +68,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                         )
                     )
                 )
-            ),
-            noEntriesMessageVisible = false
+            )
         )
         timeLogsPage.assertPageState(activeState)
 
@@ -106,13 +76,8 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         timeLogsPage.clickStop()
 
         // Verify we're back to ready state with the completed entry visible
-        val stoppedState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.NoActiveEntry(
-                inputVisible = true,
-                startButtonVisible = true,
-                startButtonEnabled = false
-            ),
-            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+        val stoppedState = activeState.copy(
+            currentEntry = CurrentEntryState.NoActiveEntry(),
             dayGroups = listOf(
                 DayGroupState(
                     displayTitle = "Today",
@@ -125,8 +90,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                         )
                     )
                 )
-            ),
-            noEntriesMessageVisible = false
+            )
         )
         timeLogsPage.assertPageState(stoppedState)
     }
@@ -162,7 +126,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                     )
                 )
             ),
-            noEntriesMessageVisible = false
         )
         timeLogsPage.assertPageState(initialState)
 
@@ -175,7 +138,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Previous Task",
                 duration = "00:00:00",
-                stopButtonVisible = true
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
@@ -198,7 +160,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                     )
                 )
             ),
-            noEntriesMessageVisible = false
         )
         timeLogsPage.assertPageState(activeState)
     }
@@ -234,7 +195,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                     )
                 )
             ),
-            noEntriesMessageVisible = false
         )
         timeLogsPage.assertPageState(initialState)
 
@@ -251,7 +211,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.NoActiveEntry(),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = emptyList(),
-            noEntriesMessageVisible = true,
             errorMessageVisible = false
         )
         timeLogsPage.assertPageState(deletedState)
@@ -301,7 +260,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                     )
                 )
             ),
-            noEntriesMessageVisible = false
         )
         timeLogsPage.assertPageState(currentWeekState)
 
@@ -325,7 +283,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                     )
                 )
             ),
-            noEntriesMessageVisible = false
         )
         timeLogsPage.assertPageState(lastWeekState)
         
@@ -385,7 +342,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                     )
                 )
             ),
-            noEntriesMessageVisible = false
         )
         timeLogsPage.assertPageState(expectedState)
     }
@@ -399,7 +355,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.NoActiveEntry(),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = emptyList(),
-            noEntriesMessageVisible = true
         )
         timeLogsPage.assertPageState(emptyState)
     }
@@ -424,9 +379,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Active Task",
                 duration = "00:30:00",
-                stopButtonVisible = true,
-                inputVisible = false,
-                startButtonVisible = false
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
@@ -442,7 +394,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                     )
                 )
             ),
-            noEntriesMessageVisible = false
         )
         timeLogsPage.assertPageState(activeState)
     }
@@ -460,7 +411,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = emptyList(),
-            noEntriesMessageVisible = true
         )
         timeLogsPage.assertPageState(initialState)
     }
@@ -479,7 +429,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Quick Entry",
                 duration = "00:00:00",
-                stopButtonVisible = true
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
@@ -495,7 +444,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                     )
                 )
             ),
-            noEntriesMessageVisible = false
         )
         timeLogsPage.assertPageState(activeState)
     }
@@ -520,9 +468,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Active Task",
                 duration = "00:30:00",
-                stopButtonVisible = true,
-                inputVisible = false,
-                startButtonVisible = false
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
@@ -538,26 +483,10 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                     )
                 )
             ),
-            noEntriesMessageVisible = false
         )
         timeLogsPage.assertPageState(activeState)
     }
 
-    @Test
-    fun `should display timezone hint`() {
-        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
-
-        // Verify timezone hint is visible
-        val state = TimeLogsPageState(
-            currentEntry = CurrentEntryState.NoActiveEntry(),
-            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
-            dayGroups = emptyList(),
-            noEntriesMessageVisible = true,
-            timezoneHintVisible = true
-        )
-        timeLogsPage.assertPageState(state)
-    }
-    
     @Test
     fun `should verify active task duration using clock`() {
         // Create an active entry that started 30 minutes ago (1800 seconds)
@@ -578,23 +507,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Active Task",
                 duration = "00:30:00",
-                stopButtonVisible = true
             ),
-            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Active Task",
-                            timeRange = "14:00 - in progress",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
-            ),
-            noEntriesMessageVisible = false
         )
         timeLogsPage.assertPageState(initialState)
         
@@ -755,7 +668,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                     )
                 )
             ),
-            noEntriesMessageVisible = false
         )
         timeLogsPage.assertPageState(expectedState)
     }
@@ -808,7 +720,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                     )
                 )
             ),
-            noEntriesMessageVisible = false
         )
         timeLogsPage.assertPageState(expectedState)
     }
@@ -860,7 +771,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                     )
                 )
             ),
-            noEntriesMessageVisible = false
         )
         timeLogsPage.assertPageState(initialState)
 
@@ -877,7 +787,6 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.NoActiveEntry(),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = emptyList(),
-            noEntriesMessageVisible = true,
             errorMessageVisible = false
         )
         timeLogsPage.assertPageState(deletedState)
