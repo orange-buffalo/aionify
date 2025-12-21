@@ -1088,11 +1088,12 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // Verify the entry now appears in yesterday's group
         // Duration should be from Thursday 16:00 to Friday 14:30
         // This spans midnight, so it's split: Yesterday (16:00-23:59:59.999) + Today (00:00-14:30)
-        // Yesterday: 7:59:59, Today: 14:30:00, Total: 22:29:59 (due to millisecond split)
+        // The UI rounds the split to whole seconds: Yesterday: 7:59:59, Today: 14:30:00
+        // Total displayed: 22:30:00 (though actual is 22:29:59.999)
         val updatedState = TimeLogsPageState(
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Cross-Day Task",
-                duration = "22:30:00"
+                duration = "22:30:00"  // Rounded total duration
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
@@ -1110,7 +1111,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 ),
                 DayGroupState(
                     displayTitle = "Yesterday",
-                    totalDuration = "07:59:59", // From 16:00 to 23:59:59.999
+                    totalDuration = "07:59:59", // 16:00 to midnight (23:59:59.999 rounds to 7:59:59)
                     entries = listOf(
                         EntryState(
                             title = "Cross-Day Task",

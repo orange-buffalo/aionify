@@ -335,13 +335,9 @@ export function TimeLogsPage() {
     
     setEditTitle(activeEntry.title)
     // Format the start time as a datetime-local input value (YYYY-MM-DDTHH:mm)
+    // Using toISOString() and taking first 16 characters gives us the required format
     const startDate = new Date(activeEntry.startTime)
-    const year = startDate.getFullYear()
-    const month = String(startDate.getMonth() + 1).padStart(2, '0')
-    const day = String(startDate.getDate()).padStart(2, '0')
-    const hours = String(startDate.getHours()).padStart(2, '0')
-    const minutes = String(startDate.getMinutes()).padStart(2, '0')
-    setEditStartTime(`${year}-${month}-${day}T${hours}:${minutes}`)
+    setEditStartTime(startDate.toISOString().slice(0, 16))
     setIsEditMode(true)
   }
 
@@ -365,7 +361,7 @@ export function TimeLogsPage() {
       setIsEditMode(false)
       await loadTimeEntries()
     } catch (err: any) {
-      const errorCode = (err as any).errorCode
+      const errorCode = err.errorCode
       if (errorCode) {
         setError(t(`errorCodes.${errorCode}`))
       } else {
