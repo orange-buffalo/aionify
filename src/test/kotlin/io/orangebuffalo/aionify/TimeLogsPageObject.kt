@@ -348,4 +348,40 @@ class TimeLogsPageObject(private val page: Page) {
     fun advanceClock(milliseconds: Long) {
         page.clock().runFor(milliseconds)
     }
+
+    /**
+     * Clicks the edit button for the active entry.
+     */
+    fun clickEditEntry() {
+        page.locator("[data-testid='edit-entry-button']").click()
+    }
+
+    /**
+     * Fills the edit title input with the given title.
+     */
+    fun fillEditTitle(title: String) {
+        page.locator("[data-testid='edit-title-input']").fill(title)
+    }
+
+    /**
+     * Fills the edit start time input with the given datetime.
+     * @param dateTime in format "YYYY-MM-DDTHH:mm" (e.g., "2024-03-15T14:30")
+     */
+    fun fillEditStartTime(dateTime: String) {
+        page.locator("[data-testid='edit-start-time-input']").fill(dateTime)
+    }
+
+    /**
+     * Clicks the save button to save the edited entry.
+     */
+    fun clickSaveEdit() {
+        page.locator("[data-testid='save-edit-button']").click()
+    }
+
+    /**
+     * Clicks the cancel button to discard changes.
+     */
+    fun clickCancelEdit() {
+        page.locator("[data-testid='cancel-edit-button']").click()
+    }
 }
