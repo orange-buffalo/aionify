@@ -1,24 +1,18 @@
 package io.orangebuffalo.aionify
 
-import com.microsoft.playwright.Clock
-import com.microsoft.playwright.Locator
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.domain.TimeEntry
-import io.orangebuffalo.aionify.domain.TimeEntryRepository
 import io.orangebuffalo.aionify.domain.User
-import io.orangebuffalo.aionify.domain.UserRepository
 import jakarta.inject.Inject
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.Instant
 
 /**
  * Playwright tests for the Time Logs page functionality.
+ * 
+ * These tests use a page object model with comprehensive state assertions
+ * to ensure reliable and clear test feedback.
  */
 @MicronautTest(transactional = false)
 class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
@@ -27,62 +21,101 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     lateinit var testAuthSupport: TestAuthSupport
 
     private lateinit var testUser: User
+    private lateinit var timeLogsPage: TimeLogsPageObject
 
     @BeforeEach
     fun setupTestData() {
         testUser = testUsers.createRegularUser()
+        timeLogsPage = TimeLogsPageObject(page)
     }
 
     @Test
     fun `should display time logs page with navigation`() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
-        // Verify page is displayed
-        val pageTitle = page.locator("[data-testid='time-logs-title']")
-        assertThat(pageTitle).isVisible()
-        assertThat(pageTitle).hasText("Time Logs")
-
-        // Verify week navigation
-        assertThat(page.locator("[data-testid='previous-week-button']")).isVisible()
-        assertThat(page.locator("[data-testid='next-week-button']")).isVisible()
-        assertThat(page.locator("[data-testid='week-range']")).isVisible()
-
-        // Verify current entry panel
-        assertThat(page.locator("[data-testid='current-entry-panel']")).isVisible()
-        assertThat(page.locator("[data-testid='new-entry-input']")).isVisible()
-        assertThat(page.locator("[data-testid='start-button']")).isVisible()
+        // Assert initial empty page state
+        val expectedState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(
+                inputVisible = true,
+                startButtonVisible = true,
+                startButtonEnabled = false
+            ),
+            weekNavigation = WeekNavigationState(
+                weekRange = "Mar 11 - Mar 17", // Week containing March 15, 2024
+                previousButtonVisible = true,
+                nextButtonVisible = true
+            ),
+            dayGroups = emptyList(),
+            noEntriesMessageVisible = true,
+            timezoneHintVisible = true
+        )
+        
+        timeLogsPage.assertPageState(expectedState)
     }
 
     @Test
     fun `should start and stop a time entry`() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
-        // Start a new entry
-        val titleInput = page.locator("[data-testid='new-entry-input']")
-        titleInput.fill("Test Task")
-        
-        val startButton = page.locator("[data-testid='start-button']")
-        startButton.click()
+        // Verify initial state
+        val initialState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(
+                inputVisible = true,
+                startButtonVisible = true,
+                startButtonEnabled = false
+            ),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = emptyList(),
+            noEntriesMessageVisible = true
+        )
+        timeLogsPage.assertPageState(initialState)
 
-        // Verify entry is started - active timer should be visible
-        val activeTimer = page.locator("[data-testid='active-timer']")
-        assertThat(activeTimer).isVisible()
-        
-        // Verify stop button is visible
-        val stopButton = page.locator("[data-testid='stop-button']")
-        assertThat(stopButton).isVisible()
+        // Start a new entry
+        timeLogsPage.fillNewEntryTitle("Test Task")
+        timeLogsPage.clickStart()
+
+        // Verify entry is started with active timer
+        val activeState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.ActiveEntry(
+                title = "Test Task",
+                duration = "00:00:00",
+                stopButtonVisible = true,
+                inputVisible = false,
+                startButtonVisible = false
+            ),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = emptyList(),
+            noEntriesMessageVisible = true
+        )
+        timeLogsPage.assertPageState(activeState)
 
         // Stop the entry
-        stopButton.click()
+        timeLogsPage.clickStop()
 
-        // Verify we're back to start state
-        assertThat(page.locator("[data-testid='new-entry-input']")).isVisible()
-        assertThat(page.locator("[data-testid='start-button']")).isVisible()
-
-        // Verify entry appears in the list
-        val entries = page.locator("[data-testid='time-entry']")
-        assertThat(entries.first()).isVisible()
-        assertThat(entries.first()).containsText("Test Task")
+        // Verify we're back to ready state with the completed entry visible
+        val stoppedState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(
+                inputVisible = true,
+                startButtonVisible = true,
+                startButtonEnabled = false
+            ),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = listOf(
+                DayGroupState(
+                    displayTitle = "Today, Mar 15",
+                    totalDuration = "00:00:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Test Task",
+                            timeRange = "14:30 - 14:30",
+                            duration = "00:00:00"
+                        )
+                    )
+                )
+            ),
+            noEntriesMessageVisible = false
+        )
+        timeLogsPage.assertPageState(stoppedState)
     }
 
     @Test
@@ -99,14 +132,54 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
-        // Click continue button on the existing entry
-        val continueButton = page.locator("[data-testid='continue-button']").first()
-        continueButton.click()
+        // Verify initial state with the existing entry
+        val initialState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = listOf(
+                DayGroupState(
+                    displayTitle = "Today, Mar 15",
+                    totalDuration = "00:30:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Previous Task",
+                            timeRange = "13:30 - 14:00",
+                            duration = "00:30:00"
+                        )
+                    )
+                )
+            ),
+            noEntriesMessageVisible = false
+        )
+        timeLogsPage.assertPageState(initialState)
+
+        // Click continue button
+        timeLogsPage.clickContinueForEntry("Previous Task")
 
         // Verify the entry is started immediately with the same title
-        assertThat(page.locator("[data-testid='active-timer']")).isVisible()
-        assertThat(page.locator("[data-testid='current-entry-panel']").getByText("Previous Task")).isVisible()
-        assertThat(page.locator("[data-testid='stop-button']")).isVisible()
+        val activeState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.ActiveEntry(
+                title = "Previous Task",
+                duration = "00:00:00",
+                stopButtonVisible = true
+            ),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = listOf(
+                DayGroupState(
+                    displayTitle = "Today, Mar 15",
+                    totalDuration = "00:30:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Previous Task",
+                            timeRange = "13:30 - 14:00",
+                            duration = "00:30:00"
+                        )
+                    )
+                )
+            ),
+            noEntriesMessageVisible = false
+        )
+        timeLogsPage.assertPageState(activeState)
     }
 
     @Test
@@ -124,32 +197,43 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify entry exists
-        val entry = page.locator("[data-testid='time-entry']").first()
-        assertThat(entry).containsText("Task to Delete")
+        val initialState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = listOf(
+                DayGroupState(
+                    displayTitle = "Today, Mar 15",
+                    totalDuration = "00:30:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Task to Delete",
+                            timeRange = "13:30 - 14:00",
+                            duration = "00:30:00"
+                        )
+                    )
+                )
+            ),
+            noEntriesMessageVisible = false
+        )
+        timeLogsPage.assertPageState(initialState)
 
-        // Open dropdown menu
-        val menuButton = page.locator("[data-testid='entry-menu-button']").first()
-        menuButton.click()
-
-        // Click delete
-        val deleteMenuItem = page.locator("[data-testid='delete-menu-item']")
-        deleteMenuItem.click()
-
-        // Confirm deletion in dialog
-        val confirmButton = page.locator("[data-testid='confirm-delete-button']")
-        assertThat(confirmButton).isVisible()
-        confirmButton.click()
-
-        // Wait for dialog to close
-        assertThat(confirmButton).not().isVisible()
+        // Delete the entry
+        timeLogsPage.deleteEntry("Task to Delete")
 
         // Wait for entry to be removed from the list
         page.waitForCondition {
-            page.locator("[data-testid='time-entry']:has-text('Work Entry')").count() == 0
+            page.locator("[data-testid='time-entry']:has-text('Task to Delete')").count() == 0
         }
 
-        // Verify no error message
-        assertThat(page.locator("[data-testid='time-logs-error']")).not().isVisible()
+        // Verify entry is deleted and page shows no entries
+        val deletedState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = emptyList(),
+            noEntriesMessageVisible = true,
+            errorMessageVisible = false
+        )
+        timeLogsPage.assertPageState(deletedState)
     }
 
     @Test
@@ -179,20 +263,56 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
-        // Verify current week entry is visible
-        assertThat(page.locator("text=This Week Task")).isVisible()
+        // Verify current week with its entry
+        val currentWeekState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = listOf(
+                DayGroupState(
+                    displayTitle = "Today, Mar 15",
+                    totalDuration = "00:30:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "This Week Task",
+                            timeRange = "13:30 - 14:00",
+                            duration = "00:30:00"
+                        )
+                    )
+                )
+            ),
+            noEntriesMessageVisible = false
+        )
+        timeLogsPage.assertPageState(currentWeekState)
 
         // Navigate to previous week
-        page.locator("[data-testid='previous-week-button']").click()
+        timeLogsPage.goToPreviousWeek()
 
-        // Verify last week entry is visible
-        assertThat(page.locator("text=Last Week Task")).isVisible()
+        // Verify last week with its entry
+        val lastWeekState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 4 - Mar 10"),
+            dayGroups = listOf(
+                DayGroupState(
+                    displayTitle = "Friday, Mar 8",
+                    totalDuration = "00:30:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Last Week Task",
+                            timeRange = "13:30 - 14:00",
+                            duration = "00:30:00"
+                        )
+                    )
+                )
+            ),
+            noEntriesMessageVisible = false
+        )
+        timeLogsPage.assertPageState(lastWeekState)
         
         // Navigate back to current week
-        page.locator("[data-testid='next-week-button']").click()
+        timeLogsPage.goToNextWeek()
         
-        // Verify current week entry is visible again
-        assertThat(page.locator("text=This Week Task")).isVisible()
+        // Verify we're back to current week
+        timeLogsPage.assertPageState(currentWeekState)
     }
 
     @Test
@@ -214,20 +334,53 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
-        // Entry should appear in both days
-        val entries = page.locator("[data-testid='time-entry']")
-        val entryCount = entries.count()
-        
-        // Should see the entry at least once (may be split across two day groups)
-        assertThat(entries.first()).containsText("Spanning Entry")
+        // Entry should appear split across two day groups
+        val expectedState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = listOf(
+                // Friday (today) - shows portion from midnight to 02:30
+                DayGroupState(
+                    displayTitle = "Today, Mar 15",
+                    totalDuration = "02:30:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Spanning Entry",
+                            timeRange = "00:00 - 02:30",
+                            duration = "02:30:00"
+                        )
+                    )
+                ),
+                // Thursday - shows portion from 16:30 to midnight
+                DayGroupState(
+                    displayTitle = "Thursday, Mar 14",
+                    totalDuration = "07:30:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Spanning Entry",
+                            timeRange = "16:30 - 23:59",
+                            duration = "07:30:00"
+                        )
+                    )
+                )
+            ),
+            noEntriesMessageVisible = false
+        )
+        timeLogsPage.assertPageState(expectedState)
     }
 
     @Test
     fun `should show no entries message when week is empty`() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
-        // Verify no entries message
-        assertThat(page.locator("[data-testid='no-entries']")).isVisible()
+        // Verify empty state
+        val emptyState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = emptyList(),
+            noEntriesMessageVisible = true
+        )
+        timeLogsPage.assertPageState(emptyState)
     }
 
     @Test
@@ -245,22 +398,37 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify active entry is shown with timer
-        assertThat(page.locator("[data-testid='active-timer']")).isVisible()
-        assertThat(page.locator("[data-testid='stop-button']")).isVisible()
-        
-        // Verify title is shown in the current entry panel
-        assertThat(page.locator("[data-testid='current-entry-panel']").locator("text=Active Task")).isVisible()
+        val activeState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.ActiveEntry(
+                title = "Active Task",
+                duration = "00:30:00",
+                stopButtonVisible = true,
+                inputVisible = false,
+                startButtonVisible = false
+            ),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = emptyList(),
+            noEntriesMessageVisible = true
+        )
+        timeLogsPage.assertPageState(activeState)
     }
 
     @Test
     fun `should require title to start entry`() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
-        // Try to start without title
-        val startButton = page.locator("[data-testid='start-button']")
-        
-        // Button should be disabled
-        assertThat(startButton).isDisabled()
+        // Verify start button is disabled without title
+        val initialState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(
+                inputVisible = true,
+                startButtonVisible = true,
+                startButtonEnabled = false
+            ),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = emptyList(),
+            noEntriesMessageVisible = true
+        )
+        timeLogsPage.assertPageState(initialState)
     }
 
     @Test
@@ -268,13 +436,21 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Fill in title and press Enter
-        val titleInput = page.locator("[data-testid='new-entry-input']")
-        titleInput.fill("Quick Entry")
-        titleInput.press("Enter")
+        timeLogsPage.fillNewEntryTitle("Quick Entry")
+        timeLogsPage.pressEnterInNewEntryInput()
 
         // Verify entry is started
-        assertThat(page.locator("[data-testid='active-timer']")).isVisible()
-        assertThat(page.locator("[data-testid='current-entry-panel']").locator("text=Quick Entry")).isVisible()
+        val activeState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.ActiveEntry(
+                title = "Quick Entry",
+                duration = "00:00:00",
+                stopButtonVisible = true
+            ),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = emptyList(),
+            noEntriesMessageVisible = true
+        )
+        timeLogsPage.assertPageState(activeState)
     }
 
     @Test
@@ -291,21 +467,35 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
-        // Verify we cannot start a new entry
-        assertThat(page.locator("[data-testid='new-entry-input']")).not().isVisible()
-        assertThat(page.locator("[data-testid='start-button']")).not().isVisible()
-        
-        // Only stop button should be visible
-        assertThat(page.locator("[data-testid='stop-button']")).isVisible()
+        // Verify we cannot start a new entry (input and start button are hidden)
+        val activeState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.ActiveEntry(
+                title = "Active Task",
+                duration = "00:30:00",
+                stopButtonVisible = true,
+                inputVisible = false,
+                startButtonVisible = false
+            ),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = emptyList(),
+            noEntriesMessageVisible = true
+        )
+        timeLogsPage.assertPageState(activeState)
     }
 
     @Test
     fun `should display timezone hint`() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
-        // Verify timezone hint is visible somewhere on the page
-        val hint = page.locator("text=/Times shown in/")
-        assertThat(hint).isVisible()
+        // Verify timezone hint is visible
+        val state = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = emptyList(),
+            noEntriesMessageVisible = true,
+            timezoneHintVisible = true
+        )
+        timeLogsPage.assertPageState(state)
     }
     
     @Test
@@ -323,21 +513,49 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify active timer shows the correct duration (30 minutes = 00:30:00)
-        val activeTimer = page.locator("[data-testid='active-timer']")
-        assertThat(activeTimer).isVisible()
-        assertThat(activeTimer).hasText("00:30:00")
+        val initialState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.ActiveEntry(
+                title = "Active Task",
+                duration = "00:30:00",
+                stopButtonVisible = true
+            ),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = emptyList(),
+            noEntriesMessageVisible = true
+        )
+        timeLogsPage.assertPageState(initialState)
         
         // Advance the clock by 5 minutes
-        page.clock().runFor(5 * 60 * 1000)
+        timeLogsPage.advanceClock(5 * 60 * 1000)
         
         // Timer should now show 35 minutes (00:35:00)
-        assertThat(activeTimer).hasText("00:35:00")
+        val state35min = TimeLogsPageState(
+            currentEntry = CurrentEntryState.ActiveEntry(
+                title = "Active Task",
+                duration = "00:35:00",
+                stopButtonVisible = true
+            ),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = emptyList(),
+            noEntriesMessageVisible = true
+        )
+        timeLogsPage.assertPageState(state35min)
         
         // Advance another 25 minutes to reach 1 hour
-        page.clock().runFor(25 * 60 * 1000)
+        timeLogsPage.advanceClock(25 * 60 * 1000)
         
         // Timer should now show 1 hour (01:00:00)
-        assertThat(activeTimer).hasText("01:00:00")
+        val state1hour = TimeLogsPageState(
+            currentEntry = CurrentEntryState.ActiveEntry(
+                title = "Active Task",
+                duration = "01:00:00",
+                stopButtonVisible = true
+            ),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = emptyList(),
+            noEntriesMessageVisible = true
+        )
+        timeLogsPage.assertPageState(state1hour)
     }
     
     @Test
@@ -414,26 +632,78 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
-        // Verify Friday (today) has 1 entry
-        val fridayGroup = page.locator("[data-testid='time-entry']:has-text('Friday Task')")
-        assertThat(fridayGroup).isVisible()
-        
-        // Verify we can see "Today" label for Friday
-        assertThat(page.locator("text=/Today/i")).isVisible()
-        
-        // Verify Wednesday has 3 entries
-        val wednesdayEntries = page.locator("[data-testid='time-entry']:has-text('Wednesday Task')")
-        assertEquals(3, wednesdayEntries.count())
-        assertThat(wednesdayEntries.first()).containsText("Wednesday Task")
-        
-        // Verify Tuesday has 1 entry
-        val tuesdayEntry = page.locator("[data-testid='time-entry']:has-text('Tuesday Task')")
-        assertThat(tuesdayEntry).isVisible()
-        assertEquals(1, tuesdayEntry.count())
-        
-        // Verify Monday has 2 entries
-        val mondayEntries = page.locator("[data-testid='time-entry']:has-text('Monday Task')")
-        assertEquals(2, mondayEntries.count())
+        // Verify all days and entries are displayed correctly
+        val expectedState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = listOf(
+                // Friday (today) - 1 entry
+                DayGroupState(
+                    displayTitle = "Today, Mar 15",
+                    totalDuration = "00:30:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Friday Task",
+                            timeRange = "13:30 - 14:00",
+                            duration = "00:30:00"
+                        )
+                    )
+                ),
+                // Wednesday - 3 entries (in reverse chronological order within the day)
+                DayGroupState(
+                    displayTitle = "Wednesday, Mar 13",
+                    totalDuration = "01:30:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Wednesday Task 3",
+                            timeRange = "13:30 - 14:00",
+                            duration = "00:30:00"
+                        ),
+                        EntryState(
+                            title = "Wednesday Task 2",
+                            timeRange = "12:30 - 13:00",
+                            duration = "00:30:00"
+                        ),
+                        EntryState(
+                            title = "Wednesday Task 1",
+                            timeRange = "11:30 - 12:00",
+                            duration = "00:30:00"
+                        )
+                    )
+                ),
+                // Tuesday - 1 entry
+                DayGroupState(
+                    displayTitle = "Tuesday, Mar 12",
+                    totalDuration = "00:30:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Tuesday Task",
+                            timeRange = "13:30 - 14:00",
+                            duration = "00:30:00"
+                        )
+                    )
+                ),
+                // Monday - 2 entries
+                DayGroupState(
+                    displayTitle = "Monday, Mar 11",
+                    totalDuration = "01:00:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Monday Task 2",
+                            timeRange = "13:30 - 14:00",
+                            duration = "00:30:00"
+                        ),
+                        EntryState(
+                            title = "Monday Task 1",
+                            timeRange = "12:30 - 13:00",
+                            duration = "00:30:00"
+                        )
+                    )
+                )
+            ),
+            noEntriesMessageVisible = false
+        )
+        timeLogsPage.assertPageState(expectedState)
     }
     
     @Test
@@ -454,16 +724,39 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
-        // Verify the entry appears split across 2 time entry elements
-        val spanningEntries = page.locator("[data-testid='time-entry']:has-text('Midnight Spanning Task')")
-        assertEquals(2, spanningEntries.count(), "Entry should be split across two days")
-        
-        // Verify both entry parts are visible and contain the correct title
-        assertThat(spanningEntries.first()).isVisible()
-        assertThat(spanningEntries.first()).containsText("Midnight Spanning Task")
-        
-        assertThat(spanningEntries.nth(1)).isVisible()
-        assertThat(spanningEntries.nth(1)).containsText("Midnight Spanning Task")
+        // Verify the entry appears split across 2 day groups
+        val expectedState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = listOf(
+                // Friday - portion from 00:00 to 01:00
+                DayGroupState(
+                    displayTitle = "Today, Mar 15",
+                    totalDuration = "01:00:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Midnight Spanning Task",
+                            timeRange = "00:00 - 01:00",
+                            duration = "01:00:00"
+                        )
+                    )
+                ),
+                // Thursday - portion from 23:00 to 23:59
+                DayGroupState(
+                    displayTitle = "Thursday, Mar 14",
+                    totalDuration = "01:00:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Midnight Spanning Task",
+                            timeRange = "23:00 - 23:59",
+                            duration = "01:00:00"
+                        )
+                    )
+                )
+            ),
+            noEntriesMessageVisible = false
+        )
+        timeLogsPage.assertPageState(expectedState)
     }
     
     @Test
@@ -483,49 +776,56 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
-        // Verify we have exactly 2 day groups before deletion
-        val dayGroupsBefore = page.locator("[data-testid='day-group']")
-        assertEquals(2, dayGroupsBefore.count(), "Should have exactly 2 day groups before deletion")
-        
-        // Verify entry exists in both day groups
-        val entriesBefore = page.locator("[data-testid='time-entry']:has-text('Task to Delete')")
-        assertEquals(2, entriesBefore.count(), "Entry should be split across two days")
+        // Verify initial state with split entry across two days
+        val initialState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = listOf(
+                // Friday portion
+                DayGroupState(
+                    displayTitle = "Today, Mar 15",
+                    totalDuration = "01:00:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Task to Delete",
+                            timeRange = "00:00 - 01:00",
+                            duration = "01:00:00"
+                        )
+                    )
+                ),
+                // Thursday portion
+                DayGroupState(
+                    displayTitle = "Thursday, Mar 14",
+                    totalDuration = "01:00:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Task to Delete",
+                            timeRange = "23:00 - 23:59",
+                            duration = "01:00:00"
+                        )
+                    )
+                )
+            ),
+            noEntriesMessageVisible = false
+        )
+        timeLogsPage.assertPageState(initialState)
 
-        // Delete the first instance (from Friday group)
-        val firstEntryMenuButton = page.locator("[data-testid='time-entry']:has-text('Task to Delete')")
-            .first()
-            .locator("[data-testid='entry-menu-button']")
-        firstEntryMenuButton.click()
+        // Delete the entry (deleting from first occurrence)
+        timeLogsPage.deleteEntry("Task to Delete")
 
-        val deleteMenuItem = page.locator("[data-testid='delete-menu-item']")
-        deleteMenuItem.click()
-
-        // Confirm deletion
-        val confirmButton = page.locator("[data-testid='confirm-delete-button']")
-        assertThat(confirmButton).isVisible()
-        confirmButton.click()
-
-        // Wait for dialog to close
-        assertThat(confirmButton).not().isVisible()
-
-        // Both parts of the entry should be removed (since it's the same entry in DB)
+        // Wait for both parts to be removed
         page.waitForCondition {
             page.locator("[data-testid='time-entry']:has-text('Task to Delete')").count() == 0
         }
 
-        // Verify no error message
-        assertThat(page.locator("[data-testid='time-logs-error']")).not().isVisible()
-        
-        // Verify both day groups are gone (no entries left for those days)
-        // OR verify we show "no entries" message
-        val dayGroupsAfter = page.locator("[data-testid='day-group']")
-        val noEntriesMessage = page.locator("[data-testid='no-entries']")
-        
-        // Either no day groups remain, or we see the no entries message
-        val hasNoDayGroups = dayGroupsAfter.count() == 0
-        val hasNoEntriesMessage = noEntriesMessage.isVisible()
-        
-        assertTrue(hasNoDayGroups || hasNoEntriesMessage, 
-            "After deletion, should either have no day groups or show 'no entries' message")
+        // Verify both parts of the entry are deleted
+        val deletedState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = emptyList(),
+            noEntriesMessageVisible = true,
+            errorMessageVisible = false
+        )
+        timeLogsPage.assertPageState(deletedState)
     }
 }
