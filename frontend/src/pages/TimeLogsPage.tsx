@@ -3,10 +3,11 @@ import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { PortalLayout } from "@/components/layout/PortalLayout"
 import { FormMessage } from "@/components/ui/form-message"
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api"
-import { ChevronLeft, ChevronRight, Play, Square, MoreVertical, Copy, Trash2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, Play, Square, MoreVertical, Copy, Trash2, Pencil } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
@@ -41,6 +42,10 @@ export function TimeLogsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [entryToDelete, setEntryToDelete] = useState<TimeEntry | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editTitle, setEditTitle] = useState("")
+  const [editStartTime, setEditStartTime] = useState("")
+  const [isSaving, setIsSaving] = useState(false)
 
   // Get the start of the week (Monday)
   function getWeekStart(date: Date): Date {
@@ -324,6 +329,60 @@ export function TimeLogsPage() {
     }
   }
 
+  // Enter edit mode for active entry
+  function handleEditClick() {
+    if (!activeEntry) return
+    
+    setEditTitle(activeEntry.title)
+    // Format the start time as a datetime-local input value (YYYY-MM-DDTHH:mm)
+    const startDate = new Date(activeEntry.startTime)
+    const year = startDate.getFullYear()
+    const month = String(startDate.getMonth() + 1).padStart(2, '0')
+    const day = String(startDate.getDate()).padStart(2, '0')
+    const hours = String(startDate.getHours()).padStart(2, '0')
+    const minutes = String(startDate.getMinutes()).padStart(2, '0')
+    setEditStartTime(`${year}-${month}-${day}T${hours}:${minutes}`)
+    setIsEditMode(true)
+  }
+
+  // Save edited entry
+  async function handleSaveEdit() {
+    if (!activeEntry || !editTitle.trim()) return
+    
+    try {
+      setIsSaving(true)
+      setError(null)
+      
+      // Convert datetime-local input back to ISO string
+      const startTimeISO = new Date(editStartTime).toISOString()
+      
+      const updatedEntry = await apiPut<TimeEntry>(`/api/time-entries/${activeEntry.id}`, {
+        title: editTitle.trim(),
+        startTime: startTimeISO
+      })
+      
+      setActiveEntry(updatedEntry)
+      setIsEditMode(false)
+      await loadTimeEntries()
+    } catch (err: any) {
+      const errorCode = (err as any).errorCode
+      if (errorCode) {
+        setError(t(`errorCodes.${errorCode}`))
+      } else {
+        setError(err.message || t('common.error'))
+      }
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Cancel edit mode
+  function handleCancelEdit() {
+    setIsEditMode(false)
+    setEditTitle("")
+    setEditStartTime("")
+  }
+
   // Navigate to previous week
   function handlePreviousWeek() {
     const newWeekStart = new Date(weekStart)
@@ -430,30 +489,95 @@ export function TimeLogsPage() {
           {/* Current Entry Panel */}
           <Card className="mb-6 bg-card/90" data-testid="current-entry-panel">
             <CardHeader>
-              <CardTitle className="text-foreground">{t('timeLogs.currentEntry.title')}</CardTitle>
+              <CardTitle className="text-foreground">
+                {isEditMode ? t('timeLogs.currentEntry.editTitle') : t('timeLogs.currentEntry.title')}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {activeEntry ? (
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="font-semibold text-foreground mb-1">{activeEntry.title}</p>
-                    <div className="text-sm text-muted-foreground">
-                      {t('timeLogs.startedAt')}: {formatTime(activeEntry.startTime, locale)}
+                isEditMode ? (
+                  /* Edit Mode */
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="edit-title" className="text-foreground">
+                        {t('timeLogs.currentEntry.titleLabel')}
+                      </Label>
+                      <Input
+                        id="edit-title"
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        className="text-foreground mt-2"
+                        data-testid="edit-title-input"
+                        disabled={isSaving}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-start-time" className="text-foreground">
+                        {t('timeLogs.currentEntry.startTimeLabel')}
+                      </Label>
+                      <Input
+                        id="edit-start-time"
+                        type="datetime-local"
+                        value={editStartTime}
+                        onChange={(e) => setEditStartTime(e.target.value)}
+                        className="text-foreground mt-2"
+                        data-testid="edit-start-time-input"
+                        disabled={isSaving}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={handleSaveEdit}
+                        disabled={!editTitle.trim() || isSaving}
+                        data-testid="save-edit-button"
+                      >
+                        {t('timeLogs.currentEntry.save')}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={handleCancelEdit}
+                        disabled={isSaving}
+                        data-testid="cancel-edit-button"
+                        className="text-foreground"
+                      >
+                        {t('timeLogs.currentEntry.cancel')}
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-2xl font-mono font-bold text-foreground" data-testid="active-timer">
-                      {formatDuration(activeDuration)}
+                ) : (
+                  /* View Mode */
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-semibold text-foreground">{activeEntry.title}</p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleEditClick}
+                          data-testid="edit-entry-button"
+                          className="text-foreground h-6 w-6 p-0"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {t('timeLogs.startedAt')}: {formatTime(activeEntry.startTime, locale)}
+                      </div>
                     </div>
-                    <Button
-                      onClick={handleStop}
-                      disabled={isStopping}
-                      data-testid="stop-button"
-                    >
-                      <Square className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-4">
+                      <div className="text-2xl font-mono font-bold text-foreground" data-testid="active-timer">
+                        {formatDuration(activeDuration)}
+                      </div>
+                      <Button
+                        onClick={handleStop}
+                        disabled={isStopping}
+                        data-testid="stop-button"
+                      >
+                        <Square className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                )
               ) : (
                 <div className="flex items-center gap-4">
                   <Input
