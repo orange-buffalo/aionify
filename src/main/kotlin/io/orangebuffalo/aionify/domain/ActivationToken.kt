@@ -21,5 +21,5 @@ data class ActivationToken(
     val expiresAt: Instant,
     
     @field:MappedProperty("created_at")
-    val createdAt: Instant = Instant.now()
+    val createdAt: Instant
 )

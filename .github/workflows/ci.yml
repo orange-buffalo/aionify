@@ -91,7 +91,7 @@ jobs:
           DOCKER_IMAGE_TAG: ${{ steps.prepare-tag.outputs.tag }}
         run: |
           ./gradlew test dockerBuildNative dockerPushNative \
-            --build-cache --console=plain
+            --console=plain
 
       - name: Stop thread dump collection
         if: always()
@@ -134,7 +134,7 @@ jobs:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
         run: |
           ./gradlew e2eTest \
-            --build-cache --console=plain
+            --console=plain
 
       - name: Upload Playwright traces
         uses: actions/upload-artifact@v4

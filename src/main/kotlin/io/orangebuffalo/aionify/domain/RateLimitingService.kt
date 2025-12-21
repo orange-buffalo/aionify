@@ -9,7 +9,9 @@ import java.util.concurrent.ConcurrentHashMap
  * Simple in-memory rate limiting service to prevent brute force attacks.
  */
 @Singleton
-class RateLimitingService {
+class RateLimitingService(
+    private val timeService: TimeService
+) {
     
     private val attempts = ConcurrentHashMap<String, MutableList<Instant>>()
     
@@ -35,7 +37,7 @@ class RateLimitingService {
         cleanupOldAttempts(key)
         attempts.compute(key) { _, list ->
             val attemptList = list ?: mutableListOf()
-            attemptList.add(Instant.now())
+            attemptList.add(timeService.now())
             attemptList
         }
     }
@@ -48,7 +50,7 @@ class RateLimitingService {
     }
     
     private fun cleanupOldAttempts(key: String) {
-        val cutoff = Instant.now().minus(WINDOW_MINUTES, ChronoUnit.MINUTES)
+        val cutoff = timeService.now().minus(WINDOW_MINUTES, ChronoUnit.MINUTES)
         attempts.computeIfPresent(key) { _, list ->
             list.removeIf { it.isBefore(cutoff) }
             if (list.isEmpty()) null else list
