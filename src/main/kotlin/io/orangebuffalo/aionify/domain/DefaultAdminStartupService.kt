@@ -32,7 +32,7 @@ class DefaultAdminStartupService(
             passwordHash = BCrypt.hashpw(randomPassword, BCrypt.gensalt()),
             greeting = "Administrator",
             isAdmin = true,
-            locale = Locale.ENGLISH,
+            locale = Locale.US,
             languageCode = "en"
         )
 

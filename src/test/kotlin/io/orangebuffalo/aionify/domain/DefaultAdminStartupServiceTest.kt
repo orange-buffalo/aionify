@@ -41,7 +41,7 @@ class DefaultAdminStartupServiceTest {
         assertEquals("sudo", sudoUser!!.userName)
         assertEquals("Administrator", sudoUser.greeting)
         assertTrue(sudoUser.isAdmin)
-        assertEquals(java.util.Locale.ENGLISH.toLanguageTag(), sudoUser.localeTag)
+        assertEquals(java.util.Locale.US.toLanguageTag(), sudoUser.localeTag)
         assertEquals("en", sudoUser.languageCode)
         assertNotNull(sudoUser.passwordHash)
         assertTrue(sudoUser.passwordHash.isNotEmpty())
