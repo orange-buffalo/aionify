@@ -30,6 +30,7 @@ export function TimeLogsPage() {
   const [activeEntry, setActiveEntry] = useState<TimeEntry | null>(null)
   const [activeDuration, setActiveDuration] = useState<number>(0)
   const [weekStart, setWeekStart] = useState<Date>(getWeekStart(new Date()))
+  const [entries, setEntries] = useState<TimeEntry[]>([])
   const [dayGroups, setDayGroups] = useState<DayGroup[]>([])
   const [loading, setLoading] = useState(true)
   const [newEntryTitle, setNewEntryTitle] = useState("")
@@ -184,9 +185,7 @@ export function TimeLogsPage() {
         `/api/time-entries?startTime=${encodeURIComponent(startTimeStr)}&endTime=${encodeURIComponent(endTimeStr)}`
       )
       
-      const locale = i18n.language || 'en'
-      const groups = groupEntriesByDay(response.entries || [], locale)
-      setDayGroups(groups)
+      setEntries(response.entries || [])
     } catch (err: any) {
       setError(err.message || t('common.error'))
     } finally {
@@ -386,6 +385,23 @@ export function TimeLogsPage() {
     
     return () => clearInterval(interval)
   }, [activeEntry?.id, activeEntry?.startTime])
+
+  // Recalculate day groups when entries change or when there's an active entry (to update durations)
+  useEffect(() => {
+    const locale = i18n.language || 'en'
+    const groups = groupEntriesByDay(entries, locale)
+    setDayGroups(groups)
+
+    // If there's an active entry, update day groups every second to reflect changing duration
+    if (!activeEntry) return
+
+    const interval = setInterval(() => {
+      const updatedGroups = groupEntriesByDay(entries, locale)
+      setDayGroups(updatedGroups)
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [entries, activeEntry, i18n.language])
 
   const locale = i18n.language || 'en'
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone

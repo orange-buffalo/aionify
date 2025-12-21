@@ -502,27 +502,76 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify active timer shows the correct duration (30 minutes = 00:30:00)
-        // Active entries appear in day groups
         val initialState = TimeLogsPageState(
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Active Task",
-                duration = "00:30:00",
+                duration = "00:30:00"
             ),
+            dayGroups = listOf(
+                DayGroupState(
+                    displayTitle = "Today",
+                    totalDuration = "00:30:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Active Task",
+                            timeRange = "14:00 - in progress",
+                            duration = "00:30:00"
+                        )
+                    )
+                )
+            )
         )
         timeLogsPage.assertPageState(initialState)
         
         // Advance the clock by 5 minutes
         timeLogsPage.advanceClock(5 * 60 * 1000)
         
-        // Timer should now show 35 minutes (00:35:00)
-        // Note: Day group totals don't auto-update as clock advances - only the active timer does
-        assertThat(page.locator("[data-testid='active-timer']")).hasText("00:35:00")
+        // Timer and day group totals should now show 35 minutes
+        val state35min = initialState.copy(
+            currentEntry = CurrentEntryState.ActiveEntry(
+                title = "Active Task",
+                duration = "00:35:00"
+            ),
+            dayGroups = listOf(
+                DayGroupState(
+                    displayTitle = "Today",
+                    totalDuration = "00:35:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Active Task",
+                            timeRange = "14:00 - in progress",
+                            duration = "00:35:00"
+                        )
+                    )
+                )
+            )
+        )
+        timeLogsPage.assertPageState(state35min)
         
         // Advance another 25 minutes to reach 1 hour
         timeLogsPage.advanceClock(25 * 60 * 1000)
         
-        // Timer should now show 1 hour (01:00:00)
-        assertThat(page.locator("[data-testid='active-timer']")).hasText("01:00:00")
+        // Timer and day group totals should now show 1 hour
+        val state1hour = state35min.copy(
+            currentEntry = CurrentEntryState.ActiveEntry(
+                title = "Active Task",
+                duration = "01:00:00"
+            ),
+            dayGroups = listOf(
+                DayGroupState(
+                    displayTitle = "Today",
+                    totalDuration = "01:00:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Active Task",
+                            timeRange = "14:00 - in progress",
+                            duration = "01:00:00"
+                        )
+                    )
+                )
+            )
+        )
+        timeLogsPage.assertPageState(state1hour)
     }
     
     @Test

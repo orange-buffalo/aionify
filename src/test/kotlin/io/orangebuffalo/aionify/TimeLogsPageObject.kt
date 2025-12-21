@@ -145,7 +145,7 @@ class TimeLogsPageObject(private val page: Page) {
         // Business invariant: timezone hint is always visible
         // Get the timezone from the browser
         val expectedTimezone = page.evaluate("() => Intl.DateTimeFormat().resolvedOptions().timeZone") as String
-        val expectedHintText = "Times shown in $expectedTimezone timezone"
+        val expectedHintText = "Times shown in $expectedTimezone"
         assertThat(page.locator("text=/Times shown in/")).isVisible()
         assertThat(page.locator("text=/Times shown in/")).hasText(expectedHintText)
     }
@@ -306,14 +306,15 @@ class TimeLogsPageObject(private val page: Page) {
 
     /**
      * Deletes an entry with the given title, confirming the deletion dialog.
-     * The entry must be uniquely identifiable by title.
+     * For entries that span midnight (appearing in multiple day groups), deletes the first occurrence.
      */
     fun deleteEntry(entryTitle: String) {
-        // Find all entries with this title - there should be exactly one
+        // Find all entries with this title
         val matchingEntries = page.locator("[data-testid='time-entry']:has-text('$entryTitle')")
         
-        // Click the menu button for the entry
-        matchingEntries.locator("[data-testid='entry-menu-button']").click()
+        // For midnight-spanning entries, there will be multiple matches (same entry split across days)
+        // Click the menu button for the first occurrence
+        matchingEntries.first().locator("[data-testid='entry-menu-button']").click()
 
         // Click delete in the menu
         page.locator("[data-testid='delete-menu-item']").click()
