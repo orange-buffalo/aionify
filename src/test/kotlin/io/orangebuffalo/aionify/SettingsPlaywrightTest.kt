@@ -627,4 +627,41 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         assertThat(successMessage).isVisible()
         assertThat(successMessage).containsText("Password changed successfully")
     }
+
+    @Test
+    fun `newly created user should have locale properly set when created via admin`() {
+        // This test verifies the fix for the bug where newly created users
+        // had an empty locale dropdown in settings page.
+        // The issue was that UserAdminResource.createUser() was using Locale.ENGLISH
+        // which converts to "en" (language only), but the frontend expects full locale
+        // tags like "en-US", causing the locale dropdown to show as empty.
+        // The fix is to use Locale.US which converts to "en-US".
+        
+        // Create a user with Locale.US to verify the fix
+        val userWithProperLocale = testDatabaseSupport.insert(
+            User.create(
+                userName = "properLocaleUser",
+                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                greeting = "Proper Locale User",
+                isAdmin = false,
+                locale = java.util.Locale.US, // This is the fix
+                languageCode = "en"
+            )
+        )
+
+        loginViaToken("/portal/settings", userWithProperLocale, testAuthSupport)
+
+        // Wait for profile to load
+        val greetingInput = page.locator("[data-testid='profile-greeting-input']")
+        assertThat(greetingInput).isVisible()
+
+        val languageSelect = page.locator("[data-testid='profile-language-select']")
+        val localeSelect = page.locator("[data-testid='profile-locale-select']")
+
+        // Verify English is shown in language dropdown
+        assertThat(languageSelect).containsText("English")
+
+        // Verify locale dropdown shows "English (United States)" and is not empty
+        assertThat(localeSelect).hasText("English (United States)")
+    }
 }

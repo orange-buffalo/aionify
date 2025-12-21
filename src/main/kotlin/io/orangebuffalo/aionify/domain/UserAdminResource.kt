@@ -73,14 +73,14 @@ open class UserAdminResource(
         // Generate a long random password (100+ characters)
         val randomPassword = userService.generateRandomPassword(100)
         
-        // Create the user with default English locale
+        // Create the user with default English (US) locale
         val user = userRepository.save(
             User.create(
                 userName = request.userName,
                 passwordHash = org.mindrot.jbcrypt.BCrypt.hashpw(randomPassword, org.mindrot.jbcrypt.BCrypt.gensalt()),
                 greeting = request.greeting,
                 isAdmin = request.isAdmin,
-                locale = java.util.Locale.ENGLISH,
+                locale = java.util.Locale.US,
                 languageCode = "en"
             )
         )
