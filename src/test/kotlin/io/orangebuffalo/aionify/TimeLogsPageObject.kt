@@ -1,0 +1,351 @@
+package io.orangebuffalo.aionify
+
+import com.microsoft.playwright.Page
+import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
+import com.microsoft.playwright.options.AriaRole
+
+/**
+ * Page state model representing the complete state of the Time Logs page.
+ * This model is used for comprehensive page state assertions.
+ * 
+ * Business invariants:
+ * - weekRange is always visible and has a value
+ * - timezoneHint is always visible
+ * - noEntriesMessageVisible is automatically determined from dayGroups
+ */
+data class TimeLogsPageState(
+    val currentEntry: CurrentEntryState = CurrentEntryState.NoActiveEntry(),
+    val weekNavigation: WeekNavigationState = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+    val dayGroups: List<DayGroupState> = emptyList(),
+    val errorMessageVisible: Boolean = false,
+    val errorMessage: String? = null
+) {
+    /**
+     * Registers a new entry in the specified day, creating the day group if it doesn't exist.
+     */
+    fun withEntry(dayTitle: String, entry: EntryState): TimeLogsPageState {
+        val existingDay = dayGroups.find { it.displayTitle == dayTitle }
+        val updatedDayGroups = if (existingDay != null) {
+            dayGroups.map { 
+                if (it.displayTitle == dayTitle) {
+                    it.copy(entries = listOf(entry) + it.entries)
+                } else {
+                    it
+                }
+            }
+        } else {
+            listOf(DayGroupState(
+                displayTitle = dayTitle,
+                totalDuration = entry.duration,
+                entries = listOf(entry)
+            )) + dayGroups
+        }
+        return copy(dayGroups = updatedDayGroups)
+    }
+}
+
+/**
+ * State of the current entry panel (either active or ready to start new entry).
+ */
+sealed class CurrentEntryState {
+    /**
+     * No active entry - shows input field and start button.
+     */
+    data class NoActiveEntry(
+        val inputVisible: Boolean = true,
+        val startButtonVisible: Boolean = true,
+        val startButtonEnabled: Boolean = false
+    ) : CurrentEntryState()
+
+    /**
+     * Active entry in progress - shows entry details and stop button.
+     */
+    data class ActiveEntry(
+        val title: String,
+        val duration: String,
+        val stopButtonVisible: Boolean = true,
+        val inputVisible: Boolean = false,
+        val startButtonVisible: Boolean = false
+    ) : CurrentEntryState()
+}
+
+/**
+ * State of the week navigation section.
+ * Business invariant: weekRange is always present and navigation buttons are always visible.
+ */
+data class WeekNavigationState(
+    val weekRange: String
+)
+
+/**
+ * State of a single day group in the time logs list.
+ */
+data class DayGroupState(
+    val displayTitle: String,
+    val totalDuration: String,
+    val entries: List<EntryState>
+)
+
+/**
+ * State of a single time entry.
+ */
+data class EntryState(
+    val title: String,
+    val timeRange: String,
+    val duration: String,
+    val continueButtonVisible: Boolean = true,
+    val menuButtonVisible: Boolean = true
+)
+
+/**
+ * Page Object for the Time Logs page, providing methods to interact with the page
+ * and assert its state.
+ */
+class TimeLogsPageObject(private val page: Page) {
+
+    /**
+     * Asserts that the page is in the expected state.
+     * Uses Playwright assertions to verify all elements of the page state.
+     * 
+     * Important: This method uses content-based array assertions rather than count assertions
+     * for better failure feedback.
+     * 
+     * Business invariants enforced:
+     * - Week navigation is always visible with a range
+     * - Timezone hint is always visible
+     * - No entries message visibility is derived from dayGroups state
+     */
+    fun assertPageState(expectedState: TimeLogsPageState) {
+        // Assert current entry panel state
+        assertCurrentEntryState(expectedState.currentEntry)
+
+        // Assert week navigation state (always present)
+        assertWeekNavigationState(expectedState.weekNavigation)
+
+        // Assert error message visibility
+        if (expectedState.errorMessageVisible) {
+            assertThat(page.locator("[data-testid='time-logs-error']")).isVisible()
+            if (expectedState.errorMessage != null) {
+                assertThat(page.locator("[data-testid='time-logs-error']")).containsText(expectedState.errorMessage)
+            }
+        } else {
+            assertThat(page.locator("[data-testid='time-logs-error']")).not().isVisible()
+        }
+
+        // Assert day groups and entries
+        // Business invariant: no entries message is visible iff dayGroups is empty
+        if (expectedState.dayGroups.isNotEmpty()) {
+            assertDayGroups(expectedState.dayGroups)
+            assertThat(page.locator("[data-testid='no-entries']")).not().isVisible()
+        } else {
+            assertThat(page.locator("[data-testid='no-entries']")).isVisible()
+            assertThat(page.locator("[data-testid='day-group']")).hasCount(0)
+        }
+
+        // Business invariant: timezone hint is always visible
+        // Get the timezone from the browser
+        val expectedTimezone = page.evaluate("() => Intl.DateTimeFormat().resolvedOptions().timeZone") as String
+        val expectedHintText = "Times shown in $expectedTimezone"
+        assertThat(page.locator("text=/Times shown in/")).isVisible()
+        assertThat(page.locator("text=/Times shown in/")).hasText(expectedHintText)
+    }
+
+    private fun assertCurrentEntryState(currentEntry: CurrentEntryState) {
+        when (currentEntry) {
+            is CurrentEntryState.NoActiveEntry -> {
+                // Verify input and start button state
+                if (currentEntry.inputVisible) {
+                    assertThat(page.locator("[data-testid='new-entry-input']")).isVisible()
+                } else {
+                    assertThat(page.locator("[data-testid='new-entry-input']")).not().isVisible()
+                }
+
+                if (currentEntry.startButtonVisible) {
+                    assertThat(page.locator("[data-testid='start-button']")).isVisible()
+                    if (currentEntry.startButtonEnabled) {
+                        assertThat(page.locator("[data-testid='start-button']")).isEnabled()
+                    } else {
+                        assertThat(page.locator("[data-testid='start-button']")).isDisabled()
+                    }
+                } else {
+                    assertThat(page.locator("[data-testid='start-button']")).not().isVisible()
+                }
+
+                // Business invariant: Active timer and stop button must always be hidden in NoActiveEntry state
+                assertThat(page.locator("[data-testid='active-timer']")).not().isVisible()
+                assertThat(page.locator("[data-testid='stop-button']")).not().isVisible()
+            }
+
+            is CurrentEntryState.ActiveEntry -> {
+                // Verify active entry details
+                assertThat(page.locator("[data-testid='current-entry-panel']").locator("text=${currentEntry.title}")).isVisible()
+                assertThat(page.locator("[data-testid='active-timer']")).isVisible()
+                assertThat(page.locator("[data-testid='active-timer']")).hasText(currentEntry.duration)
+
+                if (currentEntry.stopButtonVisible) {
+                    assertThat(page.locator("[data-testid='stop-button']")).isVisible()
+                } else {
+                    assertThat(page.locator("[data-testid='stop-button']")).not().isVisible()
+                }
+
+                // Business invariant: Input and start button must always be hidden in ActiveEntry state
+                assertThat(page.locator("[data-testid='new-entry-input']")).not().isVisible()
+                assertThat(page.locator("[data-testid='start-button']")).not().isVisible()
+            }
+        }
+    }
+
+    private fun assertWeekNavigationState(weekNav: WeekNavigationState) {
+        // Business invariant: Week navigation is always visible
+        assertThat(page.locator("[data-testid='previous-week-button']")).isVisible()
+        assertThat(page.locator("[data-testid='next-week-button']")).isVisible()
+        assertThat(page.locator("[data-testid='week-range']")).isVisible()
+        assertThat(page.locator("[data-testid='week-range']")).hasText(weekNav.weekRange)
+    }
+
+    private fun assertDayGroups(expectedDayGroups: List<DayGroupState>) {
+        val dayGroupLocator = page.locator("[data-testid='day-group']")
+        
+        // Assert day group titles using content-based assertion
+        val expectedTitles = expectedDayGroups.map { it.displayTitle }
+        val titleLocators = dayGroupLocator.locator("[data-testid='day-title']")
+        assertThat(titleLocators).containsText(expectedTitles.toTypedArray())
+        
+        // Assert day group total durations with exact match including "Total: " prefix
+        val expectedDurationsWithPrefix = expectedDayGroups.map { "Total: ${it.totalDuration}" }
+        val durationLocators = dayGroupLocator.locator("[data-testid='day-total-duration']")
+        assertThat(durationLocators).containsText(expectedDurationsWithPrefix.toTypedArray())
+
+        // Assert entries for each day group
+        for (i in expectedDayGroups.indices) {
+            val dayGroup = expectedDayGroups[i]
+            val dayGroupElement = dayGroupLocator.nth(i)
+            
+            if (dayGroup.entries.isNotEmpty()) {
+                assertEntriesInDayGroup(dayGroupElement, dayGroup.entries)
+            }
+        }
+    }
+
+    private fun assertEntriesInDayGroup(dayGroupLocator: com.microsoft.playwright.Locator, expectedEntries: List<EntryState>) {
+        val entryLocator = dayGroupLocator.locator("[data-testid='time-entry']")
+        
+        // Assert entry titles using content-based assertion
+        val expectedTitles = expectedEntries.map { it.title }
+        val titleLocators = entryLocator.locator("[data-testid='entry-title']")
+        assertThat(titleLocators).containsText(expectedTitles.toTypedArray())
+        
+        // Assert entry time ranges using content-based assertion
+        val expectedTimeRanges = expectedEntries.map { it.timeRange }
+        val timeRangeLocators = entryLocator.locator("[data-testid='entry-time-range']")
+        assertThat(timeRangeLocators).containsText(expectedTimeRanges.toTypedArray())
+        
+        // Assert entry durations using content-based assertion
+        val expectedDurations = expectedEntries.map { it.duration }
+        val durationLocators = entryLocator.locator("[data-testid='entry-duration']")
+        assertThat(durationLocators).containsText(expectedDurations.toTypedArray())
+
+        // Assert action buttons visibility for each entry
+        for (i in expectedEntries.indices) {
+            val entry = expectedEntries[i]
+            val entryElement = entryLocator.nth(i)
+            
+            if (entry.continueButtonVisible) {
+                assertThat(entryElement.locator("[data-testid='continue-button']")).isVisible()
+            } else {
+                assertThat(entryElement.locator("[data-testid='continue-button']")).not().isVisible()
+            }
+            
+            if (entry.menuButtonVisible) {
+                assertThat(entryElement.locator("[data-testid='entry-menu-button']")).isVisible()
+            } else {
+                assertThat(entryElement.locator("[data-testid='entry-menu-button']")).not().isVisible()
+            }
+        }
+    }
+
+    // Interaction methods
+
+    /**
+     * Fills the new entry input field with the given title.
+     */
+    fun fillNewEntryTitle(title: String) {
+        page.locator("[data-testid='new-entry-input']").fill(title)
+    }
+
+    /**
+     * Clicks the start button to start a new time entry.
+     */
+    fun clickStart() {
+        page.locator("[data-testid='start-button']").click()
+    }
+
+    /**
+     * Clicks the stop button to stop the active time entry.
+     */
+    fun clickStop() {
+        page.locator("[data-testid='stop-button']").click()
+    }
+
+    /**
+     * Presses Enter in the new entry input field.
+     */
+    fun pressEnterInNewEntryInput() {
+        page.locator("[data-testid='new-entry-input']").press("Enter")
+    }
+
+    /**
+     * Clicks the continue button for an entry with the given title.
+     * The entry must be uniquely identifiable by title.
+     */
+    fun clickContinueForEntry(entryTitle: String) {
+        page.locator("[data-testid='time-entry']:has-text('$entryTitle')")
+            .locator("[data-testid='continue-button']")
+            .click()
+    }
+
+    /**
+     * Deletes an entry with the given title, confirming the deletion dialog.
+     * For entries that span midnight (appearing in multiple day groups), deletes the first occurrence.
+     */
+    fun deleteEntry(entryTitle: String) {
+        // Find all entries with this title
+        val matchingEntries = page.locator("[data-testid='time-entry']:has-text('$entryTitle')")
+        
+        // For midnight-spanning entries, there will be multiple matches (same entry split across days)
+        // Click the menu button for the first occurrence
+        matchingEntries.first().locator("[data-testid='entry-menu-button']").click()
+
+        // Click delete in the menu
+        page.locator("[data-testid='delete-menu-item']").click()
+
+        // Confirm deletion
+        val confirmButton = page.locator("[data-testid='confirm-delete-button']")
+        assertThat(confirmButton).isVisible()
+        confirmButton.click()
+
+        // Wait for dialog to close
+        assertThat(confirmButton).not().isVisible()
+    }
+
+    /**
+     * Navigates to the previous week.
+     */
+    fun goToPreviousWeek() {
+        page.locator("[data-testid='previous-week-button']").click()
+    }
+
+    /**
+     * Navigates to the next week.
+     */
+    fun goToNextWeek() {
+        page.locator("[data-testid='next-week-button']").click()
+    }
+
+    /**
+     * Advances the browser clock by the given number of milliseconds.
+     */
+    fun advanceClock(milliseconds: Long) {
+        page.clock().runFor(milliseconds)
+    }
+}
