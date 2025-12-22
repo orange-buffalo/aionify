@@ -6,8 +6,8 @@ import io.micronaut.data.annotation.MappedEntity
 import io.micronaut.data.annotation.MappedProperty
 import java.time.Instant
 
-@MappedEntity("time_entry")
-data class TimeEntry(
+@MappedEntity("time_log_entry")
+data class TimeLogEntry(
     @field:Id
     @field:GeneratedValue(GeneratedValue.Type.IDENTITY)
     val id: Long? = null,

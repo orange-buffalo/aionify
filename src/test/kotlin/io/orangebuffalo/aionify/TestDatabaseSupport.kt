@@ -4,7 +4,7 @@ import io.micronaut.context.ApplicationContext
 import io.micronaut.transaction.TransactionDefinition
 import io.micronaut.transaction.annotation.Transactional
 import io.orangebuffalo.aionify.domain.ActivationToken
-import io.orangebuffalo.aionify.domain.TimeEntry
+import io.orangebuffalo.aionify.domain.TimeLogEntry
 import io.orangebuffalo.aionify.domain.User
 import jakarta.inject.Singleton
 import javax.sql.DataSource
@@ -90,7 +90,7 @@ open class TestDatabaseSupport(
         @Suppress("UNCHECKED_CAST")
         return when (entity) {
             is User -> genericRepository.save(entity) as T
-            is TimeEntry -> genericRepository.save(entity) as T
+            is TimeLogEntry -> genericRepository.save(entity) as T
             is ActivationToken -> genericRepository.save(entity) as T
             else -> throw IllegalArgumentException("Unsupported entity type: ${entity::class.java.name}")
         }
@@ -110,7 +110,7 @@ open class TestDatabaseSupport(
         @Suppress("UNCHECKED_CAST")
         return when (entity) {
             is User -> genericRepository.update(entity) as T
-            is TimeEntry -> genericRepository.update(entity) as T
+            is TimeLogEntry -> genericRepository.update(entity) as T
             is ActivationToken -> genericRepository.update(entity) as T
             else -> throw IllegalArgumentException("Unsupported entity type: ${entity::class.java.name}")
         }

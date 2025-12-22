@@ -26,14 +26,14 @@ import java.time.Instant
  * 3. Users cannot modify or delete other users' time entries
  */
 @MicronautTest(transactional = false)
-class TimeEntryResourceTest {
+class TimeLogEntryResourceTest {
 
     @Inject
     @field:Client("/")
     lateinit var client: HttpClient
 
     @Inject
-    lateinit var timeEntryRepository: TimeEntryRepository
+    lateinit var timeEntryRepository: TimeLogEntryRepository
 
     @Inject
     lateinit var testAuthSupport: TestAuthSupport
@@ -46,8 +46,8 @@ class TimeEntryResourceTest {
 
     private lateinit var user1: User
     private lateinit var user2: User
-    private lateinit var user1Entry: TimeEntry
-    private lateinit var user2Entry: TimeEntry
+    private lateinit var user1Entry: TimeLogEntry
+    private lateinit var user2Entry: TimeLogEntry
 
     @BeforeEach
     fun setupTestData() {
@@ -59,7 +59,7 @@ class TimeEntryResourceTest {
 
         // Create time entries for both users
         user1Entry = testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = Instant.parse("2024-01-15T10:00:00Z"),
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "User 1 Task",
@@ -68,7 +68,7 @@ class TimeEntryResourceTest {
         )
 
         user2Entry = testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = Instant.parse("2024-01-15T14:00:00Z"),
                 endTime = null,
                 title = "User 2 Task",
@@ -82,7 +82,7 @@ class TimeEntryResourceTest {
         // When: Trying to access endpoint without authentication
         val exception = assertThrows(HttpClientResponseException::class.java) {
             client.toBlocking().exchange(
-                HttpRequest.GET<Any>("/api/time-entries?startTime=2024-01-15T00:00:00Z&endTime=2024-01-22T00:00:00Z"),
+                HttpRequest.GET<Any>("/api/time-log-entries?startTime=2024-01-15T00:00:00Z&endTime=2024-01-22T00:00:00Z"),
                 String::class.java
             )
         }
@@ -96,7 +96,7 @@ class TimeEntryResourceTest {
         // When: Trying to access endpoint without authentication
         val exception = assertThrows(HttpClientResponseException::class.java) {
             client.toBlocking().exchange(
-                HttpRequest.GET<Any>("/api/time-entries/active"),
+                HttpRequest.GET<Any>("/api/time-log-entries/active"),
                 String::class.java
             )
         }
@@ -110,7 +110,7 @@ class TimeEntryResourceTest {
         // When: Trying to create without authentication
         val exception = assertThrows(HttpClientResponseException::class.java) {
             client.toBlocking().exchange(
-                HttpRequest.POST("/api/time-entries", mapOf("title" to "Test Task")),
+                HttpRequest.POST("/api/time-log-entries", mapOf("title" to "Test Task")),
                 String::class.java
             )
         }
@@ -126,7 +126,7 @@ class TimeEntryResourceTest {
 
         // When: User 1 lists time entries
         val response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/api/time-entries?startTime=2024-01-15T00:00:00Z&endTime=2024-01-22T00:00:00Z")
+            HttpRequest.GET<Any>("/api/time-log-entries?startTime=2024-01-15T00:00:00Z&endTime=2024-01-22T00:00:00Z")
                 .bearerAuth(user1Token),
             TimeEntriesResponse::class.java
         )
@@ -147,7 +147,7 @@ class TimeEntryResourceTest {
         // When: User 1 tries to stop User 2's entry
         val exception = assertThrows(HttpClientResponseException::class.java) {
             client.toBlocking().exchange(
-                HttpRequest.PUT("/api/time-entries/${user2Entry.id}/stop", emptyMap<String, Any>())
+                HttpRequest.PUT("/api/time-log-entries/${user2Entry.id}/stop", emptyMap<String, Any>())
                     .bearerAuth(user1Token),
                 String::class.java
             )
@@ -165,7 +165,7 @@ class TimeEntryResourceTest {
         // When: User 1 tries to delete User 2's entry
         val exception = assertThrows(HttpClientResponseException::class.java) {
             client.toBlocking().exchange(
-                HttpRequest.DELETE<Any>("/api/time-entries/${user2Entry.id}")
+                HttpRequest.DELETE<Any>("/api/time-log-entries/${user2Entry.id}")
                     .bearerAuth(user1Token),
                 String::class.java
             )
@@ -186,9 +186,9 @@ class TimeEntryResourceTest {
 
         // When: User 2 stops their own entry
         val response = client.toBlocking().exchange(
-            HttpRequest.PUT("/api/time-entries/${user2Entry.id}/stop", emptyMap<String, Any>())
+            HttpRequest.PUT("/api/time-log-entries/${user2Entry.id}/stop", emptyMap<String, Any>())
                 .bearerAuth(user2Token),
-            TimeEntryDto::class.java
+            TimeLogEntryDto::class.java
         )
 
         // Then: Should succeed
@@ -205,7 +205,7 @@ class TimeEntryResourceTest {
 
         // When: User 1 deletes their own entry
         val response = client.toBlocking().exchange(
-            HttpRequest.DELETE<Any>("/api/time-entries/${user1Entry.id}")
+            HttpRequest.DELETE<Any>("/api/time-log-entries/${user1Entry.id}")
                 .bearerAuth(user1Token),
             String::class.java
         )
@@ -225,7 +225,7 @@ class TimeEntryResourceTest {
 
         // When: User 2 gets active entry
         val response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/api/time-entries/active")
+            HttpRequest.GET<Any>("/api/time-log-entries/active")
                 .bearerAuth(user2Token),
             ActiveEntryResponse::class.java
         )
@@ -245,7 +245,7 @@ class TimeEntryResourceTest {
 
         // When: User 1 gets active entry
         val response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/api/time-entries/active")
+            HttpRequest.GET<Any>("/api/time-log-entries/active")
                 .bearerAuth(user1Token),
             ActiveEntryResponse::class.java
         )
