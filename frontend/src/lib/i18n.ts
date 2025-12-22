@@ -95,6 +95,11 @@ const resources = {
           dateLabel: "Date",
           timeLabel: "Time",
         },
+        datePicker: {
+          apply: "Apply",
+          cancel: "Cancel",
+          timeLabel: "Time",
+        },
         start: "Start",
         starting: "Starting...",
         stop: "Stop",
@@ -383,6 +388,11 @@ const resources = {
           titleLabel: "Назва",
           startTimeLabel: "Час початку",
           dateLabel: "Дата",
+          timeLabel: "Час",
+        },
+        datePicker: {
+          apply: "Застосувати",
+          cancel: "Скасувати",
           timeLabel: "Час",
         },
         start: "Почати",

@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -13,19 +14,20 @@ interface DateTimePickerProps {
 }
 
 export function DateTimePicker({ value, onChange, disabled, locale, testIdPrefix }: DateTimePickerProps) {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState(value)
 
-  // Format display value - using a consistent format that respects locale
-  // Format: "MMM DD, YYYY, HH:mm" (e.g., "Mar 15, 2024, 14:00")
+  // Format display value using Intl API for proper localization
   const formatDisplayValue = (date: Date) => {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-    const month = months[date.getMonth()]
-    const day = date.getDate()
-    const year = date.getFullYear()
-    const hours = String(date.getHours()).padStart(2, '0')
-    const minutes = String(date.getMinutes()).padStart(2, '0')
-    return `${month} ${day}, ${year}, ${hours}:${minutes}`
+    return new Intl.DateTimeFormat(locale, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).format(date)
   }
   
   const displayValue = formatDisplayValue(value)
@@ -51,10 +53,24 @@ export function DateTimePicker({ value, onChange, disabled, locale, testIdPrefix
   }
 
   const { days, month, year } = generateCalendar(selectedDate)
-  const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ]
+  
+  // Get localized month name using Intl API
+  const getMonthName = (monthIndex: number) => {
+    return new Intl.DateTimeFormat(locale, { month: 'long' }).format(new Date(year, monthIndex, 1))
+  }
+  
+  // Get localized day names using Intl API
+  const getDayNames = () => {
+    const baseDate = new Date(2024, 0, 7) // Sunday, Jan 7, 2024
+    return Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(baseDate)
+      date.setDate(baseDate.getDate() + i)
+      return new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(date).toUpperCase()
+    })
+  }
+  
+  const dayNames = getDayNames()
+  const monthName = getMonthName(month)
 
   const handleDateClick = (day: Date) => {
     const newDate = new Date(selectedDate)
@@ -120,7 +136,7 @@ export function DateTimePicker({ value, onChange, disabled, locale, testIdPrefix
               ‹
             </Button>
             <div className="text-sm font-medium text-foreground">
-              {monthNames[month]} {year}
+              {monthName} {year}
             </div>
             <Button
               variant="ghost"
@@ -134,8 +150,8 @@ export function DateTimePicker({ value, onChange, disabled, locale, testIdPrefix
 
           {/* Calendar Grid */}
           <div className="grid grid-cols-7 gap-1">
-            {["SU", "MO", "TU", "WE", "TH", "FR", "SA"].map((day) => (
-              <div key={day} className="text-center text-xs text-muted-foreground p-2">
+            {dayNames.map((day, idx) => (
+              <div key={idx} className="text-center text-xs text-muted-foreground p-2">
                 {day}
               </div>
             ))}
@@ -165,7 +181,7 @@ export function DateTimePicker({ value, onChange, disabled, locale, testIdPrefix
 
           {/* Time Picker */}
           <div className="flex items-center gap-2 pt-4 border-t">
-            <span className="text-sm text-foreground">Time:</span>
+            <span className="text-sm text-foreground">{t('timeLogs.datePicker.timeLabel')}:</span>
             <Input
               type="number"
               min="0"
@@ -195,14 +211,14 @@ export function DateTimePicker({ value, onChange, disabled, locale, testIdPrefix
               onClick={() => setIsOpen(false)}
               className="text-foreground"
             >
-              Cancel
+              {t('timeLogs.datePicker.cancel')}
             </Button>
             <Button
               size="sm"
               onClick={handleApply}
               data-testid={`${testIdPrefix}-apply`}
             >
-              Apply
+              {t('timeLogs.datePicker.apply')}
             </Button>
           </div>
         </div>
