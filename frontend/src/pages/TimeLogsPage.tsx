@@ -48,13 +48,13 @@ export function TimeLogsPage() {
   const [editDateTime, setEditDateTime] = useState<Date>(new Date())
   const [isSaving, setIsSaving] = useState(false)
 
-  // Get the start of the week (Monday)
+  // Get the start of the week (Monday) in UTC
   function getWeekStart(date: Date): Date {
     const d = new Date(date)
-    const day = d.getDay()
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1) // Adjust when day is Sunday
-    d.setDate(diff)
-    d.setHours(0, 0, 0, 0)
+    const day = d.getUTCDay() // Use UTC day to avoid timezone issues
+    const diff = d.getUTCDate() - day + (day === 0 ? -6 : 1) // Adjust when day is Sunday
+    d.setUTCDate(diff)
+    d.setUTCHours(0, 0, 0, 0) // Set to midnight UTC
     return d
   }
 
@@ -93,21 +93,29 @@ export function TimeLogsPage() {
 
   // Get day title (Today, Yesterday, or day of week + date)
   function getDayTitle(dateStr: string, locale: string): string {
-    const date = new Date(dateStr)
-    const today = new Date()
-    const yesterday = new Date(today)
-    yesterday.setDate(yesterday.getDate() - 1)
+    // dateStr is in format YYYY-MM-DD (UTC date from formatISODate)
+    // We need to compare it with today's UTC date to ensure consistency
+    const entryDate = dateStr // Keep as string for comparison (YYYY-MM-DD format)
     
-    today.setHours(0, 0, 0, 0)
-    yesterday.setHours(0, 0, 0, 0)
-    date.setHours(0, 0, 0, 0)
+    // Get today's UTC date as YYYY-MM-DD string
+    const now = new Date()
+    const todayUTC = now.toISOString().split('T')[0]
     
-    if (date.getTime() === today.getTime()) {
+    // Get yesterday's UTC date
+    const yesterdayDate = new Date(now)
+    yesterdayDate.setUTCDate(yesterdayDate.getUTCDate() - 1)
+    const yesterdayUTC = yesterdayDate.toISOString().split('T')[0]
+    
+    if (entryDate === todayUTC) {
       return t('timeLogs.today')
-    } else if (date.getTime() === yesterday.getTime()) {
+    } else if (entryDate === yesterdayUTC) {
       return t('timeLogs.yesterday')
     } else {
-      const dayName = date.toLocaleDateString(locale, { weekday: 'long' })
+      // For other dates, create a date object and format it for display
+      // Use the UTC date components to avoid timezone shifts
+      const [year, month, day] = dateStr.split('-').map(Number)
+      const date = new Date(Date.UTC(year, month - 1, day))
+      const dayName = date.toLocaleDateString(locale, { weekday: 'long', timeZone: 'UTC' })
       const formattedDate = formatDate(dateStr, locale)
       return `${dayName}, ${formattedDate}`
     }
@@ -177,12 +185,12 @@ export function TimeLogsPage() {
       setLoading(true)
       setError(null)
       
-      // Calculate week boundaries as ISO timestamps
+      // Calculate week boundaries as ISO timestamps in UTC
       const weekStartTime = new Date(weekStart)
-      weekStartTime.setHours(0, 0, 0, 0)
+      weekStartTime.setUTCHours(0, 0, 0, 0) // Midnight UTC
       const weekEndTime = new Date(weekStart)
-      weekEndTime.setDate(weekEndTime.getDate() + 7)
-      weekEndTime.setHours(0, 0, 0, 0)
+      weekEndTime.setUTCDate(weekEndTime.getUTCDate() + 7)
+      weekEndTime.setUTCHours(0, 0, 0, 0) // Midnight UTC
       
       const startTimeStr = weekStartTime.toISOString()
       const endTimeStr = weekEndTime.toISOString()
@@ -380,14 +388,14 @@ export function TimeLogsPage() {
   // Navigate to previous week
   function handlePreviousWeek() {
     const newWeekStart = new Date(weekStart)
-    newWeekStart.setDate(newWeekStart.getDate() - 7)
+    newWeekStart.setUTCDate(newWeekStart.getUTCDate() - 7)
     setWeekStart(newWeekStart)
   }
 
   // Navigate to next week
   function handleNextWeek() {
     const newWeekStart = new Date(weekStart)
-    newWeekStart.setDate(newWeekStart.getDate() + 7)
+    newWeekStart.setUTCDate(newWeekStart.getUTCDate() + 7)
     setWeekStart(newWeekStart)
   }
 
@@ -395,10 +403,10 @@ export function TimeLogsPage() {
   function getWeekRangeDisplay(): string {
     const locale = i18n.language || 'en'
     const weekEnd = new Date(weekStart)
-    weekEnd.setDate(weekEnd.getDate() + 6)
+    weekEnd.setUTCDate(weekEnd.getUTCDate() + 6)
     
-    const startStr = weekStart.toLocaleDateString(locale, { month: 'short', day: 'numeric' })
-    const endStr = weekEnd.toLocaleDateString(locale, { month: 'short', day: 'numeric' })
+    const startStr = weekStart.toLocaleDateString(locale, { month: 'short', day: 'numeric', timeZone: 'UTC' })
+    const endStr = weekEnd.toLocaleDateString(locale, { month: 'short', day: 'numeric', timeZone: 'UTC' })
     
     return `${startStr} - ${endStr}`
   }
