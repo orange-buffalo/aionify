@@ -8,7 +8,7 @@ import java.util.Optional
 
 @JdbcRepository(dialect = Dialect.POSTGRES)
 interface TimeLogEntryRepository : CrudRepository<TimeLogEntry, Long> {
-    fun findAllOrderById(): List<TimeEntry>
+    fun findAllOrderById(): List<TimeLogEntry>
     
     /**
      * Find all log entries for a specific owner within a time range, ordered by start time descending.

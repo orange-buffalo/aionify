@@ -128,7 +128,7 @@ class TimeLogEntryResourceTest {
         val response = client.toBlocking().exchange(
             HttpRequest.GET<Any>("/api/time-log-entries?startTime=2024-01-15T00:00:00Z&endTime=2024-01-22T00:00:00Z")
                 .bearerAuth(user1Token),
-            TimeEntriesResponse::class.java
+            TimeLogEntriesResponse::class.java
         )
 
         // Then: Should only see own entries
@@ -227,7 +227,7 @@ class TimeLogEntryResourceTest {
         val response = client.toBlocking().exchange(
             HttpRequest.GET<Any>("/api/time-log-entries/active")
                 .bearerAuth(user2Token),
-            ActiveEntryResponse::class.java
+            ActiveLogEntryResponse::class.java
         )
 
         // Then: Should see own active entry
@@ -247,7 +247,7 @@ class TimeLogEntryResourceTest {
         val response = client.toBlocking().exchange(
             HttpRequest.GET<Any>("/api/time-log-entries/active")
                 .bearerAuth(user1Token),
-            ActiveEntryResponse::class.java
+            ActiveLogEntryResponse::class.java
         )
 
         // Then: Should return null entry

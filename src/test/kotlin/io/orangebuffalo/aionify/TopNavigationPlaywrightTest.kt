@@ -73,7 +73,7 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
         assertThat(logo).hasText("Aionify")
 
         // Verify user-specific menu items are present (desktop view)
-        val timeEntry = page.locator("[data-testid='nav-item-time-entry']")
+        val timeEntry = page.locator("[data-testid='nav-item-time-log']")
         val calendar = page.locator("[data-testid='nav-item-calendar']")
         val reports = page.locator("[data-testid='nav-item-reports']")
 
@@ -118,7 +118,7 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
         assertThat(users).isVisible()
 
         // Verify user-specific items are NOT present
-        val timeEntry = page.locator("[data-testid='nav-item-time-entry']")
+        val timeEntry = page.locator("[data-testid='nav-item-time-log']")
         val calendar = page.locator("[data-testid='nav-item-calendar']")
 
         assertThat(timeEntry).hasCount(0)
@@ -134,7 +134,7 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
         assertThat(topNav).isVisible()
 
         // Verify user-specific items are there
-        val timeEntry = page.locator("[data-testid='nav-item-time-entry']")
+        val timeEntry = page.locator("[data-testid='nav-item-time-log']")
         assertThat(timeEntry).isVisible()
 
         // Verify admin-specific items are NOT present
@@ -232,7 +232,7 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
         assertThat(mobileDropdown).isVisible()
 
         // Verify all user menu items are in mobile menu
-        val timeEntry = page.locator("[data-testid='mobile-nav-item-time-entry']")
+        val timeEntry = page.locator("[data-testid='mobile-nav-item-time-log']")
         val calendar = page.locator("[data-testid='mobile-nav-item-calendar']")
         val reports = page.locator("[data-testid='mobile-nav-item-reports']")
 
