@@ -59,9 +59,9 @@ abstract class PlaywrightTestBase {
     lateinit var testUsers: TestUsers
 
     private lateinit var playwright: Playwright
-    private lateinit var browser: Browser
-    private lateinit var browserContext: BrowserContext
-    private lateinit var _page: Page
+    protected lateinit var browser: Browser
+    protected lateinit var browserContext: BrowserContext
+    protected lateinit var _page: Page
     private lateinit var testInfo: TestInfo
     private val consoleMessages = mutableListOf<ConsoleMessage>()
 
@@ -106,9 +106,8 @@ abstract class PlaywrightTestBase {
         )
 
         // Create context with base URL for simpler navigation
-        browserContext = browser.newContext(
-            Browser.NewContextOptions().setBaseURL(baseUrl)
-        )
+        // Can be overridden by calling createBrowserContext() before navigation
+        browserContext = createBrowserContext()
 
         // Start tracing for this test
         browserContext.tracing().start(
@@ -129,6 +128,16 @@ abstract class PlaywrightTestBase {
         // Use pauseAt to prevent automatic time progression - time only advances when explicitly requested
         // This ensures frontend JavaScript Date API uses the same fixed time as backend TimeService
         _page.clock().pauseAt(FIXED_TEST_TIME.toEpochMilli())
+    }
+
+    /**
+     * Creates a browser context with the default options.
+     * Can be overridden in test subclasses to customize context options (e.g., timezone).
+     */
+    protected open fun createBrowserContext(): BrowserContext {
+        return browser.newContext(
+            Browser.NewContextOptions().setBaseURL(baseUrl)
+        )
     }
 
     /**

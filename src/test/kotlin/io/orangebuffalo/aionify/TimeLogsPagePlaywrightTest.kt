@@ -1568,4 +1568,72 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         )
         timeLogsPage.assertPageState(expectedState)
     }
+
+    @Test
+    fun `should handle date grouping correctly in Pacific Auckland timezone`() {
+        // FIXED_TEST_TIME is Friday, March 15, 2024 at 14:30:00 UTC
+        // In Pacific/Auckland (UTC+13 during DST), this is:
+        // Saturday, March 16, 2024 at 03:30:00 NZDT
+        
+        // Recreate the browser context with Pacific/Auckland timezone
+        _page.close()
+        browserContext.tracing().stop()  // Stop tracing before closing context
+        browserContext.close()
+        
+        browserContext = browser.newContext(
+            com.microsoft.playwright.Browser.NewContextOptions()
+                .setBaseURL(baseUrl)
+                .setTimezoneId("Pacific/Auckland")
+        )
+        
+        // Start tracing for the new context
+        browserContext.tracing().start(
+            com.microsoft.playwright.Tracing.StartOptions()
+                .setScreenshots(true)
+                .setSnapshots(true)
+                .setSources(true)
+        )
+        
+        _page = browserContext.newPage()
+        _page.clock().pauseAt(FIXED_TEST_TIME.toEpochMilli())
+        
+        // Recreate the page object for the new page
+        timeLogsPage = TimeLogsPageObject(_page)
+        
+        // Create an entry for "today" in Auckland time (Saturday in Auckland, Friday in UTC)
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago in UTC (Friday 14:00 UTC = Saturday 03:00 NZDT)
+                endTime = FIXED_TEST_TIME.minusSeconds(900), // 15 minutes ago in UTC (Friday 14:15 UTC = Saturday 03:15 NZDT)
+                title = "Auckland Task",
+                ownerId = requireNotNull(testUser.id)
+            )
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // In Auckland timezone:
+        // - Current time: Saturday, March 16, 2024 at 03:30 NZDT
+        // - Entry: Saturday 03:00 - 03:15 NZDT (Friday 14:00 - 14:15 UTC)
+        // - Week: Monday Mar 11 - Sunday Mar 17 (local Auckland dates)
+        // - Day label should be "Today" (Saturday in Auckland)
+        val expectedState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = listOf(
+                DayGroupState(
+                    displayTitle = "Today",
+                    totalDuration = "00:15:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Auckland Task",
+                            timeRange = "03:00 - 03:15", // Auckland local time
+                            duration = "00:15:00"
+                        )
+                    )
+                )
+            ),
+        )
+        timeLogsPage.assertPageState(expectedState)
+    }
 }
