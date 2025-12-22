@@ -1426,4 +1426,103 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         assertThat(page.locator("[data-testid='entry-time-range']").first()).containsText("13:00")
         assertThat(page.locator("[data-testid='entry-time-range']").first()).containsText("виконується")
     }
+
+    @Test
+    fun `should start from existing entry when active entry exists by stopping active entry first`() {
+        // Create a completed entry
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(7200), // 2 hours ago (12:30)
+                endTime = FIXED_TEST_TIME.minusSeconds(5400), // 1.5 hours ago (13:00)
+                title = "Completed Task",
+                ownerId = requireNotNull(testUser.id)
+            )
+        )
+
+        // Create an active entry
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago (14:00)
+                endTime = null,
+                title = "Currently Active Task",
+                ownerId = requireNotNull(testUser.id)
+            )
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Verify initial state with both active and completed entries
+        val initialState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.ActiveEntry(
+                title = "Currently Active Task",
+                duration = "00:30:00",
+                startedAt = "14:00",
+            ),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = listOf(
+                DayGroupState(
+                    displayTitle = "Today",
+                    totalDuration = "01:00:00", // 30 min active + 30 min completed
+                    entries = listOf(
+                        EntryState(
+                            title = "Currently Active Task",
+                            timeRange = "14:00 - in progress",
+                            duration = "00:30:00"
+                        ),
+                        EntryState(
+                            title = "Completed Task",
+                            timeRange = "12:30 - 13:00",
+                            duration = "00:30:00"
+                        )
+                    )
+                )
+            ),
+        )
+        timeLogsPage.assertPageState(initialState)
+
+        // Click start button on the completed entry
+        // This should:
+        // 1. Stop the currently active entry
+        // 2. Start a new entry with the completed entry's title
+        timeLogsPage.clickContinueForEntry("Completed Task")
+
+        // Verify the new state:
+        // - The previously active entry should now be stopped
+        // - A new active entry with "Completed Task" title should be started
+        val newState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.ActiveEntry(
+                title = "Completed Task",
+                duration = "00:00:00",
+                startedAt = "14:30", // Started at FIXED_TEST_TIME
+            ),
+            weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+            dayGroups = listOf(
+                DayGroupState(
+                    displayTitle = "Today",
+                    totalDuration = "01:00:00", // All entries combined
+                    entries = listOf(
+                        // New active entry (most recent)
+                        EntryState(
+                            title = "Completed Task",
+                            timeRange = "14:30 - in progress",
+                            duration = "00:00:00"
+                        ),
+                        // Previously active entry, now stopped
+                        EntryState(
+                            title = "Currently Active Task",
+                            timeRange = "14:00 - 14:30",
+                            duration = "00:30:00"
+                        ),
+                        // Original completed entry
+                        EntryState(
+                            title = "Completed Task",
+                            timeRange = "12:30 - 13:00",
+                            duration = "00:30:00"
+                        )
+                    )
+                )
+            ),
+        )
+        timeLogsPage.assertPageState(newState)
+    }
 }

@@ -97,9 +97,16 @@ open class TimeLogEntryResource(
         // Check if there's already an active log entry
         val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(userId).orElse(null)
         if (activeEntry != null) {
-            return HttpResponse.badRequest(
-                TimeLogEntryErrorResponse("Cannot start a new log entry while another is active", "ACTIVE_ENTRY_EXISTS")
-            )
+            // If stopActiveEntry is true, stop the active entry first
+            if (request.stopActiveEntry) {
+                timeLogEntryRepository.update(
+                    activeEntry.copy(endTime = timeService.now())
+                )
+            } else {
+                return HttpResponse.badRequest(
+                    TimeLogEntryErrorResponse("Cannot start a new log entry while another is active", "ACTIVE_ENTRY_EXISTS")
+                )
+            }
         }
 
         val newEntry = timeLogEntryRepository.save(
@@ -254,7 +261,8 @@ data class ActiveLogEntryResponse(
 data class CreateTimeLogEntryRequest(
     @field:NotBlank(message = "Title cannot be blank")
     @field:Size(max = 1000, message = "Title cannot exceed 1000 characters")
-    val title: String
+    val title: String,
+    val stopActiveEntry: Boolean = false
 )
 
 @Serdeable
