@@ -158,7 +158,7 @@ abstract class PlaywrightTestBase {
         // Using the base URL
         page.navigate("/")
 
-        // Set authentication data in localStorage
+        // Set authentication data in localStorage including language preference
         page.evaluate("""
             (data) => {
                 localStorage.setItem('$TOKEN_KEY', data.token);
@@ -166,14 +166,16 @@ abstract class PlaywrightTestBase {
                     userName: data.userName,
                     greeting: data.greeting
                 }));
+                localStorage.setItem('aionify_language', data.languageCode);
             }
         """.trimIndent(), mapOf(
             "token" to authData.token,
             "userName" to authData.userName,
-            "greeting" to authData.greeting
+            "greeting" to authData.greeting,
+            "languageCode" to user.languageCode
         ))
 
-        // Now navigate to the target page
+        // Now navigate to the target page - i18n will initialize from localStorage
         page.navigate(targetPath)
     }
 
