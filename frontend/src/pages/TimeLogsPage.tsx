@@ -70,9 +70,10 @@ export function TimeLogsPage() {
   }
 
   // Format date according to user's locale
+  // Since the input is an ISO string representing a UTC date, we use UTC timezone
   function formatDate(isoString: string, locale: string): string {
     const date = new Date(isoString)
-    return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' })
+    return date.toLocaleDateString(locale, { month: 'short', day: 'numeric', timeZone: 'UTC' })
   }
 
   // Calculate duration in milliseconds
@@ -138,9 +139,9 @@ export function TimeLogsPage() {
         groups[startDay].push(entry)
       } else {
         // Entry spans midnight - split it
-        // First part: from start to end of day
+        // First part: from start to end of UTC day
         const startDayEnd = new Date(startDate)
-        startDayEnd.setHours(23, 59, 59, 999)
+        startDayEnd.setUTCHours(23, 59, 59, 999)
         
         if (!groups[startDay]) groups[startDay] = []
         groups[startDay].push({
@@ -148,9 +149,9 @@ export function TimeLogsPage() {
           endTime: startDayEnd.toISOString()
         })
         
-        // Second part: from start of day to end
+        // Second part: from start of UTC day to end
         const endDayStart = new Date(endDate)
-        endDayStart.setHours(0, 0, 0, 0)
+        endDayStart.setUTCHours(0, 0, 0, 0)
         
         if (!groups[endDay]) groups[endDay] = []
         groups[endDay].push({
