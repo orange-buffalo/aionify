@@ -1335,8 +1335,18 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // Try to save
         timeLogsPage.clickSaveEdit()
 
-        // Verify error is shown - mutation from initial state
+        // Verify error is shown and we remain in edit mode
         val errorState = initialState.copy(
+            currentEntry = CurrentEntryState.ActiveEntry(
+                title = "Test Task",
+                duration = "00:30:00",
+                startedAt = "14:00",
+                editMode = EditModeState.Editing(
+                    titleValue = "Test Task",
+                    dateTimeValue = "Mar 16, 2024, 10:00",
+                    saveButtonEnabled = true
+                )
+            ),
             errorMessageVisible = true,
             errorMessage = "Start time cannot be in the future"
         )
@@ -1381,6 +1391,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 duration = "00:30:00",
                 startedAt = "14:00"  // Time format should be locale-specific
             ),
+            weekNavigation = WeekNavigationState(weekRange = "11 бер. - 17 бер."),  // Ukrainian date format
             dayGroups = listOf(
                 DayGroupState(
                     displayTitle = "Сьогодні",  // "Today" in Ukrainian

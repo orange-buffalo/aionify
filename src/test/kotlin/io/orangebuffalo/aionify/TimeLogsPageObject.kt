@@ -183,9 +183,8 @@ class TimeLogsPageObject(private val page: Page) {
         // Business invariant: timezone hint is always visible
         // Get the timezone from the browser
         val expectedTimezone = page.evaluate("() => Intl.DateTimeFormat().resolvedOptions().timeZone") as String
-        val expectedHintText = "Times shown in $expectedTimezone"
-        assertThat(page.locator("text=/Times shown in/")).isVisible()
-        assertThat(page.locator("text=/Times shown in/")).hasText(expectedHintText)
+        // Check that timezone is displayed (locale-independent check)
+        assertThat(page.locator("text=/${expectedTimezone}/")).isVisible()
     }
 
     private fun assertCurrentEntryState(currentEntry: CurrentEntryState) {
@@ -304,10 +303,10 @@ class TimeLogsPageObject(private val page: Page) {
         val titleLocators = dayGroupLocator.locator("[data-testid='day-title']")
         assertThat(titleLocators).containsText(expectedTitles.toTypedArray())
         
-        // Assert day group total durations with exact match including "Total: " prefix
-        val expectedDurationsWithPrefix = expectedDayGroups.map { "Total: ${it.totalDuration}" }
+        // Assert day group total durations - just check the duration value appears (locale-independent)
+        val expectedDurations = expectedDayGroups.map { it.totalDuration }
         val durationLocators = dayGroupLocator.locator("[data-testid='day-total-duration']")
-        assertThat(durationLocators).containsText(expectedDurationsWithPrefix.toTypedArray())
+        assertThat(durationLocators).containsText(expectedDurations.toTypedArray())
 
         // Assert entries for each day group
         for (i in expectedDayGroups.indices) {
