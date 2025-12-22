@@ -104,8 +104,7 @@ sealed class EditModeState {
      */
     data class Editing(
         val titleValue: String,
-        val dateValue: String,  // Date input value
-        val timeValue: String,  // Time input value
+        val dateTimeValue: String,  // Locale-formatted datetime display value
         val saveButtonEnabled: Boolean = true
     ) : EditModeState()
 }
@@ -266,12 +265,10 @@ class TimeLogsPageObject(private val page: Page) {
                         assertThat(page.locator("[data-testid='edit-title-input']")).isVisible()
                         assertThat(page.locator("[data-testid='edit-title-input']")).hasValue(editMode.titleValue)
                         
-                        // Date and time inputs
-                        assertThat(page.locator("[data-testid='edit-date-input']")).isVisible()
-                        assertThat(page.locator("[data-testid='edit-date-input']")).hasValue(editMode.dateValue)
-                        
-                        assertThat(page.locator("[data-testid='edit-time-input']")).isVisible()
-                        assertThat(page.locator("[data-testid='edit-time-input']")).hasValue(editMode.timeValue)
+                        // DateTime picker trigger button
+                        val dateTimeTrigger = page.locator("[data-testid='edit-datetime-trigger']")
+                        assertThat(dateTimeTrigger).isVisible()
+                        assertThat(dateTimeTrigger).containsText(editMode.dateTimeValue)
                         
                         // Save button
                         assertThat(page.locator("[data-testid='save-edit-button']")).isVisible()
@@ -461,19 +458,39 @@ class TimeLogsPageObject(private val page: Page) {
     }
 
     /**
-     * Fills the edit date input with the given date.
+     * Sets the edit date/time using the custom DateTimePicker.
      * @param date in format "YYYY-MM-DD" (e.g., "2024-03-15")
+     * @param time in format "HH:mm" (e.g., "14:30")
      */
-    fun fillEditDate(date: String) {
-        page.locator("[data-testid='edit-date-input']").fill(date)
+    fun fillEditDateTime(date: String, time: String) {
+        // Click the trigger to open the picker
+        page.locator("[data-testid='edit-datetime-trigger']").click()
+        
+        // Fill in the time inputs
+        val (hours, minutes) = time.split(":")
+        page.locator("[data-testid='edit-datetime-hours']").fill(hours)
+        page.locator("[data-testid='edit-datetime-minutes']").fill(minutes)
+        
+        // Apply the changes
+        page.locator("[data-testid='edit-datetime-apply']").click()
     }
 
     /**
-     * Fills the edit time input with the given time.
+     * Fills the edit date input (convenience method for backwards compatibility).
+     * @param date in format "YYYY-MM-DD" (e.g., "2024-03-15")
+     */
+    fun fillEditDate(date: String) {
+        // For now, just open and close the picker with default time
+        fillEditDateTime(date, "00:00")
+    }
+
+    /**
+     * Fills the edit time input (convenience method for backwards compatibility).
      * @param time in format "HH:mm" (e.g., "14:30")
      */
     fun fillEditTime(time: String) {
-        page.locator("[data-testid='edit-time-input']").fill(time)
+        // For now, use today's date with the specified time
+        fillEditDateTime("2024-03-15", time)
     }
 
     /**

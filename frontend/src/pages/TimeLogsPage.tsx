@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { DateTimePicker } from "@/components/ui/date-time-picker"
 import { PortalLayout } from "@/components/layout/PortalLayout"
 import { FormMessage } from "@/components/ui/form-message"
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api"
@@ -44,8 +45,7 @@ export function TimeLogsPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
   const [editTitle, setEditTitle] = useState("")
-  const [editDate, setEditDate] = useState("")  // YYYY-MM-DD format
-  const [editTime, setEditTime] = useState("")  // HH:mm format
+  const [editDateTime, setEditDateTime] = useState<Date>(new Date())
   const [isSaving, setIsSaving] = useState(false)
 
   // Get the start of the week (Monday)
@@ -335,25 +335,19 @@ export function TimeLogsPage() {
     if (!activeEntry) return
     
     setEditTitle(activeEntry.title)
-    // Split datetime into separate date and time values
-    const startDate = new Date(activeEntry.startTime)
-    const isoString = startDate.toISOString()
-    setEditDate(isoString.slice(0, 10))  // YYYY-MM-DD
-    setEditTime(isoString.slice(11, 16)) // HH:mm
+    setEditDateTime(new Date(activeEntry.startTime))
     setIsEditMode(true)
   }
 
   // Save edited entry
   async function handleSaveEdit() {
-    if (!activeEntry || !editTitle.trim() || !editDate || !editTime) return
+    if (!activeEntry || !editTitle.trim()) return
     
     try {
       setIsSaving(true)
       setError(null)
       
-      // Combine date and time using local Date, then convert to ISO
-      const localDateTime = new Date(`${editDate}T${editTime}`)
-      const startTimeISO = localDateTime.toISOString()
+      const startTimeISO = editDateTime.toISOString()
       
       const updatedEntry = await apiPut<TimeEntry>(`/api/time-entries/${activeEntry.id}`, {
         title: editTitle.trim(),
@@ -379,8 +373,7 @@ export function TimeLogsPage() {
   function handleCancelEdit() {
     setIsEditMode(false)
     setEditTitle("")
-    setEditDate("")
-    setEditTime("")
+    setEditDateTime(new Date())
   }
 
   // Navigate to previous week
@@ -511,33 +504,17 @@ export function TimeLogsPage() {
                         disabled={isSaving}
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="edit-date" className="text-foreground">
-                          {t('timeLogs.currentEntry.dateLabel')}
-                        </Label>
-                        <Input
-                          id="edit-date"
-                          type="date"
-                          value={editDate}
-                          onChange={(e) => setEditDate(e.target.value)}
-                          className="text-foreground mt-2"
-                          data-testid="edit-date-input"
+                    <div>
+                      <Label htmlFor="edit-datetime" className="text-foreground">
+                        {t('timeLogs.currentEntry.startTimeLabel')}
+                      </Label>
+                      <div className="mt-2">
+                        <DateTimePicker
+                          value={editDateTime}
+                          onChange={setEditDateTime}
                           disabled={isSaving}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="edit-time" className="text-foreground">
-                          {t('timeLogs.currentEntry.timeLabel')}
-                        </Label>
-                        <Input
-                          id="edit-time"
-                          type="time"
-                          value={editTime}
-                          onChange={(e) => setEditTime(e.target.value)}
-                          className="text-foreground mt-2"
-                          data-testid="edit-time-input"
-                          disabled={isSaving}
+                          locale={locale}
+                          testIdPrefix="edit-datetime"
                         />
                       </div>
                     </div>
