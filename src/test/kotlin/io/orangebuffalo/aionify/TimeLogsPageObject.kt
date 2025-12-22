@@ -67,11 +67,15 @@ sealed class CurrentEntryState {
     /**
      * Active entry in progress - shows entry details and stop button.
      * Can be in view mode or edit mode.
+     * 
+     * Business invariants:
+     * - startedAt is always present (formatted start time)
+     * - stopButtonVisible is always true
      */
     data class ActiveEntry(
         val title: String,
         val duration: String,
-        val startedAt: String? = null,  // Formatted start time display (e.g., "14:00")
+        val startedAt: String,  // Always present - formatted start time display (e.g., "14:00")
         val stopButtonVisible: Boolean = true,
         val inputVisible: Boolean = false,
         val startButtonVisible: Boolean = false,
@@ -85,6 +89,8 @@ sealed class CurrentEntryState {
 sealed class EditModeState {
     /**
      * Not in edit mode - showing view mode with edit button.
+     * 
+     * Business invariant: edit button is always visible in view mode.
      */
     object NotEditing : EditModeState() {
         val editButtonVisible: Boolean = true
@@ -92,13 +98,15 @@ sealed class EditModeState {
     
     /**
      * In edit mode - showing edit form with save/cancel buttons.
+     * 
+     * Business invariants:
+     * - Cancel button is always visible
      */
     data class Editing(
         val titleValue: String,
         val dateValue: String,  // Date input value
         val timeValue: String,  // Time input value
-        val saveButtonEnabled: Boolean = true,
-        val cancelButtonVisible: Boolean = true
+        val saveButtonEnabled: Boolean = true
     ) : EditModeState()
 }
 
@@ -235,16 +243,12 @@ class TimeLogsPageObject(private val page: Page) {
                         // View mode: show title, startedAt, edit button
                         assertThat(page.locator("[data-testid='current-entry-panel']").locator("text=${currentEntry.title}")).isVisible()
                         
-                        if (currentEntry.startedAt != null) {
-                            assertThat(page.locator("[data-testid='active-entry-started-at']")).isVisible()
-                            assertThat(page.locator("[data-testid='active-entry-started-at']")).containsText(currentEntry.startedAt)
-                        }
+                        // startedAt is always present (business invariant)
+                        assertThat(page.locator("[data-testid='active-entry-started-at']")).isVisible()
+                        assertThat(page.locator("[data-testid='active-entry-started-at']")).containsText(currentEntry.startedAt)
                         
-                        if (currentEntry.editMode.editButtonVisible) {
-                            assertThat(page.locator("[data-testid='edit-entry-button']")).isVisible()
-                        } else {
-                            assertThat(page.locator("[data-testid='edit-entry-button']")).not().isVisible()
-                        }
+                        // Edit button is always visible in view mode (business invariant)
+                        assertThat(page.locator("[data-testid='edit-entry-button']")).isVisible()
 
                         // Edit inputs must be hidden in view mode
                         assertThat(page.locator("[data-testid='edit-title-input']")).not().isVisible()
@@ -277,12 +281,8 @@ class TimeLogsPageObject(private val page: Page) {
                             assertThat(page.locator("[data-testid='save-edit-button']")).isDisabled()
                         }
                         
-                        // Cancel button
-                        if (editMode.cancelButtonVisible) {
-                            assertThat(page.locator("[data-testid='cancel-edit-button']")).isVisible()
-                        } else {
-                            assertThat(page.locator("[data-testid='cancel-edit-button']")).not().isVisible()
-                        }
+                        // Cancel button is always visible (business invariant)
+                        assertThat(page.locator("[data-testid='cancel-edit-button']")).isVisible()
 
                         // View mode elements must be hidden in edit mode
                         assertThat(page.locator("[data-testid='edit-entry-button']")).not().isVisible()

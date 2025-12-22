@@ -54,7 +54,8 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         val activeState = initialState.copy(
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Test Task",
-                duration = "00:00:00"
+                duration = "00:00:00",
+                startedAt = "14:00",
             ),
             dayGroups = listOf(
                 DayGroupState(
@@ -138,6 +139,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Previous Task",
                 duration = "00:00:00",
+                startedAt = "14:00",
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
@@ -379,6 +381,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Active Task",
                 duration = "00:30:00",
+                startedAt = "14:00",
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
@@ -429,6 +432,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Quick Entry",
                 duration = "00:00:00",
+                startedAt = "14:00",
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
@@ -468,6 +472,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Active Task",
                 duration = "00:30:00",
+                startedAt = "14:00",
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
@@ -505,7 +510,8 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         val initialState = TimeLogsPageState(
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Active Task",
-                duration = "00:30:00"
+                duration = "00:30:00",
+                startedAt = "14:00",
             ),
             dayGroups = listOf(
                 DayGroupState(
@@ -530,7 +536,8 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         val state35min = initialState.copy(
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Active Task",
-                duration = "00:35:00"
+                duration = "00:35:00",
+                startedAt = "14:00",
             ),
             dayGroups = listOf(
                 DayGroupState(
@@ -555,7 +562,8 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         val state1hour = state35min.copy(
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Active Task",
-                duration = "01:00:00"
+                duration = "01:00:00",
+                startedAt = "14:00",
             ),
             dayGroups = listOf(
                 DayGroupState(
