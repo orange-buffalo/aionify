@@ -61,7 +61,8 @@ export function DateTimePicker({ value, onChange, disabled, locale, testIdPrefix
   
   // Get localized day names using Intl API
   const getDayNames = () => {
-    const baseDate = new Date(2024, 0, 7) // Sunday, Jan 7, 2024
+    // Use Sunday, Jan 2, 2000 as base date (arbitrary past date, day of week is what matters)
+    const baseDate = new Date(2000, 0, 2)
     return Array.from({ length: 7 }, (_, i) => {
       const date = new Date(baseDate)
       date.setDate(baseDate.getDate() + i)
