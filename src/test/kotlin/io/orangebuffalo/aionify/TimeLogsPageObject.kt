@@ -12,6 +12,13 @@ import com.microsoft.playwright.options.AriaRole
  * - weekRange is always visible and has a value
  * - timezoneHint is always visible
  * - noEntriesMessageVisible is automatically determined from dayGroups
+ * 
+ * **CRITICAL TESTING PRINCIPLE:**
+ * We **MUST** ensure that we **NEVER** show unexpected elements and that **ALL** expected
+ * elements have the proper state at any given time during test execution. Every test
+ * should verify the complete page state, not just fragments. Use mutations (copy with
+ * specific field changes) to indicate delta state changes, rather than duplicating
+ * the entire state structure.
  */
 data class TimeLogsPageState(
     val currentEntry: CurrentEntryState = CurrentEntryState.NoActiveEntry(),
@@ -59,14 +66,45 @@ sealed class CurrentEntryState {
 
     /**
      * Active entry in progress - shows entry details and stop button.
+     * Can be in view mode or edit mode.
+     * 
+     * Business invariants:
+     * - startedAt is always present (formatted start time)
+     * - stopButtonVisible is always true
      */
     data class ActiveEntry(
         val title: String,
         val duration: String,
+        val startedAt: String,  // Always present - formatted start time display (e.g., "14:00")
         val stopButtonVisible: Boolean = true,
         val inputVisible: Boolean = false,
-        val startButtonVisible: Boolean = false
+        val startButtonVisible: Boolean = false,
+        val editMode: EditModeState = EditModeState.NotEditing
     ) : CurrentEntryState()
+}
+
+/**
+ * Edit mode state for active entry.
+ */
+sealed class EditModeState {
+    /**
+     * Not in edit mode - showing view mode with edit button.
+     * 
+     * Business invariant: edit button is always visible in view mode.
+     */
+    object NotEditing : EditModeState()
+    
+    /**
+     * In edit mode - showing edit form with save/cancel buttons.
+     * 
+     * Business invariants:
+     * - Cancel button is always visible
+     */
+    data class Editing(
+        val titleValue: String,
+        val dateTimeValue: String,  // Locale-formatted datetime display value
+        val saveButtonEnabled: Boolean = true
+    ) : EditModeState()
 }
 
 /**
@@ -174,23 +212,78 @@ class TimeLogsPageObject(private val page: Page) {
                 // Business invariant: Active timer and stop button must always be hidden in NoActiveEntry state
                 assertThat(page.locator("[data-testid='active-timer']")).not().isVisible()
                 assertThat(page.locator("[data-testid='stop-button']")).not().isVisible()
+                // Edit mode elements must be hidden
+                assertThat(page.locator("[data-testid='edit-entry-button']")).not().isVisible()
+                assertThat(page.locator("[data-testid='edit-title-input']")).not().isVisible()
+                assertThat(page.locator("[data-testid='edit-date-input']")).not().isVisible()
+                assertThat(page.locator("[data-testid='edit-time-input']")).not().isVisible()
             }
 
             is CurrentEntryState.ActiveEntry -> {
-                // Verify active entry details
-                assertThat(page.locator("[data-testid='current-entry-panel']").locator("text=${currentEntry.title}")).isVisible()
-                assertThat(page.locator("[data-testid='active-timer']")).isVisible()
-                assertThat(page.locator("[data-testid='active-timer']")).hasText(currentEntry.duration)
-
-                if (currentEntry.stopButtonVisible) {
-                    assertThat(page.locator("[data-testid='stop-button']")).isVisible()
-                } else {
-                    assertThat(page.locator("[data-testid='stop-button']")).not().isVisible()
-                }
-
                 // Business invariant: Input and start button must always be hidden in ActiveEntry state
                 assertThat(page.locator("[data-testid='new-entry-input']")).not().isVisible()
                 assertThat(page.locator("[data-testid='start-button']")).not().isVisible()
+
+                // Assert edit mode state
+                when (currentEntry.editMode) {
+                    is EditModeState.NotEditing -> {
+                        // View mode: show title, startedAt, edit button, timer, and stop button
+                        assertThat(page.locator("[data-testid='current-entry-panel']").locator("text=${currentEntry.title}")).isVisible()
+                        
+                        // startedAt is always present (business invariant)
+                        assertThat(page.locator("[data-testid='active-entry-started-at']")).isVisible()
+                        assertThat(page.locator("[data-testid='active-entry-started-at']")).containsText(currentEntry.startedAt)
+                        
+                        // Edit button is always visible in view mode (business invariant)
+                        assertThat(page.locator("[data-testid='edit-entry-button']")).isVisible()
+
+                        // Timer and stop button visible in view mode
+                        assertThat(page.locator("[data-testid='active-timer']")).isVisible()
+                        assertThat(page.locator("[data-testid='active-timer']")).hasText(currentEntry.duration)
+                        
+                        if (currentEntry.stopButtonVisible) {
+                            assertThat(page.locator("[data-testid='stop-button']")).isVisible()
+                        } else {
+                            assertThat(page.locator("[data-testid='stop-button']")).not().isVisible()
+                        }
+
+                        // Edit inputs must be hidden in view mode
+                        assertThat(page.locator("[data-testid='edit-title-input']")).not().isVisible()
+                        assertThat(page.locator("[data-testid='edit-datetime-trigger']")).not().isVisible()
+                        assertThat(page.locator("[data-testid='save-edit-button']")).not().isVisible()
+                        assertThat(page.locator("[data-testid='cancel-edit-button']")).not().isVisible()
+                    }
+                    
+                    is EditModeState.Editing -> {
+                        // Edit mode: show edit form, timer/stop button NOT visible
+                        val editMode = currentEntry.editMode
+                        
+                        // Title input
+                        assertThat(page.locator("[data-testid='edit-title-input']")).isVisible()
+                        assertThat(page.locator("[data-testid='edit-title-input']")).hasValue(editMode.titleValue)
+                        
+                        // DateTime picker trigger button
+                        val dateTimeTrigger = page.locator("[data-testid='edit-datetime-trigger']")
+                        assertThat(dateTimeTrigger).isVisible()
+                        assertThat(dateTimeTrigger).containsText(editMode.dateTimeValue)
+                        
+                        // Save button
+                        assertThat(page.locator("[data-testid='save-edit-button']")).isVisible()
+                        if (editMode.saveButtonEnabled) {
+                            assertThat(page.locator("[data-testid='save-edit-button']")).isEnabled()
+                        } else {
+                            assertThat(page.locator("[data-testid='save-edit-button']")).isDisabled()
+                        }
+                        
+                        // Cancel button is always visible (business invariant)
+                        assertThat(page.locator("[data-testid='cancel-edit-button']")).isVisible()
+
+                        // View mode elements must be hidden in edit mode
+                        assertThat(page.locator("[data-testid='edit-entry-button']")).not().isVisible()
+                        assertThat(page.locator("[data-testid='active-timer']")).not().isVisible()
+                        assertThat(page.locator("[data-testid='stop-button']")).not().isVisible()
+                    }
+                }
             }
         }
     }
@@ -347,5 +440,89 @@ class TimeLogsPageObject(private val page: Page) {
      */
     fun advanceClock(milliseconds: Long) {
         page.clock().runFor(milliseconds)
+    }
+
+    /**
+     * Clicks the edit button for the active entry.
+     */
+    fun clickEditEntry() {
+        page.locator("[data-testid='edit-entry-button']").click()
+    }
+
+    private var editDateValue: String = "2024-03-15"
+    private var editTimeValue: String = "00:00"
+
+    /**
+     * Fills the edit title input with the given title.
+     */
+    fun fillEditTitle(title: String) {
+        page.locator("[data-testid='edit-title-input']").fill(title)
+    }
+
+    /**
+     * Sets the edit date/time using the custom DateTimePicker.
+     * @param date in format "YYYY-MM-DD" (e.g., "2024-03-15")
+     * @param time in format "HH:mm" (e.g., "14:30")
+     */
+    fun fillEditDateTime(date: String, time: String) {
+        // Click the trigger to open the picker
+        page.locator("[data-testid='edit-datetime-trigger']").click()
+        
+        // Wait for popover to appear
+        page.locator("[role='dialog']").waitFor()
+        
+        // Parse the date to get the day we need to click
+        val dateParts = date.split("-")
+        val targetDay = dateParts[2].toInt()
+        
+        // Click on the day button in the calendar grid
+        // Find button with exact text matching the day number
+        val popover = page.locator("[role='dialog']")
+        popover.locator("button").locator("text=${targetDay}").first().click()
+        
+        // Fill in the time inputs
+        val (hours, minutes) = time.split(":")
+        page.locator("[data-testid='edit-datetime-hours']").fill(hours)
+        page.locator("[data-testid='edit-datetime-minutes']").fill(minutes)
+        
+        // Apply the changes
+        page.locator("[data-testid='edit-datetime-apply']").click()
+    }
+
+    /**
+     * Fills the edit date input (convenience method for backwards compatibility).
+     * Stores the date value to be combined with time when applied.
+     * @param date in format "YYYY-MM-DD" (e.g., "2024-03-15")
+     */
+    fun fillEditDate(date: String) {
+        editDateValue = date
+    }
+
+    /**
+     * Fills the edit time input (convenience method for backwards compatibility).
+     * Stores the time value to be combined with date when applied.
+     * @param time in format "HH:mm" (e.g., "14:30")
+     */
+    fun fillEditTime(time: String) {
+        editTimeValue = time
+        // Apply the combined date and time
+        fillEditDateTime(editDateValue, time)
+        // Reset for next use
+        editDateValue = "2024-03-15"
+        editTimeValue = "00:00"
+    }
+
+    /**
+     * Clicks the save button to save the edited entry.
+     */
+    fun clickSaveEdit() {
+        page.locator("[data-testid='save-edit-button']").click()
+    }
+
+    /**
+     * Clicks the cancel button to discard changes.
+     */
+    fun clickCancelEdit() {
+        page.locator("[data-testid='cancel-edit-button']").click()
     }
 }

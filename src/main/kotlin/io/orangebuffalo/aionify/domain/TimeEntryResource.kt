@@ -148,6 +148,51 @@ open class TimeEntryResource(
         return HttpResponse.ok(stoppedEntry.toDto())
     }
 
+    @Put("/{id}")
+    open fun updateEntry(
+        @PathVariable id: Long,
+        @Valid @Body request: UpdateTimeEntryRequest,
+        principal: Principal?
+    ): HttpResponse<*> {
+        val userName = principal?.name
+            ?: return HttpResponse.unauthorized<TimeEntryErrorResponse>()
+                .body(TimeEntryErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
+
+        val user = userRepository.findByUserName(userName).orElse(null)
+            ?: return HttpResponse.notFound<TimeEntryErrorResponse>()
+                .body(TimeEntryErrorResponse("User not found", "USER_NOT_FOUND"))
+
+        val userId = requireNotNull(user.id) { "User must have an ID" }
+
+        // Find the entry and verify ownership
+        val entry = timeEntryRepository.findByIdAndOwnerId(id, userId).orElse(null)
+            ?: return HttpResponse.notFound<TimeEntryErrorResponse>()
+                .body(TimeEntryErrorResponse("Time entry not found", "ENTRY_NOT_FOUND"))
+
+        // Only active entries can be updated
+        if (entry.endTime != null) {
+            return HttpResponse.badRequest(
+                TimeEntryErrorResponse("Cannot update a stopped entry", "ENTRY_ALREADY_STOPPED")
+            )
+        }
+
+        // Validate that start time is not in the future
+        if (request.startTime.isAfter(timeService.now())) {
+            return HttpResponse.badRequest(
+                TimeEntryErrorResponse("Start time cannot be in the future", "START_TIME_IN_FUTURE")
+            )
+        }
+
+        val updatedEntry = timeEntryRepository.update(
+            entry.copy(
+                title = request.title,
+                startTime = request.startTime
+            )
+        )
+
+        return HttpResponse.ok(updatedEntry.toDto())
+    }
+
     @Delete("/{id}")
     open fun deleteEntry(
         @PathVariable id: Long,
@@ -210,6 +255,15 @@ data class CreateTimeEntryRequest(
     @field:NotBlank(message = "Title cannot be blank")
     @field:Size(max = 1000, message = "Title cannot exceed 1000 characters")
     val title: String
+)
+
+@Serdeable
+@Introspected
+data class UpdateTimeEntryRequest(
+    @field:NotBlank(message = "Title cannot be blank")
+    @field:Size(max = 1000, message = "Title cannot exceed 1000 characters")
+    val title: String,
+    val startTime: Instant
 )
 
 @Serdeable
