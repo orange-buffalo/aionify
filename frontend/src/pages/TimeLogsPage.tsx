@@ -44,7 +44,8 @@ export function TimeLogsPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
   const [editTitle, setEditTitle] = useState("")
-  const [editStartTime, setEditStartTime] = useState("")
+  const [editDate, setEditDate] = useState("")  // YYYY-MM-DD format
+  const [editTime, setEditTime] = useState("")  // HH:mm format
   const [isSaving, setIsSaving] = useState(false)
 
   // Get the start of the week (Monday)
@@ -334,23 +335,25 @@ export function TimeLogsPage() {
     if (!activeEntry) return
     
     setEditTitle(activeEntry.title)
-    // Format the start time as a datetime-local input value (YYYY-MM-DDTHH:mm)
-    // Using toISOString() and taking first 16 characters gives us the required format
+    // Split datetime into separate date and time values
     const startDate = new Date(activeEntry.startTime)
-    setEditStartTime(startDate.toISOString().slice(0, 16))
+    const isoString = startDate.toISOString()
+    setEditDate(isoString.slice(0, 10))  // YYYY-MM-DD
+    setEditTime(isoString.slice(11, 16)) // HH:mm
     setIsEditMode(true)
   }
 
   // Save edited entry
   async function handleSaveEdit() {
-    if (!activeEntry || !editTitle.trim()) return
+    if (!activeEntry || !editTitle.trim() || !editDate || !editTime) return
     
     try {
       setIsSaving(true)
       setError(null)
       
-      // Convert datetime-local input back to ISO string
-      const startTimeISO = new Date(editStartTime).toISOString()
+      // Combine date and time using local Date, then convert to ISO
+      const localDateTime = new Date(`${editDate}T${editTime}`)
+      const startTimeISO = localDateTime.toISOString()
       
       const updatedEntry = await apiPut<TimeEntry>(`/api/time-entries/${activeEntry.id}`, {
         title: editTitle.trim(),
@@ -376,7 +379,8 @@ export function TimeLogsPage() {
   function handleCancelEdit() {
     setIsEditMode(false)
     setEditTitle("")
-    setEditStartTime("")
+    setEditDate("")
+    setEditTime("")
   }
 
   // Navigate to previous week
@@ -507,19 +511,35 @@ export function TimeLogsPage() {
                         disabled={isSaving}
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="edit-start-time" className="text-foreground">
-                        {t('timeLogs.currentEntry.startTimeLabel')}
-                      </Label>
-                      <Input
-                        id="edit-start-time"
-                        type="datetime-local"
-                        value={editStartTime}
-                        onChange={(e) => setEditStartTime(e.target.value)}
-                        className="text-foreground mt-2"
-                        data-testid="edit-start-time-input"
-                        disabled={isSaving}
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="edit-date" className="text-foreground">
+                          {t('timeLogs.currentEntry.dateLabel')}
+                        </Label>
+                        <Input
+                          id="edit-date"
+                          type="date"
+                          value={editDate}
+                          onChange={(e) => setEditDate(e.target.value)}
+                          className="text-foreground mt-2"
+                          data-testid="edit-date-input"
+                          disabled={isSaving}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="edit-time" className="text-foreground">
+                          {t('timeLogs.currentEntry.timeLabel')}
+                        </Label>
+                        <Input
+                          id="edit-time"
+                          type="time"
+                          value={editTime}
+                          onChange={(e) => setEditTime(e.target.value)}
+                          className="text-foreground mt-2"
+                          data-testid="edit-time-input"
+                          disabled={isSaving}
+                        />
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
@@ -556,7 +576,7 @@ export function TimeLogsPage() {
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-sm text-muted-foreground" data-testid="active-entry-started-at">
                         {t('timeLogs.startedAt')}: {formatTime(activeEntry.startTime, locale)}
                       </div>
                     </div>

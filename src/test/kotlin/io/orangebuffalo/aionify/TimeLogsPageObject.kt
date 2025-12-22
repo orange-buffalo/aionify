@@ -12,6 +12,13 @@ import com.microsoft.playwright.options.AriaRole
  * - weekRange is always visible and has a value
  * - timezoneHint is always visible
  * - noEntriesMessageVisible is automatically determined from dayGroups
+ * 
+ * **CRITICAL TESTING PRINCIPLE:**
+ * We **MUST** ensure that we **NEVER** show unexpected elements and that **ALL** expected
+ * elements have the proper state at any given time during test execution. Every test
+ * should verify the complete page state, not just fragments. Use mutations (copy with
+ * specific field changes) to indicate delta state changes, rather than duplicating
+ * the entire state structure.
  */
 data class TimeLogsPageState(
     val currentEntry: CurrentEntryState = CurrentEntryState.NoActiveEntry(),
@@ -59,14 +66,40 @@ sealed class CurrentEntryState {
 
     /**
      * Active entry in progress - shows entry details and stop button.
+     * Can be in view mode or edit mode.
      */
     data class ActiveEntry(
         val title: String,
         val duration: String,
+        val startedAt: String? = null,  // Formatted start time display (e.g., "14:00")
         val stopButtonVisible: Boolean = true,
         val inputVisible: Boolean = false,
-        val startButtonVisible: Boolean = false
+        val startButtonVisible: Boolean = false,
+        val editMode: EditModeState = EditModeState.NotEditing
     ) : CurrentEntryState()
+}
+
+/**
+ * Edit mode state for active entry.
+ */
+sealed class EditModeState {
+    /**
+     * Not in edit mode - showing view mode with edit button.
+     */
+    object NotEditing : EditModeState() {
+        val editButtonVisible: Boolean = true
+    }
+    
+    /**
+     * In edit mode - showing edit form with save/cancel buttons.
+     */
+    data class Editing(
+        val titleValue: String,
+        val dateValue: String,  // Date input value
+        val timeValue: String,  // Time input value
+        val saveButtonEnabled: Boolean = true,
+        val cancelButtonVisible: Boolean = true
+    ) : EditModeState()
 }
 
 /**
@@ -174,11 +207,15 @@ class TimeLogsPageObject(private val page: Page) {
                 // Business invariant: Active timer and stop button must always be hidden in NoActiveEntry state
                 assertThat(page.locator("[data-testid='active-timer']")).not().isVisible()
                 assertThat(page.locator("[data-testid='stop-button']")).not().isVisible()
+                // Edit mode elements must be hidden
+                assertThat(page.locator("[data-testid='edit-entry-button']")).not().isVisible()
+                assertThat(page.locator("[data-testid='edit-title-input']")).not().isVisible()
+                assertThat(page.locator("[data-testid='edit-date-input']")).not().isVisible()
+                assertThat(page.locator("[data-testid='edit-time-input']")).not().isVisible()
             }
 
             is CurrentEntryState.ActiveEntry -> {
-                // Verify active entry details
-                assertThat(page.locator("[data-testid='current-entry-panel']").locator("text=${currentEntry.title}")).isVisible()
+                // Verify active entry timer and stop button
                 assertThat(page.locator("[data-testid='active-timer']")).isVisible()
                 assertThat(page.locator("[data-testid='active-timer']")).hasText(currentEntry.duration)
 
@@ -191,6 +228,66 @@ class TimeLogsPageObject(private val page: Page) {
                 // Business invariant: Input and start button must always be hidden in ActiveEntry state
                 assertThat(page.locator("[data-testid='new-entry-input']")).not().isVisible()
                 assertThat(page.locator("[data-testid='start-button']")).not().isVisible()
+
+                // Assert edit mode state
+                when (currentEntry.editMode) {
+                    is EditModeState.NotEditing -> {
+                        // View mode: show title, startedAt, edit button
+                        assertThat(page.locator("[data-testid='current-entry-panel']").locator("text=${currentEntry.title}")).isVisible()
+                        
+                        if (currentEntry.startedAt != null) {
+                            assertThat(page.locator("[data-testid='active-entry-started-at']")).isVisible()
+                            assertThat(page.locator("[data-testid='active-entry-started-at']")).containsText(currentEntry.startedAt)
+                        }
+                        
+                        if (currentEntry.editMode.editButtonVisible) {
+                            assertThat(page.locator("[data-testid='edit-entry-button']")).isVisible()
+                        } else {
+                            assertThat(page.locator("[data-testid='edit-entry-button']")).not().isVisible()
+                        }
+
+                        // Edit inputs must be hidden in view mode
+                        assertThat(page.locator("[data-testid='edit-title-input']")).not().isVisible()
+                        assertThat(page.locator("[data-testid='edit-date-input']")).not().isVisible()
+                        assertThat(page.locator("[data-testid='edit-time-input']")).not().isVisible()
+                        assertThat(page.locator("[data-testid='save-edit-button']")).not().isVisible()
+                        assertThat(page.locator("[data-testid='cancel-edit-button']")).not().isVisible()
+                    }
+                    
+                    is EditModeState.Editing -> {
+                        // Edit mode: show edit form
+                        val editMode = currentEntry.editMode
+                        
+                        // Title input
+                        assertThat(page.locator("[data-testid='edit-title-input']")).isVisible()
+                        assertThat(page.locator("[data-testid='edit-title-input']")).hasValue(editMode.titleValue)
+                        
+                        // Date and time inputs
+                        assertThat(page.locator("[data-testid='edit-date-input']")).isVisible()
+                        assertThat(page.locator("[data-testid='edit-date-input']")).hasValue(editMode.dateValue)
+                        
+                        assertThat(page.locator("[data-testid='edit-time-input']")).isVisible()
+                        assertThat(page.locator("[data-testid='edit-time-input']")).hasValue(editMode.timeValue)
+                        
+                        // Save button
+                        assertThat(page.locator("[data-testid='save-edit-button']")).isVisible()
+                        if (editMode.saveButtonEnabled) {
+                            assertThat(page.locator("[data-testid='save-edit-button']")).isEnabled()
+                        } else {
+                            assertThat(page.locator("[data-testid='save-edit-button']")).isDisabled()
+                        }
+                        
+                        // Cancel button
+                        if (editMode.cancelButtonVisible) {
+                            assertThat(page.locator("[data-testid='cancel-edit-button']")).isVisible()
+                        } else {
+                            assertThat(page.locator("[data-testid='cancel-edit-button']")).not().isVisible()
+                        }
+
+                        // View mode elements must be hidden in edit mode
+                        assertThat(page.locator("[data-testid='edit-entry-button']")).not().isVisible()
+                    }
+                }
             }
         }
     }
@@ -364,11 +461,19 @@ class TimeLogsPageObject(private val page: Page) {
     }
 
     /**
-     * Fills the edit start time input with the given datetime.
-     * @param dateTime in format "YYYY-MM-DDTHH:mm" (e.g., "2024-03-15T14:30")
+     * Fills the edit date input with the given date.
+     * @param date in format "YYYY-MM-DD" (e.g., "2024-03-15")
      */
-    fun fillEditStartTime(dateTime: String) {
-        page.locator("[data-testid='edit-start-time-input']").fill(dateTime)
+    fun fillEditDate(date: String) {
+        page.locator("[data-testid='edit-date-input']").fill(date)
+    }
+
+    /**
+     * Fills the edit time input with the given time.
+     * @param time in format "HH:mm" (e.g., "14:30")
+     */
+    fun fillEditTime(time: String) {
+        page.locator("[data-testid='edit-time-input']").fill(time)
     }
 
     /**
