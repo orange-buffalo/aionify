@@ -16,14 +16,14 @@ import org.junit.jupiter.api.Test
 import java.time.Instant
 
 /**
- * API endpoint security tests for time entry resource.
+ * API endpoint security tests for time log entry resource.
  * 
  * Per project guidelines, this test validates SECURITY ONLY, not business logic.
  * 
  * Tests verify:
- * 1. Authentication is required to access time entry endpoints
- * 2. Users can only access their own time entries
- * 3. Users cannot modify or delete other users' time entries
+ * 1. Authentication is required to access time log entry endpoints
+ * 2. Users can only access their own time log entries
+ * 3. Users cannot modify or delete other users' time log entries
  */
 @MicronautTest(transactional = false)
 class TimeLogEntryResourceTest {
