@@ -673,6 +673,7 @@ export function TimeLogsPage() {
                                   onClick={() => handleContinue(entry)}
                                   data-testid="continue-button"
                                   className="text-foreground"
+                                  title={t('timeLogs.startFromEntry')}
                                 >
                                   <Play className="h-4 w-4" />
                                 </Button>
