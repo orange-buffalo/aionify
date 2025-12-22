@@ -8,7 +8,7 @@ import { DateTimePicker } from "@/components/ui/date-time-picker"
 import { PortalLayout } from "@/components/layout/PortalLayout"
 import { FormMessage } from "@/components/ui/form-message"
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api"
-import { ChevronLeft, ChevronRight, Play, Square, MoreVertical, Copy, Trash2, Pencil } from "lucide-react"
+import { ChevronLeft, ChevronRight, Play, Square, MoreVertical, Trash2, Pencil } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
@@ -275,7 +275,8 @@ export function TimeLogsPage() {
       setError(null)
       
       const newEntry = await apiPost<TimeEntry>('/api/time-log-entries', {
-        title: entry.title
+        title: entry.title,
+        stopActiveEntry: true
       })
       
       setActiveEntry(newEntry)
@@ -672,8 +673,9 @@ export function TimeLogsPage() {
                                   onClick={() => handleContinue(entry)}
                                   data-testid="continue-button"
                                   className="text-foreground"
+                                  title={t('timeLogs.startFromEntry')}
                                 >
-                                  <Copy className="h-4 w-4" />
+                                  <Play className="h-4 w-4" />
                                 </Button>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
