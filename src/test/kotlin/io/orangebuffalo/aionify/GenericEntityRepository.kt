@@ -4,7 +4,7 @@ import io.micronaut.data.annotation.Repository
 import io.micronaut.data.jdbc.annotation.JdbcRepository
 import io.micronaut.data.model.query.builder.sql.Dialect
 import io.orangebuffalo.aionify.domain.ActivationToken
-import io.orangebuffalo.aionify.domain.TimeEntry
+import io.orangebuffalo.aionify.domain.TimeLogEntry
 import io.orangebuffalo.aionify.domain.User
 
 /**
@@ -24,9 +24,9 @@ interface GenericEntityRepository {
     fun save(entity: User): User
     
     /**
-     * Inserts/updates a TimeEntry entity.
+     * Inserts/updates a TimeLogEntry entity.
      */
-    fun save(entity: TimeEntry): TimeEntry
+    fun save(entity: TimeLogEntry): TimeLogEntry
     
     /**
      * Inserts/updates an ActivationToken entity.
@@ -39,9 +39,9 @@ interface GenericEntityRepository {
     fun update(entity: User): User
     
     /**
-     * Updates a TimeEntry entity.
+     * Updates a TimeLogEntry entity.
      */
-    fun update(entity: TimeEntry): TimeEntry
+    fun update(entity: TimeLogEntry): TimeLogEntry
     
     /**
      * Updates an ActivationToken entity.

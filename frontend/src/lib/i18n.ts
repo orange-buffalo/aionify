@@ -77,19 +77,19 @@ const resources = {
       },
       // Time Logs Page
       timeLogs: {
-        title: "Time Logs",
-        subtitle: "Track your time and manage your tasks",
+        title: "Time Log",
+        subtitle: "Track and manage your time log entries",
         previousWeek: "Previous Week",
         nextWeek: "Next Week",
         today: "Today",
         yesterday: "Yesterday",
         currentEntry: {
           title: "What are you working on?",
-          placeholder: "Enter task title...",
+          placeholder: "Enter log entry description...",
           edit: "Edit",
           save: "Save",
           cancel: "Cancel",
-          editTitle: "Edit Time Entry",
+          editTitle: "Edit Time Log Entry",
           titleLabel: "Title",
           startTimeLabel: "Start Time",
           dateLabel: "Date",
@@ -111,32 +111,32 @@ const resources = {
         duration: "Duration",
         totalDuration: "Total",
         inProgress: "in progress",
-        noEntries: "No time entries for this week",
+        noEntries: "No time log entries for this week",
         timezoneHint: "Times shown in {{timezone}}",
         deleteDialog: {
-          title: "Delete Time Entry",
-          message: "Are you sure you want to delete this time entry? This action cannot be undone.",
+          title: "Delete Time Log Entry",
+          message: "Are you sure you want to delete this time log entry? This action cannot be undone.",
           confirm: "Delete",
           cancel: "Cancel",
         },
         success: {
-          started: "Time entry started",
-          stopped: "Time entry stopped",
-          deleted: "Time entry deleted",
+          started: "Time log entry started",
+          stopped: "Time log entry stopped",
+          deleted: "Time log entry deleted",
         },
         errors: {
-          titleRequired: "Please enter a task title",
+          titleRequired: "Please enter a log entry description",
         },
       },
       // Portal Pages
       portal: {
         user: {
           title: "Time Tracking",
-          subtitle: "Track your time and manage your tasks",
+          subtitle: "Track and manage your time log entries",
           timeEntry: {
-            title: "Time Entry",
+            title: "Time Log",
             description: "Log your time",
-            comingSoon: "Time entry coming soon...",
+            comingSoon: "Time log coming soon...",
           },
           calendar: {
             title: "Calendar",
@@ -242,7 +242,7 @@ const resources = {
         dashboard: "Dashboard",
         settings: "Settings",
         logout: "Logout",
-        timeEntry: "Time Entry",
+        timeEntry: "Time Log",
         calendar: "Calendar",
         reports: "Reports",
         users: "Users",
@@ -290,9 +290,9 @@ const resources = {
         CANNOT_DELETE_SELF: "Cannot delete your own user account",
         INVALID_PAGE: "Page must be non-negative",
         INVALID_SIZE: "Size must be between 1 and 100",
-        ACTIVE_ENTRY_EXISTS: "Cannot start a new entry while another is active",
-        ENTRY_NOT_FOUND: "Time entry not found",
-        ENTRY_ALREADY_STOPPED: "Entry is already stopped",
+        ACTIVE_ENTRY_EXISTS: "Cannot start a new log entry while another is active",
+        ENTRY_NOT_FOUND: "Time log entry not found",
+        ENTRY_ALREADY_STOPPED: "Log entry is already stopped",
         START_TIME_IN_FUTURE: "Start time cannot be in the future",
         INVALID_TIMESTAMP_FORMAT: "Invalid timestamp format",
       },
@@ -373,14 +373,14 @@ const resources = {
       // Time Logs Page
       timeLogs: {
         title: "Журнал часу",
-        subtitle: "Відстежуйте свій час та керуйте завданнями",
+        subtitle: "Відстежуйте та керуйте записами часу",
         previousWeek: "Попередній тиждень",
         nextWeek: "Наступний тиждень",
         today: "Сьогодні",
         yesterday: "Вчора",
         currentEntry: {
           title: "Над чим ви працюєте?",
-          placeholder: "Введіть назву завдання...",
+          placeholder: "Введіть опис запису...",
           edit: "Редагувати",
           save: "Зберегти",
           cancel: "Скасувати",
@@ -420,18 +420,18 @@ const resources = {
           deleted: "Запис часу видалено",
         },
         errors: {
-          titleRequired: "Будь ласка, введіть назву завдання",
+          titleRequired: "Будь ласка, введіть опис запису",
         },
       },
       // Portal Pages
       portal: {
         user: {
           title: "Облік часу",
-          subtitle: "Відстежуйте свій час та керуйте завданнями",
+          subtitle: "Відстежуйте та керуйте записами часу",
           timeEntry: {
-            title: "Облік часу",
+            title: "Журнал часу",
             description: "Записуйте свій час",
-            comingSoon: "Облік часу скоро з'явиться...",
+            comingSoon: "Журнал часу скоро з'явиться...",
           },
           calendar: {
             title: "Календар",
@@ -537,7 +537,7 @@ const resources = {
         dashboard: "Панель керування",
         settings: "Налаштування",
         logout: "Вийти",
-        timeEntry: "Облік часу",
+        timeEntry: "Журнал часу",
         calendar: "Календар",
         reports: "Звіти",
         users: "Користувачі",

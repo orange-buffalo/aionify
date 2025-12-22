@@ -13,10 +13,10 @@ import org.junit.jupiter.api.Test
 import java.time.Instant
 
 @MicronautTest(transactional = false)
-class TimeEntryRepositoryTest {
+class TimeLogEntryRepositoryTest {
 
     @Inject
-    lateinit var repository: TimeEntryRepository
+    lateinit var repository: TimeLogEntryRepository
 
     @Inject
     lateinit var userRepository: UserRepository
@@ -42,7 +42,7 @@ class TimeEntryRepositoryTest {
         val userId = requireNotNull(testUser.id)
 
         val entry1 = repository.save(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = startTime1,
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Task 1",
@@ -50,7 +50,7 @@ class TimeEntryRepositoryTest {
             )
         )
         val entry2 = repository.save(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = startTime2,
                 endTime = null,
                 title = "Task 2",
@@ -75,7 +75,7 @@ class TimeEntryRepositoryTest {
         val startTime3 = Instant.parse("2024-01-17T09:00:00Z")
 
         repository.save(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = startTime1,
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Task 1",
@@ -83,7 +83,7 @@ class TimeEntryRepositoryTest {
             )
         )
         repository.save(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = startTime2,
                 endTime = Instant.parse("2024-01-16T15:30:00Z"),
                 title = "Task 2",
@@ -91,7 +91,7 @@ class TimeEntryRepositoryTest {
             )
         )
         repository.save(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = startTime3,
                 endTime = null,
                 title = "Task 3",
@@ -118,7 +118,7 @@ class TimeEntryRepositoryTest {
         val userId = requireNotNull(testUser.id)
 
         repository.save(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = Instant.parse("2024-01-15T10:00:00Z"),
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Completed Task",
@@ -126,7 +126,7 @@ class TimeEntryRepositoryTest {
             )
         )
         val activeEntry = repository.save(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = Instant.parse("2024-01-15T14:30:00Z"),
                 endTime = null,
                 title = "Active Task",
@@ -146,7 +146,7 @@ class TimeEntryRepositoryTest {
         val userId = requireNotNull(testUser.id)
 
         val entry = repository.save(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = Instant.parse("2024-01-15T10:00:00Z"),
                 endTime = null,
                 title = "My Task",

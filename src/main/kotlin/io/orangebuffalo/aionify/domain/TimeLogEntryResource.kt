@@ -20,11 +20,11 @@ import jakarta.validation.constraints.Size
 import java.security.Principal
 import java.time.Instant
 
-@Controller("/api/time-entries")
+@Controller("/api/time-log-entries")
 @Secured(SecurityRule.IS_AUTHENTICATED)
 @Transactional
-open class TimeEntryResource(
-    private val timeEntryRepository: TimeEntryRepository,
+open class TimeLogEntryResource(
+    private val timeLogEntryRepository: TimeLogEntryRepository,
     private val userRepository: UserRepository,
     private val timeService: TimeService
 ) {
@@ -36,23 +36,23 @@ open class TimeEntryResource(
         principal: Principal?
     ): HttpResponse<*> {
         val userName = principal?.name
-            ?: return HttpResponse.unauthorized<TimeEntryErrorResponse>()
-                .body(TimeEntryErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
+            ?: return HttpResponse.unauthorized<TimeLogEntryErrorResponse>()
+                .body(TimeLogEntryErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
 
         val user = userRepository.findByUserName(userName).orElse(null)
-            ?: return HttpResponse.notFound<TimeEntryErrorResponse>()
-                .body(TimeEntryErrorResponse("User not found", "USER_NOT_FOUND"))
+            ?: return HttpResponse.notFound<TimeLogEntryErrorResponse>()
+                .body(TimeLogEntryErrorResponse("User not found", "USER_NOT_FOUND"))
 
         val userId = requireNotNull(user.id) { "User must have an ID" }
 
-        val entries = timeEntryRepository.findByOwnerIdAndStartTimeGreaterThanEqualsAndStartTimeLessThanOrderByStartTimeDesc(
+        val entries = timeLogEntryRepository.findByOwnerIdAndStartTimeGreaterThanEqualsAndStartTimeLessThanOrderByStartTimeDesc(
             userId,
             startTime,
             endTime
         )
 
         return HttpResponse.ok(
-            TimeEntriesResponse(
+            TimeLogEntriesResponse(
                 entries = entries.map { it.toDto() }
             )
         )
@@ -61,49 +61,49 @@ open class TimeEntryResource(
     @Get("/active")
     open fun getActiveEntry(principal: Principal?): HttpResponse<*> {
         val userName = principal?.name
-            ?: return HttpResponse.unauthorized<TimeEntryErrorResponse>()
-                .body(TimeEntryErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
+            ?: return HttpResponse.unauthorized<TimeLogEntryErrorResponse>()
+                .body(TimeLogEntryErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
 
         val user = userRepository.findByUserName(userName).orElse(null)
-            ?: return HttpResponse.notFound<TimeEntryErrorResponse>()
-                .body(TimeEntryErrorResponse("User not found", "USER_NOT_FOUND"))
+            ?: return HttpResponse.notFound<TimeLogEntryErrorResponse>()
+                .body(TimeLogEntryErrorResponse("User not found", "USER_NOT_FOUND"))
 
         val userId = requireNotNull(user.id) { "User must have an ID" }
 
-        val activeEntry = timeEntryRepository.findByOwnerIdAndEndTimeIsNull(userId).orElse(null)
+        val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(userId).orElse(null)
 
         return if (activeEntry != null) {
-            HttpResponse.ok(ActiveEntryResponse(entry = activeEntry.toDto()))
+            HttpResponse.ok(ActiveLogEntryResponse(entry = activeEntry.toDto()))
         } else {
-            HttpResponse.ok(ActiveEntryResponse(entry = null))
+            HttpResponse.ok(ActiveLogEntryResponse(entry = null))
         }
     }
 
     @Post
     open fun createEntry(
-        @Valid @Body request: CreateTimeEntryRequest,
+        @Valid @Body request: CreateTimeLogEntryRequest,
         principal: Principal?
     ): HttpResponse<*> {
         val userName = principal?.name
-            ?: return HttpResponse.unauthorized<TimeEntryErrorResponse>()
-                .body(TimeEntryErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
+            ?: return HttpResponse.unauthorized<TimeLogEntryErrorResponse>()
+                .body(TimeLogEntryErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
 
         val user = userRepository.findByUserName(userName).orElse(null)
-            ?: return HttpResponse.notFound<TimeEntryErrorResponse>()
-                .body(TimeEntryErrorResponse("User not found", "USER_NOT_FOUND"))
+            ?: return HttpResponse.notFound<TimeLogEntryErrorResponse>()
+                .body(TimeLogEntryErrorResponse("User not found", "USER_NOT_FOUND"))
 
         val userId = requireNotNull(user.id) { "User must have an ID" }
 
-        // Check if there's already an active entry
-        val activeEntry = timeEntryRepository.findByOwnerIdAndEndTimeIsNull(userId).orElse(null)
+        // Check if there's already an active log entry
+        val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(userId).orElse(null)
         if (activeEntry != null) {
             return HttpResponse.badRequest(
-                TimeEntryErrorResponse("Cannot start a new entry while another is active", "ACTIVE_ENTRY_EXISTS")
+                TimeLogEntryErrorResponse("Cannot start a new log entry while another is active", "ACTIVE_ENTRY_EXISTS")
             )
         }
 
-        val newEntry = timeEntryRepository.save(
-            TimeEntry(
+        val newEntry = timeLogEntryRepository.save(
+            TimeLogEntry(
                 startTime = timeService.now(),
                 endTime = null,
                 title = request.title,
@@ -120,28 +120,28 @@ open class TimeEntryResource(
         principal: Principal?
     ): HttpResponse<*> {
         val userName = principal?.name
-            ?: return HttpResponse.unauthorized<TimeEntryErrorResponse>()
-                .body(TimeEntryErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
+            ?: return HttpResponse.unauthorized<TimeLogEntryErrorResponse>()
+                .body(TimeLogEntryErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
 
         val user = userRepository.findByUserName(userName).orElse(null)
-            ?: return HttpResponse.notFound<TimeEntryErrorResponse>()
-                .body(TimeEntryErrorResponse("User not found", "USER_NOT_FOUND"))
+            ?: return HttpResponse.notFound<TimeLogEntryErrorResponse>()
+                .body(TimeLogEntryErrorResponse("User not found", "USER_NOT_FOUND"))
 
         val userId = requireNotNull(user.id) { "User must have an ID" }
 
-        // Find the entry and verify ownership
-        val entry = timeEntryRepository.findByIdAndOwnerId(id, userId).orElse(null)
-            ?: return HttpResponse.notFound<TimeEntryErrorResponse>()
-                .body(TimeEntryErrorResponse("Time entry not found", "ENTRY_NOT_FOUND"))
+        // Find the log entry and verify ownership
+        val entry = timeLogEntryRepository.findByIdAndOwnerId(id, userId).orElse(null)
+            ?: return HttpResponse.notFound<TimeLogEntryErrorResponse>()
+                .body(TimeLogEntryErrorResponse("Time log entry not found", "ENTRY_NOT_FOUND"))
 
         // Check if already stopped
         if (entry.endTime != null) {
             return HttpResponse.badRequest(
-                TimeEntryErrorResponse("Entry is already stopped", "ENTRY_ALREADY_STOPPED")
+                TimeLogEntryErrorResponse("Log entry is already stopped", "ENTRY_ALREADY_STOPPED")
             )
         }
 
-        val stoppedEntry = timeEntryRepository.update(
+        val stoppedEntry = timeLogEntryRepository.update(
             entry.copy(endTime = timeService.now())
         )
 
@@ -151,39 +151,39 @@ open class TimeEntryResource(
     @Put("/{id}")
     open fun updateEntry(
         @PathVariable id: Long,
-        @Valid @Body request: UpdateTimeEntryRequest,
+        @Valid @Body request: UpdateTimeLogEntryRequest,
         principal: Principal?
     ): HttpResponse<*> {
         val userName = principal?.name
-            ?: return HttpResponse.unauthorized<TimeEntryErrorResponse>()
-                .body(TimeEntryErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
+            ?: return HttpResponse.unauthorized<TimeLogEntryErrorResponse>()
+                .body(TimeLogEntryErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
 
         val user = userRepository.findByUserName(userName).orElse(null)
-            ?: return HttpResponse.notFound<TimeEntryErrorResponse>()
-                .body(TimeEntryErrorResponse("User not found", "USER_NOT_FOUND"))
+            ?: return HttpResponse.notFound<TimeLogEntryErrorResponse>()
+                .body(TimeLogEntryErrorResponse("User not found", "USER_NOT_FOUND"))
 
         val userId = requireNotNull(user.id) { "User must have an ID" }
 
-        // Find the entry and verify ownership
-        val entry = timeEntryRepository.findByIdAndOwnerId(id, userId).orElse(null)
-            ?: return HttpResponse.notFound<TimeEntryErrorResponse>()
-                .body(TimeEntryErrorResponse("Time entry not found", "ENTRY_NOT_FOUND"))
+        // Find the log entry and verify ownership
+        val entry = timeLogEntryRepository.findByIdAndOwnerId(id, userId).orElse(null)
+            ?: return HttpResponse.notFound<TimeLogEntryErrorResponse>()
+                .body(TimeLogEntryErrorResponse("Time log entry not found", "ENTRY_NOT_FOUND"))
 
-        // Only active entries can be updated
+        // Only active log entries can be updated
         if (entry.endTime != null) {
             return HttpResponse.badRequest(
-                TimeEntryErrorResponse("Cannot update a stopped entry", "ENTRY_ALREADY_STOPPED")
+                TimeLogEntryErrorResponse("Cannot update a stopped log entry", "ENTRY_ALREADY_STOPPED")
             )
         }
 
         // Validate that start time is not in the future
         if (request.startTime.isAfter(timeService.now())) {
             return HttpResponse.badRequest(
-                TimeEntryErrorResponse("Start time cannot be in the future", "START_TIME_IN_FUTURE")
+                TimeLogEntryErrorResponse("Start time cannot be in the future", "START_TIME_IN_FUTURE")
             )
         }
 
-        val updatedEntry = timeEntryRepository.update(
+        val updatedEntry = timeLogEntryRepository.update(
             entry.copy(
                 title = request.title,
                 startTime = request.startTime
@@ -199,27 +199,27 @@ open class TimeEntryResource(
         principal: Principal?
     ): HttpResponse<*> {
         val userName = principal?.name
-            ?: return HttpResponse.unauthorized<TimeEntryErrorResponse>()
-                .body(TimeEntryErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
+            ?: return HttpResponse.unauthorized<TimeLogEntryErrorResponse>()
+                .body(TimeLogEntryErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
 
         val user = userRepository.findByUserName(userName).orElse(null)
-            ?: return HttpResponse.notFound<TimeEntryErrorResponse>()
-                .body(TimeEntryErrorResponse("User not found", "USER_NOT_FOUND"))
+            ?: return HttpResponse.notFound<TimeLogEntryErrorResponse>()
+                .body(TimeLogEntryErrorResponse("User not found", "USER_NOT_FOUND"))
 
         val userId = requireNotNull(user.id) { "User must have an ID" }
 
-        // Find the entry and verify ownership
-        val entry = timeEntryRepository.findByIdAndOwnerId(id, userId).orElse(null)
-            ?: return HttpResponse.notFound<TimeEntryErrorResponse>()
-                .body(TimeEntryErrorResponse("Time entry not found", "ENTRY_NOT_FOUND"))
+        // Find the log entry and verify ownership
+        val entry = timeLogEntryRepository.findByIdAndOwnerId(id, userId).orElse(null)
+            ?: return HttpResponse.notFound<TimeLogEntryErrorResponse>()
+                .body(TimeLogEntryErrorResponse("Time log entry not found", "ENTRY_NOT_FOUND"))
 
-        timeEntryRepository.delete(entry)
+        timeLogEntryRepository.delete(entry)
 
-        return HttpResponse.ok(DeleteEntryResponse("Time entry deleted successfully"))
+        return HttpResponse.ok(DeleteLogEntryResponse("Time log entry deleted successfully"))
     }
 
-    private fun TimeEntry.toDto() = TimeEntryDto(
-        id = requireNotNull(this.id) { "Entry must have an ID" },
+    private fun TimeLogEntry.toDto() = TimeLogEntryDto(
+        id = requireNotNull(this.id) { "Log entry must have an ID" },
         startTime = this.startTime,
         endTime = this.endTime,
         title = this.title,
@@ -229,7 +229,7 @@ open class TimeEntryResource(
 
 @Serdeable
 @Introspected
-data class TimeEntryDto(
+data class TimeLogEntryDto(
     val id: Long,
     val startTime: Instant,
     val endTime: Instant?,
@@ -239,19 +239,19 @@ data class TimeEntryDto(
 
 @Serdeable
 @Introspected
-data class TimeEntriesResponse(
-    val entries: List<TimeEntryDto>
+data class TimeLogEntriesResponse(
+    val entries: List<TimeLogEntryDto>
 )
 
 @Serdeable
 @Introspected
-data class ActiveEntryResponse(
-    val entry: TimeEntryDto?
+data class ActiveLogEntryResponse(
+    val entry: TimeLogEntryDto?
 )
 
 @Serdeable
 @Introspected
-data class CreateTimeEntryRequest(
+data class CreateTimeLogEntryRequest(
     @field:NotBlank(message = "Title cannot be blank")
     @field:Size(max = 1000, message = "Title cannot exceed 1000 characters")
     val title: String
@@ -259,7 +259,7 @@ data class CreateTimeEntryRequest(
 
 @Serdeable
 @Introspected
-data class UpdateTimeEntryRequest(
+data class UpdateTimeLogEntryRequest(
     @field:NotBlank(message = "Title cannot be blank")
     @field:Size(max = 1000, message = "Title cannot exceed 1000 characters")
     val title: String,
@@ -268,13 +268,13 @@ data class UpdateTimeEntryRequest(
 
 @Serdeable
 @Introspected
-data class DeleteEntryResponse(
+data class DeleteLogEntryResponse(
     val message: String
 )
 
 @Serdeable
 @Introspected
-data class TimeEntryErrorResponse(
+data class TimeLogEntryErrorResponse(
     val error: String,
     val errorCode: String
 )

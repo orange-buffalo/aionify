@@ -23,7 +23,7 @@ interface TimeEntry {
 interface DayGroup {
   date: string
   displayTitle: string
-  entries: TimeEntry[]
+  entries: TimeLogEntry[]
   totalDuration: number
 }
 
@@ -114,8 +114,8 @@ export function TimeLogsPage() {
   }
 
   // Group entries by day and handle entries spanning midnight
-  function groupEntriesByDay(entries: TimeEntry[], locale: string): DayGroup[] {
-    const groups: { [key: string]: TimeEntry[] } = {}
+  function groupEntriesByDay(entries: TimeLogEntry[], locale: string): DayGroup[] {
+    const groups: { [key: string]: TimeLogEntry[] } = {}
     
     entries.forEach(entry => {
       const startDate = new Date(entry.startTime)
@@ -187,8 +187,8 @@ export function TimeLogsPage() {
       const startTimeStr = weekStartTime.toISOString()
       const endTimeStr = weekEndTime.toISOString()
       
-      const response = await apiGet<{ entries: TimeEntry[] }>(
-        `/api/time-entries?startTime=${encodeURIComponent(startTimeStr)}&endTime=${encodeURIComponent(endTimeStr)}`
+      const response = await apiGet<{ entries: TimeLogEntry[] }>(
+        `/api/time-log-entries?startTime=${encodeURIComponent(startTimeStr)}&endTime=${encodeURIComponent(endTimeStr)}`
       )
       
       setEntries(response.entries || [])
@@ -202,7 +202,7 @@ export function TimeLogsPage() {
   // Load active entry
   async function loadActiveEntry() {
     try {
-      const response = await apiGet<{ entry: TimeEntry | null }>('/api/time-entries/active')
+      const response = await apiGet<{ entry: TimeLogEntry | null }>('/api/time-log-entries/active')
       setActiveEntry(response.entry)
     } catch (err: any) {
       console.error('Failed to load active entry:', err)
@@ -220,7 +220,7 @@ export function TimeLogsPage() {
       setIsStarting(true)
       setError(null)
       
-      const entry = await apiPost<TimeEntry>('/api/time-entries', {
+      const entry = await apiPost<TimeEntry>('/api/time-log-entries', {
         title: newEntryTitle.trim()
       })
       
@@ -248,7 +248,7 @@ export function TimeLogsPage() {
       setIsStopping(true)
       setError(null)
       
-      await apiPut(`/api/time-entries/${activeEntry.id}/stop`, {})
+      await apiPut(`/api/time-log-entries/${activeEntry.id}/stop`, {})
       
       setActiveEntry(null)
       setActiveDuration(0)
@@ -274,7 +274,7 @@ export function TimeLogsPage() {
       setIsStarting(true)
       setError(null)
       
-      const newEntry = await apiPost<TimeEntry>('/api/time-entries', {
+      const newEntry = await apiPost<TimeEntry>('/api/time-log-entries', {
         title: entry.title
       })
       
@@ -307,7 +307,7 @@ export function TimeLogsPage() {
       setIsDeleting(true)
       setError(null)
       
-      await apiDelete(`/api/time-entries/${entryToDelete.id}`)
+      await apiDelete(`/api/time-log-entries/${entryToDelete.id}`)
       
       setIsDeleting(false)
       setDeleteDialogOpen(false)
@@ -349,7 +349,7 @@ export function TimeLogsPage() {
       
       const startTimeISO = editDateTime.toISOString()
       
-      const updatedEntry = await apiPut<TimeEntry>(`/api/time-entries/${activeEntry.id}`, {
+      const updatedEntry = await apiPut<TimeEntry>(`/api/time-log-entries/${activeEntry.id}`, {
         title: editTitle.trim(),
         startTime: startTimeISO
       })
@@ -581,7 +581,7 @@ export function TimeLogsPage() {
                         handleStart()
                       }
                     }}
-                    placeholder={t('timeLogs.enterTask')}
+                    placeholder={t('timeLogs.currentEntry.placeholder')}
                     className="flex-1 text-foreground"
                     data-testid="new-entry-input"
                     disabled={isStarting}

@@ -2,7 +2,7 @@ package io.orangebuffalo.aionify
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import io.orangebuffalo.aionify.domain.TimeEntry
+import io.orangebuffalo.aionify.domain.TimeLogEntry
 import io.orangebuffalo.aionify.domain.User
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
@@ -100,7 +100,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     fun `should continue with an existing entry`() {
         // Create a completed entry
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(3600),
                 endTime = FIXED_TEST_TIME.minusSeconds(1800),
                 title = "Previous Task",
@@ -170,7 +170,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     fun `should delete a time entry with confirmation`() {
         // Create an entry
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(3600),
                 endTime = FIXED_TEST_TIME.minusSeconds(1800),
                 title = "Task to Delete",
@@ -225,7 +225,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         
         // Current week entry
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(3600),
                 endTime = FIXED_TEST_TIME.minusSeconds(1800),
                 title = "This Week Task",
@@ -235,7 +235,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         
         // Last week entry
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = lastWeek.minusSeconds(3600),
                 endTime = lastWeek.minusSeconds(1800),
                 title = "Last Week Task",
@@ -304,7 +304,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         val todayMorning = FIXED_TEST_TIME.minusSeconds(12 * 3600) // Friday 02:30:00Z
         
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = yesterdayEvening, // Started on Thursday evening
                 endTime = todayMorning, // Ended on Friday morning
                 title = "Spanning Entry",
@@ -365,7 +365,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     fun `should show active entry on page load`() {
         // Create an active entry
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(1800),
                 endTime = null,
                 title = "Active Task",
@@ -456,7 +456,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     fun `should prevent starting new entry while another is active`() {
         // Create an active entry
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(1800),
                 endTime = null,
                 title = "Active Task",
@@ -496,7 +496,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     fun `should verify active task duration using clock`() {
         // Create an active entry that started 30 minutes ago (1800 seconds)
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(1800),
                 endTime = null,
                 title = "Active Task",
@@ -590,7 +590,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // Monday (Mar 11) - 2 entries
         val monday = FIXED_TEST_TIME.minusSeconds(4 * 24 * 3600) // 4 days before Friday
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = monday.minusSeconds(7200),
                 endTime = monday.minusSeconds(5400),
                 title = "Monday Task 1",
@@ -598,7 +598,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = monday.minusSeconds(3600),
                 endTime = monday.minusSeconds(1800),
                 title = "Monday Task 2",
@@ -609,7 +609,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // Tuesday (Mar 12) - 1 entry
         val tuesday = FIXED_TEST_TIME.minusSeconds(3 * 24 * 3600)
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = tuesday.minusSeconds(3600),
                 endTime = tuesday.minusSeconds(1800),
                 title = "Tuesday Task",
@@ -620,7 +620,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // Wednesday (Mar 13) - 3 entries
         val wednesday = FIXED_TEST_TIME.minusSeconds(2 * 24 * 3600)
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = wednesday.minusSeconds(10800),
                 endTime = wednesday.minusSeconds(9000),
                 title = "Wednesday Task 1",
@@ -628,7 +628,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = wednesday.minusSeconds(7200),
                 endTime = wednesday.minusSeconds(5400),
                 title = "Wednesday Task 2",
@@ -636,7 +636,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = wednesday.minusSeconds(3600),
                 endTime = wednesday.minusSeconds(1800),
                 title = "Wednesday Task 3",
@@ -646,7 +646,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         
         // Friday (Mar 15) - today - 1 entry
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(3600),
                 endTime = FIXED_TEST_TIME.minusSeconds(1800),
                 title = "Friday Task",
@@ -737,7 +737,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         val fridayMorning = FIXED_TEST_TIME.minusSeconds(48600) // Friday 01:00 UTC (13.5 hours before)
         
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = thursdayEvening,
                 endTime = fridayMorning,
                 title = "Midnight Spanning Task",
@@ -788,7 +788,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         val fridayMorning = FIXED_TEST_TIME.minusSeconds(48600) // Friday 01:00 UTC (13.5 hours before)
         
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = thursdayEvening,
                 endTime = fridayMorning,
                 title = "Task to Delete",
@@ -853,7 +853,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     fun `should edit active entry title`() {
         // Create an active entry
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(1800),
                 endTime = null,
                 title = "Original Title",
@@ -937,7 +937,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     fun `should edit active entry start time`() {
         // Create an active entry that started 30 minutes ago
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(1800), // 14:00
                 endTime = null,
                 title = "Test Task",
@@ -1008,7 +1008,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     fun `should edit active entry title and start time together`() {
         // Create an active entry
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(1800), // 14:00
                 endTime = null,
                 title = "Original Task",
@@ -1080,7 +1080,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     fun `should cancel editing and revert changes`() {
         // Create an active entry
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(1800),
                 endTime = null,
                 title = "Original Title",
@@ -1131,7 +1131,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     fun `should change start time to different day`() {
         // Create an active entry that started today
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(1800), // Friday 14:00
                 endTime = null,
                 title = "Cross-Day Task",
@@ -1219,7 +1219,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     fun `should prevent saving edit with empty title`() {
         // Create an active entry
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(1800),
                 endTime = null,
                 title = "Valid Title",
@@ -1292,7 +1292,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     fun `should show error when setting start time in future`() {
         // Create an active entry
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(1800),
                 endTime = null,
                 title = "Test Task",
@@ -1374,7 +1374,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         
         // Create an active entry
         testDatabaseSupport.insert(
-            TimeEntry(
+            TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(1800),
                 endTime = null,
                 title = "Українське завдання",
