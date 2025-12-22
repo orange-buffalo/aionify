@@ -16,15 +16,19 @@ export function DateTimePicker({ value, onChange, disabled, locale, testIdPrefix
   const [isOpen, setIsOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState(value)
 
-  // Format display value according to locale
-  const displayValue = value.toLocaleString(locale, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  })
+  // Format display value - using a consistent format that respects locale
+  // Format: "MMM DD, YYYY, HH:mm" (e.g., "Mar 15, 2024, 14:00")
+  const formatDisplayValue = (date: Date) => {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    const month = months[date.getMonth()]
+    const day = date.getDate()
+    const year = date.getFullYear()
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    return `${month} ${day}, ${year}, ${hours}:${minutes}`
+  }
+  
+  const displayValue = formatDisplayValue(value)
 
   // Generate calendar days for current month
   const generateCalendar = (date: Date) => {

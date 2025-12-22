@@ -55,7 +55,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Test Task",
                 duration = "00:00:00",
-                startedAt = "14:00",
+                startedAt = "14:30",  // Started at FIXED_TEST_TIME (14:30)
             ),
             dayGroups = listOf(
                 DayGroupState(
@@ -139,7 +139,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Previous Task",
                 duration = "00:00:00",
-                startedAt = "14:00",
+                startedAt = "14:30",
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
@@ -432,7 +432,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Quick Entry",
                 duration = "00:00:00",
-                startedAt = "14:00",
+                startedAt = "14:30",
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
