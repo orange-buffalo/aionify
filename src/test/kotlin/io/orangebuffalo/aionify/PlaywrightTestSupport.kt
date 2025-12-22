@@ -154,19 +154,18 @@ abstract class PlaywrightTestBase {
     protected fun loginViaToken(targetPath: String, user: User, testAuthSupport: TestAuthSupport) {
         val authData = testAuthSupport.generateAuthStorageData(user)
 
-        // Navigate to a page first to set the origin for localStorage
-        // Using the base URL
+        // Navigate to root to establish localStorage origin
         page.navigate("/")
-
-        // Set authentication data in localStorage including language preference
+        
+        // Set localStorage items
         page.evaluate("""
             (data) => {
+                localStorage.setItem('aionify_language', data.languageCode);
                 localStorage.setItem('$TOKEN_KEY', data.token);
                 localStorage.setItem('$LAST_USERNAME_KEY', JSON.stringify({
                     userName: data.userName,
                     greeting: data.greeting
                 }));
-                localStorage.setItem('aionify_language', data.languageCode);
             }
         """.trimIndent(), mapOf(
             "token" to authData.token,
@@ -175,7 +174,7 @@ abstract class PlaywrightTestBase {
             "languageCode" to user.languageCode
         ))
 
-        // Now navigate to the target page - i18n will initialize from localStorage
+        // Navigate to the target page - this will cause i18n to re-initialize with localStorage values
         page.navigate(targetPath)
     }
 

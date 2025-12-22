@@ -468,21 +468,17 @@ class TimeLogsPageObject(private val page: Page) {
         // Click the trigger to open the picker
         page.locator("[data-testid='edit-datetime-trigger']").click()
         
-        // Wait for popover to be visible
+        // Wait for popover to appear
         page.locator("[role='dialog']").waitFor()
         
         // Parse the date to get the day we need to click
         val dateParts = date.split("-")
         val targetDay = dateParts[2].toInt()
         
-        // Navigate to correct month/year if needed (for now, assume same month)
         // Click on the day button in the calendar grid
-        // The calendar has buttons in a grid, find one that has the exact day number as text
+        // Find button with exact text matching the day number
         val popover = page.locator("[role='dialog']")
-        val dayButton = popover.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON)
-            .filter(com.microsoft.playwright.Locator.FilterOptions().setHasText("^${targetDay}$"))
-            .first()
-        dayButton.click()
+        popover.locator("button").locator("text=${targetDay}").first().click()
         
         // Fill in the time inputs
         val (hours, minutes) = time.split(":")
