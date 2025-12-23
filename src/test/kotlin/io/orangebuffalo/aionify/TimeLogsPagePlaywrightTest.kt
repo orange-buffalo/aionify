@@ -586,11 +586,11 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     
     @Test
     fun `should render entries from multiple days with varying entry counts`() {
-        // FIXED_TEST_TIME is 2024-03-15T14:30:00Z (Saturday, March 16, 2024 at 03:30 NZDT)
+        // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30 NZDT
         // Let's create entries for different days in the current week (Mon Mar 11 - Sun Mar 17)
         
-        // Monday (Mar 11) - 2 entries
-        val monday = FIXED_TEST_TIME.minusSeconds(4 * 24 * 3600) // 4 days before Saturday
+        // Monday (Mar 11) - 2 entries (5 days before Saturday)
+        val monday = FIXED_TEST_TIME.minusSeconds(5 * 24 * 3600) // 5 days before Saturday
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = monday.minusSeconds(7200),
@@ -608,8 +608,8 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
         
-        // Tuesday (Mar 12) - 1 entry
-        val tuesday = FIXED_TEST_TIME.minusSeconds(3 * 24 * 3600)
+        // Tuesday (Mar 12) - 1 entry (4 days before Saturday)
+        val tuesday = FIXED_TEST_TIME.minusSeconds(4 * 24 * 3600)
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = tuesday.minusSeconds(3600),
@@ -619,8 +619,8 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
         
-        // Wednesday (Mar 13) - 3 entries
-        val wednesday = FIXED_TEST_TIME.minusSeconds(2 * 24 * 3600)
+        // Wednesday (Mar 13) - 3 entries (3 days before Saturday)
+        val wednesday = FIXED_TEST_TIME.minusSeconds(3 * 24 * 3600)
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = wednesday.minusSeconds(10800),
@@ -692,7 +692,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                         ),
                         EntryState(
                             title = "Wednesday Task 1",
-                            timeRange = "11:30 - 12:00",
+                            timeRange = "00:30 - 01:00",
                             duration = "00:30:00"
                         )
                     )
@@ -804,31 +804,33 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify initial state with split entry across two days
+        // Entry runs from Friday 12:00 to Saturday 14:00 NZDT
+        // Split at midnight: Friday 12:00 - 23:59:59.999 and Saturday 00:00 - 14:00
         val initialState = TimeLogsPageState(
             currentEntry = CurrentEntryState.NoActiveEntry(),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
-                // Friday portion
+                // Saturday (today) portion: 00:00 - 14:00 = 14 hours
                 DayGroupState(
                     displayTitle = "Today",
-                    totalDuration = "01:00:00",
+                    totalDuration = "14:00:00",
                     entries = listOf(
                         EntryState(
                             title = "Task to Delete",
-                            timeRange = "13:00 - 14:00",
-                            duration = "01:00:00"
+                            timeRange = "00:00 - 14:00",
+                            duration = "14:00:00"
                         )
                     )
                 ),
-                // Thursday portion (23:00 to 23:59:59.999 displays as 00:59:59)
+                // Friday (yesterday) portion: 12:00 to 23:59:59.999 (displays as 11:59:59)
                 DayGroupState(
                     displayTitle = "Yesterday",
-                    totalDuration = "00:59:59",  // Due to midnight split at 23:59:59.999
+                    totalDuration = "11:59:59",  // Due to midnight split at 23:59:59.999
                     entries = listOf(
                         EntryState(
                             title = "Task to Delete",
-                            timeRange = "12:00 - 12:59",
-                            duration = "00:59:59"
+                            timeRange = "12:00 - 23:59",
+                            duration = "11:59:59"
                         )
                     )
                 )
@@ -979,13 +981,13 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         timeLogsPage.clickEditEntry()
 
         // Change start time to 1 hour ago (02:30)
-        timeLogsPage.fillEditTime("13:30")
+        timeLogsPage.fillEditTime("02:30")
 
         // Save changes
         timeLogsPage.clickSaveEdit()
 
         // Verify the start time and duration are updated - mutation from initial state
-        // Duration should now be 1 hour (from 13:30 to 14:30)
+        // Duration should now be 1 hour (from 02:30 to 03:30)
         val updatedState = initialState.copy(
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Test Task",
@@ -1051,13 +1053,13 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         // Change both title and start time
         timeLogsPage.fillEditTitle("Modified Task")
-        timeLogsPage.fillEditTime("12:00")
+        timeLogsPage.fillEditTime("01:00")
 
         // Save changes
         timeLogsPage.clickSaveEdit()
 
         // Verify both fields are updated - mutation from initial state
-        // Duration should be 2.5 hours (from 12:00 to 14:30)
+        // Duration should be 2.5 hours (from 01:00 to 03:30)
         val updatedState = initialState.copy(
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Modified Task",
@@ -1172,22 +1174,21 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // Click edit button
         timeLogsPage.clickEditEntry()
 
-        // Change start time to yesterday
-        timeLogsPage.fillEditDate("2024-03-14")
-        timeLogsPage.fillEditTime("16:00")
+        // Change start time to yesterday (Friday)
+        timeLogsPage.fillEditDate("2024-03-15")
+        timeLogsPage.fillEditTime("05:00")
 
         // Save changes
         timeLogsPage.clickSaveEdit()
 
-        // Verify the entry now appears in yesterday's group - mutation from initial state
-        // Duration should be from Thursday 16:00 to Friday 14:30
-        // This spans midnight, so it's split: Yesterday (16:00-23:59:59.999) + Today (00:00-14:30)
-        // The UI rounds the split to whole seconds: Yesterday: 7:59:59, Today: 14:30:00
-        // Total displayed: 22:30:00 (though actual is 22:29:59.999)
+        // Verify the entry now appears in yesterday's group
+        // Duration should be from Friday 05:00 to Saturday 03:30 NZDT = 22:30:00
+        // This spans midnight, so it's split: Yesterday (05:00-23:59:59.999) + Today (00:00-03:30)
+        // The UI rounds the split to whole seconds: Yesterday: 18:59:59, Today: 03:30:00
         val updatedState = TimeLogsPageState(
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Cross-Day Task",
-                duration = "22:30:00",  // Rounded total duration
+                duration = "22:30:00",  // Total duration from Friday 05:00 to Saturday 03:30
                 startedAt = "05:00"  // Start time from yesterday
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
@@ -1195,23 +1196,23 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 // Entry should span across two days after the update
                 DayGroupState(
                     displayTitle = "Today",
-                    totalDuration = "14:30:00", // From midnight to 14:30
+                    totalDuration = "03:30:00", // From midnight to 03:30
                     entries = listOf(
                         EntryState(
                             title = "Cross-Day Task",
-                            timeRange = "13:00 - in progress",
-                            duration = "14:30:00"
+                            timeRange = "00:00 - in progress",
+                            duration = "03:30:00"
                         )
                     )
                 ),
                 DayGroupState(
                     displayTitle = "Yesterday",
-                    totalDuration = "07:59:59", // 16:00 to midnight (23:59:59.999 rounds to 7:59:59)
+                    totalDuration = "18:59:59", // 05:00 to midnight (23:59:59.999 rounds to 18:59:59)
                     entries = listOf(
                         EntryState(
                             title = "Cross-Day Task",
-                            timeRange = "05:00 - 12:59",
-                            duration = "07:59:59"
+                            timeRange = "05:00 - 23:59",
+                            duration = "18:59:59"
                         )
                     )
                 )
