@@ -237,7 +237,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='profile-save-button']").click()
 
         // Wait for success message and verify (it should be in Ukrainian after language switch)
-        val successMessage = page.locator("[data-testid='profile-success']")
+        val successMessage = page.locator("[data-testid='toast-message']")
         assertThat(successMessage).isVisible()
         assertThat(successMessage).containsText("успішно оновлено")
 
@@ -264,7 +264,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='profile-save-button']").click()
 
         // Wait for success message
-        val successMessage = page.locator("[data-testid='profile-success']")
+        val successMessage = page.locator("[data-testid='toast-message']")
         assertThat(successMessage).isVisible()
     }
 
@@ -401,7 +401,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='change-password-button']").click()
 
         // Wait for error message and verify
-        val errorMessage = page.locator("[data-testid='change-password-error']")
+        val errorMessage = page.locator("[data-testid='toast-message']")
         assertThat(errorMessage).isVisible()
         assertThat(errorMessage).containsText("Current password is required")
     }
@@ -417,7 +417,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='change-password-button']").click()
 
         // Wait for error message and verify
-        val errorMessage = page.locator("[data-testid='change-password-error']")
+        val errorMessage = page.locator("[data-testid='toast-message']")
         assertThat(errorMessage).isVisible()
         assertThat(errorMessage).containsText("New password is required")
     }
@@ -435,7 +435,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='change-password-button']").click()
 
         // Wait for error message and verify
-        val errorMessage = page.locator("[data-testid='change-password-error']")
+        val errorMessage = page.locator("[data-testid='toast-message']")
         assertThat(errorMessage).isVisible()
         assertThat(errorMessage).containsText("do not match")
     }
@@ -453,7 +453,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='change-password-button']").click()
 
         // Wait for error message and verify
-        val errorMessage = page.locator("[data-testid='change-password-error']")
+        val errorMessage = page.locator("[data-testid='toast-message']")
         assertThat(errorMessage).isVisible()
         assertThat(errorMessage).containsText("Current password is incorrect")
     }
@@ -477,7 +477,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='change-password-button']").click()
 
         // Wait for error message and verify
-        val errorMessage = page.locator("[data-testid='change-password-error']")
+        val errorMessage = page.locator("[data-testid='toast-message']")
         assertThat(errorMessage).isVisible()
         assertThat(errorMessage).containsText("exceed 50 characters")
     }
@@ -555,7 +555,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='change-password-button']").click()
 
         // Wait for error message
-        val errorMessage = page.locator("[data-testid='change-password-error']")
+        val errorMessage = page.locator("[data-testid='toast-message']")
         assertThat(errorMessage).isVisible()
 
         // Verify inputs are NOT reset

@@ -169,7 +169,7 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='profile-save-button']").click()
 
         // Wait for success message
-        val successMessage = page.locator("[data-testid='profile-success']")
+        val successMessage = page.locator("[data-testid='toast-message']")
         assertThat(successMessage).isVisible()
 
         // Verify UI switched to Ukrainian immediately
@@ -207,7 +207,7 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='profile-save-button']").click()
 
         // Wait for success
-        val successMessage = page.locator("[data-testid='profile-success']")
+        val successMessage = page.locator("[data-testid='toast-message']")
         assertThat(successMessage).isVisible()
 
         // Now trigger a validation error in Ukrainian
@@ -230,7 +230,7 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='change-password-button']").click()
 
         // Verify error message is in English
-        val errorMessage = page.locator("[data-testid='change-password-error']")
+        val errorMessage = page.locator("[data-testid='toast-message']")
         assertThat(errorMessage).isVisible()
         assertThat(errorMessage).containsText("do not match")
 
@@ -246,7 +246,7 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='profile-save-button']").click()
 
         // Wait for success
-        val successMessage = page.locator("[data-testid='profile-success']")
+        val successMessage = page.locator("[data-testid='toast-message']")
         assertThat(successMessage).isVisible()
 
         // Now try password change with mismatched passwords in Ukrainian
@@ -305,7 +305,7 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='profile-save-button']").click()
 
         // Wait for success
-        val successMessage = page.locator("[data-testid='profile-success']")
+        val successMessage = page.locator("[data-testid='toast-message']")
         assertThat(successMessage).isVisible()
 
         // Reload the page

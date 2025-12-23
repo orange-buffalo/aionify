@@ -177,7 +177,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
         page.waitForTimeout(1000.0)
 
         // Check if there's an error message instead of success
-        val errorMessage = page.locator("[data-testid='users-error']")
+        val errorMessage = page.locator("[data-testid='toast-message']")
         if (errorMessage.isVisible) {
             val errorText = errorMessage.textContent()
             throw AssertionError("Expected success but got error: $errorText")

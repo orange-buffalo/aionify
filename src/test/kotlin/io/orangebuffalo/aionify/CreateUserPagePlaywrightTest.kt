@@ -108,7 +108,7 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
         assertThat(editPage).isVisible()
 
         // Verify success message is displayed
-        val successMessage = page.locator("[data-testid='edit-user-success']")
+        val successMessage = page.locator("[data-testid='toast-message']")
         assertThat(successMessage).isVisible()
         assertThat(successMessage).containsText("User created successfully")
 
@@ -153,7 +153,7 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
         assertThat(editPage).isVisible()
 
         // Verify success message is displayed
-        val successMessage = page.locator("[data-testid='edit-user-success']")
+        val successMessage = page.locator("[data-testid='toast-message']")
         assertThat(successMessage).isVisible()
 
         // Verify user was created in database with admin flag
@@ -186,7 +186,7 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='create-button']").click()
 
         // Verify error message is displayed
-        val errorMessage = page.locator("[data-testid='create-user-error']")
+        val errorMessage = page.locator("[data-testid='toast-message']")
         assertThat(errorMessage).isVisible()
         assertThat(errorMessage).containsText("Username already exists")
 
@@ -206,7 +206,7 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='create-button']").click()
 
         // Verify error message is displayed
-        val errorMessage = page.locator("[data-testid='create-user-error']")
+        val errorMessage = page.locator("[data-testid='toast-message']")
         assertThat(errorMessage).isVisible()
         assertThat(errorMessage).containsText("Username cannot be blank")
     }
@@ -222,7 +222,7 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='create-button']").click()
 
         // Verify error message is displayed
-        val errorMessage = page.locator("[data-testid='create-user-error']")
+        val errorMessage = page.locator("[data-testid='toast-message']")
         assertThat(errorMessage).isVisible()
         assertThat(errorMessage).containsText("Greeting cannot be blank")
     }

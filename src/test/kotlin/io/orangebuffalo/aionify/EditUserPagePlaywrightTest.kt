@@ -112,7 +112,7 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='save-button']").click()
 
         // Verify success message is displayed
-        val successMessage = page.locator("[data-testid='edit-user-success']")
+        val successMessage = page.locator("[data-testid='toast-message']")
         assertThat(successMessage).isVisible()
         assertThat(successMessage).containsText("User updated successfully")
 
@@ -145,7 +145,7 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='save-button']").click()
 
         // Verify error message is displayed
-        val errorMessage = page.locator("[data-testid='edit-user-error']")
+        val errorMessage = page.locator("[data-testid='toast-message']")
         assertThat(errorMessage).isVisible()
         assertThat(errorMessage).containsText("Username already exists")
 
@@ -242,7 +242,7 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='regenerate-token-button']").click()
 
         // Verify success message is displayed
-        val successMessage = page.locator("[data-testid='edit-user-success']")
+        val successMessage = page.locator("[data-testid='toast-message']")
         assertThat(successMessage).isVisible()
         assertThat(successMessage).containsText("Activation token regenerated successfully")
 
@@ -266,7 +266,7 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='generate-token-button']").click()
 
         // Verify success message is displayed
-        val successMessage = page.locator("[data-testid='edit-user-success']")
+        val successMessage = page.locator("[data-testid='toast-message']")
         assertThat(successMessage).isVisible()
         assertThat(successMessage).containsText("Activation token regenerated successfully")
 
