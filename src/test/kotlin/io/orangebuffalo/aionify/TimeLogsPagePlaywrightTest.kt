@@ -1421,9 +1421,11 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         assertThat(page.locator("[data-testid='edit-title-input']")).isVisible()
         assertThat(page.locator("[data-testid='edit-title-input']")).hasValue("Українське завдання")
         
-        // The datetime picker trigger should display the date/time in Ukrainian locale format
-        val dateTimeButton = page.locator("button:has-text('бер.')")  // Ukrainian month abbreviation for March
-        assertThat(dateTimeButton).isVisible()
+        // The date picker input should display the date in Ukrainian locale format
+        val dateInput = page.locator("[data-testid='edit-date-input']")
+        assertThat(dateInput).isVisible()
+        // Ukrainian format should contain "бер." (March abbreviation) - check with containsText since it's in an input
+        assertThat(dateInput).hasValue(java.util.regex.Pattern.compile(".*бер.*"))
 
         // Edit values using standard date/time format (browser handles localization)
         timeLogsPage.fillEditTitle("Оновлене завдання")

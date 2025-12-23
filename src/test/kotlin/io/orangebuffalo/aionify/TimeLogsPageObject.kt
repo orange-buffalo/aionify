@@ -264,10 +264,10 @@ class TimeLogsPageObject(private val page: Page) {
                         assertThat(page.locator("[data-testid='edit-title-input']")).isVisible()
                         assertThat(page.locator("[data-testid='edit-title-input']")).hasValue(editMode.titleValue)
                         
-                        // Date picker trigger button - check display value
-                        val dateTrigger = page.locator("[data-testid='edit-date-trigger']")
-                        assertThat(dateTrigger).isVisible()
-                        assertThat(dateTrigger).containsText(editMode.dateValue)
+                        // Date picker input - check value
+                        val dateInput = page.locator("[data-testid='edit-date-input']")
+                        assertThat(dateInput).isVisible()
+                        assertThat(dateInput).hasValue(editMode.dateValue)
                         
                         // Time picker input - check value
                         val timeInput = page.locator("[data-testid='edit-time-input']")
@@ -472,8 +472,12 @@ class TimeLogsPageObject(private val page: Page) {
      * @param time in format "HH:mm" (e.g., "14:30")
      */
     fun fillEditDateTime(date: String, time: String) {
-        // Click the date trigger to open the date picker
-        page.locator("[data-testid='edit-date-trigger']").click()
+        // Click the date trigger button to open the date picker popover
+        val dateTrigger = page.locator("[data-testid='edit-date-trigger']")
+        dateTrigger.click()
+        
+        // Give the popover time to appear
+        page.waitForTimeout(200.0)
         
         // Wait for popover to appear
         page.locator("[role='dialog']").waitFor()

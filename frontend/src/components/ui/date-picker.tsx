@@ -1,6 +1,7 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "lucide-react"
 
@@ -16,7 +17,7 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
   const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState(value)
-
+  
   // Format display value using Intl API for proper localization (date only)
   const formatDisplayValue = (date: Date) => {
     return new Intl.DateTimeFormat(locale, {
@@ -26,7 +27,87 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
     }).format(date)
   }
   
-  const displayValue = formatDisplayValue(value)
+  const [inputValue, setInputValue] = useState(formatDisplayValue(value))
+
+  // Update input value when value prop changes
+  useEffect(() => {
+    setInputValue(formatDisplayValue(value))
+    setSelectedDate(value)
+  }, [value])
+
+  // Parse date string - try multiple formats
+  const parseDate = (dateStr: string): Date | null => {
+    dateStr = dateStr.trim()
+    
+    // Try locale-specific format first using Intl API
+    try {
+      // Common date separators
+      const separators = ['-', '/', '.', ' ']
+      
+      for (const sep of separators) {
+        const parts = dateStr.split(sep)
+        
+        if (parts.length === 3) {
+          // Try different date formats based on locale
+          // Most locales use DD/MM/YYYY or MM/DD/YYYY or YYYY-MM-DD
+          const formats = [
+            // YYYY-MM-DD
+            { year: 0, month: 1, day: 2 },
+            // DD-MM-YYYY
+            { year: 2, month: 1, day: 0 },
+            // MM-DD-YYYY (US format)
+            { year: 2, month: 0, day: 1 }
+          ]
+          
+          for (const format of formats) {
+            const year = parseInt(parts[format.year], 10)
+            const month = parseInt(parts[format.month], 10)
+            const day = parseInt(parts[format.day], 10)
+            
+            // Basic validation
+            if (year >= 1900 && year <= 2100 &&
+                month >= 1 && month <= 12 &&
+                day >= 1 && day <= 31) {
+              const date = new Date(year, month - 1, day)
+              // Verify the date is valid (e.g., not Feb 31)
+              if (date.getFullYear() === year &&
+                  date.getMonth() === month - 1 &&
+                  date.getDate() === day) {
+                return date
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // Parsing failed
+    }
+    
+    return null
+  }
+
+  const handleInputChange = (inputStr: string) => {
+    setInputValue(inputStr)
+    
+    const parsed = parseDate(inputStr)
+    if (parsed !== null) {
+      setSelectedDate(parsed)
+      onChange(parsed)
+    }
+  }
+
+  const handleBlur = () => {
+    // On blur, reformat the input to ensure it's in the correct format
+    const parsed = parseDate(inputValue)
+    if (parsed !== null) {
+      setInputValue(formatDisplayValue(parsed))
+      setSelectedDate(parsed)
+    } else {
+      // Reset to current value if invalid
+      setInputValue(formatDisplayValue(value))
+      setSelectedDate(value)
+    }
+  }
 
   // Generate calendar days for current month
   const generateCalendar = (date: Date) => {
@@ -73,6 +154,7 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
     const newDate = new Date(selectedDate)
     newDate.setFullYear(day.getFullYear(), day.getMonth(), day.getDate())
     setSelectedDate(newDate)
+    setInputValue(formatDisplayValue(newDate))
     onChange(newDate)
     setIsOpen(false)
   }
@@ -100,17 +182,35 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className="justify-start text-left font-normal text-foreground"
-          disabled={disabled}
-          data-testid={`${testIdPrefix}-trigger`}
-        >
-          <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-          {displayValue}
-        </Button>
-      </PopoverTrigger>
+      <div className="relative">
+        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            onClick={() => setIsOpen(true)}
+            disabled={disabled}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pl-10 text-foreground text-left"
+            data-testid={`${testIdPrefix}-trigger`}
+          >
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => {
+                e.stopPropagation()
+                handleInputChange(e.target.value)
+              }}
+              onBlur={handleBlur}
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsOpen(true)
+              }}
+              disabled={disabled}
+              className="w-full bg-transparent border-none outline-none p-0 m-0 text-foreground"
+              data-testid={`${testIdPrefix}-input`}
+            />
+          </button>
+        </PopoverTrigger>
+      </div>
       <PopoverContent className="w-auto p-0 dark" align="start">
         <div className="p-4 space-y-4">
           {/* Month/Year Header */}
