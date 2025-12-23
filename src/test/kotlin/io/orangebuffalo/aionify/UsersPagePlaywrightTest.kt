@@ -176,15 +176,8 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
         // Wait a bit for the API call to complete
         page.waitForTimeout(1000.0)
 
-        // Check if there's an error message instead of success
-        val errorMessage = page.locator("[data-testid='toast-message']")
-        if (errorMessage.isVisible) {
-            val errorText = errorMessage.textContent()
-            throw AssertionError("Expected success but got error: $errorText")
-        }
-
         // Verify success message is displayed
-        val successMessage = page.locator("[data-testid='users-success']")
+        val successMessage = page.locator("[data-testid='toast-message']")
         assertThat(successMessage).isVisible()
         assertThat(successMessage).containsText("User deleted successfully")
 

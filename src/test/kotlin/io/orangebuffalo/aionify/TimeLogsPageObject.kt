@@ -162,12 +162,12 @@ class TimeLogsPageObject(private val page: Page) {
 
         // Assert error message visibility
         if (expectedState.errorMessageVisible) {
-            assertThat(page.locator("[data-testid='time-logs-error']")).isVisible()
+            assertThat(page.locator("[data-testid='toast-message']")).isVisible()
             if (expectedState.errorMessage != null) {
-                assertThat(page.locator("[data-testid='time-logs-error']")).containsText(expectedState.errorMessage)
+                assertThat(page.locator("[data-testid='toast-message']")).containsText(expectedState.errorMessage)
             }
         } else {
-            assertThat(page.locator("[data-testid='time-logs-error']")).not().isVisible()
+            assertThat(page.locator("[data-testid='toast-message']")).not().isVisible()
         }
 
         // Assert day groups and entries
