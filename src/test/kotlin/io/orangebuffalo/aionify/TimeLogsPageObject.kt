@@ -486,15 +486,18 @@ class TimeLogsPageObject(private val page: Page) {
         // Apply the date changes
         page.locator("[data-testid='edit-date-apply']").click()
         
+        // Wait for popover to close and state to settle
+        page.locator("[role='dialog']").waitFor(com.microsoft.playwright.Locator.WaitForOptions().setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN))
+        
         // Fill in the time input
         val (hours, minutes) = time.split(":")
         val timeInput = page.locator("[data-testid='edit-time-input']")
         
-        // Clear the input and type the time in 24-hour format
-        timeInput.fill("${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}")
+        // Use 24-hour format which is now accepted by both locale formats
+        val timeStr = "${hours.padStart(2, '0')}:${minutes}"
         
-        // Trigger blur to apply the time
-        timeInput.blur()
+        // Use fill() to set the value
+        timeInput.fill(timeStr)
     }
 
     /**

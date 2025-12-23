@@ -39,10 +39,8 @@ export function TimePicker({ value, onChange, disabled, locale, testIdPrefix }: 
 
   const [inputValue, setInputValue] = useState(formatTimeForInput(value))
 
-  // Update input value when value prop changes
-  useEffect(() => {
-    setInputValue(formatTimeForInput(value))
-  }, [value])
+  // Note: We don't update inputValue when value prop changes to avoid
+  // interference when the date portion changes. The time input is user-controlled.
 
   // Parse time input and update date
   const handleTimeChange = (timeStr: string) => {
@@ -62,42 +60,40 @@ export function TimePicker({ value, onChange, disabled, locale, testIdPrefix }: 
     // Remove extra spaces
     timeStr = timeStr.trim()
     
-    if (is12HourFormat) {
-      // Parse 12-hour format with AM/PM
-      const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM|am|pm)$/i)
-      if (match) {
-        let hours = parseInt(match[1], 10)
-        const minutes = parseInt(match[2], 10)
-        const period = match[3].toUpperCase()
-        
-        // Validate
-        if (hours < 1 || hours > 12 || minutes < 0 || minutes > 59) {
-          return null
-        }
-        
-        // Convert to 24-hour format
-        if (period === 'AM') {
-          hours = hours === 12 ? 0 : hours
-        } else {
-          hours = hours === 12 ? 12 : hours + 12
-        }
-        
-        return { hours, minutes }
+    // First try 12-hour format with AM/PM (more specific)
+    const match12 = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM|am|pm)$/i)
+    if (match12) {
+      let hours = parseInt(match12[1], 10)
+      const minutes = parseInt(match12[2], 10)
+      const period = match12[3].toUpperCase()
+      
+      // Validate
+      if (hours < 1 || hours > 12 || minutes < 0 || minutes > 59) {
+        return null
       }
-    } else {
-      // Parse 24-hour format
-      const match = timeStr.match(/^(\d{1,2}):(\d{2})$/)
-      if (match) {
-        const hours = parseInt(match[1], 10)
-        const minutes = parseInt(match[2], 10)
-        
-        // Validate
-        if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-          return null
-        }
-        
-        return { hours, minutes }
+      
+      // Convert to 24-hour format
+      if (period === 'AM') {
+        hours = hours === 12 ? 0 : hours
+      } else {
+        hours = hours === 12 ? 12 : hours + 12
       }
+      
+      return { hours, minutes }
+    }
+    
+    // Then try 24-hour format (less specific, so check second)
+    const match24 = timeStr.match(/^(\d{1,2}):(\d{2})$/)
+    if (match24) {
+      const hours = parseInt(match24[1], 10)
+      const minutes = parseInt(match24[2], 10)
+      
+      // Validate
+      if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+        return null
+      }
+      
+      return { hours, minutes }
     }
     
     return null
