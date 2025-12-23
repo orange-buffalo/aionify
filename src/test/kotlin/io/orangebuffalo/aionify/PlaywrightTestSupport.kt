@@ -59,9 +59,9 @@ abstract class PlaywrightTestBase {
     lateinit var testUsers: TestUsers
 
     private lateinit var playwright: Playwright
-    protected lateinit var browser: Browser
-    protected lateinit var browserContext: BrowserContext
-    protected lateinit var _page: Page
+    private lateinit var browser: Browser
+    private lateinit var browserContext: BrowserContext
+    private lateinit var _page: Page
     private lateinit var testInfo: TestInfo
     private val consoleMessages = mutableListOf<ConsoleMessage>()
 
@@ -83,14 +83,14 @@ abstract class PlaywrightTestBase {
         const val LAST_USERNAME_KEY = "aionify_last_username"
         
         /**
-         * Fixed time for all Playwright tests: 2024-03-15T14:30:00Z (Friday, March 15, 2024 at 2:30 PM UTC)
-         * In Pacific/Auckland timezone (UTC+13 during DST): Saturday, March 16, 2024 at 03:30:00 NZDT
+         * Fixed time for all Playwright tests defined in NZDT (New Zealand Daylight Time, UTC+13):
+         * Saturday, March 16, 2024 at 03:30:00 NZDT
          * 
-         * This ensures deterministic behavior for time-sensitive tests.
+         * This corresponds to Friday, March 15, 2024 at 14:30:00 UTC.
          * This is the same time used by TestTimeService for backend operations.
          * 
          * All tests run in Pacific/Auckland timezone to ensure timezone awareness and catch
-         * any timezone-related bugs early.
+         * any timezone-related bugs early. Test expectations should use NZDT values (Saturday 03:30).
          */
         val FIXED_TEST_TIME: Instant = TestTimeService.FIXED_TEST_TIME
     }
@@ -135,14 +135,7 @@ abstract class PlaywrightTestBase {
         _page.clock().pauseAt(FIXED_TEST_TIME.toEpochMilli())
     }
 
-    /**
-     * Creates a browser context with the default options.
-     * Can be overridden in test subclasses to customize context options (e.g., timezone).
-     * 
-     * By default, uses Pacific/Auckland timezone (UTC+12/+13 depending on DST) to ensure
-     * all tests are timezone-aware and catch any timezone-related issues.
-     */
-    protected open fun createBrowserContext(): BrowserContext {
+    private fun createBrowserContext(): BrowserContext {
         return browser.newContext(
             Browser.NewContextOptions()
                 .setBaseURL(baseUrl)

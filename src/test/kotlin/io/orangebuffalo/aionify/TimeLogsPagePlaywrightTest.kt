@@ -1418,7 +1418,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         // Edit values using standard date/time format (browser handles localization)
         timeLogsPage.fillEditTitle("Оновлене завдання")
-        timeLogsPage.fillEditTime("13:00")
+        timeLogsPage.fillEditTime("02:00")
 
         // Save changes
         timeLogsPage.clickSaveEdit()
@@ -1427,8 +1427,8 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // (rather than full state which would require all Ukrainian translations)
         assertThat(page.locator("[data-testid='current-entry-panel']").locator("text=Оновлене завдання")).isVisible()
         assertThat(page.locator("[data-testid='active-timer']")).hasText("01:30:00")
-        assertThat(page.locator("[data-testid='active-entry-started-at']")).containsText("13:00")
-        assertThat(page.locator("[data-testid='entry-time-range']").first()).containsText("13:00")
+        assertThat(page.locator("[data-testid='active-entry-started-at']")).containsText("02:00")
+        assertThat(page.locator("[data-testid='entry-time-range']").first()).containsText("02:00")
         assertThat(page.locator("[data-testid='entry-time-range']").first()).containsText("виконується")
     }
 
