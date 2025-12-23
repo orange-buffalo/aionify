@@ -10,10 +10,12 @@ import { EditUserPage } from "@/pages/EditUserPage"
 import { TimeLogsPage } from "@/pages/TimeLogsPage"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { RootRedirect } from "@/components/auth/RootRedirect"
+import { ToastProvider } from "@/components/ui/toast-provider"
 
 export function App() {
   return (
-    <BrowserRouter>
+    <ToastProvider>
+      <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/activate" element={<ActivateAccountPage />} />
@@ -61,5 +63,6 @@ export function App() {
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
+    </ToastProvider>
   )
 }

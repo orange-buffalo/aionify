@@ -5,7 +5,7 @@ import { PortalLayout } from "@/components/layout/PortalLayout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { FormMessage } from "@/components/ui/form-message"
+import { useToast } from "@/components/ui/toast-provider"
 import { apiGet, apiPut, apiPost } from "@/lib/api"
 import { ArrowLeft } from "lucide-react"
 
@@ -31,18 +31,16 @@ export function EditUserPage() {
   const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { showToast } = useToast()
   
   const [user, setUser] = useState<UserDetail | null>(null)
   const [userName, setUserName] = useState("")
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [regenerating, setRegenerating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   const loadUser = async () => {
     setLoading(true)
-    setError(null)
     
     try {
       const data = await apiGet<UserDetail>(`/api/admin/users/${id}`)
@@ -51,9 +49,9 @@ export function EditUserPage() {
     } catch (err) {
       const errorCode = (err as any).errorCode
       if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`, { defaultValue: err instanceof Error ? err.message : "An error occurred" }))
+        showToast("error", t(`errorCodes.${errorCode}`, { defaultValue: err instanceof Error ? err.message : "An error occurred" }))
       } else {
-        setError(err instanceof Error ? err.message : "An error occurred")
+        showToast("error", err instanceof Error ? err.message : "An error occurred")
       }
     } finally {
       setLoading(false)
@@ -66,24 +64,22 @@ export function EditUserPage() {
     // Check if we have a success message from session storage (e.g., after creating a user)
     const userCreated = sessionStorage.getItem("userCreated")
     if (userCreated) {
-      setSuccessMessage(t("portal.admin.users.create.createSuccess"))
+      showToast("success", t("portal.admin.users.create.createSuccess"))
       sessionStorage.removeItem("userCreated")
     }
   }, [id])
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
-    setSuccessMessage(null)
 
     // Client-side validation
     if (!userName || userName.trim() === "") {
-      setError(t("validation.usernameBlank"))
+      showToast("error", t("validation.usernameBlank"))
       return
     }
 
     if (userName.length > 255) {
-      setError(t("validation.usernameTooLong"))
+      showToast("error", t("validation.usernameTooLong"))
       return
     }
 
@@ -94,15 +90,15 @@ export function EditUserPage() {
         userName: userName
       })
       
-      setSuccessMessage(t("portal.admin.users.edit.updateSuccess"))
+      showToast("success", t("portal.admin.users.edit.updateSuccess"))
       // Reload user to get updated data
       await loadUser()
     } catch (err) {
       const errorCode = (err as any).errorCode
       if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`, { defaultValue: err instanceof Error ? err.message : "An error occurred" }))
+        showToast("error", t(`errorCodes.${errorCode}`, { defaultValue: err instanceof Error ? err.message : "An error occurred" }))
       } else {
-        setError(err instanceof Error ? err.message : "An error occurred")
+        showToast("error", err instanceof Error ? err.message : "An error occurred")
       }
     } finally {
       setSaving(false)
@@ -110,8 +106,6 @@ export function EditUserPage() {
   }
 
   const handleRegenerateToken = async () => {
-    setError(null)
-    setSuccessMessage(null)
     setRegenerating(true)
 
     try {
@@ -120,15 +114,15 @@ export function EditUserPage() {
         {}
       )
       
-      setSuccessMessage(t("portal.admin.users.edit.tokenRegenerated"))
+      showToast("success", t("portal.admin.users.edit.tokenRegenerated"))
       // Reload user to get updated activation token
       await loadUser()
     } catch (err) {
       const errorCode = (err as any).errorCode
       if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`, { defaultValue: err instanceof Error ? err.message : "An error occurred" }))
+        showToast("error", t(`errorCodes.${errorCode}`, { defaultValue: err instanceof Error ? err.message : "An error occurred" }))
       } else {
-        setError(err instanceof Error ? err.message : "An error occurred")
+        showToast("error", err instanceof Error ? err.message : "An error occurred")
       }
     } finally {
       setRegenerating(false)
@@ -164,18 +158,6 @@ export function EditUserPage() {
             </h1>
             <p className="text-muted-foreground">{t("portal.admin.users.edit.subtitle")}</p>
           </div>
-
-          {error && (
-            <div className="mb-4">
-              <FormMessage type="error" message={error} testId="edit-user-error" />
-            </div>
-          )}
-
-          {successMessage && (
-            <div className="mb-4">
-              <FormMessage type="success" message={successMessage} testId="edit-user-success" />
-            </div>
-          )}
 
           {loading ? (
             <div className="text-center py-8 text-foreground" data-testid="edit-user-loading">

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { DateTimePicker } from "@/components/ui/date-time-picker"
 import { PortalLayout } from "@/components/layout/PortalLayout"
-import { FormMessage } from "@/components/ui/form-message"
+import { useToast } from "@/components/ui/toast-provider"
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api"
 import { ChevronLeft, ChevronRight, Play, Square, MoreVertical, Trash2, Pencil } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -29,6 +29,7 @@ interface DayGroup {
 
 export function TimeLogsPage() {
   const { t, i18n } = useTranslation()
+  const { showToast } = useToast()
   const [activeEntry, setActiveEntry] = useState<TimeEntry | null>(null)
   const [activeDuration, setActiveDuration] = useState<number>(0)
   const [weekStart, setWeekStart] = useState<Date>(getWeekStart(new Date()))
@@ -38,8 +39,6 @@ export function TimeLogsPage() {
   const [newEntryTitle, setNewEntryTitle] = useState("")
   const [isStarting, setIsStarting] = useState(false)
   const [isStopping, setIsStopping] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [entryToDelete, setEntryToDelete] = useState<TimeEntry | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -188,7 +187,6 @@ export function TimeLogsPage() {
   async function loadTimeEntries() {
     try {
       setLoading(true)
-      setError(null)
       
       // Calculate week boundaries as ISO timestamps
       const weekStartTime = new Date(weekStart)
@@ -206,7 +204,7 @@ export function TimeLogsPage() {
       
       setEntries(response.entries || [])
     } catch (err: any) {
-      setError(err.message || t('common.error'))
+      showToast("error", err.message || t('common.error'))
     } finally {
       setLoading(false)
     }
@@ -225,13 +223,12 @@ export function TimeLogsPage() {
   // Start a new time entry
   async function handleStart() {
     if (!newEntryTitle.trim()) {
-      setError(t('timeLogs.errors.titleRequired'))
+      showToast("error", t('timeLogs.errors.titleRequired'))
       return
     }
     
     try {
       setIsStarting(true)
-      setError(null)
       
       const entry = await apiPost<TimeEntry>('/api/time-log-entries', {
         title: newEntryTitle.trim()
@@ -239,14 +236,14 @@ export function TimeLogsPage() {
       
       setActiveEntry(entry)
       setNewEntryTitle("")
-      setSuccess(t('timeLogs.success.started'))
+      showToast("success", t('timeLogs.success.started'))
       await loadTimeEntries()
     } catch (err: any) {
       const errorCode = (err as any).errorCode
       if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`))
+        showToast("error", t(`errorCodes.${errorCode}`))
       } else {
-        setError(err.message || t('common.error'))
+        showToast("error", err.message || t('common.error'))
       }
     } finally {
       setIsStarting(false)
@@ -259,7 +256,6 @@ export function TimeLogsPage() {
     
     try {
       setIsStopping(true)
-      setError(null)
       
       await apiPut(`/api/time-log-entries/${activeEntry.id}/stop`, {})
       
@@ -269,9 +265,9 @@ export function TimeLogsPage() {
     } catch (err: any) {
       const errorCode = (err as any).errorCode
       if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`))
+        showToast("error", t(`errorCodes.${errorCode}`))
       } else {
-        setError(err.message || t('common.error'))
+        showToast("error", err.message || t('common.error'))
       }
     } finally {
       setIsStopping(false)
@@ -285,7 +281,6 @@ export function TimeLogsPage() {
     // Start the entry right away
     try {
       setIsStarting(true)
-      setError(null)
       
       const newEntry = await apiPost<TimeEntry>('/api/time-log-entries', {
         title: entry.title,
@@ -298,9 +293,9 @@ export function TimeLogsPage() {
     } catch (err: any) {
       const errorCode = (err as any).errorCode
       if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`))
+        showToast("error", t(`errorCodes.${errorCode}`))
       } else {
-        setError(err.message || t('common.error'))
+        showToast("error", err.message || t('common.error'))
       }
     } finally {
       setIsStarting(false)
@@ -319,7 +314,6 @@ export function TimeLogsPage() {
     
     try {
       setIsDeleting(true)
-      setError(null)
       
       await apiDelete(`/api/time-log-entries/${entryToDelete.id}`)
       
@@ -335,9 +329,9 @@ export function TimeLogsPage() {
     } catch (err: any) {
       const errorCode = (err as any).errorCode
       if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`))
+        showToast("error", t(`errorCodes.${errorCode}`))
       } else {
-        setError(err.message || t('common.error'))
+        showToast("error", err.message || t('common.error'))
       }
     } finally {
       setIsDeleting(false)
@@ -359,7 +353,6 @@ export function TimeLogsPage() {
     
     try {
       setIsSaving(true)
-      setError(null)
       
       const startTimeISO = editDateTime.toISOString()
       
@@ -374,9 +367,9 @@ export function TimeLogsPage() {
     } catch (err: any) {
       const errorCode = err.errorCode
       if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`))
+        showToast("error", t(`errorCodes.${errorCode}`))
       } else {
-        setError(err.message || t('common.error'))
+        showToast("error", err.message || t('common.error'))
       }
     } finally {
       setIsSaving(false)
@@ -483,15 +476,6 @@ export function TimeLogsPage() {
             </h1>
             <div className="text-muted-foreground">{t('timeLogs.subtitle')}</div>
           </div>
-
-          {/* Error Message */}
-          {error && (
-            <FormMessage
-              type="error"
-              message={error}
-              testId="time-logs-error"
-            />
-          )}
 
           {/* Current Entry Panel */}
           <Card className="mb-6 bg-card/90" data-testid="current-entry-panel">

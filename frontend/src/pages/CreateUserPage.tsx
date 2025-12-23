@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { FormMessage } from "@/components/ui/form-message"
+import { useToast } from "@/components/ui/toast-provider"
 import { apiPost } from "@/lib/api"
 import { ArrowLeft } from "lucide-react"
 
@@ -24,35 +24,34 @@ interface CreateUserResponse {
 export function CreateUserPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const { showToast } = useToast()
   
   const [userName, setUserName] = useState("")
   const [greeting, setGreeting] = useState("")
   const [userType, setUserType] = useState("regular")
   const [creating, setCreating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
 
     // Client-side validation
     if (!userName || userName.trim() === "") {
-      setError(t("validation.usernameBlank"))
+      showToast("error", t("validation.usernameBlank"))
       return
     }
 
     if (userName.length > 255) {
-      setError(t("validation.usernameTooLong"))
+      showToast("error", t("validation.usernameTooLong"))
       return
     }
 
     if (!greeting || greeting.trim() === "") {
-      setError(t("validation.greetingBlank"))
+      showToast("error", t("validation.greetingBlank"))
       return
     }
 
     if (greeting.length > 255) {
-      setError(t("validation.greetingTooLong"))
+      showToast("error", t("validation.greetingTooLong"))
       return
     }
 
@@ -73,9 +72,9 @@ export function CreateUserPage() {
     } catch (err) {
       const errorCode = (err as any).errorCode
       if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`, { defaultValue: err instanceof Error ? err.message : "An error occurred" }))
+        showToast("error", t(`errorCodes.${errorCode}`, { defaultValue: err instanceof Error ? err.message : "An error occurred" }))
       } else {
-        setError(err instanceof Error ? err.message : "An error occurred")
+        showToast("error", err instanceof Error ? err.message : "An error occurred")
       }
     } finally {
       setCreating(false)
@@ -107,12 +106,6 @@ export function CreateUserPage() {
             </h1>
             <p className="text-muted-foreground">{t("portal.admin.users.create.subtitle")}</p>
           </div>
-
-          {error && (
-            <div className="mb-4">
-              <FormMessage type="error" message={error} testId="create-user-error" />
-            </div>
-          )}
 
           <div className="bg-card rounded-lg border p-6">
             <form onSubmit={handleSubmit} className="space-y-6">

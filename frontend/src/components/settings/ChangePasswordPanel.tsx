@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { FormMessage } from "@/components/ui/form-message"
+import { useToast } from "@/components/ui/toast-provider"
 import { KeyRound, Eye, EyeOff } from "lucide-react"
 import { apiPost } from "@/lib/api"
 
@@ -14,6 +14,7 @@ interface ChangePasswordResponse {
 
 export function ChangePasswordPanel() {
   const { t } = useTranslation()
+  const { showToast } = useToast()
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -21,29 +22,25 @@ export function ChangePasswordPanel() {
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
-    setSuccess(null)
 
     // Client-side validation
     if (!currentPassword) {
-      setError(t("validation.currentPasswordRequired"))
+      showToast("error", t("validation.currentPasswordRequired"))
       return
     }
     if (!newPassword) {
-      setError(t("validation.newPasswordRequired"))
+      showToast("error", t("validation.newPasswordRequired"))
       return
     }
     if (newPassword.length > 50) {
-      setError(t("validation.passwordTooLong"))
+      showToast("error", t("validation.passwordTooLong"))
       return
     }
     if (newPassword !== confirmPassword) {
-      setError(t("validation.passwordsDoNotMatch"))
+      showToast("error", t("validation.passwordsDoNotMatch"))
       return
     }
 
@@ -54,14 +51,14 @@ export function ChangePasswordPanel() {
         currentPassword,
         newPassword,
       })
-      setSuccess(t("settings.changePassword.changeSuccess"))
+      showToast("success", t("settings.changePassword.changeSuccess"))
       
       // Reset form on success
       setCurrentPassword("")
       setNewPassword("")
       setConfirmPassword("")
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("common.error"))
+      showToast("error", err instanceof Error ? err.message : t("common.error"))
     } finally {
       setLoading(false)
     }
@@ -161,16 +158,6 @@ export function ChangePasswordPanel() {
               </button>
             </div>
           </div>
-
-          {/* Error Message */}
-          {error && (
-            <FormMessage type="error" message={error} testId="change-password-error" />
-          )}
-
-          {/* Success Message */}
-          {success && (
-            <FormMessage type="success" message={success} testId="change-password-success" />
-          )}
 
           {/* Submit Button */}
           <Button 

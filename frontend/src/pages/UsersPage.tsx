@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { FormMessage } from "@/components/ui/form-message"
+import { useToast } from "@/components/ui/toast-provider"
 import { apiGet, apiRequest } from "@/lib/api"
 import { MoreVertical, ChevronLeft, ChevronRight } from "lucide-react"
 
@@ -27,13 +27,12 @@ interface UsersListResponse {
 export function UsersPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const { showToast } = useToast()
   const [users, setUsers] = useState<User[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(0)
   const [size] = useState(20)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [deletePopoverOpen, setDeletePopoverOpen] = useState<number | null>(null)
   const [currentUserName, setCurrentUserName] = useState<string>("")
 
@@ -52,15 +51,13 @@ export function UsersPage() {
 
   const loadUsers = async () => {
     setLoading(true)
-    setError(null)
-    setSuccessMessage(null)
     
     try {
       const data = await apiGet<UsersListResponse>(`/api/admin/users?page=${page}&size=${size}`)
       setUsers(data.users)
       setTotal(data.total)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+      showToast("error", err instanceof Error ? err.message : "An error occurred")
     } finally {
       setLoading(false)
     }
@@ -82,9 +79,9 @@ export function UsersPage() {
       await loadUsers()
       
       // Then show success message (after reload to avoid it being cleared)
-      setSuccessMessage(t("portal.admin.users.deleteSuccess"))
+      showToast("success", t("portal.admin.users.deleteSuccess"))
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+      showToast("error", err instanceof Error ? err.message : "An error occurred")
       setDeletePopoverOpen(null)
     }
   }
@@ -111,18 +108,6 @@ export function UsersPage() {
               {t("portal.admin.users.createUser")}
             </Button>
           </div>
-
-          {error && (
-            <div className="mb-4">
-              <FormMessage type="error" message={error} testId="users-error" />
-            </div>
-          )}
-
-          {successMessage && (
-            <div className="mb-4">
-              <FormMessage type="success" message={successMessage} testId="users-success" />
-            </div>
-          )}
 
           {loading ? (
             <div className="text-center py-8 text-foreground" data-testid="users-loading">

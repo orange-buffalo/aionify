@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { FormMessage } from "@/components/ui/form-message"
+import { useToast } from "@/components/ui/toast-provider"
 import { User, Loader2 } from "lucide-react"
 import { apiGet, apiPut } from "@/lib/api"
 import { initializeLanguage, translateErrorCode } from "@/lib/i18n"
@@ -72,13 +72,12 @@ function formatDateTimeExample(locale: string): string {
 
 export function ProfilePanel() {
   const { t, i18n } = useTranslation()
+  const { showToast } = useToast()
   const [greeting, setGreeting] = useState("")
   const [language, setLanguage] = useState("")
   const [locale, setLocale] = useState("")
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
 
   // Format example based on selected locale
   const localeExample = useMemo(() => {
@@ -95,7 +94,7 @@ export function ProfilePanel() {
         setLanguage(data.languageCode)
         setLocale(data.locale)
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load profile")
+        showToast("error", err instanceof Error ? err.message : "Failed to load profile")
       } finally {
         setLoading(false)
       }
@@ -106,24 +105,22 @@ export function ProfilePanel() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
-    setSuccess(null)
 
     // Client-side validation
     if (!greeting.trim()) {
-      setError(t("validation.greetingBlank"))
+      showToast("error", t("validation.greetingBlank"))
       return
     }
     if (greeting.length > 255) {
-      setError(t("validation.greetingTooLong"))
+      showToast("error", t("validation.greetingTooLong"))
       return
     }
     if (!language) {
-      setError(t("validation.languageRequired"))
+      showToast("error", t("validation.languageRequired"))
       return
     }
     if (!locale) {
-      setError(t("validation.localeRequired"))
+      showToast("error", t("validation.localeRequired"))
       return
     }
 
@@ -139,12 +136,12 @@ export function ProfilePanel() {
       // Update user language preference and apply changes
       await initializeLanguage(language)
       
-      // Set success flag (translation will be applied in JSX with current language)
-      setSuccess("success")
+      // Show success toast
+      showToast("success", t("settings.profile.updateSuccess"))
     } catch (err) {
       // Translate error using error code if available
       const errorMessage = err instanceof Error ? err.message : t("common.error")
-      setError(errorMessage)
+      showToast("error", errorMessage)
     } finally {
       setSaving(false)
     }
@@ -242,16 +239,6 @@ export function ProfilePanel() {
                 </p>
               )}
             </div>
-
-            {/* Error Message */}
-            {error && (
-              <FormMessage type="error" message={error} testId="profile-error" />
-            )}
-
-            {/* Success Message */}
-            {success && (
-              <FormMessage type="success" message={t("settings.profile.updateSuccess")} testId="profile-success" />
-            )}
 
             {/* Submit Button */}
             <Button 
