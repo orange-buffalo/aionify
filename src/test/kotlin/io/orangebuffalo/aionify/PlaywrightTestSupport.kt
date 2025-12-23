@@ -84,8 +84,13 @@ abstract class PlaywrightTestBase {
         
         /**
          * Fixed time for all Playwright tests: 2024-03-15T14:30:00Z (Friday, March 15, 2024 at 2:30 PM UTC)
+         * In Pacific/Auckland timezone (UTC+13 during DST): Saturday, March 16, 2024 at 03:30:00 NZDT
+         * 
          * This ensures deterministic behavior for time-sensitive tests.
          * This is the same time used by TestTimeService for backend operations.
+         * 
+         * All tests run in Pacific/Auckland timezone to ensure timezone awareness and catch
+         * any timezone-related bugs early.
          */
         val FIXED_TEST_TIME: Instant = TestTimeService.FIXED_TEST_TIME
     }
@@ -133,10 +138,15 @@ abstract class PlaywrightTestBase {
     /**
      * Creates a browser context with the default options.
      * Can be overridden in test subclasses to customize context options (e.g., timezone).
+     * 
+     * By default, uses Pacific/Auckland timezone (UTC+12/+13 depending on DST) to ensure
+     * all tests are timezone-aware and catch any timezone-related issues.
      */
     protected open fun createBrowserContext(): BrowserContext {
         return browser.newContext(
-            Browser.NewContextOptions().setBaseURL(baseUrl)
+            Browser.NewContextOptions()
+                .setBaseURL(baseUrl)
+                .setTimezoneId("Pacific/Auckland")
         )
     }
 
