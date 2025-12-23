@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { DateTimePicker } from "@/components/ui/date-time-picker"
+import { DatePicker } from "@/components/ui/date-picker"
+import { TimePicker } from "@/components/ui/time-picker"
 import { PortalLayout } from "@/components/layout/PortalLayout"
 import { FormMessage } from "@/components/ui/form-message"
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api"
@@ -519,16 +520,23 @@ export function TimeLogsPage() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="edit-datetime" className="text-foreground">
+                      <Label className="text-foreground">
                         {t('timeLogs.currentEntry.startTimeLabel')}
                       </Label>
-                      <div className="mt-2">
-                        <DateTimePicker
+                      <div className="mt-2 flex items-center gap-2">
+                        <DatePicker
                           value={editDateTime}
                           onChange={setEditDateTime}
                           disabled={isSaving}
                           locale={locale}
-                          testIdPrefix="edit-datetime"
+                          testIdPrefix="edit-date"
+                        />
+                        <TimePicker
+                          value={editDateTime}
+                          onChange={setEditDateTime}
+                          disabled={isSaving}
+                          locale={locale}
+                          testIdPrefix="edit-time"
                         />
                       </div>
                     </div>
