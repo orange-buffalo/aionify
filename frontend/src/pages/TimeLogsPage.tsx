@@ -103,11 +103,11 @@ export function TimeLogsPage() {
     const today = new Date()
     const yesterday = new Date(today)
     yesterday.setDate(yesterday.getDate() - 1)
-    
+
     today.setHours(0, 0, 0, 0)
     yesterday.setHours(0, 0, 0, 0)
     date.setHours(0, 0, 0, 0)
-    
+
     if (date.getTime() === today.getTime()) {
       return t('timeLogs.today')
     } else if (date.getTime() === yesterday.getTime()) {
@@ -122,14 +122,14 @@ export function TimeLogsPage() {
   // Group entries by day and handle entries spanning midnight
   function groupEntriesByDay(entries: TimeLogEntry[], locale: string): DayGroup[] {
     const groups: { [key: string]: TimeLogEntry[] } = {}
-    
+
     entries.forEach(entry => {
       const startDate = new Date(entry.startTime)
       const endDate = entry.endTime ? new Date(entry.endTime) : new Date()
-      
+
       const startDay = formatISODate(startDate)
       const endDay = formatISODate(endDate)
-      
+
       if (startDay === endDay) {
         // Entry doesn't span midnight
         if (!groups[startDay]) groups[startDay] = []
@@ -139,17 +139,17 @@ export function TimeLogsPage() {
         // First part: from start to end of day
         const startDayEnd = new Date(startDate)
         startDayEnd.setHours(23, 59, 59, 999)
-        
+
         if (!groups[startDay]) groups[startDay] = []
         groups[startDay].push({
           ...entry,
           endTime: startDayEnd.toISOString()
         })
-        
+
         // Second part: from start of day to end
         const endDayStart = new Date(endDate)
         endDayStart.setHours(0, 0, 0, 0)
-        
+
         if (!groups[endDay]) groups[endDay] = []
         groups[endDay].push({
           ...entry,
@@ -157,18 +157,18 @@ export function TimeLogsPage() {
         })
       }
     })
-    
+
     // Convert to array and sort by date descending
     return Object.entries(groups)
       .map(([date, entries]) => {
-        const totalDuration = entries.reduce((sum, entry) => 
+        const totalDuration = entries.reduce((sum, entry) =>
           sum + calculateDuration(entry.startTime, entry.endTime), 0
         )
-        
+
         return {
           date,
           displayTitle: getDayTitle(date, locale),
-          entries: entries.sort((a, b) => 
+          entries: entries.sort((a, b) =>
             new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
           ),
           totalDuration
@@ -189,21 +189,21 @@ export function TimeLogsPage() {
     try {
       setLoading(true)
       setError(null)
-      
+
       // Calculate week boundaries as ISO timestamps
       const weekStartTime = new Date(weekStart)
       weekStartTime.setHours(0, 0, 0, 0)
       const weekEndTime = new Date(weekStart)
       weekEndTime.setDate(weekEndTime.getDate() + 7)
       weekEndTime.setHours(0, 0, 0, 0)
-      
+
       const startTimeStr = weekStartTime.toISOString()
       const endTimeStr = weekEndTime.toISOString()
-      
+
       const response = await apiGet<{ entries: TimeLogEntry[] }>(
         `/api/time-log-entries?startTime=${encodeURIComponent(startTimeStr)}&endTime=${encodeURIComponent(endTimeStr)}`
       )
-      
+
       setEntries(response.entries || [])
     } catch (err: any) {
       setError(err.message || t('common.error'))
@@ -228,15 +228,15 @@ export function TimeLogsPage() {
       setError(t('timeLogs.errors.titleRequired'))
       return
     }
-    
+
     try {
       setIsStarting(true)
       setError(null)
-      
+
       const entry = await apiPost<TimeEntry>('/api/time-log-entries', {
         title: newEntryTitle.trim()
       })
-      
+
       setActiveEntry(entry)
       setNewEntryTitle("")
       setSuccess(t('timeLogs.success.started'))
@@ -256,13 +256,13 @@ export function TimeLogsPage() {
   // Stop the active time entry
   async function handleStop() {
     if (!activeEntry) return
-    
+
     try {
       setIsStopping(true)
       setError(null)
-      
+
       await apiPut(`/api/time-log-entries/${activeEntry.id}/stop`, {})
-      
+
       setActiveEntry(null)
       setActiveDuration(0)
       await loadTimeEntries()
@@ -281,17 +281,17 @@ export function TimeLogsPage() {
   // Continue with an existing entry's title
   async function handleContinue(entry: TimeEntry) {
     setNewEntryTitle(entry.title)
-    
+
     // Start the entry right away
     try {
       setIsStarting(true)
       setError(null)
-      
+
       const newEntry = await apiPost<TimeEntry>('/api/time-log-entries', {
         title: entry.title,
         stopActiveEntry: true
       })
-      
+
       setActiveEntry(newEntry)
       setNewEntryTitle("")
       await loadTimeEntries()
@@ -316,18 +316,18 @@ export function TimeLogsPage() {
   // Delete a time entry
   async function handleDelete() {
     if (!entryToDelete) return
-    
+
     try {
       setIsDeleting(true)
       setError(null)
-      
+
       await apiDelete(`/api/time-log-entries/${entryToDelete.id}`)
-      
+
       setIsDeleting(false)
       setDeleteDialogOpen(false)
       setEntryToDelete(null)
       await loadTimeEntries()
-      
+
       // If deleting active entry, clear it
       if (activeEntry && activeEntry.id === entryToDelete.id) {
         setActiveEntry(null)
@@ -347,7 +347,7 @@ export function TimeLogsPage() {
   // Enter edit mode for active entry
   function handleEditClick() {
     if (!activeEntry) return
-    
+
     setEditTitle(activeEntry.title)
     setEditDateTime(new Date(activeEntry.startTime))
     setIsEditMode(true)
@@ -356,18 +356,18 @@ export function TimeLogsPage() {
   // Save edited entry
   async function handleSaveEdit() {
     if (!activeEntry || !editTitle.trim()) return
-    
+
     try {
       setIsSaving(true)
       setError(null)
-      
+
       const startTimeISO = editDateTime.toISOString()
-      
+
       const updatedEntry = await apiPut<TimeEntry>(`/api/time-log-entries/${activeEntry.id}`, {
         title: editTitle.trim(),
         startTime: startTimeISO
       })
-      
+
       setActiveEntry(updatedEntry)
       setIsEditMode(false)
       await loadTimeEntries()
@@ -409,10 +409,10 @@ export function TimeLogsPage() {
     const locale = i18n.language || 'en'
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekEnd.getDate() + 6)
-    
+
     const startStr = weekStart.toLocaleDateString(locale, { month: 'short', day: 'numeric' })
     const endStr = weekEnd.toLocaleDateString(locale, { month: 'short', day: 'numeric' })
-    
+
     return `${startStr} - ${endStr}`
   }
 
@@ -430,7 +430,7 @@ export function TimeLogsPage() {
         setWeekStart(currentWeekStart)
       }
     }, 60000) // Check every minute
-    
+
     return () => clearInterval(interval)
   }, [weekStart])
 
@@ -440,15 +440,15 @@ export function TimeLogsPage() {
       setActiveDuration(0)
       return
     }
-    
+
     // Update duration immediately
     setActiveDuration(calculateDuration(activeEntry.startTime, null))
-    
+
     // Then update every second
     const interval = setInterval(() => {
       setActiveDuration(calculateDuration(activeEntry.startTime, null))
     }, 1000)
-    
+
     return () => clearInterval(interval)
   }, [activeEntry?.id, activeEntry?.startTime])
 
@@ -602,6 +602,7 @@ export function TimeLogsPage() {
                   />
                   <Button
                     onClick={handleStart}
+                    className="bg-blue-600 hover:bg-blue-700"
                     disabled={!newEntryTitle.trim() || isStarting}
                     data-testid="start-button"
                   >
@@ -662,7 +663,7 @@ export function TimeLogsPage() {
                       {group.entries.map((entry) => {
                         const duration = calculateDuration(entry.startTime, entry.endTime)
                         const isSpanning = entry.startTime.split('T')[0] !== (entry.endTime || '').split('T')[0]
-                        
+
                         return (
                           <div
                             key={`${entry.id}-${entry.startTime}`}

@@ -33,9 +33,9 @@
   --popover-foreground: oklch(98% 0 0);
   --primary: oklch(98% 0 0);
   --primary-foreground: oklch(20% 0.02 250);
-  --secondary: oklch(30% 0.02 250);
+  --secondary: #25293a;
   --secondary-foreground: oklch(98% 0 0);
-  --muted: oklch(30% 0.02 250);
+  --muted: #25293a;
   --muted-foreground: #8d8b9f;
   --accent: #353648;
   --accent-foreground: oklch(98% 0 0);
@@ -43,7 +43,9 @@
   --destructive-foreground: oklch(98% 0 0);
   --border: #31334a;
   --input: oklch(28% 0.02 250);
-  --ring: oklch(60% 0.15 250);
+  --ring: #37a2ea;
+  --color-blue-600: #4797d9;
+  --color-blue-700: #76aad5;
 }
 
 * {
@@ -85,7 +87,7 @@ body {
 /* Login page gradient background */
 .login-gradient-bg {
   background:
-    radial-gradient(ellipse 80% 70% at 20% 60%, rgb(67, 55, 143) 0%, transparent 80%),
-    radial-gradient(ellipse 80% 80% at 80% 60%, rgb(58, 49, 118) 0%, transparent 80%),
+    radial-gradient(ellipse 80% 70% at 20% 60%, #2b5a81 0%, transparent 80%),
+    radial-gradient(ellipse 80% 80% at 80% 60%, #2e4d67 0%, transparent 80%),
     linear-gradient(180deg, #1e1e2c 0%, #272738 50%, #1e1e2c 100%);
 }
