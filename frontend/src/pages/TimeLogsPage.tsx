@@ -58,9 +58,12 @@ export function TimeLogsPage() {
     return d
   }
 
-  // Format date as ISO date string (YYYY-MM-DD)
+  // Format date as ISO date string (YYYY-MM-DD) in local timezone
   function formatISODate(date: Date): string {
-    return date.toISOString().split('T')[0]
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 
   // Format time according to user's locale
@@ -93,7 +96,10 @@ export function TimeLogsPage() {
 
   // Get day title (Today, Yesterday, or day of week + date)
   function getDayTitle(dateStr: string, locale: string): string {
-    const date = new Date(dateStr)
+    // dateStr is in format YYYY-MM-DD (local date from formatISODate)
+    // Parse it as local date components to avoid timezone shifts
+    const [year, month, day] = dateStr.split('-').map(Number)
+    const date = new Date(year, month - 1, day)
     const today = new Date()
     const yesterday = new Date(today)
     yesterday.setDate(yesterday.getDate() - 1)
@@ -168,7 +174,14 @@ export function TimeLogsPage() {
           totalDuration
         }
       })
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .sort((a, b) => {
+        // Parse dates as local dates for consistent sorting
+        const [yearA, monthA, dayA] = a.date.split('-').map(Number)
+        const [yearB, monthB, dayB] = b.date.split('-').map(Number)
+        const dateA = new Date(yearA, monthA - 1, dayA)
+        const dateB = new Date(yearB, monthB - 1, dayB)
+        return dateB.getTime() - dateA.getTime()
+      })
   }
 
   // Load time entries for the current week

@@ -83,9 +83,14 @@ abstract class PlaywrightTestBase {
         const val LAST_USERNAME_KEY = "aionify_last_username"
         
         /**
-         * Fixed time for all Playwright tests: 2024-03-15T14:30:00Z (Friday, March 15, 2024 at 2:30 PM UTC)
-         * This ensures deterministic behavior for time-sensitive tests.
+         * Fixed time for all Playwright tests defined in NZDT (New Zealand Daylight Time, UTC+13):
+         * Saturday, March 16, 2024 at 03:30:00 NZDT
+         * 
+         * This corresponds to Friday, March 15, 2024 at 14:30:00 UTC.
          * This is the same time used by TestTimeService for backend operations.
+         * 
+         * All tests run in Pacific/Auckland timezone to ensure timezone awareness and catch
+         * any timezone-related bugs early. Test expectations should use NZDT values (Saturday 03:30).
          */
         val FIXED_TEST_TIME: Instant = TestTimeService.FIXED_TEST_TIME
     }
@@ -106,9 +111,8 @@ abstract class PlaywrightTestBase {
         )
 
         // Create context with base URL for simpler navigation
-        browserContext = browser.newContext(
-            Browser.NewContextOptions().setBaseURL(baseUrl)
-        )
+        // Can be overridden by calling createBrowserContext() before navigation
+        browserContext = createBrowserContext()
 
         // Start tracing for this test
         browserContext.tracing().start(
@@ -129,6 +133,14 @@ abstract class PlaywrightTestBase {
         // Use pauseAt to prevent automatic time progression - time only advances when explicitly requested
         // This ensures frontend JavaScript Date API uses the same fixed time as backend TimeService
         _page.clock().pauseAt(FIXED_TEST_TIME.toEpochMilli())
+    }
+
+    private fun createBrowserContext(): BrowserContext {
+        return browser.newContext(
+            Browser.NewContextOptions()
+                .setBaseURL(baseUrl)
+                .setTimezoneId("Pacific/Auckland")
+        )
     }
 
     /**
