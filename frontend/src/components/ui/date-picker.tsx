@@ -73,10 +73,7 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
     const newDate = new Date(selectedDate)
     newDate.setFullYear(day.getFullYear(), day.getMonth(), day.getDate())
     setSelectedDate(newDate)
-  }
-
-  const handleApply = () => {
-    onChange(selectedDate)
+    onChange(newDate)
     setIsOpen(false)
   }
 
@@ -110,7 +107,7 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
           disabled={disabled}
           data-testid={`${testIdPrefix}-trigger`}
         >
-          <Calendar className="mr-2 h-4 w-4" />
+          <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
           {displayValue}
         </Button>
       </PopoverTrigger>
@@ -168,25 +165,6 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
                 </Button>
               )
             })}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-2 pt-2 border-t">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsOpen(false)}
-              className="text-foreground"
-            >
-              {t('timeLogs.datePicker.cancel')}
-            </Button>
-            <Button
-              size="sm"
-              onClick={handleApply}
-              data-testid={`${testIdPrefix}-apply`}
-            >
-              {t('timeLogs.datePicker.apply')}
-            </Button>
           </div>
         </div>
       </PopoverContent>

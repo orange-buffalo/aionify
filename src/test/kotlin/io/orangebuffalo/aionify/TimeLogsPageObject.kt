@@ -102,6 +102,8 @@ sealed class EditModeState {
      */
     data class Editing(
         val titleValue: String,
+        val dateValue: String,  // Locale-formatted date display value
+        val timeValue: String,  // Locale-formatted time display value
         val saveButtonEnabled: Boolean = true
     ) : EditModeState()
 }
@@ -262,13 +264,15 @@ class TimeLogsPageObject(private val page: Page) {
                         assertThat(page.locator("[data-testid='edit-title-input']")).isVisible()
                         assertThat(page.locator("[data-testid='edit-title-input']")).hasValue(editMode.titleValue)
                         
-                        // Date picker trigger button
+                        // Date picker trigger button - check display value
                         val dateTrigger = page.locator("[data-testid='edit-date-trigger']")
                         assertThat(dateTrigger).isVisible()
+                        assertThat(dateTrigger).containsText(editMode.dateValue)
                         
-                        // Time picker input
+                        // Time picker input - check value
                         val timeInput = page.locator("[data-testid='edit-time-input']")
                         assertThat(timeInput).isVisible()
+                        assertThat(timeInput).hasValue(editMode.timeValue)
                         
                         // Save button
                         assertThat(page.locator("[data-testid='save-edit-button']")).isVisible()
@@ -480,13 +484,11 @@ class TimeLogsPageObject(private val page: Page) {
         
         // Click on the day button in the calendar grid
         // Find button with exact text matching the day number
+        // Clicking the day now automatically applies and closes the popover
         val popover = page.locator("[role='dialog']")
         popover.locator("button").locator("text=${targetDay}").first().click()
         
-        // Apply the date changes
-        page.locator("[data-testid='edit-date-apply']").click()
-        
-        // Wait for popover to close and state to settle
+        // Wait for popover to close
         page.locator("[role='dialog']").waitFor(com.microsoft.playwright.Locator.WaitForOptions().setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN))
         
         // Fill in the time input

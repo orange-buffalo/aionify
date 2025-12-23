@@ -113,7 +113,7 @@ export function TimePicker({ value, onChange, disabled, locale, testIdPrefix }: 
   }
 
   return (
-    <div className="relative flex items-center">
+    <div className="relative flex items-center max-w-[150px]">
       <Clock className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
       <Input
         type="text"

@@ -905,7 +905,9 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 duration = "00:30:00",
                 startedAt = "03:00",
                 editMode = EditModeState.Editing(
-                    titleValue = "Original Title"
+                    titleValue = "Original Title",
+                    dateValue = "Mar 16, 2024",
+                    timeValue = "03:00 AM"
                 )
             )
         )
@@ -1271,7 +1273,9 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 duration = "00:30:00",
                 startedAt = "03:00",
                 editMode = EditModeState.Editing(
-                    titleValue = "Valid Title"
+                    titleValue = "Valid Title",
+                    dateValue = "Mar 16, 2024",
+                    timeValue = "03:00 AM"
                 )
             )
         )
@@ -1288,6 +1292,8 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 startedAt = "03:00",
                 editMode = EditModeState.Editing(
                     titleValue = "",
+                    dateValue = "Mar 16, 2024",
+                    timeValue = "03:00 AM",
                     saveButtonEnabled = false
                 )
             )
@@ -1350,6 +1356,8 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 startedAt = "03:00",
                 editMode = EditModeState.Editing(
                     titleValue = "Test Task",
+                    dateValue = "Mar 16, 2024",
+                    timeValue = "10:00 AM",
                     saveButtonEnabled = true
                 )
             ),
