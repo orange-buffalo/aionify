@@ -56,7 +56,7 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
   }
 
   return (
-    <nav className="w-full bg-card border-b border-border" data-testid="top-nav">
+    <nav className="w-full bg-card border-b border-border shadow-md" data-testid="top-nav">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo / Brand */}
@@ -88,8 +88,8 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
             <div className="md:hidden">
               <DropdownMenu open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                 <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="icon"
                     className="text-foreground/80 hover:text-foreground"
                     data-testid="mobile-menu-button"
@@ -98,8 +98,8 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
                     <span className="sr-only">Open menu</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                  align="end" 
+                <DropdownMenuContent
+                  align="end"
                   className="w-56 rounded-sm dark bg-popover text-popover-foreground"
                   data-testid="mobile-menu-dropdown"
                 >
@@ -123,8 +123,8 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
             {/* Profile dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="icon"
                   className="rounded-full text-foreground/80 hover:text-foreground"
                   data-testid="profile-menu-button"
@@ -133,8 +133,8 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
                   <span className="sr-only">Open user menu</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent 
-                align="end" 
+              <DropdownMenuContent
+                align="end"
                 className="w-56 rounded-sm dark bg-popover text-popover-foreground"
                 data-testid="profile-menu-dropdown"
               >

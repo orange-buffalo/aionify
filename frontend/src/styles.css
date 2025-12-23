@@ -20,28 +20,28 @@
   --border: oklch(91.28% 0.002 49.25);
   --input: oklch(91.28% 0.002 49.25);
   --ring: oklch(14.47% 0.004 49.25);
-  --radius: 0.5rem;
+  --radius: 6px;
 }
 
 /* Dark theme - deep navy blue matching the reference design */
 .dark {
-  --background: oklch(20% 0.02 250);
+  --background: #1d1d2a;
   --foreground: oklch(98% 0 0);
-  --card: oklch(25% 0.02 250);
+  --card: #242636;
   --card-foreground: oklch(98% 0 0);
-  --popover: oklch(25% 0.02 250);
+  --popover: #25293a;
   --popover-foreground: oklch(98% 0 0);
   --primary: oklch(98% 0 0);
   --primary-foreground: oklch(20% 0.02 250);
   --secondary: oklch(30% 0.02 250);
   --secondary-foreground: oklch(98% 0 0);
   --muted: oklch(30% 0.02 250);
-  --muted-foreground: oklch(65% 0 0);
-  --accent: oklch(30% 0.02 250);
+  --muted-foreground: #8d8b9f;
+  --accent: #353648;
   --accent-foreground: oklch(98% 0 0);
-  --destructive: oklch(59.23% 0.23 27.33);
+  --destructive: #fe6172;
   --destructive-foreground: oklch(98% 0 0);
-  --border: oklch(35% 0.02 250);
+  --border: #31334a;
   --input: oklch(28% 0.02 250);
   --ring: oklch(60% 0.15 250);
 }
@@ -84,9 +84,8 @@ body {
 
 /* Login page gradient background */
 .login-gradient-bg {
-  background: 
-    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(120, 0, 200, 0.3) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(100, 0, 180, 0.25) 0%, transparent 50%),
-    radial-gradient(ellipse 50% 30% at 70% 80%, rgba(80, 0, 150, 0.2) 0%, transparent 50%),
-    linear-gradient(180deg, #0d1520 0%, #1a2332 50%, #0d1520 100%);
+  background:
+    radial-gradient(ellipse 80% 70% at 20% 60%, rgb(67, 55, 143) 0%, transparent 80%),
+    radial-gradient(ellipse 80% 80% at 80% 60%, rgb(58, 49, 118) 0%, transparent 80%),
+    linear-gradient(180deg, #1e1e2c 0%, #272738 50%, #1e1e2c 100%);
 }
