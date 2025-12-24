@@ -4,6 +4,7 @@ import { useNavigate } from "react-router"
 import { PortalLayout } from "@/components/layout/PortalLayout"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { FormMessage } from "@/components/ui/form-message"
@@ -131,7 +132,7 @@ export function UsersPage() {
             </div>
           ) : (
             <>
-              <div className="bg-card rounded-lg shadow-md" data-testid="users-table-container">
+              <Card className="border-none shadow-md" data-testid="users-table-container">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -224,7 +225,7 @@ export function UsersPage() {
                     )}
                   </TableBody>
                 </Table>
-              </div>
+              </Card>
 
               {totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4" data-testid="users-pagination">

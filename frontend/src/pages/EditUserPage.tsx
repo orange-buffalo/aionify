@@ -5,6 +5,7 @@ import { PortalLayout } from "@/components/layout/PortalLayout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FormMessage } from "@/components/ui/form-message"
 import { apiGet, apiPut, apiPost } from "@/lib/api"
 import { ArrowLeft } from "lucide-react"
@@ -184,11 +185,13 @@ export function EditUserPage() {
           ) : user ? (
             <div className="space-y-8">
               {/* Username Form */}
-              <div className="bg-card rounded-lg border shadow-md p-6">
-                <h2 className="text-xl font-semibold mb-4 text-foreground" data-testid="username-section-title">
-                  {t("portal.admin.users.edit.usernameSection")}
-                </h2>
-                
+              <Card className="border-none shadow-md">
+                <CardHeader>
+                  <CardTitle className="text-xl font-semibold" data-testid="username-section-title">
+                    {t("portal.admin.users.edit.usernameSection")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                 <form onSubmit={handleSave} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="userName" className="text-foreground">{t("portal.admin.users.edit.username")}</Label>
@@ -213,14 +216,17 @@ export function EditUserPage() {
                     {saving ? t("portal.admin.users.edit.saving") : t("portal.admin.users.edit.save")}
                   </Button>
                 </form>
-              </div>
+                </CardContent>
+              </Card>
 
               {/* User Info */}
-              <div className="bg-card rounded-lg border shadow-md p-6">
-                <h2 className="text-xl font-semibold mb-4 text-foreground" data-testid="user-info-title">
-                  {t("portal.admin.users.edit.userInfo")}
-                </h2>
-                
+              <Card className="border-none shadow-md">
+                <CardHeader>
+                  <CardTitle className="text-xl font-semibold" data-testid="user-info-title">
+                    {t("portal.admin.users.edit.userInfo")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                 <div className="space-y-3 text-sm">
                   <div>
                     <span className="text-muted-foreground">{t("portal.admin.users.edit.greeting")}:</span>
@@ -239,14 +245,17 @@ export function EditUserPage() {
                     {t("portal.admin.users.edit.profileNote")}
                   </p>
                 </div>
-              </div>
+                </CardContent>
+              </Card>
 
               {/* Activation Token */}
-              <div className="bg-card rounded-lg border shadow-md p-6">
-                <h2 className="text-xl font-semibold mb-4 text-foreground" data-testid="activation-section-title">
-                  {t("portal.admin.users.edit.activationSection")}
-                </h2>
-                
+              <Card className="border-none shadow-md">
+                <CardHeader>
+                  <CardTitle className="text-xl font-semibold" data-testid="activation-section-title">
+                    {t("portal.admin.users.edit.activationSection")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                 {user.activationToken ? (
                   <div className="space-y-4">
                     <div>
@@ -289,19 +298,23 @@ export function EditUserPage() {
                     </Button>
                   </div>
                 )}
-              </div>
+                </CardContent>
+              </Card>
 
               {/* Limitations */}
-              <div className="bg-card rounded-lg border shadow-md p-6">
-                <h2 className="text-xl font-semibold mb-4 text-foreground" data-testid="limitations-title">
-                  {t("portal.admin.users.edit.limitations")}
-                </h2>
-                
+              <Card className="border-none shadow-md">
+                <CardHeader>
+                  <CardTitle className="text-xl font-semibold" data-testid="limitations-title">
+                    {t("portal.admin.users.edit.limitations")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                 <div className="space-y-2 text-sm text-muted-foreground" data-testid="limitations-list">
                   <p>• {t("portal.admin.users.edit.noTypeChange")}</p>
                   <p>• {t("portal.admin.users.edit.noPasswordChange")}</p>
                 </div>
-              </div>
+                </CardContent>
+              </Card>
             </div>
           ) : null}
         </div>

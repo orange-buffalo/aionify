@@ -5,6 +5,7 @@ import { PortalLayout } from "@/components/layout/PortalLayout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { FormMessage } from "@/components/ui/form-message"
 import { apiPost } from "@/lib/api"
@@ -114,8 +115,9 @@ export function CreateUserPage() {
             </div>
           )}
 
-          <div className="bg-card rounded-lg shadow-md p-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <Card className="border-none shadow-md">
+            <CardContent className="pt-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="userName" className="text-foreground">{t("portal.admin.users.create.username")}</Label>
                 <Input
@@ -168,7 +170,8 @@ export function CreateUserPage() {
                 {creating ? t("portal.admin.users.create.creating") : t("portal.admin.users.create.create")}
               </Button>
             </form>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </PortalLayout>
