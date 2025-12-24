@@ -103,7 +103,7 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
     }
 
     @Test
-    fun `should redirect regular user to user portal after successful login`() {
+    fun `should redirect regular user to time logs page after successful login`() {
         page.navigate("/login")
 
         // Enter valid credentials for regular user
@@ -111,19 +111,19 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='password-input']").fill(TestUsers.TEST_PASSWORD)
         page.locator("[data-testid='login-button']").click()
 
-        // Wait for redirect to user portal
-        page.waitForURL("**/portal")
+        // Wait for redirect to time logs page
+        page.waitForURL("**/portal/time-logs")
 
-        // Verify we're on the user portal
-        val userPortal = page.locator("[data-testid='user-portal']")
-        assertThat(userPortal).isVisible()
+        // Verify we're on the time logs page
+        val timeLogsPage = page.locator("[data-testid='time-logs-page']")
+        assertThat(timeLogsPage).isVisible()
 
-        val userTitle = page.locator("[data-testid='user-title']")
-        assertThat(userTitle).hasText("Time Tracking")
+        val pageTitle = page.locator("[data-testid='time-logs-title']")
+        assertThat(pageTitle).hasText("Time Log")
     }
 
     @Test
-    fun `should redirect admin user to admin portal after successful login`() {
+    fun `should redirect admin user to admin users page after successful login`() {
         page.navigate("/login")
 
         // Enter valid credentials for admin user (created in @BeforeEach)
@@ -131,15 +131,15 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='password-input']").fill(TestUsers.TEST_PASSWORD)
         page.locator("[data-testid='login-button']").click()
 
-        // Wait for redirect to admin portal
-        page.waitForURL("**/admin")
+        // Wait for redirect to admin users page
+        page.waitForURL("**/admin/users")
 
-        // Verify we're on the admin portal
-        val adminPortal = page.locator("[data-testid='admin-portal']")
-        assertThat(adminPortal).isVisible()
+        // Verify we're on the users page
+        val usersPage = page.locator("[data-testid='users-page']")
+        assertThat(usersPage).isVisible()
 
-        val adminTitle = page.locator("[data-testid='admin-title']")
-        assertThat(adminTitle).hasText("Admin Portal")
+        val pageTitle = page.locator("[data-testid='users-title']")
+        assertThat(pageTitle).hasText("Users")
     }
 
     @Test
@@ -151,8 +151,8 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='password-input']").fill(TestUsers.TEST_PASSWORD)
         page.locator("[data-testid='login-button']").click()
 
-        // Wait for redirect to user portal
-        page.waitForURL("**/portal")
+        // Wait for redirect to time logs page
+        page.waitForURL("**/portal/time-logs")
 
         // Logout - first open profile menu, then click logout
         page.locator("[data-testid='profile-menu-button']").click()
@@ -180,8 +180,8 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='password-input']").fill(TestUsers.TEST_PASSWORD)
         page.locator("[data-testid='login-button']").click()
 
-        // Wait for user portal
-        page.waitForURL("**/portal")
+        // Wait for user time logs page
+        page.waitForURL("**/portal/time-logs")
 
         // Click logout - first open profile menu, then click logout
         page.locator("[data-testid='profile-menu-button']").click()
@@ -218,8 +218,8 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='password-input']").fill(testAdminPassword)
         page.locator("[data-testid='login-button']").click()
 
-        // Wait for admin portal
-        page.waitForURL("**/admin")
+        // Wait for admin users page
+        page.waitForURL("**/admin/users")
 
         // Click logout - first open profile menu, then click logout
         page.locator("[data-testid='profile-menu-button']").click()

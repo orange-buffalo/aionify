@@ -177,9 +177,9 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
     fun `logout from profile menu should redirect to login and show welcome back`() {
         navigateToPortalViaToken()
 
-        // Verify user portal is displayed
-        val userPortal = page.locator("[data-testid='user-portal']")
-        assertThat(userPortal).isVisible()
+        // Verify time logs page is displayed
+        val timeLogsPage = page.locator("[data-testid='time-logs-page']")
+        assertThat(timeLogsPage).isVisible()
 
         // Open profile menu and logout
         page.locator("[data-testid='profile-menu-button']").click()
@@ -270,9 +270,9 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
     fun `clicking Users menu item should navigate to Users page`() {
         navigateToAdminViaToken()
 
-        // Verify we're on the admin portal
-        val adminPortal = page.locator("[data-testid='admin-portal']")
-        assertThat(adminPortal).isVisible()
+        // Verify we're on the admin users page
+        val usersPage = page.locator("[data-testid='users-page']")
+        assertThat(usersPage).isVisible()
 
         // Click on the Users menu item
         val usersMenuItem = page.locator("[data-testid='nav-item-users']")

@@ -1,8 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router"
 import { LoginPage } from "@/pages/LoginPage"
 import { ActivateAccountPage } from "@/pages/ActivateAccountPage"
-import { AdminPortal } from "@/pages/AdminPortal"
-import { UserPortal } from "@/pages/UserPortal"
 import { SettingsPage } from "@/pages/SettingsPage"
 import { UsersPage } from "@/pages/UsersPage"
 import { CreateUserPage } from "@/pages/CreateUserPage"
@@ -17,11 +15,6 @@ export function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/activate" element={<ActivateAccountPage />} />
-        <Route path="/admin" element={
-          <ProtectedRoute requireAdmin={true}>
-            <AdminPortal />
-          </ProtectedRoute>
-        } />
         <Route path="/admin/users" element={
           <ProtectedRoute requireAdmin={true}>
             <UsersPage />
@@ -40,11 +33,6 @@ export function App() {
         <Route path="/admin/settings" element={
           <ProtectedRoute requireAdmin={true}>
             <SettingsPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/portal" element={
-          <ProtectedRoute requireAdmin={false}>
-            <UserPortal />
           </ProtectedRoute>
         } />
         <Route path="/portal/time-logs" element={
