@@ -1382,8 +1382,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         val ukrainianUser = testUsers.createUserWithLocale(
             username = "ua_user",
             greeting = "Українець",
-            locale = java.util.Locale.forLanguageTag("uk"),
-            languageCode = "uk"
+            locale = java.util.Locale.forLanguageTag("uk")
         )
         
         // Create an active entry

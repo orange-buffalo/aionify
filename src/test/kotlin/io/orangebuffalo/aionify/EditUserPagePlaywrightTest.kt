@@ -41,8 +41,7 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Admin User",
                 isAdmin = true,
-                locale = java.util.Locale.ENGLISH,
-                languageCode = "en"
+                locale = java.util.Locale.US
             )
         )
 
@@ -53,8 +52,7 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Test User",
                 isAdmin = false,
-                locale = java.util.Locale.ENGLISH,
-                languageCode = "en"
+                locale = java.util.Locale.US
             )
         )
     }
@@ -130,8 +128,7 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Existing User",
                 isAdmin = false,
-                locale = java.util.Locale.ENGLISH,
-                languageCode = "en"
+                locale = java.util.Locale.US
             )
         )
 

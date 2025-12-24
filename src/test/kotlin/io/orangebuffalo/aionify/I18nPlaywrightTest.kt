@@ -31,8 +31,7 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = regularUserGreeting,
                 isAdmin = false,
-                locale = java.util.Locale.ENGLISH,
-                languageCode = "en"
+                locale = java.util.Locale.US
             )
         )
     }
@@ -85,8 +84,7 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Тестовий користувач",
                 isAdmin = false,
-                locale = java.util.Locale.forLanguageTag("uk-UA"),
-                languageCode = "uk"
+                locale = java.util.Locale.forLanguageTag("uk-UA")
             )
         )
 

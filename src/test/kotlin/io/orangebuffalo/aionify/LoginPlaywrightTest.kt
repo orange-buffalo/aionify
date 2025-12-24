@@ -206,8 +206,7 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testAdminPassword, BCrypt.gensalt()),
                 greeting = "Test Admin 2",
                 isAdmin = true,
-                locale = java.util.Locale.ENGLISH,
-                languageCode = "en"
+                locale = java.util.Locale.US
             )
         )
 
