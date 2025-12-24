@@ -131,7 +131,7 @@ export function UsersPage() {
             </div>
           ) : (
             <>
-              <div className="bg-card rounded-lg border shadow-md" data-testid="users-table-container">
+              <div className="bg-card rounded-lg shadow-md" data-testid="users-table-container">
                 <Table>
                   <TableHeader>
                     <TableRow>
