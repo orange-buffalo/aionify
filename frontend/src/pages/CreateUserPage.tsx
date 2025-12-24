@@ -163,6 +163,7 @@ export function CreateUserPage() {
                 type="submit" 
                 disabled={creating}
                 data-testid="create-button"
+                className="bg-teal-600 hover:bg-teal-700"
               >
                 {creating ? t("portal.admin.users.create.creating") : t("portal.admin.users.create.create")}
               </Button>

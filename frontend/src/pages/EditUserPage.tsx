@@ -208,6 +208,7 @@ export function EditUserPage() {
                     type="submit" 
                     disabled={saving || userName === user.userName}
                     data-testid="save-button"
+                    className="bg-teal-600 hover:bg-teal-700"
                   >
                     {saving ? t("portal.admin.users.edit.saving") : t("portal.admin.users.edit.save")}
                   </Button>

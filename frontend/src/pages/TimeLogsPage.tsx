@@ -545,6 +545,7 @@ export function TimeLogsPage() {
                         onClick={handleSaveEdit}
                         disabled={!editTitle.trim() || isSaving}
                         data-testid="save-edit-button"
+                        className="bg-teal-600 hover:bg-teal-700"
                       >
                         {t('timeLogs.currentEntry.save')}
                       </Button>
@@ -587,6 +588,7 @@ export function TimeLogsPage() {
                         onClick={handleStop}
                         disabled={isStopping}
                         data-testid="stop-button"
+                        className="bg-teal-600 hover:bg-teal-700"
                       >
                         <Square className="h-4 w-4" />
                       </Button>
@@ -610,7 +612,7 @@ export function TimeLogsPage() {
                   />
                   <Button
                     onClick={handleStart}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-teal-600 hover:bg-teal-700"
                     disabled={!newEntryTitle.trim() || isStarting}
                     data-testid="start-button"
                   >

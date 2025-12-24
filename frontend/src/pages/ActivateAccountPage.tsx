@@ -202,7 +202,7 @@ export function ActivateAccountPage() {
               {/* Submit Button */}
               <Button 
                 type="submit" 
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                className="w-full bg-teal-600 hover:bg-teal-700"
                 disabled={loading}
                 data-testid="set-password-button"
               >

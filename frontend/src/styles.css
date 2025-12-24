@@ -44,8 +44,8 @@
   --border: #31334a;
   --input: oklch(28% 0.02 250);
   --ring: #37a2ea;
-  --color-blue-600: #4797d9;
-  --color-blue-700: #76aad5;
+  --color-teal-600: #4797d9;
+  --color-teal-700: #76aad5;
 }
 
 * {

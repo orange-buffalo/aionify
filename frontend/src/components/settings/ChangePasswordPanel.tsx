@@ -175,7 +175,7 @@ export function ChangePasswordPanel() {
           {/* Submit Button */}
           <Button 
             type="submit" 
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-teal-600 hover:bg-teal-700"
             disabled={loading}
             data-testid="change-password-button"
           >
