@@ -31,8 +31,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = regularUserGreeting,
                 isAdmin = false,
-                locale = java.util.Locale.ENGLISH,
-                languageCode = "en"
+                locale = java.util.Locale.US
             )
         )
     }
@@ -90,10 +89,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
         assertThat(greetingInput).isVisible()
 
-        // Verify form elements are visible
-        val languageSelect = page.locator("[data-testid='profile-language-select']")
-        assertThat(languageSelect).isVisible()
-
+        // Verify form elements are visible (locale field now labeled as "Language")
         val localeSelect = page.locator("[data-testid='profile-locale-select']")
         assertThat(localeSelect).isVisible()
 
@@ -102,7 +98,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
         // Verify existing data is loaded
         assertThat(greetingInput).hasValue(regularUserGreeting)
-        assertThat(languageSelect).containsText("English")
+        assertThat(localeSelect).hasText("English (United States)")
     }
 
     @Test
@@ -115,8 +111,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Привіт",
                 isAdmin = false,
-                locale = java.util.Locale.forLanguageTag("uk-UA"),
-                languageCode = "uk"
+                locale = java.util.Locale.forLanguageTag("uk-UA")
             )
         )
 
@@ -126,10 +121,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
         assertThat(greetingInput).hasValue("Привіт")
 
-        // UI is in Ukrainian, so language label is in Ukrainian
-        val languageSelect = page.locator("[data-testid='profile-language-select']")
-        assertThat(languageSelect).containsText("Українська")
-
+        // UI is in Ukrainian (derived from uk-UA locale), so language dropdown shows Ukrainian variant
         val localeSelect = page.locator("[data-testid='profile-locale-select']")
         assertThat(localeSelect).hasText("Ukrainian (Ukraine)")
     }
@@ -144,8 +136,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Hallo",
                 isAdmin = false,
-                locale = java.util.Locale.forLanguageTag("de-DE"),
-                languageCode = "en"
+                locale = java.util.Locale.forLanguageTag("de-DE")
             )
         )
 
@@ -154,7 +145,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // Wait for profile to load and verify data is loaded
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
         assertThat(greetingInput).hasValue("Hallo")
-        assertThat(page.locator("[data-testid='profile-language-select']")).containsText("English")
+        // UI is in English (fallback from de which is not supported)
         assertThat(page.locator("[data-testid='profile-locale-select']")).hasText("German (Germany)")
     }
 
@@ -225,11 +216,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // Update profile data
         greetingInput.fill("Updated Greeting")
 
-        // Change language to Ukrainian
-        page.locator("[data-testid='profile-language-select']").click()
-        page.locator("[data-testid='language-option-uk']").click()
-
-        // Change locale to Ukrainian (Ukraine)
+        // Change locale to Ukrainian (Ukraine) - this will also change the UI language
         page.locator("[data-testid='profile-locale-select']").click()
         page.locator("[data-testid='locale-option-uk-UA']").click()
 
@@ -245,8 +232,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         page.reload()
 
         assertThat(greetingInput).hasValue("Updated Greeting")
-        // After reload, UI is in Ukrainian, so language label is in Ukrainian
-        assertThat(page.locator("[data-testid='profile-language-select']")).containsText("Українська")
+        // After reload, UI is in Ukrainian (derived from uk-UA locale)
         assertThat(page.locator("[data-testid='profile-locale-select']")).hasText("Ukrainian (Ukraine)")
     }
 
@@ -266,28 +252,6 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // Wait for success message
         val successMessage = page.locator("[data-testid='profile-success']")
         assertThat(successMessage).isVisible()
-    }
-
-    @Test
-    fun `should display language dropdown with all options`() {
-        navigateToSettingsViaToken()
-
-        // Wait for profile to load
-        val languageSelect = page.locator("[data-testid='profile-language-select']")
-        assertThat(languageSelect).isVisible()
-
-        // Open dropdown
-        languageSelect.click()
-
-        // Verify options
-        val dropdown = page.locator("[data-testid='profile-language-dropdown']")
-        assertThat(dropdown).isVisible()
-
-        val englishOption = page.locator("[data-testid='language-option-en']")
-        val ukrainianOption = page.locator("[data-testid='language-option-uk']")
-
-        assertThat(englishOption).isVisible()
-        assertThat(ukrainianOption).isVisible()
     }
 
     @Test
@@ -600,8 +564,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testAdminPassword, BCrypt.gensalt()),
                 greeting = "Settings Test Admin",
                 isAdmin = true,
-                locale = java.util.Locale.ENGLISH,
-                languageCode = "en"
+                locale = java.util.Locale.US
             )
         )
 
@@ -644,8 +607,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Proper Locale User",
                 isAdmin = false,
-                locale = java.util.Locale.US, // This is the fix
-                languageCode = "en"
+                locale = java.util.Locale.US
             )
         )
 
@@ -655,11 +617,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
         assertThat(greetingInput).isVisible()
 
-        val languageSelect = page.locator("[data-testid='profile-language-select']")
         val localeSelect = page.locator("[data-testid='profile-locale-select']")
-
-        // Verify English is shown in language dropdown
-        assertThat(languageSelect).containsText("English")
 
         // Verify locale dropdown shows "English (United States)" and is not empty
         assertThat(localeSelect).hasText("English (United States)")
