@@ -42,8 +42,8 @@ export function PortalLayout({ children, testId }: PortalLayoutProps) {
   const menuItems = isAdmin ? adminMenuItems : userMenuItems
 
   return (
-    <div className="dark min-h-screen bg-background" data-testid={testId}>
-      <TopNav 
+    <div className="dark min-h-screen" data-testid={testId}>
+      <TopNav
         menuItems={menuItems}
         userName={userInfo?.userName}
         greeting={userInfo?.greeting}

@@ -55,7 +55,7 @@ export function ChangePasswordPanel() {
         newPassword,
       })
       setSuccess(t("settings.changePassword.changeSuccess"))
-      
+
       // Reset form on success
       setCurrentPassword("")
       setNewPassword("")
@@ -68,7 +68,7 @@ export function ChangePasswordPanel() {
   }
 
   return (
-    <Card className="bg-card/90">
+    <Card className="bg-card border-none">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <KeyRound className="h-5 w-5" />
@@ -173,8 +173,8 @@ export function ChangePasswordPanel() {
           )}
 
           {/* Submit Button */}
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="bg-teal-600 hover:bg-teal-700"
             disabled={loading}
             data-testid="change-password-button"

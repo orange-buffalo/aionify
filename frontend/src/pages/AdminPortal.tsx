@@ -7,7 +7,7 @@ import { PortalLayout } from "@/components/layout/PortalLayout"
 
 export function AdminPortal() {
   const { t } = useTranslation()
-  
+
   return (
     <PortalLayout testId="admin-portal">
       <div className="p-8">
@@ -18,7 +18,7 @@ export function AdminPortal() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            <Card className="bg-card/90">
+            <Card className="bg-card border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
@@ -35,7 +35,7 @@ export function AdminPortal() {
               </CardContent>
             </Card>
 
-            <Card className="bg-card/90">
+            <Card className="bg-card border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart className="h-5 w-5" />
@@ -48,7 +48,7 @@ export function AdminPortal() {
               </CardContent>
             </Card>
 
-            <Card className="bg-card/90">
+            <Card className="bg-card border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Settings className="h-5 w-5" />

@@ -49,7 +49,7 @@ export function ActivateAccountPage() {
     const validateToken = async () => {
       try {
         const data = await apiGet<ValidateTokenResponse>(`/api/activation/validate?token=${encodeURIComponent(token)}`)
-        
+
         if (data.valid) {
           setIsValid(true)
           setUserName(data.userName)
@@ -92,7 +92,7 @@ export function ActivateAccountPage() {
         token: token!,
         password,
       })
-      
+
       // Success - redirect to login with a message
       sessionStorage.setItem("activationSuccess", "true")
       navigate("/login")
@@ -105,7 +105,7 @@ export function ActivateAccountPage() {
 
   return (
     <div className="dark min-h-screen flex items-center justify-center p-4 login-gradient-bg" data-testid="activate-account-page">
-      <Card className="w-full max-w-md bg-card/90 backdrop-blur-sm border-border/50">
+      <Card className="w-full max-w-md bg-card border-none backdrop-blur-sm border-border/50">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold" data-testid="activate-title">
             {t("activation.title")}
@@ -200,8 +200,8 @@ export function ActivateAccountPage() {
               )}
 
               {/* Submit Button */}
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full bg-teal-600 hover:bg-teal-700"
                 disabled={loading}
                 data-testid="set-password-button"

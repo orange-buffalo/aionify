@@ -7,7 +7,7 @@ import { PortalLayout } from "@/components/layout/PortalLayout"
 export function UserPortal() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  
+
   return (
     <PortalLayout testId="user-portal">
       <div className="p-8">
@@ -18,8 +18,8 @@ export function UserPortal() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            <Card 
-              className="bg-card/90 cursor-pointer hover:bg-card/95 transition-colors"
+            <Card
+              className="bg-card border-none cursor-pointer hover:bg-card/95 transition-colors border"
               onClick={() => navigate("/portal/time-logs")}
             >
               <CardHeader>
@@ -34,7 +34,7 @@ export function UserPortal() {
               </CardContent>
             </Card>
 
-            <Card className="bg-card/90">
+            <Card className="bg-card border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
@@ -47,7 +47,7 @@ export function UserPortal() {
               </CardContent>
             </Card>
 
-            <Card className="bg-card/90">
+            <Card className="bg-card border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />

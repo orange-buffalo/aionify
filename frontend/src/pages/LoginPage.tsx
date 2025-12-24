@@ -108,7 +108,7 @@ export function LoginPage() {
   return (
     <div className="dark min-h-screen flex items-center justify-center p-4 login-gradient-bg" data-testid="login-page">
       {/* Centered Login form */}
-      <Card className="w-full max-w-md bg-card/90 backdrop-blur-sm border-border/50">
+      <Card className="w-full max-w-md bg-card border-none backdrop-blur-sm border-border/50">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold" data-testid="login-title">{t("login.title")}</CardTitle>
             <CardDescription>
