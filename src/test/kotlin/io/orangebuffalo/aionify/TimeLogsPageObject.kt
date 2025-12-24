@@ -102,7 +102,8 @@ sealed class EditModeState {
      */
     data class Editing(
         val titleValue: String,
-        val dateTimeValue: String,  // Locale-formatted datetime display value
+        val dateValue: String,  // Locale-formatted date display value
+        val timeValue: String,  // Locale-formatted time display value
         val saveButtonEnabled: Boolean = true
     ) : EditModeState()
 }
@@ -215,7 +216,7 @@ class TimeLogsPageObject(private val page: Page) {
                 // Edit mode elements must be hidden
                 assertThat(page.locator("[data-testid='edit-entry-button']")).not().isVisible()
                 assertThat(page.locator("[data-testid='edit-title-input']")).not().isVisible()
-                assertThat(page.locator("[data-testid='edit-date-input']")).not().isVisible()
+                assertThat(page.locator("[data-testid='edit-date-trigger']")).not().isVisible()
                 assertThat(page.locator("[data-testid='edit-time-input']")).not().isVisible()
             }
 
@@ -249,7 +250,8 @@ class TimeLogsPageObject(private val page: Page) {
 
                         // Edit inputs must be hidden in view mode
                         assertThat(page.locator("[data-testid='edit-title-input']")).not().isVisible()
-                        assertThat(page.locator("[data-testid='edit-datetime-trigger']")).not().isVisible()
+                        assertThat(page.locator("[data-testid='edit-date-trigger']")).not().isVisible()
+                        assertThat(page.locator("[data-testid='edit-time-input']")).not().isVisible()
                         assertThat(page.locator("[data-testid='save-edit-button']")).not().isVisible()
                         assertThat(page.locator("[data-testid='cancel-edit-button']")).not().isVisible()
                     }
@@ -262,10 +264,15 @@ class TimeLogsPageObject(private val page: Page) {
                         assertThat(page.locator("[data-testid='edit-title-input']")).isVisible()
                         assertThat(page.locator("[data-testid='edit-title-input']")).hasValue(editMode.titleValue)
                         
-                        // DateTime picker trigger button
-                        val dateTimeTrigger = page.locator("[data-testid='edit-datetime-trigger']")
-                        assertThat(dateTimeTrigger).isVisible()
-                        assertThat(dateTimeTrigger).containsText(editMode.dateTimeValue)
+                        // Date picker input - check value
+                        val dateInput = page.locator("[data-testid='edit-date-input']")
+                        assertThat(dateInput).isVisible()
+                        assertThat(dateInput).hasValue(editMode.dateValue)
+                        
+                        // Time picker input - check value
+                        val timeInput = page.locator("[data-testid='edit-time-input']")
+                        assertThat(timeInput).isVisible()
+                        assertThat(timeInput).hasValue(editMode.timeValue)
                         
                         // Save button
                         assertThat(page.locator("[data-testid='save-edit-button']")).isVisible()
@@ -460,13 +467,17 @@ class TimeLogsPageObject(private val page: Page) {
     }
 
     /**
-     * Sets the edit date/time using the custom DateTimePicker.
+     * Sets the edit date/time using the separate DatePicker and TimePicker.
      * @param date in format "YYYY-MM-DD" (e.g., "2024-03-15")
      * @param time in format "HH:mm" (e.g., "14:30")
      */
     fun fillEditDateTime(date: String, time: String) {
-        // Click the trigger to open the picker
-        page.locator("[data-testid='edit-datetime-trigger']").click()
+        // Click the date trigger button to open the date picker popover
+        val dateTrigger = page.locator("[data-testid='edit-date-trigger']")
+        dateTrigger.click()
+        
+        // Give the popover time to appear
+        page.waitForTimeout(200.0)
         
         // Wait for popover to appear
         page.locator("[role='dialog']").waitFor()
@@ -477,16 +488,22 @@ class TimeLogsPageObject(private val page: Page) {
         
         // Click on the day button in the calendar grid
         // Find button with exact text matching the day number
+        // Clicking the day now automatically applies and closes the popover
         val popover = page.locator("[role='dialog']")
         popover.locator("button").locator("text=${targetDay}").first().click()
         
-        // Fill in the time inputs
-        val (hours, minutes) = time.split(":")
-        page.locator("[data-testid='edit-datetime-hours']").fill(hours)
-        page.locator("[data-testid='edit-datetime-minutes']").fill(minutes)
+        // Wait for popover to close
+        page.locator("[role='dialog']").waitFor(com.microsoft.playwright.Locator.WaitForOptions().setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN))
         
-        // Apply the changes
-        page.locator("[data-testid='edit-datetime-apply']").click()
+        // Fill in the time input
+        val (hours, minutes) = time.split(":")
+        val timeInput = page.locator("[data-testid='edit-time-input']")
+        
+        // Use 24-hour format which is now accepted by both locale formats
+        val timeStr = "${hours.padStart(2, '0')}:${minutes}"
+        
+        // Use fill() to set the value
+        timeInput.fill(timeStr)
     }
 
     /**
