@@ -121,9 +121,9 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
         assertThat(greetingInput).hasValue("Привіт")
 
-        // UI is in Ukrainian (derived from uk-UA locale), so language dropdown shows Ukrainian variant
+        // UI is in Ukrainian (derived from uk-UA locale), so locale dropdown shows Ukrainian translation
         val localeSelect = page.locator("[data-testid='profile-locale-select']")
-        assertThat(localeSelect).hasText("Ukrainian (Ukraine)")
+        assertThat(localeSelect).hasText("Українська (Україна)")
     }
 
     @Test
@@ -232,8 +232,8 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         page.reload()
 
         assertThat(greetingInput).hasValue("Updated Greeting")
-        // After reload, UI is in Ukrainian (derived from uk-UA locale)
-        assertThat(page.locator("[data-testid='profile-locale-select']")).hasText("Ukrainian (Ukraine)")
+        // After reload, UI is in Ukrainian (derived from uk-UA locale), so locale shown in Ukrainian
+        assertThat(page.locator("[data-testid='profile-locale-select']")).hasText("Українська (Україна)")
     }
 
     @Test

@@ -170,9 +170,9 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         assertThat(settingsTitle).hasText("Налаштування")
         assertThat(successMessage).containsText("успішно оновлено")
 
-        // Verify the locale dropdown now shows Ukrainian locale
+        // Verify the locale dropdown now shows Ukrainian locale in Ukrainian
         val localeSelect = page.locator("[data-testid='profile-locale-select']")
-        assertThat(localeSelect).hasText("Ukrainian (Ukraine)")
+        assertThat(localeSelect).hasText("Українська (Україна)")
     }
 
     @Test

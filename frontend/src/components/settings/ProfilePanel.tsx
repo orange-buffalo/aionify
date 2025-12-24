@@ -12,33 +12,33 @@ import { initializeLanguage, translateErrorCode } from "@/lib/i18n"
 
 // Standard locales (BCP 47 language tags with region)
 const LOCALES = [
-  { code: "en-US", name: "English (United States)" },
-  { code: "en-GB", name: "English (United Kingdom)" },
-  { code: "en-AU", name: "English (Australia)" },
-  { code: "en-CA", name: "English (Canada)" },
-  { code: "uk-UA", name: "Ukrainian (Ukraine)" },
-  { code: "de-DE", name: "German (Germany)" },
-  { code: "de-AT", name: "German (Austria)" },
-  { code: "de-CH", name: "German (Switzerland)" },
-  { code: "fr-FR", name: "French (France)" },
-  { code: "fr-CA", name: "French (Canada)" },
-  { code: "fr-BE", name: "French (Belgium)" },
-  { code: "fr-CH", name: "French (Switzerland)" },
-  { code: "es-ES", name: "Spanish (Spain)" },
-  { code: "es-MX", name: "Spanish (Mexico)" },
-  { code: "es-AR", name: "Spanish (Argentina)" },
-  { code: "it-IT", name: "Italian (Italy)" },
-  { code: "it-CH", name: "Italian (Switzerland)" },
-  { code: "pt-BR", name: "Portuguese (Brazil)" },
-  { code: "pt-PT", name: "Portuguese (Portugal)" },
-  { code: "nl-NL", name: "Dutch (Netherlands)" },
-  { code: "nl-BE", name: "Dutch (Belgium)" },
-  { code: "pl-PL", name: "Polish (Poland)" },
-  { code: "ru-RU", name: "Russian (Russia)" },
-  { code: "ja-JP", name: "Japanese (Japan)" },
-  { code: "zh-CN", name: "Chinese (China)" },
-  { code: "zh-TW", name: "Chinese (Taiwan)" },
-  { code: "ko-KR", name: "Korean (South Korea)" },
+  "en-US",
+  "en-GB",
+  "en-AU",
+  "en-CA",
+  "uk-UA",
+  "de-DE",
+  "de-AT",
+  "de-CH",
+  "fr-FR",
+  "fr-CA",
+  "fr-BE",
+  "fr-CH",
+  "es-ES",
+  "es-MX",
+  "es-AR",
+  "it-IT",
+  "it-CH",
+  "pt-BR",
+  "pt-PT",
+  "nl-NL",
+  "nl-BE",
+  "pl-PL",
+  "ru-RU",
+  "ja-JP",
+  "zh-CN",
+  "zh-TW",
+  "ko-KR",
 ]
 
 interface ProfileResponse {
@@ -187,13 +187,13 @@ export function ProfilePanel() {
                   <SelectValue placeholder={t("settings.profile.languagePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent data-testid="profile-locale-dropdown" className="dark">
-                  {LOCALES.map((loc) => (
+                  {LOCALES.map((localeCode) => (
                     <SelectItem
-                      key={loc.code}
-                      value={loc.code}
-                      data-testid={`locale-option-${loc.code}`}
+                      key={localeCode}
+                      value={localeCode}
+                      data-testid={`locale-option-${localeCode}`}
                     >
-                      {loc.name}
+                      {t(`locales.${localeCode}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
