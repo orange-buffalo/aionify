@@ -155,11 +155,7 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         val settingsTitle = page.locator("[data-testid='settings-title']")
         assertThat(settingsTitle).hasText("Settings")
 
-        // Change language to Ukrainian
-        page.locator("[data-testid='profile-language-select']").click()
-        page.locator("[data-testid='language-option-uk']").click()
-
-        // Change locale (required field)
+        // Change locale to Ukrainian (which also changes UI language)
         page.locator("[data-testid='profile-locale-select']").click()
         page.locator("[data-testid='locale-option-uk-UA']").click()
 
@@ -174,9 +170,9 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         assertThat(settingsTitle).hasText("Налаштування")
         assertThat(successMessage).containsText("успішно оновлено")
 
-        // Verify the language dropdown now shows Ukrainian label
-        val languageSelect = page.locator("[data-testid='profile-language-select']")
-        assertThat(languageSelect).containsText("Українська")
+        // Verify the locale dropdown now shows Ukrainian locale
+        val localeSelect = page.locator("[data-testid='profile-locale-select']")
+        assertThat(localeSelect).hasText("Ukrainian (Ukraine)")
     }
 
     @Test
@@ -198,8 +194,6 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
 
         // Now switch to Ukrainian first
         greetingInput.fill("Test")
-        page.locator("[data-testid='profile-language-select']").click()
-        page.locator("[data-testid='language-option-uk']").click()
         page.locator("[data-testid='profile-locale-select']").click()
         page.locator("[data-testid='locale-option-uk-UA']").click()
         page.locator("[data-testid='profile-save-button']").click()
@@ -237,8 +231,6 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='profile-greeting-input']").waitFor()
 
         // Switch to Ukrainian
-        page.locator("[data-testid='profile-language-select']").click()
-        page.locator("[data-testid='language-option-uk']").click()
         page.locator("[data-testid='profile-locale-select']").click()
         page.locator("[data-testid='locale-option-uk-UA']").click()
         page.locator("[data-testid='profile-save-button']").click()
@@ -292,12 +284,10 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
     fun `should persist language preference across page reloads`() {
         loginViaToken("/portal/settings", regularUser, testAuthSupport)
 
-        // Change language to Ukrainian
+        // Change language to Ukrainian via locale
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
         assertThat(greetingInput).isVisible()
 
-        page.locator("[data-testid='profile-language-select']").click()
-        page.locator("[data-testid='language-option-uk']").click()
         page.locator("[data-testid='profile-locale-select']").click()
         page.locator("[data-testid='locale-option-uk-UA']").click()
         page.locator("[data-testid='profile-save-button']").click()
