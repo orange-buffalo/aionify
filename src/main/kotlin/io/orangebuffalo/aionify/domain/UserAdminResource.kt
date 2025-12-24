@@ -80,8 +80,7 @@ open class UserAdminResource(
                 passwordHash = org.mindrot.jbcrypt.BCrypt.hashpw(randomPassword, org.mindrot.jbcrypt.BCrypt.gensalt()),
                 greeting = request.greeting,
                 isAdmin = request.isAdmin,
-                locale = java.util.Locale.US,
-                languageCode = "en"
+                locale = java.util.Locale.US
             )
         )
         
@@ -156,8 +155,7 @@ open class UserAdminResource(
                     passwordHash = user.passwordHash,
                     greeting = user.greeting,
                     isAdmin = user.isAdmin,
-                    localeTag = user.localeTag,
-                    languageCode = user.languageCode
+                    localeTag = user.localeTag
                 )
             )
         }

@@ -40,8 +40,7 @@ class TestUsers(
                 passwordHash = BCrypt.hashpw(TEST_PASSWORD, BCrypt.gensalt()),
                 greeting = greeting,
                 isAdmin = true,
-                locale = Locale.ENGLISH,
-                languageCode = "en"
+                locale = Locale.US
             )
         )
     }
@@ -61,8 +60,7 @@ class TestUsers(
                 passwordHash = BCrypt.hashpw(TEST_PASSWORD, BCrypt.gensalt()),
                 greeting = greeting,
                 isAdmin = false,
-                locale = Locale.ENGLISH,
-                languageCode = "en"
+                locale = Locale.US
             )
         )
     }
@@ -76,8 +74,7 @@ class TestUsers(
         username: String,
         greeting: String,
         isAdmin: Boolean = false,
-        locale: Locale,
-        languageCode: String
+        locale: Locale
     ): User {
         return testDatabaseSupport.insert(
             User.create(
@@ -85,8 +82,7 @@ class TestUsers(
                 passwordHash = BCrypt.hashpw(TEST_PASSWORD, BCrypt.gensalt()),
                 greeting = greeting,
                 isAdmin = isAdmin,
-                locale = locale,
-                languageCode = languageCode
+                locale = locale
             )
         )
     }

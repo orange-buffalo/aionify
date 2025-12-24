@@ -35,7 +35,6 @@ class ActivationTokenServiceTest {
                 greeting = "Token Test",
                 isAdmin = false,
                 locale = Locale.ENGLISH,
-                languageCode = "en"
             )
         )
     }

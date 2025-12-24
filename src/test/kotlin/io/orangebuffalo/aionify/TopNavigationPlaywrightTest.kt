@@ -34,8 +34,7 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = regularUserGreeting,
                 isAdmin = false,
-                locale = java.util.Locale.ENGLISH,
-                languageCode = "en"
+                locale = java.util.Locale.US
             )
         )
 
@@ -45,8 +44,7 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = adminUserGreeting,
                 isAdmin = true,
-                locale = java.util.Locale.ENGLISH,
-                languageCode = "en"
+                locale = java.util.Locale.US
             )
         )
     }

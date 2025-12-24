@@ -24,10 +24,6 @@ open class UserResource(
     private val userService: UserService
 ) {
 
-    companion object {
-        private val SUPPORTED_LANGUAGES = setOf("en", "uk")
-    }
-
     @Get("/profile")
     open fun getProfile(principal: Principal?): HttpResponse<*> {
         val userName = principal?.name
@@ -42,7 +38,6 @@ open class UserResource(
             ProfileResponse(
                 userName = user.userName,
                 greeting = user.greeting,
-                languageCode = user.languageCode,
                 locale = user.localeTag
             )
         )
@@ -54,12 +49,6 @@ open class UserResource(
             ?: return HttpResponse.unauthorized<ProfileErrorResponse>()
                 .body(ProfileErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
 
-        if (request.languageCode !in SUPPORTED_LANGUAGES) {
-            return HttpResponse.badRequest(
-                ProfileErrorResponse("Language must be either 'en' (English) or 'uk' (Ukrainian)", "LANGUAGE_NOT_SUPPORTED")
-            )
-        }
-
         val locale = parseLocale(request.locale)
             ?: return HttpResponse.badRequest(
                 ProfileErrorResponse("Invalid locale format", "INVALID_LOCALE")
@@ -68,7 +57,6 @@ open class UserResource(
         userService.updateProfile(
             userName = userName,
             greeting = request.greeting,
-            languageCode = request.languageCode,
             locale = locale
         )
 
@@ -88,7 +76,6 @@ open class UserResource(
 data class ProfileResponse(
     val userName: String,
     val greeting: String,
-    val languageCode: String,
     val locale: String
 )
 
@@ -98,9 +85,6 @@ data class UpdateProfileRequest(
     @field:NotBlank(message = "Greeting cannot be blank")
     @field:Size(max = 255, message = "Greeting cannot exceed 255 characters")
     val greeting: String,
-
-    @field:NotBlank(message = "Language code is required")
-    val languageCode: String,
 
     @field:NotBlank(message = "Locale is required")
     val locale: String

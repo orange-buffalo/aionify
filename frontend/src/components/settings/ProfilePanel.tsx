@@ -10,47 +10,40 @@ import { User, Loader2 } from "lucide-react"
 import { apiGet, apiPut } from "@/lib/api"
 import { initializeLanguage, translateErrorCode } from "@/lib/i18n"
 
-// Available languages with native names
-const LANGUAGES = [
-  { code: "en", name: "English" },
-  { code: "uk", name: "Ukrainian (Українська)" },
-]
-
 // Standard locales (BCP 47 language tags with region)
 const LOCALES = [
-  { code: "en-US", name: "English (United States)" },
-  { code: "en-GB", name: "English (United Kingdom)" },
-  { code: "en-AU", name: "English (Australia)" },
-  { code: "en-CA", name: "English (Canada)" },
-  { code: "uk-UA", name: "Ukrainian (Ukraine)" },
-  { code: "de-DE", name: "German (Germany)" },
-  { code: "de-AT", name: "German (Austria)" },
-  { code: "de-CH", name: "German (Switzerland)" },
-  { code: "fr-FR", name: "French (France)" },
-  { code: "fr-CA", name: "French (Canada)" },
-  { code: "fr-BE", name: "French (Belgium)" },
-  { code: "fr-CH", name: "French (Switzerland)" },
-  { code: "es-ES", name: "Spanish (Spain)" },
-  { code: "es-MX", name: "Spanish (Mexico)" },
-  { code: "es-AR", name: "Spanish (Argentina)" },
-  { code: "it-IT", name: "Italian (Italy)" },
-  { code: "it-CH", name: "Italian (Switzerland)" },
-  { code: "pt-BR", name: "Portuguese (Brazil)" },
-  { code: "pt-PT", name: "Portuguese (Portugal)" },
-  { code: "nl-NL", name: "Dutch (Netherlands)" },
-  { code: "nl-BE", name: "Dutch (Belgium)" },
-  { code: "pl-PL", name: "Polish (Poland)" },
-  { code: "ru-RU", name: "Russian (Russia)" },
-  { code: "ja-JP", name: "Japanese (Japan)" },
-  { code: "zh-CN", name: "Chinese (China)" },
-  { code: "zh-TW", name: "Chinese (Taiwan)" },
-  { code: "ko-KR", name: "Korean (South Korea)" },
+  "en-US",
+  "en-GB",
+  "en-AU",
+  "en-CA",
+  "uk-UA",
+  "de-DE",
+  "de-AT",
+  "de-CH",
+  "fr-FR",
+  "fr-CA",
+  "fr-BE",
+  "fr-CH",
+  "es-ES",
+  "es-MX",
+  "es-AR",
+  "it-IT",
+  "it-CH",
+  "pt-BR",
+  "pt-PT",
+  "nl-NL",
+  "nl-BE",
+  "pl-PL",
+  "ru-RU",
+  "ja-JP",
+  "zh-CN",
+  "zh-TW",
+  "ko-KR",
 ]
 
 interface ProfileResponse {
   userName: string
   greeting: string
-  languageCode: string
   locale: string
 }
 
@@ -73,7 +66,6 @@ function formatDateTimeExample(locale: string): string {
 export function ProfilePanel() {
   const { t, i18n } = useTranslation()
   const [greeting, setGreeting] = useState("")
-  const [language, setLanguage] = useState("")
   const [locale, setLocale] = useState("")
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -92,7 +84,6 @@ export function ProfilePanel() {
       try {
         const data = await apiGet<ProfileResponse>("/api/users/profile")
         setGreeting(data.greeting)
-        setLanguage(data.languageCode)
         setLocale(data.locale)
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load profile")
@@ -118,10 +109,6 @@ export function ProfilePanel() {
       setError(t("validation.greetingTooLong"))
       return
     }
-    if (!language) {
-      setError(t("validation.languageRequired"))
-      return
-    }
     if (!locale) {
       setError(t("validation.localeRequired"))
       return
@@ -132,10 +119,12 @@ export function ProfilePanel() {
     try {
       await apiPut<ProfileUpdateResponse>("/api/users/profile", {
         greeting,
-        languageCode: language,
         locale,
       })
 
+      // Extract language from locale (e.g., "en" from "en-US")
+      const language = locale.split("-")[0]
+      
       // Update user language preference and apply changes
       await initializeLanguage(language)
 
@@ -184,37 +173,10 @@ export function ProfilePanel() {
               />
             </div>
 
-            {/* Language */}
-            <div className="space-y-2">
-              <Label htmlFor="language" className="text-muted-foreground">
-                {t("settings.profile.language")}
-              </Label>
-              <Select value={language} onValueChange={setLanguage}>
-                <SelectTrigger
-                  id="language"
-                  className="bg-background/50"
-                  data-testid="profile-language-select"
-                >
-                  <SelectValue placeholder={t("settings.profile.languagePlaceholder")} />
-                </SelectTrigger>
-                <SelectContent data-testid="profile-language-dropdown">
-                  {LANGUAGES.map((lang) => (
-                    <SelectItem
-                      key={lang.code}
-                      value={lang.code}
-                      data-testid={`language-option-${lang.code}`}
-                    >
-                      {t(`languages.${lang.code}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Locale */}
+            {/* Language (shown as locale dropdown) */}
             <div className="space-y-2">
               <Label htmlFor="locale" className="text-muted-foreground">
-                {t("settings.profile.locale")}
+                {t("settings.profile.language")}
               </Label>
               <Select value={locale} onValueChange={setLocale}>
                 <SelectTrigger
@@ -222,16 +184,16 @@ export function ProfilePanel() {
                   className="bg-background/50"
                   data-testid="profile-locale-select"
                 >
-                  <SelectValue placeholder={t("settings.profile.localePlaceholder")} />
+                  <SelectValue placeholder={t("settings.profile.languagePlaceholder")} />
                 </SelectTrigger>
-                <SelectContent data-testid="profile-locale-dropdown">
-                  {LOCALES.map((loc) => (
+                <SelectContent data-testid="profile-locale-dropdown" className="dark">
+                  {LOCALES.map((localeCode) => (
                     <SelectItem
-                      key={loc.code}
-                      value={loc.code}
-                      data-testid={`locale-option-${loc.code}`}
+                      key={localeCode}
+                      value={localeCode}
+                      data-testid={`locale-option-${localeCode}`}
                     >
-                      {loc.name}
+                      {t(`locales.${localeCode}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>

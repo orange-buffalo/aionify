@@ -36,8 +36,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Admin User",
                 isAdmin = true,
-                locale = java.util.Locale.ENGLISH,
-                languageCode = "en"
+                locale = java.util.Locale.US
             )
         )
 
@@ -49,8 +48,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Regular User",
                 isAdmin = false,
-                locale = java.util.Locale.ENGLISH,
-                languageCode = "en"
+                locale = java.util.Locale.US
             )
         )
     }
@@ -208,8 +206,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
                     passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                     greeting = "User $i",
                     isAdmin = false,
-                    locale = java.util.Locale.ENGLISH,
-                    languageCode = "en"
+                    locale = java.util.Locale.US
                 )
             )
         }
@@ -240,8 +237,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
                     passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                     greeting = "User $i",
                     isAdmin = false,
-                    locale = java.util.Locale.ENGLISH,
-                    languageCode = "en"
+                    locale = java.util.Locale.US
                 )
             )
         }
@@ -298,8 +294,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
                     passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                     greeting = "User $i",
                     isAdmin = false,
-                    locale = java.util.Locale.ENGLISH,
-                    languageCode = "en"
+                    locale = java.util.Locale.US
                 )
             )
         }
@@ -336,8 +331,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Zebra User",
                 isAdmin = false,
-                locale = java.util.Locale.ENGLISH,
-                languageCode = "en"
+                locale = java.util.Locale.US
             )
         )
         testDatabaseSupport.insert(
@@ -346,8 +340,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Apple User",
                 isAdmin = false,
-                locale = java.util.Locale.ENGLISH,
-                languageCode = "en"
+                locale = java.util.Locale.US
             )
         )
 

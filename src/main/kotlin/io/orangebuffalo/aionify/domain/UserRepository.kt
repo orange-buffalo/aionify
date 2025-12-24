@@ -23,13 +23,13 @@ interface UserRepository : CrudRepository<User, Long> {
     
     @Query(
         """UPDATE app_user 
-           SET greeting = :greeting, language_code = :languageCode, locale = :localeTag 
+           SET greeting = :greeting, locale = :localeTag 
            WHERE user_name = :userName"""
     )
-    fun updateProfile(userName: String, greeting: String, languageCode: String, localeTag: String): Int
+    fun updateProfile(userName: String, greeting: String, localeTag: String): Int
     
     @Query(
-        """SELECT id, user_name, password_hash, greeting, is_admin, locale, language_code 
+        """SELECT id, user_name, password_hash, greeting, is_admin, locale 
            FROM app_user 
            ORDER BY user_name
            LIMIT :size OFFSET :offset"""
