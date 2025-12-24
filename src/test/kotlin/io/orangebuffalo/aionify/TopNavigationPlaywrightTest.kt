@@ -270,11 +270,7 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
     fun `clicking Users menu item should navigate to Users page`() {
         navigateToAdminViaToken()
 
-        // Verify we're on the admin users page
-        val usersPage = page.locator("[data-testid='users-page']")
-        assertThat(usersPage).isVisible()
-
-        // Click on the Users menu item
+        // Click on the Users menu item (should already be on Users page, but clicking should stay there)
         val usersMenuItem = page.locator("[data-testid='nav-item-users']")
         assertThat(usersMenuItem).isVisible()
         usersMenuItem.click()

@@ -94,9 +94,9 @@ export function LoginPage() {
 
       // Redirect based on user role (Jackson serializes isAdmin as "admin")
       if (data.admin) {
-        navigate("/admin")
+        navigate("/admin/users")
       } else {
-        navigate("/portal")
+        navigate("/portal/time-logs")
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.error"))
