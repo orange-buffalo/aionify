@@ -187,7 +187,7 @@ export function EditUserPage() {
               {/* Username Form */}
               <Card className="border-none shadow-md">
                 <CardHeader>
-                  <CardTitle data-testid="username-section-title">
+                  <CardTitle className="text-xl font-semibold" data-testid="username-section-title">
                     {t("portal.admin.users.edit.usernameSection")}
                   </CardTitle>
                 </CardHeader>
@@ -222,7 +222,7 @@ export function EditUserPage() {
               {/* User Info */}
               <Card className="border-none shadow-md">
                 <CardHeader>
-                  <CardTitle data-testid="user-info-title">
+                  <CardTitle className="text-xl font-semibold" data-testid="user-info-title">
                     {t("portal.admin.users.edit.userInfo")}
                   </CardTitle>
                 </CardHeader>
@@ -251,7 +251,7 @@ export function EditUserPage() {
               {/* Activation Token */}
               <Card className="border-none shadow-md">
                 <CardHeader>
-                  <CardTitle data-testid="activation-section-title">
+                  <CardTitle className="text-xl font-semibold" data-testid="activation-section-title">
                     {t("portal.admin.users.edit.activationSection")}
                   </CardTitle>
                 </CardHeader>
@@ -304,7 +304,7 @@ export function EditUserPage() {
               {/* Limitations */}
               <Card className="border-none shadow-md">
                 <CardHeader>
-                  <CardTitle data-testid="limitations-title">
+                  <CardTitle className="text-xl font-semibold" data-testid="limitations-title">
                     {t("portal.admin.users.edit.limitations")}
                   </CardTitle>
                 </CardHeader>
