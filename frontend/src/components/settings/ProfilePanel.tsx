@@ -135,10 +135,10 @@ export function ProfilePanel() {
         languageCode: language,
         locale,
       })
-      
+
       // Update user language preference and apply changes
       await initializeLanguage(language)
-      
+
       // Set success flag (translation will be applied in JSX with current language)
       setSuccess("success")
     } catch (err) {
@@ -151,7 +151,7 @@ export function ProfilePanel() {
   }
 
   return (
-    <Card className="bg-card/90">
+    <Card className="border-none shadow-md">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <User className="h-5 w-5" />
@@ -190,8 +190,8 @@ export function ProfilePanel() {
                 {t("settings.profile.language")}
               </Label>
               <Select value={language} onValueChange={setLanguage}>
-                <SelectTrigger 
-                  id="language" 
+                <SelectTrigger
+                  id="language"
                   className="bg-background/50"
                   data-testid="profile-language-select"
                 >
@@ -199,8 +199,8 @@ export function ProfilePanel() {
                 </SelectTrigger>
                 <SelectContent data-testid="profile-language-dropdown">
                   {LANGUAGES.map((lang) => (
-                    <SelectItem 
-                      key={lang.code} 
+                    <SelectItem
+                      key={lang.code}
                       value={lang.code}
                       data-testid={`language-option-${lang.code}`}
                     >
@@ -217,8 +217,8 @@ export function ProfilePanel() {
                 {t("settings.profile.locale")}
               </Label>
               <Select value={locale} onValueChange={setLocale}>
-                <SelectTrigger 
-                  id="locale" 
+                <SelectTrigger
+                  id="locale"
                   className="bg-background/50"
                   data-testid="profile-locale-select"
                 >
@@ -226,8 +226,8 @@ export function ProfilePanel() {
                 </SelectTrigger>
                 <SelectContent data-testid="profile-locale-dropdown">
                   {LOCALES.map((loc) => (
-                    <SelectItem 
-                      key={loc.code} 
+                    <SelectItem
+                      key={loc.code}
                       value={loc.code}
                       data-testid={`locale-option-${loc.code}`}
                     >
@@ -254,9 +254,9 @@ export function ProfilePanel() {
             )}
 
             {/* Submit Button */}
-            <Button 
-              type="submit" 
-              className="bg-blue-600 hover:bg-blue-700"
+            <Button
+              type="submit"
+              className="bg-teal-600 hover:bg-teal-700"
               disabled={saving}
               data-testid="profile-save-button"
             >

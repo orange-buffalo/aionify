@@ -184,7 +184,7 @@ export function EditUserPage() {
           ) : user ? (
             <div className="space-y-8">
               {/* Username Form */}
-              <div className="bg-card rounded-lg border p-6">
+              <div className="bg-card rounded-lg border shadow-md p-6">
                 <h2 className="text-xl font-semibold mb-4 text-foreground" data-testid="username-section-title">
                   {t("portal.admin.users.edit.usernameSection")}
                 </h2>
@@ -208,6 +208,7 @@ export function EditUserPage() {
                     type="submit" 
                     disabled={saving || userName === user.userName}
                     data-testid="save-button"
+                    className="bg-teal-600 hover:bg-teal-700"
                   >
                     {saving ? t("portal.admin.users.edit.saving") : t("portal.admin.users.edit.save")}
                   </Button>
@@ -215,7 +216,7 @@ export function EditUserPage() {
               </div>
 
               {/* User Info */}
-              <div className="bg-card rounded-lg border p-6">
+              <div className="bg-card rounded-lg border shadow-md p-6">
                 <h2 className="text-xl font-semibold mb-4 text-foreground" data-testid="user-info-title">
                   {t("portal.admin.users.edit.userInfo")}
                 </h2>
@@ -241,7 +242,7 @@ export function EditUserPage() {
               </div>
 
               {/* Activation Token */}
-              <div className="bg-card rounded-lg border p-6">
+              <div className="bg-card rounded-lg border shadow-md p-6">
                 <h2 className="text-xl font-semibold mb-4 text-foreground" data-testid="activation-section-title">
                   {t("portal.admin.users.edit.activationSection")}
                 </h2>
@@ -291,7 +292,7 @@ export function EditUserPage() {
               </div>
 
               {/* Limitations */}
-              <div className="bg-card rounded-lg border p-6">
+              <div className="bg-card rounded-lg border shadow-md p-6">
                 <h2 className="text-xl font-semibold mb-4 text-foreground" data-testid="limitations-title">
                   {t("portal.admin.users.edit.limitations")}
                 </h2>

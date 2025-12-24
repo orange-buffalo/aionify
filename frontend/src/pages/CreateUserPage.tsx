@@ -24,7 +24,7 @@ interface CreateUserResponse {
 export function CreateUserPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  
+
   const [userName, setUserName] = useState("")
   const [greeting, setGreeting] = useState("")
   const [userType, setUserType] = useState("regular")
@@ -64,10 +64,10 @@ export function CreateUserPage() {
         greeting: greeting.trim(),
         isAdmin: userType === "admin"
       })
-      
+
       // Save success message to session storage
       sessionStorage.setItem("userCreated", "true")
-      
+
       // Navigate to edit page
       navigate(`/admin/users/${response.id}`)
     } catch (err) {
@@ -101,7 +101,7 @@ export function CreateUserPage() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               {t("portal.admin.users.create.back")}
             </Button>
-            
+
             <h1 className="text-3xl font-bold text-foreground" data-testid="create-user-title">
               {t("portal.admin.users.create.title")}
             </h1>
@@ -114,7 +114,7 @@ export function CreateUserPage() {
             </div>
           )}
 
-          <div className="bg-card rounded-lg border p-6">
+          <div className="bg-card rounded-lg shadow-md p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="userName" className="text-foreground">{t("portal.admin.users.create.username")}</Label>
@@ -159,10 +159,11 @@ export function CreateUserPage() {
                 </Select>
               </div>
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={creating}
                 data-testid="create-button"
+                className="bg-teal-600 hover:bg-teal-700"
               >
                 {creating ? t("portal.admin.users.create.creating") : t("portal.admin.users.create.create")}
               </Button>

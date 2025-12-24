@@ -8,7 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { FormMessage } from "@/components/ui/form-message"
 import { apiGet, apiRequest } from "@/lib/api"
-import { MoreVertical, ChevronLeft, ChevronRight } from "lucide-react"
+import { MoreVertical, ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react"
 
 interface User {
   id: number
@@ -54,7 +54,7 @@ export function UsersPage() {
     setLoading(true)
     setError(null)
     setSuccessMessage(null)
-    
+
     try {
       const data = await apiGet<UsersListResponse>(`/api/admin/users?page=${page}&size=${size}`)
       setUsers(data.users)
@@ -75,12 +75,12 @@ export function UsersPage() {
       await apiRequest(`/api/admin/users/${userId}`, {
         method: "DELETE"
       })
-      
+
       setDeletePopoverOpen(null)
-      
+
       // Reload the user list first
       await loadUsers()
-      
+
       // Then show success message (after reload to avoid it being cleared)
       setSuccessMessage(t("portal.admin.users.deleteSuccess"))
     } catch (err) {
@@ -107,6 +107,7 @@ export function UsersPage() {
             <Button
               onClick={() => navigate("/admin/users/create")}
               data-testid="create-user-button"
+              className="bg-teal-600 hover:bg-teal-700"
             >
               {t("portal.admin.users.createUser")}
             </Button>
@@ -130,7 +131,7 @@ export function UsersPage() {
             </div>
           ) : (
             <>
-              <div className="bg-card rounded-lg border" data-testid="users-table-container">
+              <div className="bg-card rounded-lg shadow-md" data-testid="users-table-container">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -169,34 +170,38 @@ export function UsersPage() {
                                       data-testid={`user-edit-${user.userName}`}
                                       onClick={() => navigate(`/admin/users/${user.id}`)}
                                     >
+                                      <Pencil className="h-4 w-4 mr-2" />
                                       {t("portal.admin.users.table.edit")}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                       data-testid={`user-delete-${user.userName}`}
                                       onClick={() => setDeletePopoverOpen(user.id)}
+                                      className="text-destructive focus:text-destructive"
                                     >
+                                      <Trash2 className="h-4 w-4 mr-2" />
                                       {t("portal.admin.users.table.delete")}
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
-                                
+
                                 <Dialog
                                   open={deletePopoverOpen === user.id}
                                   onOpenChange={(open) => setDeletePopoverOpen(open ? user.id : null)}
                                 >
-                                  <DialogContent data-testid={`delete-confirm-${user.userName}`}>
+                                  <DialogContent data-testid={`delete-confirm-${user.userName}`} className="dark">
                                     <DialogHeader>
-                                      <DialogTitle>{t("portal.admin.users.deleteConfirm.title")}</DialogTitle>
-                                      <DialogDescription>
+                                      <DialogTitle className="text-foreground">{t("portal.admin.users.deleteConfirm.title")}</DialogTitle>
+                                      <DialogDescription className="text-foreground">
                                         {t("portal.admin.users.deleteConfirm.message", { userName: user.userName })}
                                       </DialogDescription>
                                     </DialogHeader>
                                     <DialogFooter>
                                       <Button
-                                        variant="outline"
+                                        variant="ghost"
                                         size="sm"
                                         onClick={() => setDeletePopoverOpen(null)}
                                         data-testid={`delete-cancel-${user.userName}`}
+                                        className="text-foreground"
                                       >
                                         {t("portal.admin.users.deleteConfirm.cancel")}
                                       </Button>

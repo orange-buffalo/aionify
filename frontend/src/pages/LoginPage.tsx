@@ -36,14 +36,14 @@ export function LoginPage() {
       setError(t("login.sessionExpired"))
       sessionStorage.removeItem("sessionExpired")
     }
-    
+
     // Check if coming from successful activation
     const activationSuccess = sessionStorage.getItem("activationSuccess")
     if (activationSuccess) {
       setSuccess(t("login.activationSuccess"))
       sessionStorage.removeItem("activationSuccess")
     }
-    
+
     // Load last user's credentials from localStorage (runs once on mount)
     const lastUsername = localStorage.getItem(LAST_USERNAME_KEY)
     if (lastUsername) {
@@ -79,7 +79,7 @@ export function LoginPage() {
       }
 
       const data = await response.json()
-      
+
       // Store token and user info
       localStorage.setItem(TOKEN_KEY, data.token)
       localStorage.setItem(LAST_USERNAME_KEY, JSON.stringify({
@@ -108,11 +108,11 @@ export function LoginPage() {
   return (
     <div className="dark min-h-screen flex items-center justify-center p-4 login-gradient-bg" data-testid="login-page">
       {/* Centered Login form */}
-      <Card className="w-full max-w-md bg-card/90 backdrop-blur-sm border-border/50">
+      <Card className="w-full max-w-md border-none shadow-md">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold" data-testid="login-title">{t("login.title")}</CardTitle>
             <CardDescription>
-              {lastUserGreeting 
+              {lastUserGreeting
                 ? <span data-testid="welcome-back-message">{t("login.welcomeBack", { greeting: lastUserGreeting })}</span>
                 : t("login.signInPrompt")
               }
@@ -121,7 +121,7 @@ export function LoginPage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="userName" className="text-muted-foreground">
+                <Label htmlFor="userName" className="text-foreground">
                   {t("login.username")}
                 </Label>
                 <div className="relative">
@@ -141,19 +141,9 @@ export function LoginPage() {
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-muted-foreground">
-                    {t("login.password")}
-                  </Label>
-                  <button
-                    type="button"
-                    className="text-sm text-primary hover:underline"
-                    data-testid="lost-password-link"
-                    onClick={() => setShowForgotPasswordDialog(true)}
-                  >
-                    {t("login.lostPassword")}
-                  </button>
-                </div>
+                <Label htmlFor="password" className="text-foreground">
+                  {t("login.password")}
+                </Label>
                 <div className="relative">
                   <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -176,6 +166,16 @@ export function LoginPage() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    className="text-sm text-primary hover:underline text-foreground"
+                    data-testid="lost-password-link"
+                    onClick={() => setShowForgotPasswordDialog(true)}
+                  >
+                    {t("login.lostPassword")}
+                  </button>
+                </div>
               </div>
 
               {success && (
@@ -186,9 +186,9 @@ export function LoginPage() {
                 <FormMessage type="error" message={error} testId="login-error" />
               )}
 
-              <Button 
-                type="submit" 
-                className="w-full bg-blue-600 hover:bg-blue-700"
+              <Button
+                type="submit"
+                className="w-full bg-teal-600 hover:bg-teal-700"
                 disabled={isLoading}
                 data-testid="login-button"
               >
@@ -218,6 +218,7 @@ export function LoginPage() {
               <Button
                 onClick={() => setShowForgotPasswordDialog(false)}
                 data-testid="forgot-password-dialog-close"
+                variant="ghost"
               >
                 {t("login.lostPasswordDialog.close")}
               </Button>

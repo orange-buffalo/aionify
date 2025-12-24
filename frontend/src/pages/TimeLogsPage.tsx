@@ -495,7 +495,7 @@ export function TimeLogsPage() {
           )}
 
           {/* Current Entry Panel */}
-          <Card className="mb-6 bg-card/90" data-testid="current-entry-panel">
+          <Card className="mb-6 border-none shadow-md" data-testid="current-entry-panel">
             <CardHeader>
               <CardTitle className="text-foreground">
                 {isEditMode ? t('timeLogs.currentEntry.editTitle') : t('timeLogs.currentEntry.title')}
@@ -545,6 +545,7 @@ export function TimeLogsPage() {
                         onClick={handleSaveEdit}
                         disabled={!editTitle.trim() || isSaving}
                         data-testid="save-edit-button"
+                        className="bg-teal-600 hover:bg-teal-700"
                       >
                         {t('timeLogs.currentEntry.save')}
                       </Button>
@@ -587,6 +588,7 @@ export function TimeLogsPage() {
                         onClick={handleStop}
                         disabled={isStopping}
                         data-testid="stop-button"
+                        className="bg-teal-600 hover:bg-teal-700"
                       >
                         <Square className="h-4 w-4" />
                       </Button>
@@ -610,7 +612,7 @@ export function TimeLogsPage() {
                   />
                   <Button
                     onClick={handleStart}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-teal-600 hover:bg-teal-700"
                     disabled={!newEntryTitle.trim() || isStarting}
                     data-testid="start-button"
                   >
@@ -657,7 +659,7 @@ export function TimeLogsPage() {
           ) : (
             <div className="space-y-6">
               {dayGroups.map((group) => (
-                <Card key={group.date} className="bg-card/90" data-testid="day-group">
+                <Card key={group.date} className="border-none shadow-md" data-testid="day-group">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg text-foreground" data-testid="day-title">{group.displayTitle}</CardTitle>
