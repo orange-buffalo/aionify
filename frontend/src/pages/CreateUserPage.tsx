@@ -114,7 +114,7 @@ export function CreateUserPage() {
             </div>
           )}
 
-          <div className="bg-card rounded-lg border p-6">
+          <div className="bg-card rounded-lg border shadow-md p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="userName" className="text-foreground">{t("portal.admin.users.create.username")}</Label>
