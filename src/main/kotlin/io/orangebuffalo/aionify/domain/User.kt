@@ -25,28 +25,37 @@ data class User(
     val isAdmin: Boolean,
     
     @field:MappedProperty("locale")
-    val localeTag: String,
-    
-    @field:MappedProperty("language_code")
-    val languageCode: String
+    val localeTag: String
 ) {
     companion object {
+        private val SUPPORTED_LANGUAGES = setOf("en", "uk")
+        
         fun create(
             id: Long? = null,
             userName: String,
             passwordHash: String,
             greeting: String,
             isAdmin: Boolean,
-            locale: Locale,
-            languageCode: String
+            locale: Locale
         ) = User(
             id = id,
             userName = userName,
             passwordHash = passwordHash,
             greeting = greeting,
             isAdmin = isAdmin,
-            localeTag = locale.toLanguageTag(),
-            languageCode = languageCode
+            localeTag = locale.toLanguageTag()
         )
     }
+    
+    /**
+     * Derives the language code from the locale tag.
+     * Returns the language part of the locale (e.g., "en" from "en-US").
+     * Falls back to "en" if the language is not in the supported languages list.
+     */
+    @get:Transient
+    val languageCode: String
+        get() {
+            val language = Locale.forLanguageTag(localeTag).language
+            return if (language in SUPPORTED_LANGUAGES) language else "en"
+        }
 }

@@ -24,8 +24,8 @@ class UserService(private val userRepository: UserRepository) {
         )
     }
     
-    fun updateProfile(userName: String, greeting: String, languageCode: String, locale: java.util.Locale) {
-        userRepository.updateProfile(userName, greeting, languageCode, locale.toLanguageTag())
+    fun updateProfile(userName: String, greeting: String, locale: java.util.Locale) {
+        userRepository.updateProfile(userName, greeting, locale.toLanguageTag())
     }
     
     /**
