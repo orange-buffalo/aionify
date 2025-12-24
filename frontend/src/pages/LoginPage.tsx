@@ -36,14 +36,14 @@ export function LoginPage() {
       setError(t("login.sessionExpired"))
       sessionStorage.removeItem("sessionExpired")
     }
-    
+
     // Check if coming from successful activation
     const activationSuccess = sessionStorage.getItem("activationSuccess")
     if (activationSuccess) {
       setSuccess(t("login.activationSuccess"))
       sessionStorage.removeItem("activationSuccess")
     }
-    
+
     // Load last user's credentials from localStorage (runs once on mount)
     const lastUsername = localStorage.getItem(LAST_USERNAME_KEY)
     if (lastUsername) {
@@ -79,7 +79,7 @@ export function LoginPage() {
       }
 
       const data = await response.json()
-      
+
       // Store token and user info
       localStorage.setItem(TOKEN_KEY, data.token)
       localStorage.setItem(LAST_USERNAME_KEY, JSON.stringify({
@@ -112,7 +112,7 @@ export function LoginPage() {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold" data-testid="login-title">{t("login.title")}</CardTitle>
             <CardDescription>
-              {lastUserGreeting 
+              {lastUserGreeting
                 ? <span data-testid="welcome-back-message">{t("login.welcomeBack", { greeting: lastUserGreeting })}</span>
                 : t("login.signInPrompt")
               }
@@ -166,14 +166,16 @@ export function LoginPage() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                <button
-                  type="button"
-                  className="text-sm text-primary hover:underline"
-                  data-testid="lost-password-link"
-                  onClick={() => setShowForgotPasswordDialog(true)}
-                >
-                  {t("login.lostPassword")}
-                </button>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    className="text-sm text-primary hover:underline text-foreground"
+                    data-testid="lost-password-link"
+                    onClick={() => setShowForgotPasswordDialog(true)}
+                  >
+                    {t("login.lostPassword")}
+                  </button>
+                </div>
               </div>
 
               {success && (
@@ -184,8 +186,8 @@ export function LoginPage() {
                 <FormMessage type="error" message={error} testId="login-error" />
               )}
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full bg-teal-600 hover:bg-teal-700"
                 disabled={isLoading}
                 data-testid="login-button"

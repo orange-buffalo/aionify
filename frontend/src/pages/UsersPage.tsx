@@ -54,7 +54,7 @@ export function UsersPage() {
     setLoading(true)
     setError(null)
     setSuccessMessage(null)
-    
+
     try {
       const data = await apiGet<UsersListResponse>(`/api/admin/users?page=${page}&size=${size}`)
       setUsers(data.users)
@@ -75,12 +75,12 @@ export function UsersPage() {
       await apiRequest(`/api/admin/users/${userId}`, {
         method: "DELETE"
       })
-      
+
       setDeletePopoverOpen(null)
-      
+
       // Reload the user list first
       await loadUsers()
-      
+
       // Then show success message (after reload to avoid it being cleared)
       setSuccessMessage(t("portal.admin.users.deleteSuccess"))
     } catch (err) {
@@ -183,15 +183,15 @@ export function UsersPage() {
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
-                                
+
                                 <Dialog
                                   open={deletePopoverOpen === user.id}
                                   onOpenChange={(open) => setDeletePopoverOpen(open ? user.id : null)}
                                 >
-                                  <DialogContent data-testid={`delete-confirm-${user.userName}`}>
+                                  <DialogContent data-testid={`delete-confirm-${user.userName}`} className="dark">
                                     <DialogHeader>
-                                      <DialogTitle>{t("portal.admin.users.deleteConfirm.title")}</DialogTitle>
-                                      <DialogDescription>
+                                      <DialogTitle className="text-foreground">{t("portal.admin.users.deleteConfirm.title")}</DialogTitle>
+                                      <DialogDescription className="text-foreground">
                                         {t("portal.admin.users.deleteConfirm.message", { userName: user.userName })}
                                       </DialogDescription>
                                     </DialogHeader>
@@ -201,6 +201,7 @@ export function UsersPage() {
                                         size="sm"
                                         onClick={() => setDeletePopoverOpen(null)}
                                         data-testid={`delete-cancel-${user.userName}`}
+                                        className="text-foreground"
                                       >
                                         {t("portal.admin.users.deleteConfirm.cancel")}
                                       </Button>
