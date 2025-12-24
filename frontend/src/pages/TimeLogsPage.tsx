@@ -495,7 +495,7 @@ export function TimeLogsPage() {
           )}
 
           {/* Current Entry Panel */}
-          <Card className="mb-6 bg-card border-none" data-testid="current-entry-panel">
+          <Card className="mb-6 border-none shadow-md" data-testid="current-entry-panel">
             <CardHeader>
               <CardTitle className="text-foreground">
                 {isEditMode ? t('timeLogs.currentEntry.editTitle') : t('timeLogs.currentEntry.title')}
@@ -659,7 +659,7 @@ export function TimeLogsPage() {
           ) : (
             <div className="space-y-6">
               {dayGroups.map((group) => (
-                <Card key={group.date} className="bg-card border-none" data-testid="day-group">
+                <Card key={group.date} className="border-none shadow-md" data-testid="day-group">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg text-foreground" data-testid="day-title">{group.displayTitle}</CardTitle>

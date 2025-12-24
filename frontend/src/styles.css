@@ -83,7 +83,7 @@ body {
 /* Login page gradient background */
 body {
   background:
-    radial-gradient(ellipse 80% 70% at 20% 60%, #2b5a81 0%, transparent 80%),
+    radial-gradient(ellipse 80% 70% at 20% 60%, #244f72 0%, transparent 80%),
     radial-gradient(ellipse 80% 80% at 80% 60%, #2e4d67 0%, transparent 80%),
     linear-gradient(180deg, #1e1e2c 0%, #272738 50%, #1e1e2c 100%);
   background-attachment: fixed;

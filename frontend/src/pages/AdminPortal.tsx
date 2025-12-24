@@ -18,7 +18,7 @@ export function AdminPortal() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            <Card className="bg-card border-none">
+            <Card className="border-none shadow-md">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
@@ -35,7 +35,7 @@ export function AdminPortal() {
               </CardContent>
             </Card>
 
-            <Card className="bg-card border-none">
+            <Card className="border-none shadow-md">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart className="h-5 w-5" />
@@ -48,7 +48,7 @@ export function AdminPortal() {
               </CardContent>
             </Card>
 
-            <Card className="bg-card border-none">
+            <Card className="border-none shadow-md">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Settings className="h-5 w-5" />

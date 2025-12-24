@@ -151,7 +151,7 @@ export function ProfilePanel() {
   }
 
   return (
-    <Card className="bg-card border-none">
+    <Card className="border-none shadow-md">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <User className="h-5 w-5" />

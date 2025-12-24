@@ -105,7 +105,7 @@ export function ActivateAccountPage() {
 
   return (
     <div className="dark min-h-screen flex items-center justify-center p-4 login-gradient-bg" data-testid="activate-account-page">
-      <Card className="w-full max-w-md bg-card border-none backdrop-blur-sm border-border/50">
+      <Card className="w-full max-w-md border-none shadow-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold" data-testid="activate-title">
             {t("activation.title")}

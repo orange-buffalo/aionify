@@ -19,7 +19,7 @@ export function UserPortal() {
 
           <div className="grid md:grid-cols-3 gap-6">
             <Card
-              className="bg-card border-none cursor-pointer hover:bg-card/95 transition-colors border"
+              className="border-none shadow-md cursor-pointer hover:bg-card/95 transition-colors border"
               onClick={() => navigate("/portal/time-logs")}
             >
               <CardHeader>
@@ -34,7 +34,7 @@ export function UserPortal() {
               </CardContent>
             </Card>
 
-            <Card className="bg-card border-none">
+            <Card className="border-none shadow-md">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
@@ -47,7 +47,7 @@ export function UserPortal() {
               </CardContent>
             </Card>
 
-            <Card className="bg-card border-none">
+            <Card className="border-none shadow-md">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
