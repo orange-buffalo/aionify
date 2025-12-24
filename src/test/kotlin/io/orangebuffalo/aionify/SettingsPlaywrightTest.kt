@@ -41,7 +41,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
     }
 
     private fun navigateToPortalViaToken() {
-        loginViaToken("/portal", regularUser, testAuthSupport)
+        loginViaToken("/portal/time-logs", regularUser, testAuthSupport)
     }
 
     // === Full Test Suite for Regular User ===

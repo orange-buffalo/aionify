@@ -50,11 +50,11 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
     }
 
     private fun navigateToPortalViaToken() {
-        loginViaToken("/portal", regularUser, testAuthSupport)
+        loginViaToken("/portal/time-logs", regularUser, testAuthSupport)
     }
 
     private fun navigateToAdminViaToken() {
-        loginViaToken("/admin", adminUser, testAuthSupport)
+        loginViaToken("/admin/users", adminUser, testAuthSupport)
     }
 
     @Test

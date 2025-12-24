@@ -97,12 +97,12 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='password-input']").fill(testPassword)
         page.locator("[data-testid='login-button']").click()
 
-        // Wait for redirect to portal
-        page.waitForURL("**/portal")
+        // Wait for redirect to time logs page
+        page.waitForURL("**/portal/time-logs")
 
         // Verify UI switched to Ukrainian
-        val userTitle = page.locator("[data-testid='user-title']")
-        assertThat(userTitle).hasText("Облік часу")
+        val timeLogsTitle = page.locator("[data-testid='time-logs-title']")
+        assertThat(timeLogsTitle).hasText("Журнал часу")
 
         // Verify language was saved to local storage
         val savedLanguage = page.evaluate("localStorage.getItem('aionify_language')")
@@ -131,12 +131,12 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='password-input']").fill(testPassword)
         page.locator("[data-testid='login-button']").click()
 
-        // Wait for redirect to portal
-        page.waitForURL("**/portal")
+        // Wait for redirect to time logs page
+        page.waitForURL("**/portal/time-logs")
 
         // Verify UI is in English
-        val userTitle = page.locator("[data-testid='user-title']")
-        assertThat(userTitle).hasText("Time Tracking")
+        val timeLogsTitle = page.locator("[data-testid='time-logs-title']")
+        assertThat(timeLogsTitle).hasText("Time Log")
 
         // Verify language was saved to local storage
         val savedLanguage = page.evaluate("localStorage.getItem('aionify_language')")
@@ -303,11 +303,11 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         val settingsTitle = page.locator("[data-testid='settings-title']")
         assertThat(settingsTitle).hasText("Налаштування")
 
-        // Navigate to portal
-        page.navigate("/portal")
+        // Navigate to time logs page
+        page.navigate("/portal/time-logs")
 
-        // Verify portal is also in Ukrainian
-        val userTitle = page.locator("[data-testid='user-title']")
-        assertThat(userTitle).hasText("Облік часу")
+        // Verify time logs page is also in Ukrainian
+        val timeLogsTitle = page.locator("[data-testid='time-logs-title']")
+        assertThat(timeLogsTitle).hasText("Журнал часу")
     }
 }
