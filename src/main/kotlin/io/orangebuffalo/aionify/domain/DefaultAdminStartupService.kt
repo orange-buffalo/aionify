@@ -32,8 +32,7 @@ class DefaultAdminStartupService(
             passwordHash = BCrypt.hashpw(randomPassword, BCrypt.gensalt()),
             greeting = "Administrator",
             isAdmin = true,
-            locale = Locale.US,
-            languageCode = "en"
+            locale = Locale.US
         )
 
         userRepository.save(defaultAdmin)

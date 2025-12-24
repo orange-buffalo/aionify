@@ -32,7 +32,6 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
                 greeting = "New User",
                 isAdmin = false,
                 locale = java.util.Locale.ENGLISH,
-                languageCode = "en"
             )
         )
         

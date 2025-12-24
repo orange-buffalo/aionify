@@ -59,8 +59,7 @@ class DefaultAdminStartupServiceTest {
                 passwordHash = BCrypt.hashpw("password", BCrypt.gensalt()),
                 greeting = "Existing Admin",
                 isAdmin = true,
-                locale = java.util.Locale.ENGLISH,
-                languageCode = "en"
+                locale = java.util.Locale.US
             )
         )
         assertTrue(userRepository.existsAdmin())
