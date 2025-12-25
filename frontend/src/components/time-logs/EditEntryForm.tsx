@@ -97,7 +97,7 @@ export function EditEntryForm({
         <Button
           onClick={onSave}
           disabled={!title.trim() || isSaving}
-          data-testid={`${testIdPrefix}-save-button`}
+          data-testid={`save-${testIdPrefix}-button`}
           className="bg-teal-600 hover:bg-teal-700"
         >
           {t('timeLogs.currentEntry.save')}
@@ -106,7 +106,7 @@ export function EditEntryForm({
           variant="ghost"
           onClick={onCancel}
           disabled={isSaving}
-          data-testid={`${testIdPrefix}-cancel-button`}
+          data-testid={`cancel-${testIdPrefix}-button`}
           className="text-foreground"
         >
           {t('timeLogs.currentEntry.cancel')}

@@ -581,10 +581,10 @@ class TimeLogsPageObject(private val page: Page) {
     }
 
     fun clickSaveStoppedEntryEdit() {
-        page.locator("[data-testid='stopped-entry-edit-save-button']").click()
+        page.locator("[data-testid='save-stopped-entry-edit-button']").click()
     }
 
     fun clickCancelStoppedEntryEdit() {
-        page.locator("[data-testid='stopped-entry-edit-cancel-button']").click()
+        page.locator("[data-testid='cancel-stopped-entry-edit-button']").click()
     }
 }
