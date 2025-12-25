@@ -1,0 +1,44 @@
+import { useTranslation } from "react-i18next"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { formatDuration } from "@/lib/time-utils"
+import { TimeEntry } from "./TimeEntry"
+import type { DayGroup as DayGroupType, TimeLogEntry } from "./types"
+
+interface DayGroupProps {
+  group: DayGroupType
+  locale: string
+  onContinue: (entry: TimeLogEntry) => void
+  onDelete: (entry: TimeLogEntry) => void
+}
+
+export function DayGroup({ group, locale, onContinue, onDelete }: DayGroupProps) {
+  const { t } = useTranslation()
+
+  return (
+    <Card className="border-none shadow-md" data-testid="day-group">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg text-foreground" data-testid="day-title">
+            {group.displayTitle}
+          </CardTitle>
+          <div className="text-sm text-muted-foreground" data-testid="day-total-duration">
+            {t('timeLogs.totalDuration')}: {formatDuration(group.totalDuration)}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {group.entries.map((entry) => (
+            <TimeEntry
+              key={`${entry.id}-${entry.startTime}`}
+              entry={entry}
+              locale={locale}
+              onContinue={onContinue}
+              onDelete={onDelete}
+            />
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
