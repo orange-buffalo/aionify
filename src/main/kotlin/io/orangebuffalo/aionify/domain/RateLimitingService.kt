@@ -1,6 +1,7 @@
 package io.orangebuffalo.aionify.domain
 
 import jakarta.inject.Singleton
+import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.ConcurrentHashMap
@@ -12,6 +13,8 @@ import java.util.concurrent.ConcurrentHashMap
 class RateLimitingService(
     private val timeService: TimeService
 ) {
+    
+    private val log = LoggerFactory.getLogger(RateLimitingService::class.java)
     
     private val attempts = ConcurrentHashMap<String, MutableList<Instant>>()
     
@@ -27,7 +30,15 @@ class RateLimitingService(
     fun isRateLimited(key: String): Boolean {
         cleanupOldAttempts(key)
         val attemptList = attempts.getOrDefault(key, mutableListOf())
-        return attemptList.size >= MAX_ATTEMPTS
+        val isLimited = attemptList.size >= MAX_ATTEMPTS
+        
+        if (isLimited) {
+            log.debug("Rate limit exceeded for key: {}, attempts: {}", key, attemptList.size)
+        } else {
+            log.trace("Rate limit check for key: {}, attempts: {}/{}", key, attemptList.size, MAX_ATTEMPTS)
+        }
+        
+        return isLimited
     }
     
     /**
@@ -40,6 +51,7 @@ class RateLimitingService(
             attemptList.add(timeService.now())
             attemptList
         }
+        log.trace("Recorded attempt for key: {}, total attempts: {}", key, attempts[key]?.size ?: 0)
     }
     
     /**
@@ -47,12 +59,17 @@ class RateLimitingService(
      */
     fun clearAttempts(key: String) {
         attempts.remove(key)
+        log.trace("Cleared all attempts for key: {}", key)
     }
     
     private fun cleanupOldAttempts(key: String) {
         val cutoff = timeService.now().minus(WINDOW_MINUTES, ChronoUnit.MINUTES)
         attempts.computeIfPresent(key) { _, list ->
+            val sizeBefore = list.size
             list.removeIf { it.isBefore(cutoff) }
+            if (list.size < sizeBefore) {
+                log.trace("Cleaned up {} old attempts for key: {}", sizeBefore - list.size, key)
+            }
             if (list.isEmpty()) null else list
         }
     }

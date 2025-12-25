@@ -25,6 +25,8 @@ open class ActivationResource(
     private val rateLimitingService: RateLimitingService
 ) {
 
+    private val log = org.slf4j.LoggerFactory.getLogger(ActivationResource::class.java)
+
     @Get("/validate")
     open fun validateToken(
         @QueryValue token: String,
@@ -34,6 +36,7 @@ open class ActivationResource(
         
         // Check rate limiting
         if (rateLimitingService.isRateLimited(clientId)) {
+            log.debug("Token validation blocked by rate limiting for client: {}", clientId)
             return HttpResponse.status<ValidateTokenErrorResponse>(HttpStatus.TOO_MANY_REQUESTS)
                 .body(ValidateTokenErrorResponse(
                     error = "Too many validation attempts. Please try again later.",
@@ -48,12 +51,14 @@ open class ActivationResource(
         val user = activationTokenService.validateToken(token)
         
         return if (user != null) {
+            log.trace("Token validation successful for user: {}", user.userName)
             HttpResponse.ok(ValidateTokenResponse(
                 valid = true,
                 userName = user.userName,
                 greeting = user.greeting
             ))
         } else {
+            log.debug("Token validation failed: invalid or expired token")
             HttpResponse.ok(ValidateTokenResponse(
                 valid = false,
                 userName = null,
@@ -71,6 +76,7 @@ open class ActivationResource(
         
         // Check rate limiting
         if (rateLimitingService.isRateLimited(clientId)) {
+            log.debug("Set password blocked by rate limiting for client: {}", clientId)
             return HttpResponse.status<SetPasswordErrorResponse>(HttpStatus.TOO_MANY_REQUESTS)
                 .body(SetPasswordErrorResponse(
                     error = "Too many attempts. Please try again later.",
@@ -87,8 +93,10 @@ open class ActivationResource(
         return if (success) {
             // Clear rate limiting on success
             rateLimitingService.clearAttempts(clientId)
+            log.trace("Set password endpoint returned success")
             HttpResponse.ok(SetPasswordSuccessResponse("Password set successfully"))
         } else {
+            log.debug("Set password failed: invalid or expired token")
             HttpResponse.badRequest(SetPasswordErrorResponse(
                 error = "Invalid or expired token",
                 errorCode = "INVALID_TOKEN"
