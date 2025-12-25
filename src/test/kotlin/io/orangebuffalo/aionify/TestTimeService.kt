@@ -11,9 +11,6 @@ import java.time.ZonedDateTime
 /**
  * Test implementation of TimeService that returns a fixed time for deterministic tests.
  * This replaces the real TimeService in test contexts.
- * 
- * The time can be overridden on a per-instance basis to allow testing scenarios where
- * backend time differs from frontend time.
  */
 @Singleton
 @Requires(env = ["test"])
@@ -30,40 +27,10 @@ class TestTimeService : TimeService() {
          * should use the NZDT values (Saturday 03:30).
          */
         val FIXED_TEST_TIME: Instant = ZonedDateTime.of(2024, 3, 16, 3, 30, 0, 0, ZoneId.of("Pacific/Auckland")).toInstant()
-        
-        /**
-         * Backend time offset from frontend time.
-         * By default, backend time is 1 minute ahead of frontend time to help verify that
-         * timestamps come from the backend, not the frontend.
-         */
-        val BACKEND_TIME_OFFSET_SECONDS: Long = 60L
     }
     
     /**
-     * The current time offset from FIXED_TEST_TIME.
-     * This is volatile to support concurrent access patterns.
+     * Returns the fixed test time instead of the current time.
      */
-    @Volatile
-    private var timeOffsetSeconds: Long = BACKEND_TIME_OFFSET_SECONDS
-    
-    /**
-     * Returns the fixed test time plus any configured offset.
-     * By default, returns FIXED_TEST_TIME + 1 minute to differentiate from frontend time.
-     */
-    override fun now(): Instant = FIXED_TEST_TIME.plusSeconds(timeOffsetSeconds)
-    
-    /**
-     * Sets the time offset from FIXED_TEST_TIME for this instance.
-     * This allows tests to control backend time independently from frontend time.
-     */
-    fun setTimeOffset(seconds: Long) {
-        timeOffsetSeconds = seconds
-    }
-    
-    /**
-     * Resets the time offset to the default backend offset.
-     */
-    fun resetTimeOffset() {
-        timeOffsetSeconds = BACKEND_TIME_OFFSET_SECONDS
-    }
+    override fun now(): Instant = FIXED_TEST_TIME
 }

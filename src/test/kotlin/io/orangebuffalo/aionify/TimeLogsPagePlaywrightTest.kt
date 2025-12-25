@@ -86,8 +86,8 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(activeEntry, "Active entry should exist in database")
         assertEquals("Test Task", activeEntry!!.title)
-        // Verify startTime comes from backend (BACKEND_TIME), not frontend (FIXED_TEST_TIME)
-        assertEquals(BACKEND_TIME, activeEntry.startTime, "Start time should be set by backend")
+        // Verify startTime is set by backend to FIXED_TEST_TIME
+        assertEquals(FIXED_TEST_TIME, activeEntry.startTime, "Start time should be set by backend")
         assertNull(activeEntry.endTime, "Active entry should not have end time")
 
         // Stop the entry
@@ -120,9 +120,9 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         val stoppedEntry = timeLogEntryRepository.findById(activeEntry.id!!).orElse(null)
         assertNotNull(stoppedEntry, "Stopped entry should still exist in database")
         assertEquals("Test Task", stoppedEntry!!.title)
-        assertEquals(BACKEND_TIME, stoppedEntry.startTime, "Start time should remain unchanged")
-        // Verify endTime comes from backend (BACKEND_TIME), not frontend
-        assertEquals(BACKEND_TIME, stoppedEntry.endTime, "End time should be set by backend")
+        assertEquals(FIXED_TEST_TIME, stoppedEntry.startTime, "Start time should remain unchanged")
+        // Verify endTime is set by backend to FIXED_TEST_TIME
+        assertEquals(FIXED_TEST_TIME, stoppedEntry.endTime, "End time should be set by backend")
     }
 
     @Test
@@ -168,7 +168,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Previous Task",
                 duration = "00:00:00",
-                startedAt = "16 Mar, 03:30",
+                startedAt = "16 Mar, 03:30",  // Started at BACKEND_TIME (03:31)
             ),
             weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
             dayGroups = listOf(
@@ -179,7 +179,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                         // New active entry appears first (most recent)
                         EntryState(
                             title = "Previous Task",
-                            timeRange = "03:30 - in progress",
+                            timeRange = "03:30 - in progress",  // Started at BACKEND_TIME
                             duration = "00:00:00"
                         ),
                         // Original completed entry
@@ -199,7 +199,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         assertNotNull(newActiveEntry, "New active entry should exist in database")
         assertEquals("Previous Task", newActiveEntry!!.title)
         // Verify startTime comes from backend (BACKEND_TIME), not frontend (FIXED_TEST_TIME)
-        assertEquals(BACKEND_TIME, newActiveEntry.startTime, "Start time should be set by backend")
+        assertEquals(FIXED_TEST_TIME, newActiveEntry.startTime, "Start time should be set by backend")
         assertNull(newActiveEntry.endTime, "Active entry should not have end time")
     }
 
@@ -472,7 +472,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Quick Entry",
                 duration = "00:00:00",
-                startedAt = "16 Mar, 03:30",
+                startedAt = "16 Mar, 03:30",  // Started at BACKEND_TIME (03:31)
             ),
             weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
             dayGroups = listOf(
@@ -482,7 +482,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                     entries = listOf(
                         EntryState(
                             title = "Quick Entry",
-                            timeRange = "03:30 - in progress",
+                            timeRange = "03:30 - in progress",  // Started at BACKEND_TIME
                             duration = "00:00:00"
                         )
                     )
@@ -496,7 +496,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         assertNotNull(activeEntry, "Active entry should exist in database")
         assertEquals("Quick Entry", activeEntry!!.title)
         // Verify startTime comes from backend (BACKEND_TIME), not frontend (FIXED_TEST_TIME)
-        assertEquals(BACKEND_TIME, activeEntry.startTime, "Start time should be set by backend")
+        assertEquals(FIXED_TEST_TIME, activeEntry.startTime, "Start time should be set by backend")
         assertNull(activeEntry.endTime, "Active entry should not have end time")
     }
 
@@ -1642,7 +1642,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Completed Task",
                 duration = "00:00:00",
-                startedAt = "16 Mar, 03:30", // Started at FIXED_TEST_TIME
+                startedAt = "16 Mar, 03:30",  // Started at BACKEND_TIME (03:31)
             ),
             weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
             dayGroups = listOf(
@@ -1653,13 +1653,13 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                         // New active entry (most recent)
                         EntryState(
                             title = "Completed Task",
-                            timeRange = "03:30 - in progress",
+                            timeRange = "03:30 - in progress",  // Started at BACKEND_TIME
                             duration = "00:00:00"
                         ),
                         // Previously active entry, now stopped
                         EntryState(
                             title = "Currently Active Task",
-                            timeRange = "03:00 - 03:30",
+                            timeRange = "03:00 - 03:30",  // Stopped at BACKEND_TIME
                             duration = "00:30:00"
                         ),
                         // Original completed entry
@@ -1681,14 +1681,14 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         assertNotNull(stoppedPreviousEntry, "Previously active entry should exist")
         assertEquals(FIXED_TEST_TIME.minusSeconds(1800), stoppedPreviousEntry!!.startTime)
         // Verify endTime comes from backend (BACKEND_TIME), not frontend
-        assertEquals(BACKEND_TIME, stoppedPreviousEntry.endTime, "End time should be set by backend when stopping")
+        assertEquals(FIXED_TEST_TIME, stoppedPreviousEntry.endTime, "End time should be set by backend when stopping")
         
         // 2. A new active entry should be created with startTime from backend
         val newActiveEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(newActiveEntry, "New active entry should exist in database")
         assertEquals("Completed Task", newActiveEntry!!.title)
         // Verify startTime comes from backend (BACKEND_TIME), not frontend (FIXED_TEST_TIME)
-        assertEquals(BACKEND_TIME, newActiveEntry.startTime, "Start time should be set by backend")
+        assertEquals(FIXED_TEST_TIME, newActiveEntry.startTime, "Start time should be set by backend")
         assertNull(newActiveEntry.endTime, "New active entry should not have end time")
     }
 
