@@ -1604,7 +1604,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         )
 
         // Create an active entry
-        testDatabaseSupport.insert(
+        val previouslyActiveEntry = testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago (03:00)
                 endTime = null,
@@ -1691,8 +1691,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         
         // Verify database state:
         // 1. The previously active entry should be stopped with endTime from backend
-        val allEntries = timeLogEntryRepository.findAllOrderById()
-        val stoppedPreviousEntry = allEntries.find { it.title == "Currently Active Task" }
+        val stoppedPreviousEntry = timeLogEntryRepository.findById(previouslyActiveEntry.id!!).orElse(null)
         assertNotNull(stoppedPreviousEntry, "Previously active entry should exist")
         assertEquals(FIXED_TEST_TIME.minusSeconds(1800), stoppedPreviousEntry!!.startTime)
         // Verify endTime is set by backend to FIXED_TEST_TIME
