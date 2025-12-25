@@ -79,6 +79,18 @@ export function TimeLogsPage() {
     return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' })
   }
 
+  // Format date and time according to user's locale
+  function formatDateTime(isoString: string, locale: string): string {
+    const date = new Date(isoString)
+    return date.toLocaleString(locale, { 
+      month: 'short', 
+      day: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false 
+    })
+  }
+
   // Calculate duration in milliseconds
   function calculateDuration(startTime: string, endTime: string | null): number {
     const start = new Date(startTime).getTime()
@@ -577,7 +589,7 @@ export function TimeLogsPage() {
                         </Button>
                       </div>
                       <div className="text-sm text-muted-foreground" data-testid="active-entry-started-at">
-                        {t('timeLogs.startedAt')}: {formatTime(activeEntry.startTime, locale)}
+                        {t('timeLogs.startedAt')}: {formatDateTime(activeEntry.startTime, locale)}
                       </div>
                     </div>
                     <div className="flex items-center gap-4">

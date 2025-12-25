@@ -55,7 +55,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Test Task",
                 duration = "00:00:00",
-                startedAt = "03:30",  // Started at FIXED_TEST_TIME (03:30)
+                startedAt = "Mar 16, 03:30",  // Started at FIXED_TEST_TIME (03:30)
             ),
             dayGroups = listOf(
                 DayGroupState(
@@ -139,7 +139,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Previous Task",
                 duration = "00:00:00",
-                startedAt = "03:30",
+                startedAt = "Mar 16, 03:30",
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
@@ -384,7 +384,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Active Task",
                 duration = "00:30:00",
-                startedAt = "03:00",
+                startedAt = "Mar 16, 03:00",
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
@@ -435,7 +435,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Quick Entry",
                 duration = "00:00:00",
-                startedAt = "03:30",
+                startedAt = "Mar 16, 03:30",
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
@@ -475,7 +475,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Active Task",
                 duration = "00:30:00",
-                startedAt = "03:00",
+                startedAt = "Mar 16, 03:00",
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
@@ -514,7 +514,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Active Task",
                 duration = "00:30:00",
-                startedAt = "03:00",
+                startedAt = "Mar 16, 03:00",
             ),
             dayGroups = listOf(
                 DayGroupState(
@@ -540,7 +540,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Active Task",
                 duration = "00:35:00",
-                startedAt = "03:00",
+                startedAt = "Mar 16, 03:00",
             ),
             dayGroups = listOf(
                 DayGroupState(
@@ -566,7 +566,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Active Task",
                 duration = "01:00:00",
-                startedAt = "03:00",
+                startedAt = "Mar 16, 03:00",
             ),
             dayGroups = listOf(
                 DayGroupState(
@@ -877,7 +877,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Original Title",
                 duration = "00:30:00",
-                startedAt = "03:00"
+                startedAt = "Mar 16, 03:00"
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
@@ -903,7 +903,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Original Title",
                 duration = "00:30:00",
-                startedAt = "03:00",
+                startedAt = "Mar 16, 03:00",
                 editMode = EditModeState.Editing(
                     titleValue = "Original Title",
                     dateValue = "Mar 16, 2024",
@@ -924,7 +924,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Updated Title",
                 duration = "00:30:00",
-                startedAt = "03:00"
+                startedAt = "Mar 16, 03:00"
             ),
             dayGroups = listOf(
                 DayGroupState(
@@ -962,7 +962,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Test Task",
                 duration = "00:30:00",
-                startedAt = "03:00"
+                startedAt = "Mar 16, 03:00"
             ),
             dayGroups = listOf(
                 DayGroupState(
@@ -996,7 +996,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Test Task",
                 duration = "01:00:00",
-                startedAt = "02:30"
+                startedAt = "Mar 16, 02:30"
             ),
             dayGroups = listOf(
                 DayGroupState(
@@ -1034,7 +1034,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Original Task",
                 duration = "00:30:00",
-                startedAt = "03:00"
+                startedAt = "Mar 16, 03:00"
             ),
             dayGroups = listOf(
                 DayGroupState(
@@ -1069,7 +1069,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Modified Task",
                 duration = "02:30:00",
-                startedAt = "01:00"
+                startedAt = "Mar 16, 01:00"
             ),
             dayGroups = listOf(
                 DayGroupState(
@@ -1107,7 +1107,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Original Title",
                 duration = "00:30:00",
-                startedAt = "03:00"
+                startedAt = "Mar 16, 03:00"
             ),
             dayGroups = listOf(
                 DayGroupState(
@@ -1158,7 +1158,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Cross-Day Task",
                 duration = "00:30:00",
-                startedAt = "03:00"
+                startedAt = "Mar 16, 03:00"
             ),
             dayGroups = listOf(
                 DayGroupState(
@@ -1194,7 +1194,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Cross-Day Task",
                 duration = "22:30:00",  // Total duration from Friday 05:00 to Saturday 03:30
-                startedAt = "05:00"  // Start time from yesterday
+                startedAt = "Mar 15, 05:00"  // Start time from yesterday
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
@@ -1245,7 +1245,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Valid Title",
                 duration = "00:30:00",
-                startedAt = "03:00"
+                startedAt = "Mar 16, 03:00"
             ),
             dayGroups = listOf(
                 DayGroupState(
@@ -1271,7 +1271,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Valid Title",
                 duration = "00:30:00",
-                startedAt = "03:00",
+                startedAt = "Mar 16, 03:00",
                 editMode = EditModeState.Editing(
                     titleValue = "Valid Title",
                     dateValue = "Mar 16, 2024",
@@ -1289,7 +1289,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Valid Title",
                 duration = "00:30:00",
-                startedAt = "03:00",
+                startedAt = "Mar 16, 03:00",
                 editMode = EditModeState.Editing(
                     titleValue = "",
                     dateValue = "Mar 16, 2024",
@@ -1320,7 +1320,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Test Task",
                 duration = "00:30:00",
-                startedAt = "03:00"
+                startedAt = "Mar 16, 03:00"
             ),
             dayGroups = listOf(
                 DayGroupState(
@@ -1353,7 +1353,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Test Task",
                 duration = "00:30:00",
-                startedAt = "03:00",
+                startedAt = "Mar 16, 03:00",
                 editMode = EditModeState.Editing(
                     titleValue = "Test Task",
                     dateValue = "Mar 16, 2024",
@@ -1472,7 +1472,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Currently Active Task",
                 duration = "00:30:00",
-                startedAt = "03:00",
+                startedAt = "Mar 16, 03:00",
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
@@ -1509,7 +1509,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Completed Task",
                 duration = "00:00:00",
-                startedAt = "03:30", // Started at FIXED_TEST_TIME
+                startedAt = "Mar 16, 03:30", // Started at FIXED_TEST_TIME
             ),
             weekNavigation = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
             dayGroups = listOf(
