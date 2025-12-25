@@ -40,7 +40,7 @@ class TestUsers(
                 passwordHash = BCrypt.hashpw(TEST_PASSWORD, BCrypt.gensalt()),
                 greeting = greeting,
                 isAdmin = true,
-                locale = Locale.US
+                locale = Locale.UK  // Use UK locale for 24-hour time format in tests
             )
         )
     }
@@ -60,7 +60,7 @@ class TestUsers(
                 passwordHash = BCrypt.hashpw(TEST_PASSWORD, BCrypt.gensalt()),
                 greeting = greeting,
                 isAdmin = false,
-                locale = Locale.US
+                locale = Locale.UK  // Use UK locale for 24-hour time format in tests
             )
         )
     }

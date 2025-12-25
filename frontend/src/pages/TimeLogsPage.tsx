@@ -9,6 +9,7 @@ import { TimePicker } from "@/components/ui/time-picker"
 import { PortalLayout } from "@/components/layout/PortalLayout"
 import { FormMessage } from "@/components/ui/form-message"
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api"
+import { formatTime, formatDate, formatDateTime } from "@/lib/date-format"
 import { ChevronLeft, ChevronRight, Play, Square, MoreVertical, Trash2, Pencil } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -48,6 +49,7 @@ export function TimeLogsPage() {
   const [editTitle, setEditTitle] = useState("")
   const [editDateTime, setEditDateTime] = useState<Date>(new Date())
   const [isSaving, setIsSaving] = useState(false)
+  const [userLocale, setUserLocale] = useState<string | null>(null)
 
   // Get the start of the week (Monday)
   function getWeekStart(date: Date): Date {
@@ -67,29 +69,7 @@ export function TimeLogsPage() {
     return `${year}-${month}-${day}`
   }
 
-  // Format time according to user's locale
-  function formatTime(isoString: string, locale: string): string {
-    const date = new Date(isoString)
-    return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: false })
-  }
 
-  // Format date according to user's locale
-  function formatDate(isoString: string, locale: string): string {
-    const date = new Date(isoString)
-    return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' })
-  }
-
-  // Format date and time according to user's locale
-  function formatDateTime(isoString: string, locale: string): string {
-    const date = new Date(isoString)
-    return date.toLocaleString(locale, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    })
-  }
 
   // Calculate duration in milliseconds
   function calculateDuration(startTime: string, endTime: string | null): number {
@@ -419,7 +399,7 @@ export function TimeLogsPage() {
 
   // Get week range display
   function getWeekRangeDisplay(): string {
-    const locale = i18n.language || 'en'
+    const locale = userLocale || i18n.language || 'en'
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekEnd.getDate() + 6)
 
@@ -434,6 +414,20 @@ export function TimeLogsPage() {
     loadTimeEntries()
     loadActiveEntry()
   }, [weekStart])
+
+  // Load user's locale preference on mount
+  useEffect(() => {
+    async function loadUserLocale() {
+      try {
+        const profile = await apiGet<{ locale: string }>('/api/users/profile')
+        setUserLocale(profile.locale)
+      } catch (err) {
+        // Fallback to i18n language if profile fetch fails
+        console.error('Failed to load user locale:', err)
+      }
+    }
+    loadUserLocale()
+  }, [])
 
   // Check for date changes periodically (every minute) to auto-update week
   useEffect(() => {
@@ -467,7 +461,7 @@ export function TimeLogsPage() {
 
   // Recalculate day groups when entries change or when there's an active entry (to update durations)
   useEffect(() => {
-    const locale = i18n.language || 'en'
+    const locale = userLocale || i18n.language || 'en'
     const groups = groupEntriesByDay(entries, locale)
     setDayGroups(groups)
 
@@ -480,9 +474,9 @@ export function TimeLogsPage() {
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [entries, activeEntry, i18n.language])
+  }, [entries, activeEntry, i18n.language, userLocale])
 
-  const locale = i18n.language || 'en'
+  const locale = userLocale || i18n.language || 'en'
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
   return (
