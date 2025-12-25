@@ -539,4 +539,52 @@ class TimeLogsPageObject(private val page: Page) {
     fun clickCancelEdit() {
         page.locator("[data-testid='cancel-edit-button']").click()
     }
+
+    // Helper functions for editing stopped entries
+    
+    fun clickEditForEntry(entryTitle: String) {
+        // Find the entry with the title and click the menu button
+        val entryLocator = page.locator("[data-testid='time-entry']:has-text('$entryTitle')")
+        entryLocator.locator("[data-testid='entry-menu-button']").click()
+        
+        // Click the edit menu item
+        page.locator("[data-testid='edit-menu-item']").click()
+    }
+
+    fun fillStoppedEntryEditTitle(title: String) {
+        val input = page.locator("[data-testid='stopped-entry-edit-title-input']")
+        input.fill(title)
+    }
+
+    fun fillStoppedEntryEditStartDate(date: String) {
+        // Format: YYYY-MM-DD
+        val input = page.locator("[data-testid='stopped-entry-edit-start-date-input']")
+        input.fill(date)
+    }
+
+    fun fillStoppedEntryEditStartTime(time: String) {
+        // Format: HH:MM (24-hour format)
+        val input = page.locator("[data-testid='stopped-entry-edit-start-time-input']")
+        input.fill(time)
+    }
+
+    fun fillStoppedEntryEditEndDate(date: String) {
+        // Format: YYYY-MM-DD
+        val input = page.locator("[data-testid='stopped-entry-edit-end-date-input']")
+        input.fill(date)
+    }
+
+    fun fillStoppedEntryEditEndTime(time: String) {
+        // Format: HH:MM (24-hour format)
+        val input = page.locator("[data-testid='stopped-entry-edit-end-time-input']")
+        input.fill(time)
+    }
+
+    fun clickSaveStoppedEntryEdit() {
+        page.locator("[data-testid='stopped-entry-edit-save-button']").click()
+    }
+
+    fun clickCancelStoppedEntryEdit() {
+        page.locator("[data-testid='stopped-entry-edit-cancel-button']").click()
+    }
 }

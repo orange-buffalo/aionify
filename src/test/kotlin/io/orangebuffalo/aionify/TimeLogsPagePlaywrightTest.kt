@@ -1749,4 +1749,265 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         )
         timeLogsPage.assertPageState(expectedState)
     }
+
+    @Test
+    fun `should edit stopped entry title`() {
+        // Create a stopped entry
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(3600),
+                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                title = "Original Task",
+                ownerId = requireNotNull(testUser.id)
+            )
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Verify initial state
+        val initialState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(),
+            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+            dayGroups = listOf(
+                DayGroupState(
+                    displayTitle = "Today",
+                    totalDuration = "00:30:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Original Task",
+                            timeRange = "02:30 - 03:00",
+                            duration = "00:30:00"
+                        )
+                    )
+                )
+            )
+        )
+        timeLogsPage.assertPageState(initialState)
+
+        // Click edit for the entry
+        timeLogsPage.clickEditForEntry("Original Task")
+
+        // Wait for edit form to appear
+        assertThat(page.locator("[data-testid='time-entry-edit']")).isVisible()
+
+        // Change the title
+        timeLogsPage.fillStoppedEntryEditTitle("Updated Task")
+
+        // Save changes
+        timeLogsPage.clickSaveStoppedEntryEdit()
+
+        // Wait for edit form to disappear
+        assertThat(page.locator("[data-testid='time-entry-edit']")).not().isVisible()
+
+        // Verify the entry is updated
+        val updatedState = initialState.copy(
+            dayGroups = listOf(
+                DayGroupState(
+                    displayTitle = "Today",
+                    totalDuration = "00:30:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Updated Task",
+                            timeRange = "02:30 - 03:00",
+                            duration = "00:30:00"
+                        )
+                    )
+                )
+            )
+        )
+        timeLogsPage.assertPageState(updatedState)
+    }
+
+    @Test
+    fun `should edit stopped entry start and end times`() {
+        // Create a stopped entry
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(3600), // 02:30
+                endTime = FIXED_TEST_TIME.minusSeconds(1800),   // 03:00
+                title = "Task to Edit",
+                ownerId = requireNotNull(testUser.id)
+            )
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Click edit for the entry
+        timeLogsPage.clickEditForEntry("Task to Edit")
+
+        // Wait for edit form to appear
+        assertThat(page.locator("[data-testid='time-entry-edit']")).isVisible()
+
+        // Change start time to 01:00 and end time to 02:00
+        timeLogsPage.fillStoppedEntryEditStartDate("2024-03-16")
+        timeLogsPage.fillStoppedEntryEditStartTime("01:00")
+        timeLogsPage.fillStoppedEntryEditEndDate("2024-03-16")
+        timeLogsPage.fillStoppedEntryEditEndTime("02:00")
+
+        // Save changes
+        timeLogsPage.clickSaveStoppedEntryEdit()
+
+        // Wait for edit form to disappear
+        assertThat(page.locator("[data-testid='time-entry-edit']")).not().isVisible()
+
+        // Verify the entry is updated with new times and duration (1 hour)
+        val updatedState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(),
+            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+            dayGroups = listOf(
+                DayGroupState(
+                    displayTitle = "Today",
+                    totalDuration = "01:00:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Task to Edit",
+                            timeRange = "01:00 - 02:00",
+                            duration = "01:00:00"
+                        )
+                    )
+                )
+            )
+        )
+        timeLogsPage.assertPageState(updatedState)
+    }
+
+    @Test
+    fun `should cancel editing stopped entry`() {
+        // Create a stopped entry
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(3600),
+                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                title = "Original Task",
+                ownerId = requireNotNull(testUser.id)
+            )
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Verify initial state
+        val initialState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(),
+            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+            dayGroups = listOf(
+                DayGroupState(
+                    displayTitle = "Today",
+                    totalDuration = "00:30:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Original Task",
+                            timeRange = "02:30 - 03:00",
+                            duration = "00:30:00"
+                        )
+                    )
+                )
+            )
+        )
+        timeLogsPage.assertPageState(initialState)
+
+        // Click edit for the entry
+        timeLogsPage.clickEditForEntry("Original Task")
+
+        // Wait for edit form to appear
+        assertThat(page.locator("[data-testid='time-entry-edit']")).isVisible()
+
+        // Make some changes
+        timeLogsPage.fillStoppedEntryEditTitle("Changed Title")
+        timeLogsPage.fillStoppedEntryEditStartTime("01:00")
+
+        // Cancel editing
+        timeLogsPage.clickCancelStoppedEntryEdit()
+
+        // Wait for edit form to disappear
+        assertThat(page.locator("[data-testid='time-entry-edit']")).not().isVisible()
+
+        // Verify original state is preserved
+        timeLogsPage.assertPageState(initialState)
+    }
+
+    @Test
+    fun `should enforce mutual exclusion between active and stopped entry editing`() {
+        // Create an active entry
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(1800),
+                endTime = null,
+                title = "Active Task",
+                ownerId = requireNotNull(testUser.id)
+            )
+        )
+
+        // Create a stopped entry
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(3600),
+                endTime = FIXED_TEST_TIME.minusSeconds(2700),
+                title = "Stopped Task",
+                ownerId = requireNotNull(testUser.id)
+            )
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Start editing the active entry
+        timeLogsPage.clickEditEntry()
+
+        // Verify active entry edit form is visible
+        assertThat(page.locator("[data-testid='edit-title-input']")).isVisible()
+
+        // Start editing a stopped entry
+        timeLogsPage.clickEditForEntry("Stopped Task")
+
+        // Verify active entry edit form is no longer visible (cancelled)
+        assertThat(page.locator("[data-testid='edit-title-input']")).not().isVisible()
+
+        // Verify stopped entry edit form is visible
+        assertThat(page.locator("[data-testid='time-entry-edit']")).isVisible()
+
+        // Cancel stopped entry edit
+        timeLogsPage.clickCancelStoppedEntryEdit()
+
+        // Start editing the active entry again
+        timeLogsPage.clickEditEntry()
+
+        // Verify active entry edit form is visible
+        assertThat(page.locator("[data-testid='edit-title-input']")).isVisible()
+    }
+
+    @Test
+    fun `should show error when end time is before start time`() {
+        // Create a stopped entry
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(3600),
+                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                title = "Task to Edit",
+                ownerId = requireNotNull(testUser.id)
+            )
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Click edit for the entry
+        timeLogsPage.clickEditForEntry("Task to Edit")
+
+        // Wait for edit form to appear
+        assertThat(page.locator("[data-testid='time-entry-edit']")).isVisible()
+
+        // Set end time before start time
+        timeLogsPage.fillStoppedEntryEditStartDate("2024-03-16")
+        timeLogsPage.fillStoppedEntryEditStartTime("03:00")
+        timeLogsPage.fillStoppedEntryEditEndDate("2024-03-16")
+        timeLogsPage.fillStoppedEntryEditEndTime("02:00")
+
+        // Try to save
+        timeLogsPage.clickSaveStoppedEntryEdit()
+
+        // Verify error message is shown
+        assertThat(page.locator("[data-testid='time-logs-error']")).isVisible()
+        assertThat(page.locator("[data-testid='time-logs-error']")).containsText("End time must be after start time")
+
+        // Verify we're still in edit mode
+        assertThat(page.locator("[data-testid='time-entry-edit']")).isVisible()
+    }
 }
