@@ -476,9 +476,6 @@ class TimeLogsPageObject(private val page: Page) {
         val dateTrigger = page.locator("[data-testid='edit-date-trigger']")
         dateTrigger.click()
         
-        // Give the popover time to appear
-        page.waitForTimeout(200.0)
-        
         // Wait for popover to appear
         page.locator("[role='dialog']").waitFor()
         

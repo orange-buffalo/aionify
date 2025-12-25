@@ -171,17 +171,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
         // Click confirm
         page.locator("[data-testid='delete-confirm-button-regularuser']").click()
 
-        // Wait a bit for the API call to complete
-        page.waitForTimeout(1000.0)
-
-        // Check if there's an error message instead of success
-        val errorMessage = page.locator("[data-testid='users-error']")
-        if (errorMessage.isVisible) {
-            val errorText = errorMessage.textContent()
-            throw AssertionError("Expected success but got error: $errorText")
-        }
-
-        // Verify success message is displayed
+        // Verify success message is displayed (this will auto-wait for the API call to complete)
         val successMessage = page.locator("[data-testid='users-success']")
         assertThat(successMessage).isVisible()
         assertThat(successMessage).containsText("User deleted successfully")
