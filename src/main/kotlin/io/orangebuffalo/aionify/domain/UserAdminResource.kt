@@ -30,16 +30,20 @@ open class UserAdminResource(
     private val timeService: TimeService
 ) {
 
+    private val log = org.slf4j.LoggerFactory.getLogger(UserAdminResource::class.java)
+
     @Get
     open fun listUsers(
         @QueryValue(defaultValue = "0") page: Int,
         @QueryValue(defaultValue = "20") size: Int
     ): HttpResponse<*> {
         if (page < 0) {
+            log.debug("Invalid page parameter: {}", page)
             return HttpResponse.badRequest(ErrorResponse("Page must be non-negative", "INVALID_PAGE"))
         }
         
         if (size <= 0 || size > 100) {
+            log.debug("Invalid size parameter: {}", size)
             return HttpResponse.badRequest(ErrorResponse("Size must be between 1 and 100", "INVALID_SIZE"))
         }
         
@@ -64,9 +68,12 @@ open class UserAdminResource(
 
     @Post
     open fun createUser(@Valid @Body request: CreateUserRequest): HttpResponse<*> {
+        log.debug("Creating user: {}", request.userName)
+        
         // Check if username already exists
         val existingUser = userRepository.findByUserName(request.userName).orElse(null)
         if (existingUser != null) {
+            log.debug("User creation failed: username already exists: {}", request.userName)
             return HttpResponse.badRequest(ErrorResponse("Username already exists", "USERNAME_ALREADY_EXISTS"))
         }
         
@@ -83,6 +90,8 @@ open class UserAdminResource(
                 locale = java.util.Locale.US
             )
         )
+        
+        log.info("User created: {}, isAdmin: {}", request.userName, request.isAdmin)
         
         // Create activation token with 10 days (240 hours) expiration
         val activationToken = activationTokenService.createToken(requireNotNull(user.id))
@@ -103,18 +112,27 @@ open class UserAdminResource(
 
     @Get("/{id}")
     open fun getUser(@PathVariable id: Long): HttpResponse<*> {
+        log.debug("Getting user by id: {}", id)
+        
         val user = userRepository.findById(id).orElse(null)
-            ?: return HttpResponse.notFound<ErrorResponse>()
+        if (user == null) {
+            log.debug("User not found: {}", id)
+            return HttpResponse.notFound<ErrorResponse>()
                 .body(ErrorResponse("User not found", "USER_NOT_FOUND"))
+        }
         
         // Check for activation token
         val activationToken = activationTokenRepository.findByUserId(id).orElse(null)
         val activationTokenInfo = if (activationToken != null && activationToken.expiresAt.isAfter(timeService.now())) {
+            log.trace("Active activation token found for user: {}", id)
             ActivationTokenInfo(
                 token = activationToken.token,
                 expiresAt = activationToken.expiresAt
             )
         } else {
+            if (activationToken != null) {
+                log.trace("Expired activation token found for user: {}", id)
+            }
             null
         }
         
@@ -135,15 +153,23 @@ open class UserAdminResource(
         @Valid @Body request: UpdateUserRequest,
         principal: Principal?
     ): HttpResponse<*> {
+        log.debug("Updating user: {}", id)
+        
         val user = userRepository.findById(id).orElse(null)
-            ?: return HttpResponse.notFound<ErrorResponse>()
+        if (user == null) {
+            log.debug("Update failed: user not found: {}", id)
+            return HttpResponse.notFound<ErrorResponse>()
                 .body(ErrorResponse("User not found", "USER_NOT_FOUND"))
+        }
         
         // Check if username is being changed
         if (request.userName != user.userName) {
+            log.debug("Username change requested for user {}: {} -> {}", id, user.userName, request.userName)
+            
             // Check for username uniqueness
             val existingUser = userRepository.findByUserName(request.userName).orElse(null)
             if (existingUser != null) {
+                log.debug("Username change failed: username already exists: {}", request.userName)
                 return HttpResponse.badRequest(ErrorResponse("Username already exists", "USERNAME_ALREADY_EXISTS"))
             }
             
@@ -158,6 +184,8 @@ open class UserAdminResource(
                     localeTag = user.localeTag
                 )
             )
+            
+            log.info("User updated: {}, new username: {}", id, request.userName)
         }
         
         return HttpResponse.ok(SuccessResponse("User updated successfully"))
@@ -165,12 +193,19 @@ open class UserAdminResource(
 
     @Post("/{id}/regenerate-activation-token")
     open fun regenerateActivationToken(@PathVariable id: Long): HttpResponse<*> {
+        log.debug("Regenerating activation token for user: {}", id)
+        
         val user = userRepository.findById(id).orElse(null)
-            ?: return HttpResponse.notFound<ErrorResponse>()
+        if (user == null) {
+            log.debug("Token regeneration failed: user not found: {}", id)
+            return HttpResponse.notFound<ErrorResponse>()
                 .body(ErrorResponse("User not found", "USER_NOT_FOUND"))
+        }
         
         // Generate new activation token
         val activationToken = activationTokenService.createToken(requireNotNull(user.id))
+        
+        log.info("Activation token regenerated for user: {}", id)
         
         return HttpResponse.ok(
             ActivationTokenResponse(
@@ -183,21 +218,31 @@ open class UserAdminResource(
     @Delete("/{id}")
     open fun deleteUser(@PathVariable id: Long, principal: Principal?): HttpResponse<*> {
         val currentUserName = principal?.name
-            ?: return HttpResponse.unauthorized<ErrorResponse>()
+        if (currentUserName == null) {
+            log.debug("User deletion failed: user not authenticated")
+            return HttpResponse.unauthorized<ErrorResponse>()
                 .body(ErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
+        }
         
         val currentUser = userRepository.findByUserName(currentUserName).orElse(null)
-            ?: return HttpResponse.unauthorized<ErrorResponse>()
+        if (currentUser == null) {
+            log.debug("User deletion failed: current user not found: {}", currentUserName)
+            return HttpResponse.unauthorized<ErrorResponse>()
                 .body(ErrorResponse("User not found", "USER_NOT_FOUND"))
+        }
         
         // Prevent self-deletion
         if (currentUser.id == id) {
+            log.debug("User deletion failed: attempt to delete self by user: {}", currentUserName)
             return HttpResponse.badRequest(ErrorResponse("Cannot delete your own user account", "CANNOT_DELETE_SELF"))
         }
         
         val deleted = userRepository.existsById(id)
         if (deleted) {
             userRepository.deleteById(id)
+            log.info("User deleted: {}", id)
+        } else {
+            log.debug("User deletion failed: user not found: {}", id)
         }
         
         return if (deleted) {

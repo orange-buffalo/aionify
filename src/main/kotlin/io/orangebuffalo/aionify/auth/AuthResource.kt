@@ -17,13 +17,17 @@ import java.security.Principal
 @Controller("/api/auth")
 open class AuthResource(private val authService: AuthService) {
 
+    private val log = org.slf4j.LoggerFactory.getLogger(AuthResource::class.java)
+
     @Post("/login")
     @Secured(SecurityRule.IS_ANONYMOUS)
     open fun login(@Valid @Body request: LoginRequest): HttpResponse<*> {
         return try {
             val response = authService.authenticate(request.userName, request.password)
+            log.trace("Login endpoint returned success for user: {}", request.userName)
             HttpResponse.ok(response)
         } catch (e: AuthenticationException) {
+            log.trace("Login endpoint returned unauthorized for user: {}", request.userName)
             HttpResponse.unauthorized<LoginErrorResponse>()
                 .body(LoginErrorResponse(e.message ?: "Authentication failed"))
         }
@@ -33,17 +37,22 @@ open class AuthResource(private val authService: AuthService) {
     @Secured(SecurityRule.IS_AUTHENTICATED)
     open fun changePassword(@Valid @Body request: ChangePasswordRequest, principal: Principal?): HttpResponse<*> {
         val userName = principal?.name
-            ?: return HttpResponse.unauthorized<ChangePasswordErrorResponse>()
+        if (userName == null) {
+            log.debug("Change password failed: user not authenticated")
+            return HttpResponse.unauthorized<ChangePasswordErrorResponse>()
                 .body(ChangePasswordErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
+        }
 
         return try {
             authService.changePassword(userName, request.currentPassword, request.newPassword)
+            log.trace("Change password endpoint returned success for user: {}", userName)
             HttpResponse.ok(ChangePasswordSuccessResponse("Password changed successfully"))
         } catch (e: AuthenticationException) {
             val errorCode = when (e.message) {
                 "Current password is incorrect" -> "CURRENT_PASSWORD_INCORRECT"
                 else -> "UNKNOWN_ERROR"
             }
+            log.trace("Change password endpoint returned error for user: {}, errorCode: {}", userName, errorCode)
             HttpResponse.badRequest(ChangePasswordErrorResponse(e.message ?: "Failed to change password", errorCode))
         }
     }

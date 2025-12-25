@@ -24,16 +24,26 @@ open class UserResource(
     private val userService: UserService
 ) {
 
+    private val log = org.slf4j.LoggerFactory.getLogger(UserResource::class.java)
+
     @Get("/profile")
     open fun getProfile(principal: Principal?): HttpResponse<*> {
         val userName = principal?.name
-            ?: return HttpResponse.unauthorized<ProfileErrorResponse>()
+        if (userName == null) {
+            log.debug("Get profile failed: user not authenticated")
+            return HttpResponse.unauthorized<ProfileErrorResponse>()
                 .body(ProfileErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
+        }
 
         val user = userRepository.findByUserName(userName).orElse(null)
-            ?: return HttpResponse.notFound<ProfileErrorResponse>()
+        if (user == null) {
+            log.debug("Get profile failed: user not found: {}", userName)
+            return HttpResponse.notFound<ProfileErrorResponse>()
                 .body(ProfileErrorResponse("User not found", "USER_NOT_FOUND"))
+        }
 
+        log.trace("Returning profile for user: {}", userName)
+        
         return HttpResponse.ok(
             ProfileResponse(
                 userName = user.userName,
@@ -46,13 +56,19 @@ open class UserResource(
     @Put("/profile")
     open fun updateProfile(@Valid @Body request: UpdateProfileRequest, principal: Principal?): HttpResponse<*> {
         val userName = principal?.name
-            ?: return HttpResponse.unauthorized<ProfileErrorResponse>()
+        if (userName == null) {
+            log.debug("Update profile failed: user not authenticated")
+            return HttpResponse.unauthorized<ProfileErrorResponse>()
                 .body(ProfileErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
+        }
 
         val locale = parseLocale(request.locale)
-            ?: return HttpResponse.badRequest(
+        if (locale == null) {
+            log.debug("Update profile failed: invalid locale: {}", request.locale)
+            return HttpResponse.badRequest(
                 ProfileErrorResponse("Invalid locale format", "INVALID_LOCALE")
             )
+        }
 
         userService.updateProfile(
             userName = userName,
