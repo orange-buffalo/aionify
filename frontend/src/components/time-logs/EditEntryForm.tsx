@@ -59,14 +59,14 @@ export function EditEntryForm({
             onChange={onStartDateTimeChange}
             disabled={isSaving}
             locale={locale}
-            testIdPrefix={`${testIdPrefix}-start-date`}
+            testIdPrefix={`${testIdPrefix}-date`}
           />
           <TimePicker
             value={startDateTime}
             onChange={onStartDateTimeChange}
             disabled={isSaving}
             locale={locale}
-            testIdPrefix={`${testIdPrefix}-start-time`}
+            testIdPrefix={`${testIdPrefix}-time`}
           />
         </div>
       </div>

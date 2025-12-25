@@ -558,13 +558,13 @@ class TimeLogsPageObject(private val page: Page) {
 
     fun fillStoppedEntryEditStartDate(date: String) {
         // Format: YYYY-MM-DD
-        val input = page.locator("[data-testid='stopped-entry-edit-start-date-input']")
+        val input = page.locator("[data-testid='stopped-entry-edit-date-input']")
         input.fill(date)
     }
 
     fun fillStoppedEntryEditStartTime(time: String) {
         // Format: HH:MM (24-hour format)
-        val input = page.locator("[data-testid='stopped-entry-edit-start-time-input']")
+        val input = page.locator("[data-testid='stopped-entry-edit-time-input']")
         input.fill(time)
     }
 
