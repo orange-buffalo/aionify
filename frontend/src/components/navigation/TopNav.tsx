@@ -103,7 +103,7 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
                   className="w-56 rounded-sm dark bg-popover text-popover-foreground"
                   data-testid="mobile-menu-dropdown"
                 >
-                  <DropdownMenuLabel>{t("nav.dashboard")}</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t("nav.menu")}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {menuItems.map((item, index) => (
                     <DropdownMenuItem

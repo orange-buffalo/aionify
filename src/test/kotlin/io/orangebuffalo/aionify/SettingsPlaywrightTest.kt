@@ -41,7 +41,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
     }
 
     private fun navigateToPortalViaToken() {
-        loginViaToken("/portal", regularUser, testAuthSupport)
+        loginViaToken("/portal/time-logs", regularUser, testAuthSupport)
     }
 
     // === Full Test Suite for Regular User ===
@@ -500,10 +500,10 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='password-input']").fill(newPassword)
         page.locator("[data-testid='login-button']").click()
 
-        // Should be redirected to portal
-        page.waitForURL("**/portal")
-        val userPortal = page.locator("[data-testid='user-portal']")
-        assertThat(userPortal).isVisible()
+        // Should be redirected to time logs page
+        page.waitForURL("**/portal/time-logs")
+        val timeLogsPage = page.locator("[data-testid='time-logs-page']")
+        assertThat(timeLogsPage).isVisible()
     }
 
     @Test

@@ -61,7 +61,7 @@ class DockerLoginE2ETest {
                 log.info("Starting Docker Compose...")
                 composeContainer.start()
 
-                // Get the application URL  
+                // Get the application URL
                 // Note: getServicePort returns incorrect port with dynamic port mapping,
                 // so we get the actual bound port from the container
                 val containerName = "${APP_SERVICE}-1"
@@ -70,7 +70,7 @@ class DockerLoginE2ETest {
                 val actualPort = bindings.get(ExposedPort.tcp(APP_PORT))
                     ?.get(0)?.hostPortSpec
                     ?: throw IllegalStateException("Could not find port binding for $APP_PORT")
-                
+
                 val host = composeContainer.getServiceHost(APP_SERVICE, APP_PORT)
                 val appUrl = "http://$host:$actualPort"
 
@@ -155,14 +155,14 @@ class DockerLoginE2ETest {
                             page.locator("[data-testid='login-button']").click()
 
                             // Wait for redirect to admin portal
-                            page.waitForURL("**/admin", Page.WaitForURLOptions().setTimeout(10000.0))
+                            page.waitForURL("**/admin/users")
 
-                            // Verify we're on the admin portal
-                            val adminPortal = page.locator("[data-testid='admin-portal']")
-                            assertThat(adminPortal).isVisible()
+                            // Verify we're on the users page
+                            val usersPage = page.locator("[data-testid='users-page']")
+                            assertThat(usersPage).isVisible()
 
-                            val adminTitle = page.locator("[data-testid='admin-title']")
-                            assertThat(adminTitle).hasText("Admin Portal")
+                            val pageTitle = page.locator("[data-testid='users-title']")
+                            assertThat(pageTitle).hasText("Users")
 
                             log.info("✓ Login successful - admin portal loaded")
                         }

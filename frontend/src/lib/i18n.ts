@@ -128,32 +128,9 @@ const resources = {
       },
       // Portal Pages
       portal: {
-        user: {
-          title: "Time Tracking",
-          subtitle: "Track and manage your time log entries",
-          timeEntry: {
-            title: "Time Log",
-            description: "Log your time",
-            comingSoon: "Time log coming soon...",
-          },
-          calendar: {
-            title: "Calendar",
-            description: "View your schedule",
-            comingSoon: "Calendar coming soon...",
-          },
-          reports: {
-            title: "Reports",
-            description: "View your reports",
-            comingSoon: "Reports coming soon...",
-          },
-        },
         admin: {
-          title: "Admin Portal",
-          subtitle: "Manage users and system settings",
           users: {
             title: "Users",
-            description: "Manage user accounts",
-            manage: "Manage Users",
             subtitle: "View and manage system users",
             deleteSuccess: "User deleted successfully",
             createUser: "Create User",
@@ -223,21 +200,11 @@ const resources = {
               noPasswordChange: "Passwords for other users cannot be changed. Use the activation token to allow users to set their own password.",
             },
           },
-          reports: {
-            title: "Reports",
-            description: "View system reports",
-            comingSoon: "Reports coming soon...",
-          },
-          settings: {
-            title: "Settings",
-            description: "System configuration",
-            comingSoon: "Settings coming soon...",
-          },
         },
       },
       // Navigation
       nav: {
-        dashboard: "Dashboard",
+        menu: "Menu",
         settings: "Settings",
         logout: "Logout",
         timeEntry: "Time Log",
@@ -450,32 +417,9 @@ const resources = {
       },
       // Portal Pages
       portal: {
-        user: {
-          title: "Облік часу",
-          subtitle: "Відстежуйте та керуйте записами часу",
-          timeEntry: {
-            title: "Журнал часу",
-            description: "Записуйте свій час",
-            comingSoon: "Журнал часу скоро з'явиться...",
-          },
-          calendar: {
-            title: "Календар",
-            description: "Переглядайте свій розклад",
-            comingSoon: "Календар скоро з'явиться...",
-          },
-          reports: {
-            title: "Звіти",
-            description: "Переглядайте свої звіти",
-            comingSoon: "Звіти скоро з'явиться...",
-          },
-        },
         admin: {
-          title: "Адміністративна панель",
-          subtitle: "Керуйте користувачами та налаштуваннями системи",
           users: {
             title: "Користувачі",
-            description: "Керування обліковими записами",
-            manage: "Керувати користувачами",
             subtitle: "Перегляд та керування користувачами системи",
             deleteSuccess: "Користувача успішно видалено",
             createUser: "Створити користувача",
@@ -545,21 +489,11 @@ const resources = {
               noPasswordChange: "Паролі інших користувачів не можуть бути змінені. Використовуйте токен активації, щоб дозволити користувачам встановити власний пароль.",
             },
           },
-          reports: {
-            title: "Звіти",
-            description: "Переглядайте системні звіти",
-            comingSoon: "Звіти скоро з'явиться...",
-          },
-          settings: {
-            title: "Налаштування",
-            description: "Конфігурація системи",
-            comingSoon: "Налаштування скоро з'явиться...",
-          },
         },
       },
       // Navigation
       nav: {
-        dashboard: "Панель керування",
+        menu: "Меню",
         settings: "Налаштування",
         logout: "Вийти",
         timeEntry: "Журнал часу",

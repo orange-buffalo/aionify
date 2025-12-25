@@ -22,13 +22,13 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
 
   // Authenticated but wrong role - redirect to appropriate portal
   if (requireAdmin && !user.isAdmin) {
-    // Regular user trying to access admin page - redirect to user portal
-    return <Navigate to="/portal" replace />
+    // Regular user trying to access admin page - redirect to time logs page
+    return <Navigate to="/portal/time-logs" replace />
   }
 
   if (!requireAdmin && user.isAdmin) {
-    // Admin trying to access user portal - redirect to admin portal
-    return <Navigate to="/admin" replace />
+    // Admin trying to access user portal - redirect to admin users page
+    return <Navigate to="/admin/users" replace />
   }
 
   // Authenticated with correct role - render the protected content

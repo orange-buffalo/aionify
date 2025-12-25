@@ -29,33 +29,33 @@ class AuthenticationRoutingPlaywrightTest : PlaywrightTestBase() {
     }
 
     @Test
-    fun `authenticated admin user accessing root path should be redirected to admin portal`() {
+    fun `authenticated admin user accessing root path should be redirected to admin users page`() {
         // Get admin user (created in @BeforeEach)
         val adminUser = userRepository.findByUserName(TestUsers.ADMIN_USERNAME).get()
 
         // Authenticate as admin
         loginViaToken("/", adminUser, testAuthSupport)
 
-        // Should be redirected to admin portal
-        page.waitForURL("**/admin")
+        // Should be redirected to admin users page
+        page.waitForURL("**/admin/users")
 
-        val adminPortal = page.locator("[data-testid='admin-portal']")
-        assertThat(adminPortal).isVisible()
+        val usersPage = page.locator("[data-testid='users-page']")
+        assertThat(usersPage).isVisible()
     }
 
     @Test
-    fun `authenticated regular user accessing root path should be redirected to user portal`() {
+    fun `authenticated regular user accessing root path should be redirected to time logs page`() {
         // Get regular user (created in @BeforeEach)
         val regularUser = userRepository.findByUserName(TestUsers.REGULAR_USERNAME).get()
 
         // Authenticate as regular user
         loginViaToken("/", regularUser, testAuthSupport)
 
-        // Should be redirected to user portal
-        page.waitForURL("**/portal")
+        // Should be redirected to time logs page
+        page.waitForURL("**/portal/time-logs")
 
-        val userPortal = page.locator("[data-testid='user-portal']")
-        assertThat(userPortal).isVisible()
+        val timeLogsPage = page.locator("[data-testid='time-logs-page']")
+        assertThat(timeLogsPage).isVisible()
     }
 
     @Test
@@ -95,48 +95,33 @@ class AuthenticationRoutingPlaywrightTest : PlaywrightTestBase() {
     }
 
     @Test
-    fun `regular user accessing admin portal should be redirected to user portal`() {
-        // Get regular user
-        val regularUser = userRepository.findByUserName(TestUsers.REGULAR_USERNAME).get()
-
-        // Try to access admin portal
-        loginViaToken("/admin", regularUser, testAuthSupport)
-
-        // Should be redirected to user portal
-        page.waitForURL("**/portal")
-
-        val userPortal = page.locator("[data-testid='user-portal']")
-        assertThat(userPortal).isVisible()
-    }
-
-    @Test
-    fun `admin user accessing user portal should be redirected to admin portal`() {
-        // Get admin user
-        val adminUser = userRepository.findByUserName(TestUsers.ADMIN_USERNAME).get()
-
-        // Try to access user portal
-        loginViaToken("/portal", adminUser, testAuthSupport)
-
-        // Should be redirected to admin portal
-        page.waitForURL("**/admin")
-
-        val adminPortal = page.locator("[data-testid='admin-portal']")
-        assertThat(adminPortal).isVisible()
-    }
-
-    @Test
-    fun `regular user accessing admin users page should be redirected to user portal`() {
+    fun `regular user accessing admin users page should be redirected to time logs page`() {
         // Get regular user
         val regularUser = userRepository.findByUserName(TestUsers.REGULAR_USERNAME).get()
 
         // Try to access admin users page
         loginViaToken("/admin/users", regularUser, testAuthSupport)
 
-        // Should be redirected to user portal
-        page.waitForURL("**/portal")
+        // Should be redirected to time logs page
+        page.waitForURL("**/portal/time-logs")
 
-        val userPortal = page.locator("[data-testid='user-portal']")
-        assertThat(userPortal).isVisible()
+        val timeLogsPage = page.locator("[data-testid='time-logs-page']")
+        assertThat(timeLogsPage).isVisible()
+    }
+
+    @Test
+    fun `admin user accessing time logs page should be redirected to admin users page`() {
+        // Get admin user
+        val adminUser = userRepository.findByUserName(TestUsers.ADMIN_USERNAME).get()
+
+        // Try to access time logs page
+        loginViaToken("/portal/time-logs", adminUser, testAuthSupport)
+
+        // Should be redirected to admin users page
+        page.waitForURL("**/admin/users")
+
+        val usersPage = page.locator("[data-testid='users-page']")
+        assertThat(usersPage).isVisible()
     }
 
     @Test
@@ -186,7 +171,7 @@ class AuthenticationRoutingPlaywrightTest : PlaywrightTestBase() {
     }
 
     @Test
-    fun `regular user can navigate from root to portal after login`() {
+    fun `regular user can navigate from root to time logs after login`() {
         // Navigate to root path
         page.navigate("/")
 
@@ -198,22 +183,22 @@ class AuthenticationRoutingPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='password-input']").fill(TestUsers.TEST_PASSWORD)
         page.locator("[data-testid='login-button']").click()
 
-        // Should be redirected to user portal
-        page.waitForURL("**/portal")
+        // Should be redirected to time logs page
+        page.waitForURL("**/portal/time-logs")
 
-        val userPortal = page.locator("[data-testid='user-portal']")
-        assertThat(userPortal).isVisible()
+        val timeLogsPage = page.locator("[data-testid='time-logs-page']")
+        assertThat(timeLogsPage).isVisible()
 
         // Now navigate back to root
         page.navigate("/")
 
-        // Should stay/return to user portal
-        page.waitForURL("**/portal")
-        assertThat(userPortal).isVisible()
+        // Should stay/return to time logs page
+        page.waitForURL("**/portal/time-logs")
+        assertThat(timeLogsPage).isVisible()
     }
 
     @Test
-    fun `admin user can navigate from root to admin portal after login`() {
+    fun `admin user can navigate from root to admin users page after login`() {
         // Navigate to root path
         page.navigate("/")
 
@@ -225,17 +210,17 @@ class AuthenticationRoutingPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='password-input']").fill(TestUsers.TEST_PASSWORD)
         page.locator("[data-testid='login-button']").click()
 
-        // Should be redirected to admin portal
-        page.waitForURL("**/admin")
+        // Should be redirected to admin users page
+        page.waitForURL("**/admin/users")
 
-        val adminPortal = page.locator("[data-testid='admin-portal']")
-        assertThat(adminPortal).isVisible()
+        val usersPage = page.locator("[data-testid='users-page']")
+        assertThat(usersPage).isVisible()
 
         // Now navigate back to root
         page.navigate("/")
 
-        // Should stay/return to admin portal
-        page.waitForURL("**/admin")
-        assertThat(adminPortal).isVisible()
+        // Should stay/return to admin users page
+        page.waitForURL("**/admin/users")
+        assertThat(usersPage).isVisible()
     }
 }

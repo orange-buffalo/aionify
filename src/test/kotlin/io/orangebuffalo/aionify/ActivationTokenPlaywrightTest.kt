@@ -229,10 +229,10 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='password-input']").fill("newpassword123")
         page.locator("[data-testid='login-button']").click()
 
-        // Should redirect to user portal
-        page.waitForURL("**/portal")
-        val userPortal = page.locator("[data-testid='user-portal']")
-        assertThat(userPortal).isVisible()
+        // Should redirect to time logs page
+        page.waitForURL("**/portal/time-logs")
+        val timeLogsPage = page.locator("[data-testid='time-logs-page']")
+        assertThat(timeLogsPage).isVisible()
     }
 
     @Test

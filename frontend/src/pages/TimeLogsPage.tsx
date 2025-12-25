@@ -82,12 +82,12 @@ export function TimeLogsPage() {
   // Format date and time according to user's locale
   function formatDateTime(isoString: string, locale: string): string {
     const date = new Date(isoString)
-    return date.toLocaleString(locale, { 
-      month: 'short', 
-      day: 'numeric', 
-      hour: '2-digit', 
+    return date.toLocaleString(locale, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
       minute: '2-digit',
-      hour12: false 
+      hour12: false
     })
   }
 
@@ -636,29 +636,31 @@ export function TimeLogsPage() {
           </Card>
 
           {/* Week Navigation */}
-          <div className="flex items-center justify-between mb-6">
-            <Button
-              variant="ghost"
-              onClick={handlePreviousWeek}
-              data-testid="previous-week-button"
-              className="text-foreground"
-            >
-              <ChevronLeft className="h-4 w-4 mr-2" />
-              {t('timeLogs.previousWeek')}
-            </Button>
-            <h2 className="text-xl font-semibold text-foreground" data-testid="week-range">
-              {getWeekRangeDisplay()}
-            </h2>
-            <Button
-              variant="ghost"
-              onClick={handleNextWeek}
-              data-testid="next-week-button"
-              className="text-foreground"
-            >
-              {t('timeLogs.nextWeek')}
-              <ChevronRight className="h-4 w-4 ml-2" />
-            </Button>
-          </div>
+          <Card className="border-none shadow-md mb-6">
+            <CardContent className="flex items-center justify-between p-4">
+              <Button
+                variant="ghost"
+                onClick={handlePreviousWeek}
+                data-testid="previous-week-button"
+                className="text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4 mr-2" />
+                {t('timeLogs.previousWeek')}
+              </Button>
+              <h2 className="text-xl font-semibold text-foreground" data-testid="week-range">
+                {getWeekRangeDisplay()}
+              </h2>
+              <Button
+                variant="ghost"
+                onClick={handleNextWeek}
+                data-testid="next-week-button"
+                className="text-foreground"
+              >
+                {t('timeLogs.nextWeek')}
+                <ChevronRight className="h-4 w-4 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
 
 
           {/* Time Entries List */}
