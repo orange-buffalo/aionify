@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Clock } from "lucide-react"
+import { uses12HourFormat } from "@/lib/date-format"
 
 interface TimePickerProps {
   value: Date
@@ -11,17 +12,7 @@ interface TimePickerProps {
 }
 
 export function TimePicker({ value, onChange, disabled, locale, testIdPrefix }: TimePickerProps) {
-  // Determine if locale uses 12-hour format
-  const uses12Hour = () => {
-    const testDate = new Date(2000, 0, 1, 13, 0)
-    const formatted = new Intl.DateTimeFormat(locale, { 
-      hour: 'numeric',
-      hour12: undefined  // Let locale decide
-    }).format(testDate)
-    return formatted.includes('PM') || formatted.includes('AM') || formatted.includes('pm') || formatted.includes('am')
-  }
-
-  const is12HourFormat = uses12Hour()
+  const is12HourFormat = uses12HourFormat(locale)
 
   // Format time value for input
   const formatTimeForInput = (date: Date): string => {

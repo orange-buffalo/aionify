@@ -9,6 +9,7 @@ import { TimePicker } from "@/components/ui/time-picker"
 import { PortalLayout } from "@/components/layout/PortalLayout"
 import { FormMessage } from "@/components/ui/form-message"
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api"
+import { formatTime, formatDate, formatDateTime } from "@/lib/date-format"
 import { ChevronLeft, ChevronRight, Play, Square, MoreVertical, Trash2, Pencil } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -67,29 +68,7 @@ export function TimeLogsPage() {
     return `${year}-${month}-${day}`
   }
 
-  // Format time according to user's locale
-  function formatTime(isoString: string, locale: string): string {
-    const date = new Date(isoString)
-    return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: false })
-  }
 
-  // Format date according to user's locale
-  function formatDate(isoString: string, locale: string): string {
-    const date = new Date(isoString)
-    return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' })
-  }
-
-  // Format date and time according to user's locale
-  function formatDateTime(isoString: string, locale: string): string {
-    const date = new Date(isoString)
-    return date.toLocaleString(locale, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    })
-  }
 
   // Calculate duration in milliseconds
   function calculateDuration(startTime: string, endTime: string | null): number {
