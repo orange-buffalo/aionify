@@ -57,6 +57,9 @@ abstract class PlaywrightTestBase {
 
     @Inject
     lateinit var testUsers: TestUsers
+    
+    @Inject
+    lateinit var testTimeService: TestTimeService
 
     private lateinit var playwright: Playwright
     private lateinit var browser: Browser
@@ -87,12 +90,23 @@ abstract class PlaywrightTestBase {
          * Saturday, March 16, 2024 at 03:30:00 NZDT
          * 
          * This corresponds to Friday, March 15, 2024 at 14:30:00 UTC.
-         * This is the same time used by TestTimeService for backend operations.
+         * 
+         * This is the frontend time (used by Playwright clock).
+         * The backend time (TestTimeService) is by default 1 minute ahead of this time
+         * to help verify that timestamps come from the backend.
          * 
          * All tests run in Pacific/Auckland timezone to ensure timezone awareness and catch
          * any timezone-related bugs early. Test expectations should use NZDT values (Saturday 03:30).
          */
         val FIXED_TEST_TIME: Instant = TestTimeService.FIXED_TEST_TIME
+        
+        /**
+         * Backend time for tests - 1 minute ahead of frontend time.
+         * This is FIXED_TEST_TIME + TestTimeService.BACKEND_TIME_OFFSET_SECONDS.
+         * Saturday, March 16, 2024 at 03:31:00 NZDT
+         */
+        val BACKEND_TIME: Instant
+            get() = FIXED_TEST_TIME.plusSeconds(TestTimeService.BACKEND_TIME_OFFSET_SECONDS)
     }
 
     @BeforeEach
@@ -101,6 +115,9 @@ abstract class PlaywrightTestBase {
 
         // Clean up database before each test for isolation
         testDatabaseSupport.truncateAllTables()
+        
+        // Reset backend time to default offset (1 minute ahead of frontend)
+        testTimeService.resetTimeOffset()
 
         // Clear console messages from previous test
         consoleMessages.clear()

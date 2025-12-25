@@ -3,8 +3,12 @@ package io.orangebuffalo.aionify
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.domain.TimeLogEntry
+import io.orangebuffalo.aionify.domain.TimeLogEntryRepository
 import io.orangebuffalo.aionify.domain.User
 import jakarta.inject.Inject
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -21,6 +25,9 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @Inject
     lateinit var testAuthSupport: TestAuthSupport
+    
+    @Inject
+    lateinit var timeLogEntryRepository: TimeLogEntryRepository
 
     private lateinit var testUser: User
     private lateinit var timeLogsPage: TimeLogsPageObject
@@ -74,6 +81,14 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
         timeLogsPage.assertPageState(activeState)
+        
+        // Verify database state after starting
+        val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
+        assertNotNull(activeEntry, "Active entry should exist in database")
+        assertEquals("Test Task", activeEntry!!.title)
+        // Verify startTime comes from backend (BACKEND_TIME), not frontend (FIXED_TEST_TIME)
+        assertEquals(BACKEND_TIME, activeEntry.startTime, "Start time should be set by backend")
+        assertNull(activeEntry.endTime, "Active entry should not have end time")
 
         // Stop the entry
         timeLogsPage.clickStop()
@@ -96,6 +111,18 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
         timeLogsPage.assertPageState(stoppedState)
+        
+        // Verify database state after stopping
+        val noActiveEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
+        assertNull(noActiveEntry, "Should not have active entry after stopping")
+        
+        // Verify the stopped entry has correct timestamps
+        val stoppedEntry = timeLogEntryRepository.findById(activeEntry.id!!).orElse(null)
+        assertNotNull(stoppedEntry, "Stopped entry should still exist in database")
+        assertEquals("Test Task", stoppedEntry!!.title)
+        assertEquals(BACKEND_TIME, stoppedEntry.startTime, "Start time should remain unchanged")
+        // Verify endTime comes from backend (BACKEND_TIME), not frontend
+        assertEquals(BACKEND_TIME, stoppedEntry.endTime, "End time should be set by backend")
     }
 
     @Test
@@ -166,6 +193,14 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             ),
         )
         timeLogsPage.assertPageState(activeState)
+        
+        // Verify database state - new entry created with backend timestamp
+        val newActiveEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
+        assertNotNull(newActiveEntry, "New active entry should exist in database")
+        assertEquals("Previous Task", newActiveEntry!!.title)
+        // Verify startTime comes from backend (BACKEND_TIME), not frontend (FIXED_TEST_TIME)
+        assertEquals(BACKEND_TIME, newActiveEntry.startTime, "Start time should be set by backend")
+        assertNull(newActiveEntry.endTime, "Active entry should not have end time")
     }
 
     @Test
@@ -455,6 +490,14 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             ),
         )
         timeLogsPage.assertPageState(activeState)
+        
+        // Verify database state - entry should be created with backend timestamp
+        val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
+        assertNotNull(activeEntry, "Active entry should exist in database")
+        assertEquals("Quick Entry", activeEntry!!.title)
+        // Verify startTime comes from backend (BACKEND_TIME), not frontend (FIXED_TEST_TIME)
+        assertEquals(BACKEND_TIME, activeEntry.startTime, "Start time should be set by backend")
+        assertNull(activeEntry.endTime, "Active entry should not have end time")
     }
 
     @Test
@@ -1015,6 +1058,15 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
         timeLogsPage.assertPageState(updatedState)
+        
+        // Verify database state - startTime should be updated to user-provided time
+        val editedEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
+        assertNotNull(editedEntry, "Active entry should still exist in database")
+        assertEquals("Test Task", editedEntry!!.title)
+        // When user edits start time, they provide the value, so it should match what they entered
+        // The user entered "02:30" in NZDT timezone, which is FIXED_TEST_TIME.minusSeconds(3600)
+        assertEquals(FIXED_TEST_TIME.minusSeconds(3600), editedEntry.startTime, "Start time should be updated to user's value")
+        assertNull(editedEntry.endTime, "Active entry should not have end time")
     }
 
     @Test
@@ -1621,6 +1673,23 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             ),
         )
         timeLogsPage.assertPageState(newState)
+        
+        // Verify database state:
+        // 1. The previously active entry should be stopped with endTime from backend
+        val allEntries = timeLogEntryRepository.findAllOrderById()
+        val stoppedPreviousEntry = allEntries.find { it.title == "Currently Active Task" }
+        assertNotNull(stoppedPreviousEntry, "Previously active entry should exist")
+        assertEquals(FIXED_TEST_TIME.minusSeconds(1800), stoppedPreviousEntry!!.startTime)
+        // Verify endTime comes from backend (BACKEND_TIME), not frontend
+        assertEquals(BACKEND_TIME, stoppedPreviousEntry.endTime, "End time should be set by backend when stopping")
+        
+        // 2. A new active entry should be created with startTime from backend
+        val newActiveEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
+        assertNotNull(newActiveEntry, "New active entry should exist in database")
+        assertEquals("Completed Task", newActiveEntry!!.title)
+        // Verify startTime comes from backend (BACKEND_TIME), not frontend (FIXED_TEST_TIME)
+        assertEquals(BACKEND_TIME, newActiveEntry.startTime, "Start time should be set by backend")
+        assertNull(newActiveEntry.endTime, "New active entry should not have end time")
     }
 
     @Test
