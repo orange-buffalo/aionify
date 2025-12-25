@@ -22,7 +22,7 @@ import com.microsoft.playwright.options.AriaRole
  */
 data class TimeLogsPageState(
     val currentEntry: CurrentEntryState = CurrentEntryState.NoActiveEntry(),
-    val weekNavigation: WeekNavigationState = WeekNavigationState(weekRange = "Mar 11 - Mar 17"),
+    val weekNavigation: WeekNavigationState = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
     val dayGroups: List<DayGroupState> = emptyList(),
     val errorMessageVisible: Boolean = false,
     val errorMessage: String? = null

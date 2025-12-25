@@ -49,6 +49,7 @@ export function TimeLogsPage() {
   const [editTitle, setEditTitle] = useState("")
   const [editDateTime, setEditDateTime] = useState<Date>(new Date())
   const [isSaving, setIsSaving] = useState(false)
+  const [userLocale, setUserLocale] = useState<string | null>(null)
 
   // Get the start of the week (Monday)
   function getWeekStart(date: Date): Date {
@@ -398,7 +399,7 @@ export function TimeLogsPage() {
 
   // Get week range display
   function getWeekRangeDisplay(): string {
-    const locale = i18n.language || 'en'
+    const locale = userLocale || i18n.language || 'en'
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekEnd.getDate() + 6)
 
@@ -413,6 +414,20 @@ export function TimeLogsPage() {
     loadTimeEntries()
     loadActiveEntry()
   }, [weekStart])
+
+  // Load user's locale preference on mount
+  useEffect(() => {
+    async function loadUserLocale() {
+      try {
+        const profile = await apiGet<{ locale: string }>('/api/users/profile')
+        setUserLocale(profile.locale)
+      } catch (err) {
+        // Fallback to i18n language if profile fetch fails
+        console.error('Failed to load user locale:', err)
+      }
+    }
+    loadUserLocale()
+  }, [])
 
   // Check for date changes periodically (every minute) to auto-update week
   useEffect(() => {
@@ -446,7 +461,7 @@ export function TimeLogsPage() {
 
   // Recalculate day groups when entries change or when there's an active entry (to update durations)
   useEffect(() => {
-    const locale = i18n.language || 'en'
+    const locale = userLocale || i18n.language || 'en'
     const groups = groupEntriesByDay(entries, locale)
     setDayGroups(groups)
 
@@ -459,9 +474,9 @@ export function TimeLogsPage() {
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [entries, activeEntry, i18n.language])
+  }, [entries, activeEntry, i18n.language, userLocale])
 
-  const locale = i18n.language || 'en'
+  const locale = userLocale || i18n.language || 'en'
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
   return (
