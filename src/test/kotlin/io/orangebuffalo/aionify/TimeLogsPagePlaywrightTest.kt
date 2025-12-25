@@ -986,6 +986,13 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
         timeLogsPage.assertPageState(updatedState)
+        
+        // Verify database state - title should be updated
+        val editedEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
+        assertNotNull(editedEntry, "Active entry should still exist in database")
+        assertEquals("Updated Title", editedEntry!!.title, "Title should be updated in database")
+        assertEquals(FIXED_TEST_TIME.minusSeconds(1800), editedEntry.startTime, "Start time should remain unchanged")
+        assertNull(editedEntry.endTime, "Active entry should not have end time")
     }
 
     @Test
@@ -1140,6 +1147,14 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
         timeLogsPage.assertPageState(updatedState)
+        
+        // Verify database state - both title and startTime should be updated
+        val editedEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
+        assertNotNull(editedEntry, "Active entry should still exist in database")
+        assertEquals("Modified Task", editedEntry!!.title, "Title should be updated in database")
+        // User entered "01:00" in NZDT timezone, which is FIXED_TEST_TIME.minusSeconds(9000)
+        assertEquals(FIXED_TEST_TIME.minusSeconds(9000), editedEntry.startTime, "Start time should be updated to user's value")
+        assertNull(editedEntry.endTime, "Active entry should not have end time")
     }
 
     @Test
