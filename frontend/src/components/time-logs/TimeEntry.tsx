@@ -1,21 +1,85 @@
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Play, MoreVertical, Trash2 } from "lucide-react"
+import { Play, MoreVertical, Trash2, Pencil } from "lucide-react"
 import { formatTime } from "@/lib/date-format"
 import { calculateDuration, formatDuration } from "@/lib/time-utils"
+import { EditEntryForm } from "./EditEntryForm"
 import type { TimeLogEntry } from "./types"
 
 interface TimeEntryProps {
   entry: TimeLogEntry
   locale: string
+  isEditing: boolean
+  isSaving: boolean
   onContinue: (entry: TimeLogEntry) => void
   onDelete: (entry: TimeLogEntry) => void
+  onEdit: (entry: TimeLogEntry) => void
+  onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string) => Promise<void>
+  onCancelEdit: () => void
 }
 
-export function TimeEntry({ entry, locale, onContinue, onDelete }: TimeEntryProps) {
+export function TimeEntry({ 
+  entry, 
+  locale, 
+  isEditing,
+  isSaving,
+  onContinue, 
+  onDelete,
+  onEdit,
+  onSaveEdit,
+  onCancelEdit
+}: TimeEntryProps) {
   const { t } = useTranslation()
   const duration = calculateDuration(entry.startTime, entry.endTime)
+  const [editTitle, setEditTitle] = useState(entry.title)
+  const [editStartDateTime, setEditStartDateTime] = useState<Date>(new Date(entry.startTime))
+  const [editEndDateTime, setEditEndDateTime] = useState<Date>(new Date(entry.endTime || new Date()))
+
+  const handleEditClick = () => {
+    setEditTitle(entry.title)
+    setEditStartDateTime(new Date(entry.startTime))
+    setEditEndDateTime(new Date(entry.endTime || new Date()))
+    onEdit(entry)
+  }
+
+  const handleSaveEdit = async () => {
+    if (!editTitle.trim()) return
+    const startTimeISO = editStartDateTime.toISOString()
+    const endTimeISO = editEndDateTime.toISOString()
+    await onSaveEdit(entry, editTitle.trim(), startTimeISO, endTimeISO)
+  }
+
+  const handleCancelEdit = () => {
+    setEditTitle(entry.title)
+    setEditStartDateTime(new Date(entry.startTime))
+    setEditEndDateTime(new Date(entry.endTime || new Date()))
+    onCancelEdit()
+  }
+
+  if (isEditing) {
+    return (
+      <div
+        className="p-3 border border-border rounded-md"
+        data-testid="time-entry-edit"
+      >
+        <EditEntryForm
+          title={editTitle}
+          startDateTime={editStartDateTime}
+          endDateTime={editEndDateTime}
+          locale={locale}
+          isSaving={isSaving}
+          onTitleChange={setEditTitle}
+          onStartDateTimeChange={setEditStartDateTime}
+          onEndDateTimeChange={setEditEndDateTime}
+          onSave={handleSaveEdit}
+          onCancel={handleCancelEdit}
+          testIdPrefix="stopped-entry-edit"
+        />
+      </div>
+    )
+  }
 
   return (
     <div
@@ -55,6 +119,15 @@ export function TimeEntry({ entry, locale, onContinue, onDelete }: TimeEntryProp
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="dark" align="end">
+              {entry.endTime && (
+                <DropdownMenuItem
+                  onClick={handleEditClick}
+                  data-testid="edit-menu-item"
+                >
+                  <Pencil className="h-4 w-4 mr-2" />
+                  {t('timeLogs.edit')}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 onClick={() => onDelete(entry)}
                 data-testid="delete-menu-item"

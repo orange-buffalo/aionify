@@ -22,12 +22,18 @@ export function TimeLogsPage() {
     isDeleting,
     isSaving,
     userLocale,
+    editingEntryId,
+    isEditingActive,
     handleStart,
     handleStop,
     handleContinue,
     handleDeleteClick,
     handleDelete,
     handleSaveEdit,
+    handleEditActiveEntry,
+    handleEditEntry,
+    handleCancelEditEntry,
+    handleSaveStoppedEntry,
     handlePreviousWeek,
     handleNextWeek,
     getWeekRangeDisplay,
@@ -79,9 +85,11 @@ export function TimeLogsPage() {
             isStarting={isStarting}
             isStopping={isStopping}
             isSaving={isSaving}
+            isEditingStoppedEntry={editingEntryId !== null}
             onStart={handleStart}
             onStop={handleStop}
             onSaveEdit={handleSaveEdit}
+            onEditStart={handleEditActiveEntry}
           />
 
           {/* Week Navigation */}
@@ -105,8 +113,13 @@ export function TimeLogsPage() {
                   key={group.date}
                   group={group}
                   locale={locale}
+                  editingEntryId={editingEntryId}
+                  isSaving={isSaving}
                   onContinue={handleContinue}
                   onDelete={handleDeleteClick}
+                  onEdit={handleEditEntry}
+                  onSaveEdit={handleSaveStoppedEntry}
+                  onCancelEdit={handleCancelEditEntry}
                 />
               ))}
             </div>
