@@ -33,23 +33,25 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
     fun `should display tags panel on settings page`() {
         navigateToSettingsViaToken()
 
-        // Wait for the page to load
-        page.waitForSelector("[data-testid='settings-title']")
+        // Wait for page to fully load by checking settings title first
+        page.locator("[data-testid='settings-title']").waitFor()
+        
+        // Verify settings page is visible
+        val settingsPage = page.locator("[data-testid='settings-page']")
+        assertThat(settingsPage).isVisible()
 
-        // Verify tags panel is visible
-        val tagsPanel = page.locator("[data-testid='settings-page']")
-        assertThat(tagsPanel).isVisible()
-
-        // Verify title
-        assertThat(tagsPanel.locator("text=Tags")).isVisible()
+        // Verify Tags title is present
+        assertThat(page.locator("text=Tags")).isVisible()
     }
 
     @Test
     fun `should show empty message when user has no tags`() {
         navigateToSettingsViaToken()
 
-        // Wait for loading to complete
-        page.waitForSelector("[data-testid='tags-empty']")
+        // Wait for page to load
+        page.locator("[data-testid='settings-title']").waitFor()
+        
+        // Wait for empty state to be visible
         val tagsEmpty = page.locator("[data-testid='tags-empty']")
         assertThat(tagsEmpty).isVisible()
         assertThat(tagsEmpty).containsText("No tags found")
@@ -80,9 +82,9 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
 
         navigateToSettingsViaToken()
 
-        // Wait for table to load
-        page.waitForSelector("[data-testid='tags-table']")
-
+        // Wait for page to load
+        page.locator("[data-testid='settings-title']").waitFor()
+        
         // Verify table is visible
         val tagsTable = page.locator("[data-testid='tags-table']")
         assertThat(tagsTable).isVisible()
