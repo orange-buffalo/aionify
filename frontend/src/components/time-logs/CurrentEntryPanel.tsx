@@ -3,12 +3,10 @@ import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { DatePicker } from "@/components/ui/date-picker"
-import { TimePicker } from "@/components/ui/time-picker"
 import { Play, Square, Pencil } from "lucide-react"
 import { formatDateTime } from "@/lib/date-format"
 import { formatDuration } from "@/lib/time-utils"
+import { EditEntryForm } from "./EditEntryForm"
 import type { TimeEntry } from "./types"
 
 interface CurrentEntryPanelProps {
@@ -18,9 +16,11 @@ interface CurrentEntryPanelProps {
   isStarting: boolean
   isStopping: boolean
   isSaving: boolean
+  isEditingStoppedEntry: boolean
   onStart: (title: string) => Promise<void>
   onStop: () => Promise<void>
   onSaveEdit: (title: string, startTime: string) => Promise<void>
+  onEditStart: () => void
 }
 
 export function CurrentEntryPanel({
@@ -30,15 +30,22 @@ export function CurrentEntryPanel({
   isStarting,
   isStopping,
   isSaving,
+  isEditingStoppedEntry,
   onStart,
   onStop,
   onSaveEdit,
+  onEditStart,
 }: CurrentEntryPanelProps) {
   const { t } = useTranslation()
   const [newEntryTitle, setNewEntryTitle] = useState("")
   const [isEditMode, setIsEditMode] = useState(false)
   const [editTitle, setEditTitle] = useState("")
   const [editDateTime, setEditDateTime] = useState<Date>(new Date())
+
+  // Cancel edit mode when editing a stopped entry
+  if (isEditMode && isEditingStoppedEntry) {
+    setIsEditMode(false)
+  }
 
   const handleStart = async () => {
     if (!newEntryTitle.trim()) return
@@ -51,6 +58,7 @@ export function CurrentEntryPanel({
     setEditTitle(activeEntry.title)
     setEditDateTime(new Date(activeEntry.startTime))
     setIsEditMode(true)
+    onEditStart()
   }
 
   const handleSaveEdit = async () => {
@@ -77,61 +85,17 @@ export function CurrentEntryPanel({
         {activeEntry ? (
           isEditMode ? (
             /* Edit Mode */
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="edit-title" className="text-foreground">
-                  {t('timeLogs.currentEntry.titleLabel')}
-                </Label>
-                <Input
-                  id="edit-title"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  className="text-foreground mt-2"
-                  data-testid="edit-title-input"
-                  disabled={isSaving}
-                />
-              </div>
-              <div>
-                <Label className="text-foreground">
-                  {t('timeLogs.currentEntry.startTimeLabel')}
-                </Label>
-                <div className="mt-2 flex items-center gap-2">
-                  <DatePicker
-                    value={editDateTime}
-                    onChange={setEditDateTime}
-                    disabled={isSaving}
-                    locale={locale}
-                    testIdPrefix="edit-date"
-                  />
-                  <TimePicker
-                    value={editDateTime}
-                    onChange={setEditDateTime}
-                    disabled={isSaving}
-                    locale={locale}
-                    testIdPrefix="edit-time"
-                  />
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={handleSaveEdit}
-                  disabled={!editTitle.trim() || isSaving}
-                  data-testid="save-edit-button"
-                  className="bg-teal-600 hover:bg-teal-700"
-                >
-                  {t('timeLogs.currentEntry.save')}
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={handleCancelEdit}
-                  disabled={isSaving}
-                  data-testid="cancel-edit-button"
-                  className="text-foreground"
-                >
-                  {t('timeLogs.currentEntry.cancel')}
-                </Button>
-              </div>
-            </div>
+            <EditEntryForm
+              title={editTitle}
+              startDateTime={editDateTime}
+              locale={locale}
+              isSaving={isSaving}
+              onTitleChange={setEditTitle}
+              onStartDateTimeChange={setEditDateTime}
+              onSave={handleSaveEdit}
+              onCancel={handleCancelEdit}
+              testIdPrefix="edit"
+            />
           ) : (
             /* View Mode */
             <div className="flex items-center justify-between">

@@ -539,4 +539,111 @@ class TimeLogsPageObject(private val page: Page) {
     fun clickCancelEdit() {
         page.locator("[data-testid='cancel-edit-button']").click()
     }
+
+    // Helper functions for editing stopped entries
+    
+    fun clickEditForEntry(entryTitle: String) {
+        // Find the entry with the title and click the menu button
+        val entryLocator = page.locator("[data-testid='time-entry']:has-text('$entryTitle')")
+        entryLocator.locator("[data-testid='entry-menu-button']").click()
+        
+        // Click the edit menu item
+        page.locator("[data-testid='edit-menu-item']").click()
+    }
+
+    fun fillStoppedEntryEditTitle(title: String) {
+        val input = page.locator("[data-testid='stopped-entry-edit-title-input']")
+        input.fill(title)
+    }
+
+    fun fillStoppedEntryEditStartDate(date: String) {
+        // Format: YYYY-MM-DD
+        val input = page.locator("[data-testid='stopped-entry-edit-date-input']")
+        input.fill(date)
+    }
+
+    fun fillStoppedEntryEditStartTime(time: String) {
+        // Format: HH:MM (24-hour format)
+        val input = page.locator("[data-testid='stopped-entry-edit-time-input']")
+        input.fill(time)
+    }
+
+    fun fillStoppedEntryEditEndDate(date: String) {
+        // Format: YYYY-MM-DD
+        val input = page.locator("[data-testid='stopped-entry-edit-end-date-input']")
+        input.fill(date)
+    }
+
+    fun fillStoppedEntryEditEndTime(time: String) {
+        // Format: HH:MM (24-hour format)
+        val input = page.locator("[data-testid='stopped-entry-edit-end-time-input']")
+        input.fill(time)
+    }
+
+    fun clickSaveStoppedEntryEdit() {
+        page.locator("[data-testid='save-stopped-entry-edit-button']").click()
+    }
+
+    fun clickCancelStoppedEntryEdit() {
+        page.locator("[data-testid='cancel-stopped-entry-edit-button']").click()
+    }
+
+    /**
+     * Asserts that the stopped entry edit form is visible with all expected controls.
+     * This verifies:
+     * - Edit container is visible
+     * - Title input is visible
+     * - Start date input is visible
+     * - Start time input is visible
+     * - End date input is visible
+     * - End time input is visible
+     * - Save button is visible
+     * - Cancel button is visible
+     */
+    fun assertStoppedEntryEditVisible() {
+        assertThat(page.locator("[data-testid='time-entry-edit']")).isVisible()
+        assertThat(page.locator("[data-testid='stopped-entry-edit-title-input']")).isVisible()
+        assertThat(page.locator("[data-testid='stopped-entry-edit-date-input']")).isVisible()
+        assertThat(page.locator("[data-testid='stopped-entry-edit-time-input']")).isVisible()
+        assertThat(page.locator("[data-testid='stopped-entry-edit-end-date-input']")).isVisible()
+        assertThat(page.locator("[data-testid='stopped-entry-edit-end-time-input']")).isVisible()
+        assertThat(page.locator("[data-testid='save-stopped-entry-edit-button']")).isVisible()
+        assertThat(page.locator("[data-testid='cancel-stopped-entry-edit-button']")).isVisible()
+    }
+
+    /**
+     * Asserts that the stopped entry edit form is hidden with all controls not visible.
+     */
+    fun assertStoppedEntryEditHidden() {
+        assertThat(page.locator("[data-testid='time-entry-edit']")).not().isVisible()
+        assertThat(page.locator("[data-testid='stopped-entry-edit-title-input']")).not().isVisible()
+        assertThat(page.locator("[data-testid='stopped-entry-edit-date-input']")).not().isVisible()
+        assertThat(page.locator("[data-testid='stopped-entry-edit-time-input']")).not().isVisible()
+        assertThat(page.locator("[data-testid='stopped-entry-edit-end-date-input']")).not().isVisible()
+        assertThat(page.locator("[data-testid='stopped-entry-edit-end-time-input']")).not().isVisible()
+        assertThat(page.locator("[data-testid='save-stopped-entry-edit-button']")).not().isVisible()
+        assertThat(page.locator("[data-testid='cancel-stopped-entry-edit-button']")).not().isVisible()
+    }
+
+    /**
+     * Asserts that the stopped entry edit form has the expected values loaded.
+     * @param expectedTitle Expected value in title input
+     * @param expectedStartDate Expected value in start date input (locale-formatted)
+     * @param expectedStartTime Expected value in start time input (locale-formatted)
+     * @param expectedEndDate Expected value in end date input (locale-formatted)
+     * @param expectedEndTime Expected value in end time input (locale-formatted)
+     */
+    fun assertStoppedEntryEditValues(
+        expectedTitle: String,
+        expectedStartDate: String,
+        expectedStartTime: String,
+        expectedEndDate: String,
+        expectedEndTime: String
+    ) {
+        assertThat(page.locator("[data-testid='stopped-entry-edit-title-input']")).hasValue(expectedTitle)
+        assertThat(page.locator("[data-testid='stopped-entry-edit-date-input']")).hasValue(expectedStartDate)
+        assertThat(page.locator("[data-testid='stopped-entry-edit-time-input']")).hasValue(expectedStartTime)
+        assertThat(page.locator("[data-testid='stopped-entry-edit-end-date-input']")).hasValue(expectedEndDate)
+        assertThat(page.locator("[data-testid='stopped-entry-edit-end-time-input']")).hasValue(expectedEndTime)
+    }
 }

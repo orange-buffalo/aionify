@@ -237,14 +237,6 @@ open class TimeLogEntryResource(
                 .body(TimeLogEntryErrorResponse("Time log entry not found", "ENTRY_NOT_FOUND"))
         }
 
-        // Only active log entries can be updated
-        if (entry.endTime != null) {
-            log.debug("Update entry failed: entry already stopped: {}", id)
-            return HttpResponse.badRequest(
-                TimeLogEntryErrorResponse("Cannot update a stopped log entry", "ENTRY_ALREADY_STOPPED")
-            )
-        }
-
         // Validate that start time is not in the future
         if (request.startTime.isAfter(timeService.now())) {
             log.debug("Update entry failed: start time in future for entry: {}", id)
@@ -253,10 +245,44 @@ open class TimeLogEntryResource(
             )
         }
 
+        // For stopped entries, validate end time if provided
+        val endTime = if (entry.endTime != null) {
+            // This is a stopped entry
+            val newEndTime = request.endTime
+            if (newEndTime == null) {
+                log.debug("Update entry failed: end time required for stopped entry: {}", id)
+                return HttpResponse.badRequest(
+                    TimeLogEntryErrorResponse("End time is required for stopped entries", "END_TIME_REQUIRED")
+                )
+            }
+            
+            // Validate end time is not in the future
+            if (newEndTime.isAfter(timeService.now())) {
+                log.debug("Update entry failed: end time in future for entry: {}", id)
+                return HttpResponse.badRequest(
+                    TimeLogEntryErrorResponse("End time cannot be in the future", "END_TIME_IN_FUTURE")
+                )
+            }
+            
+            // Validate end time is after start time
+            if (newEndTime.isBefore(request.startTime) || newEndTime == request.startTime) {
+                log.debug("Update entry failed: end time before or equal to start time for entry: {}", id)
+                return HttpResponse.badRequest(
+                    TimeLogEntryErrorResponse("End time must be after start time", "END_TIME_BEFORE_START_TIME")
+                )
+            }
+            
+            newEndTime
+        } else {
+            // This is an active entry, endTime should remain null
+            null
+        }
+
         val updatedEntry = timeLogEntryRepository.update(
             entry.copy(
                 title = request.title,
-                startTime = request.startTime
+                startTime = request.startTime,
+                endTime = endTime
             )
         )
 
@@ -349,7 +375,8 @@ data class UpdateTimeLogEntryRequest(
     @field:NotBlank(message = "Title cannot be blank")
     @field:Size(max = 1000, message = "Title cannot exceed 1000 characters")
     val title: String,
-    val startTime: Instant
+    val startTime: Instant,
+    val endTime: Instant? = null
 )
 
 @Serdeable

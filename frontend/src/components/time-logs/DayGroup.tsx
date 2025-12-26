@@ -7,11 +7,26 @@ import type { DayGroup as DayGroupType, TimeLogEntry } from "./types"
 interface DayGroupProps {
   group: DayGroupType
   locale: string
+  editingEntryId: number | null
+  isSaving: boolean
   onContinue: (entry: TimeLogEntry) => void
   onDelete: (entry: TimeLogEntry) => void
+  onEdit: (entry: TimeLogEntry) => void
+  onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string) => Promise<void>
+  onCancelEdit: () => void
 }
 
-export function DayGroup({ group, locale, onContinue, onDelete }: DayGroupProps) {
+export function DayGroup({ 
+  group, 
+  locale, 
+  editingEntryId,
+  isSaving,
+  onContinue, 
+  onDelete,
+  onEdit,
+  onSaveEdit,
+  onCancelEdit
+}: DayGroupProps) {
   const { t } = useTranslation()
 
   return (
@@ -33,8 +48,13 @@ export function DayGroup({ group, locale, onContinue, onDelete }: DayGroupProps)
               key={`${entry.id}-${entry.startTime}`}
               entry={entry}
               locale={locale}
+              isEditing={editingEntryId === entry.id}
+              isSaving={isSaving}
               onContinue={onContinue}
               onDelete={onDelete}
+              onEdit={onEdit}
+              onSaveEdit={onSaveEdit}
+              onCancelEdit={onCancelEdit}
             />
           ))}
         </div>

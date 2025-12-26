@@ -25,6 +25,8 @@ export function useTimeLogs() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [userLocale, setUserLocale] = useState<string | null>(null)
+  const [editingEntryId, setEditingEntryId] = useState<number | null>(null)
+  const [isEditingActive, setIsEditingActive] = useState(false)
 
   // Get day title (Today, Yesterday, or day of week + date)
   function getDayTitle(dateStr: string, locale: string): string {
@@ -270,6 +272,51 @@ export function useTimeLogs() {
       })
 
       setActiveEntry(updatedEntry)
+      setIsEditingActive(false)
+      await loadTimeEntries()
+    } catch (err: any) {
+      const errorCode = err.errorCode
+      if (errorCode) {
+        setError(t(`errorCodes.${errorCode}`))
+      } else {
+        setError(err.message || t('common.error'))
+      }
+      throw err
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Start editing active entry
+  function handleEditActiveEntry() {
+    setIsEditingActive(true)
+    setEditingEntryId(null)
+  }
+
+  // Start editing a stopped entry
+  function handleEditEntry(entry: TimeEntry) {
+    setEditingEntryId(entry.id)
+    setIsEditingActive(false)
+  }
+
+  // Cancel editing stopped entry
+  function handleCancelEditEntry() {
+    setEditingEntryId(null)
+  }
+
+  // Save edited stopped entry
+  async function handleSaveStoppedEntry(entry: TimeEntry, title: string, startTimeISO: string, endTimeISO: string) {
+    try {
+      setIsSaving(true)
+      setError(null)
+
+      await apiPut<TimeEntry>(`/api/time-log-entries/${entry.id}`, {
+        title,
+        startTime: startTimeISO,
+        endTime: endTimeISO
+      })
+
+      setEditingEntryId(null)
       await loadTimeEntries()
     } catch (err: any) {
       const errorCode = err.errorCode
@@ -388,12 +435,18 @@ export function useTimeLogs() {
     isDeleting,
     isSaving,
     userLocale,
+    editingEntryId,
+    isEditingActive,
     handleStart,
     handleStop,
     handleContinue,
     handleDeleteClick,
     handleDelete,
     handleSaveEdit,
+    handleEditActiveEntry,
+    handleEditEntry,
+    handleCancelEditEntry,
+    handleSaveStoppedEntry,
     handlePreviousWeek,
     handleNextWeek,
     getWeekRangeDisplay,
