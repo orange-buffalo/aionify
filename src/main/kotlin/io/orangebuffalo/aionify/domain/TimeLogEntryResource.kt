@@ -334,7 +334,8 @@ open class TimeLogEntryResource(
         startTime = this.startTime,
         endTime = this.endTime,
         title = this.title,
-        ownerId = this.ownerId
+        ownerId = this.ownerId,
+        tags = this.tags
     )
 }
 
@@ -345,7 +346,8 @@ data class TimeLogEntryDto(
     val startTime: Instant,
     val endTime: Instant?,
     val title: String,
-    val ownerId: Long
+    val ownerId: Long,
+    val tags: List<String> = emptyList()
 )
 
 @Serdeable
