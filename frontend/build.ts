@@ -18,6 +18,7 @@ const buildResult = await Bun.build({
   splitting: false,
   target: "browser",
   format: "esm",
+  sourcemap: true,
   naming: {
     entry: "[name].[ext]",
     chunk: "[name].[ext]",

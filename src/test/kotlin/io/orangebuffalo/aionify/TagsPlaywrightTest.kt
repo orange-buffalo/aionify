@@ -31,9 +31,7 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should display tags panel on settings page`() {
-        // Small delay to let frontend fully initialize
-        Thread.sleep(100)
-        
+
         navigateToSettingsViaToken()
 
         // Verify settings page is visible
@@ -46,9 +44,6 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show empty message when user has no tags`() {
-        // Small delay to let frontend fully initialize
-        Thread.sleep(100)
-        
         navigateToSettingsViaToken()
 
         // Wait for empty state to be visible
@@ -185,7 +180,7 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
 
         // Verify only current user's tag is visible
         assertThat(page.locator("[data-testid='tag-row-my-tag']")).isVisible()
-        
+
         // Verify other user's tag is not visible
         assertThat(page.locator("[data-testid='tag-row-other-tag']")).not().isVisible()
     }
@@ -208,7 +203,7 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
         // Get all tag rows
         val tagRows = page.locator("[data-testid^='tag-row-']")
         val count = tagRows.count()
-        
+
         // Verify we have 4 tags
         assertThat(tagRows).hasCount(4)
 
@@ -247,7 +242,7 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
         // Verify only the tag from tagged entry is shown
         assertThat(page.locator("[data-testid='tag-row-important']")).isVisible()
         assertThat(page.locator("[data-testid='tag-count-important']")).containsText("1")
-        
+
         // Verify we only have 1 tag row
         assertThat(page.locator("[data-testid^='tag-row-']")).hasCount(1)
     }
