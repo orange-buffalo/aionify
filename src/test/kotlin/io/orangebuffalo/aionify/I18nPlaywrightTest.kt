@@ -145,15 +145,15 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should update UI immediately when changing language in settings`() {
-        loginViaToken("/portal/settings", regularUser, testAuthSupport)
+        loginViaToken("/portal/profile", regularUser, testAuthSupport)
 
         // Wait for profile to load
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
         assertThat(greetingInput).isVisible()
 
         // Verify page is initially in English
-        val settingsTitle = page.locator("[data-testid='settings-title']")
-        assertThat(settingsTitle).hasText("Settings")
+        val profileTitle = page.locator("[data-testid='profile-title']")
+        assertThat(profileTitle).hasText("Profile")
 
         // Change locale to Ukrainian (which also changes UI language)
         page.locator("[data-testid='profile-locale-select']").click()
@@ -167,7 +167,7 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         assertThat(successMessage).isVisible()
 
         // Verify UI switched to Ukrainian immediately
-        assertThat(settingsTitle).hasText("Профіль")
+        assertThat(profileTitle).hasText("Профіль")
         assertThat(successMessage).containsText("успішно оновлено")
 
         // Verify the locale dropdown now shows Ukrainian locale in Ukrainian
@@ -177,7 +177,7 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should display translated validation errors for profile`() {
-        loginViaToken("/portal/settings", regularUser, testAuthSupport)
+        loginViaToken("/portal/profile", regularUser, testAuthSupport)
 
         // Wait for profile to load
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
@@ -213,7 +213,7 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should display translated validation errors for password change`() {
-        loginViaToken("/portal/settings", regularUser, testAuthSupport)
+        loginViaToken("/portal/profile", regularUser, testAuthSupport)
 
         // Try to change password with mismatched passwords (in English)
         page.locator("[data-testid='current-password-input']").fill(testPassword)
@@ -282,7 +282,7 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should persist language preference across page reloads`() {
-        loginViaToken("/portal/settings", regularUser, testAuthSupport)
+        loginViaToken("/portal/profile", regularUser, testAuthSupport)
 
         // Change language to Ukrainian via locale
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
@@ -300,7 +300,7 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         page.reload()
 
         // Verify UI is still in Ukrainian
-        val settingsTitle = page.locator("[data-testid='settings-title']")
+        val settingsTitle = page.locator("[data-testid='profile-title']")
         assertThat(settingsTitle).hasText("Профіль")
 
         // Navigate to time logs page
