@@ -36,7 +36,6 @@ export function PortalLayout({ children, testId }: PortalLayoutProps) {
   const userMenuItems: NavItem[] = [
     { label: t("nav.timeEntry"), icon: <Clock className="h-4 w-4 mr-2" />, href: "/portal/time-logs" },
     { label: t("nav.settings"), icon: <Settings className="h-4 w-4 mr-2" />, href: "/portal/settings" },
-    { label: t("nav.profile"), icon: <User className="h-4 w-4 mr-2" />, href: "/portal/profile" },
   ]
 
   const menuItems = isAdmin ? adminMenuItems : userMenuItems

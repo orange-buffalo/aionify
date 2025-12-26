@@ -107,7 +107,7 @@ abstract class PlaywrightTestBase {
 
         playwright = Playwright.create()
         browser = playwright.chromium().launch(
-            BrowserType.LaunchOptions().setHeadless(false)
+            BrowserType.LaunchOptions().setHeadless(true)
         )
 
         // Create context with base URL for simpler navigation
@@ -127,6 +127,28 @@ abstract class PlaywrightTestBase {
         // Add console message listener to capture errors and warnings
         _page.onConsoleMessage { message ->
             consoleMessages.add(message)
+        }
+
+        // Add request/response logging for AJAX debugging
+        _page.onRequest { request ->
+            if (request.url().contains("/api/")) {
+                println("[REQUEST] ${request.method()} ${request.url()}")
+                if (request.postData() != null) {
+                    println("[REQUEST BODY] ${request.postData()}")
+                }
+            }
+        }
+        
+        _page.onResponse { response ->
+            if (response.url().contains("/api/")) {
+                println("[RESPONSE] ${response.status()} ${response.url()}")
+                try {
+                    val body = response.text()
+                    println("[RESPONSE BODY] $body")
+                } catch (e: Exception) {
+                    println("[RESPONSE BODY] (unable to read: ${e.message})")
+                }
+            }
         }
 
         // Install Playwright clock with fixed time for deterministic tests

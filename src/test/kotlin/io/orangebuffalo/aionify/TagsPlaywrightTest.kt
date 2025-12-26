@@ -1,5 +1,7 @@
 package io.orangebuffalo.aionify
 
+import com.microsoft.playwright.Page
+import com.microsoft.playwright.options.AriaRole
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.domain.TimeLogEntry
@@ -38,8 +40,8 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
         val settingsPage = page.locator("[data-testid='settings-page']")
         assertThat(settingsPage).isVisible()
 
-        // Verify Tags title is present
-        assertThat(page.locator("text=Tags")).isVisible()
+        // Verify Tags heading is present
+        assertThat(page.getByRole(AriaRole.HEADING, Page.GetByRoleOptions().setName("Tags"))).isVisible()
     }
 
     @Test
@@ -82,8 +84,8 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
         assertThat(tagsTable).isVisible()
 
         // Verify table headers
-        assertThat(page.locator("text=Tag")).isVisible()
-        assertThat(page.locator("text=Entries")).isVisible()
+        assertThat(page.locator("[data-testid='tags-header-tag']")).isVisible()
+        assertThat(page.locator("[data-testid='tags-header-count']")).isVisible()
 
         // Verify tags are displayed (sorted alphabetically)
         val backendRow = page.locator("[data-testid='tag-row-backend']")

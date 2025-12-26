@@ -26,7 +26,12 @@ export function SettingsPage() {
     
     try {
       const data = await apiGet<TagStatsResponse>("/api/tags/stats")
-      setTags(data.tags)
+      // Handle case where API returns empty object instead of proper response
+      if (data && data.tags && Array.isArray(data.tags)) {
+        setTags(data.tags)
+      } else {
+        setTags([])
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
@@ -71,8 +76,8 @@ export function SettingsPage() {
                   <table className="w-full">
                     <thead className="[&_tr]:border-b">
                       <tr className="border-b">
-                        <th className="h-12 px-4 text-left align-middle font-medium text-foreground">{t("settings.tags.table.tag")}</th>
-                        <th className="h-12 px-4 text-left align-middle font-medium text-foreground w-[100px]">{t("settings.tags.table.count")}</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-foreground" data-testid="tags-header-tag">{t("settings.tags.table.tag")}</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-foreground w-[100px]" data-testid="tags-header-count">{t("settings.tags.table.count")}</th>
                       </tr>
                     </thead>
                     <tbody className="[&_tr:last-child]:border-0">
