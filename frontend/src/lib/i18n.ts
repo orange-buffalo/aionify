@@ -72,6 +72,15 @@ const resources = {
           changing: "Changing...",
           changeSuccess: "Password changed successfully",
         },
+        tags: {
+          title: "Tags",
+          subtitle: "View tags used in your time log entries",
+          noTags: "No tags found in your time log entries",
+          table: {
+            tag: "Tag",
+            count: "Entries",
+          },
+        },
       },
       // Time Logs Page
       timeLogs: {
@@ -365,6 +374,15 @@ const resources = {
           change: "Змінити пароль",
           changing: "Зміна...",
           changeSuccess: "Пароль успішно змінено",
+        },
+        tags: {
+          title: "Теги",
+          subtitle: "Перегляд тегів у ваших записах часу",
+          noTags: "Теги не знайдено у ваших записах часу",
+          table: {
+            tag: "Тег",
+            count: "Записи",
+          },
         },
       },
       // Time Logs Page

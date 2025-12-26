@@ -29,6 +29,9 @@ nb-configuration.xml
 *.swp
 *.swo
 
+# Kotlin build artifacts
+.kotlin/
+
 # patch
 *.orig
 *.rej

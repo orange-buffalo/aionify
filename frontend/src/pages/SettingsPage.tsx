@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next"
 import { PortalLayout } from "@/components/layout/PortalLayout"
 import { ProfilePanel } from "@/components/settings/ProfilePanel"
 import { ChangePasswordPanel } from "@/components/settings/ChangePasswordPanel"
+import { TagsPanel } from "@/components/settings/TagsPanel"
 
 export function SettingsPage() {
   const { t } = useTranslation()
@@ -18,6 +19,7 @@ export function SettingsPage() {
           <div className="space-y-6">
             <ProfilePanel />
             <ChangePasswordPanel />
+            <TagsPanel />
           </div>
         </div>
       </div>
