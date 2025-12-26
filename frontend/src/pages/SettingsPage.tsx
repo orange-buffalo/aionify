@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { PortalLayout } from "@/components/layout/PortalLayout"
 import { Card } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { FormMessage } from "@/components/ui/form-message"
 import { apiGet } from "@/lib/api"
 
@@ -74,28 +75,26 @@ export function SettingsPage() {
                   {t("settings.tags.noTags")}
                 </div>
               ) : (
-                <div data-testid="tags-table">
-                  <table className="w-full">
-                    <thead className="[&_tr]:border-b">
-                      <tr className="border-b">
-                        <th className="h-12 px-4 text-left align-middle font-medium text-foreground" data-testid="tags-header-tag">{t("settings.tags.table.tag")}</th>
-                        <th className="h-12 px-4 text-left align-middle font-medium text-foreground w-[100px]" data-testid="tags-header-count">{t("settings.tags.table.count")}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="[&_tr:last-child]:border-0">
-                      {tags.map((tagStat) => (
-                        <tr key={tagStat.tag} className="border-b hover:bg-muted/50" data-testid={`tag-row-${tagStat.tag}`}>
-                          <td className="p-4 align-middle text-foreground" data-testid={`tag-name-${tagStat.tag}`}>
-                            {tagStat.tag}
-                          </td>
-                          <td className="p-4 align-middle text-foreground" data-testid={`tag-count-${tagStat.tag}`}>
-                            {tagStat.count}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <Table data-testid="tags-table">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead data-testid="tags-header-tag">{t("settings.tags.table.tag")}</TableHead>
+                      <TableHead className="w-[100px]" data-testid="tags-header-count">{t("settings.tags.table.count")}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {tags.map((tagStat) => (
+                      <TableRow key={tagStat.tag} data-testid={`tag-row-${tagStat.tag}`}>
+                        <TableCell data-testid={`tag-name-${tagStat.tag}`}>
+                          {tagStat.tag}
+                        </TableCell>
+                        <TableCell data-testid={`tag-count-${tagStat.tag}`}>
+                          {tagStat.count}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               )}
             </div>
           </Card>
