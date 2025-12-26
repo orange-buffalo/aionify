@@ -10,6 +10,7 @@ import { useEffect } from "react"
 export function useDocumentTitle(title: string | null) {
   useEffect(() => {
     const defaultTitle = "Aionify - Time Tracking"
+    const previousTitle = document.title
     
     if (title && title.trim()) {
       document.title = title
@@ -17,9 +18,9 @@ export function useDocumentTitle(title: string | null) {
       document.title = defaultTitle
     }
     
-    // Cleanup: restore default title when component unmounts
+    // Cleanup: restore previous title when component unmounts or title changes
     return () => {
-      document.title = defaultTitle
+      document.title = previousTitle
     }
   }, [title])
 }
