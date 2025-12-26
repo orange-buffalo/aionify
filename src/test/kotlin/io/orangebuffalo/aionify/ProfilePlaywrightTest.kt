@@ -74,7 +74,7 @@ class ProfilePlaywrightTest : PlaywrightTestBase() {
         assertThat(settingsPage).isVisible()
 
         // Verify settings title
-        val settingsTitle = page.locator("[data-testid='settings-title']")
+        val settingsTitle = page.locator("[data-testid='profile-title']")
         assertThat(settingsTitle).isVisible()
         assertThat(settingsTitle).hasText("Settings")
     }
