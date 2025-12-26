@@ -26,7 +26,9 @@ export function SettingsPage() {
     
     try {
       const data = await apiGet<TagStatsResponse>("/api/tags/stats")
-      // Handle case where API returns empty object instead of proper response
+      // Defensive check: Handle edge case where API might return empty object
+      // This can happen if serialization fails or in certain error scenarios
+      // Better to show empty list than crash with "Cannot read properties of undefined"
       if (data && data.tags && Array.isArray(data.tags)) {
         setTags(data.tags)
       } else {
