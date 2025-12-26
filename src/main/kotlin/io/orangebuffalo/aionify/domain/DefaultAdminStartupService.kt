@@ -36,14 +36,18 @@ class DefaultAdminStartupService(
         )
 
         userRepository.save(defaultAdmin)
-        log.warn("Created default admin user 'sudo'. Please check the application output for the generated password.")
-        // Print directly to stdout to avoid password appearing in log files
-        println("=".repeat(60))
-        println("DEFAULT ADMIN CREATED")
-        println("Username: sudo")
-        println("Password: $randomPassword")
-        println("Please change this password after first login!")
-        println("=".repeat(60))
+        
+        // Log admin creation with password to console for first-time setup
+        // WARNING: This contains sensitive information and should only be logged to console during initial setup
+        val adminCreationMessage = buildString {
+            appendLine("=".repeat(60))
+            appendLine("DEFAULT ADMIN CREATED")
+            appendLine("Username: sudo")
+            appendLine("Password: $randomPassword")
+            appendLine("Please change this password after first login!")
+            appendLine("=".repeat(60))
+        }
+        log.warn(adminCreationMessage)
         
         return randomPassword
     }

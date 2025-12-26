@@ -7,6 +7,7 @@ import jakarta.inject.Inject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInfo
+import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.Instant
@@ -48,6 +49,8 @@ import java.time.ZonedDateTime
  * ```
  */
 abstract class PlaywrightTestBase {
+
+    private val log = LoggerFactory.getLogger(PlaywrightTestBase::class.java)
 
     @Inject
     lateinit var testDatabaseSupport: TestDatabaseSupport
@@ -132,21 +135,21 @@ abstract class PlaywrightTestBase {
         // Add request/response logging for AJAX debugging
         _page.onRequest { request ->
             if (request.url().contains("/api/")) {
-                println("[REQUEST] ${request.method()} ${request.url()}")
+                log.debug("[REQUEST] ${request.method()} ${request.url()}")
                 if (request.postData() != null) {
-                    println("[REQUEST BODY] ${request.postData()}")
+                    log.debug("[REQUEST BODY] ${request.postData()}")
                 }
             }
         }
         
         _page.onResponse { response ->
             if (response.url().contains("/api/")) {
-                println("[RESPONSE] ${response.status()} ${response.url()}")
+                log.debug("[RESPONSE] ${response.status()} ${response.url()}")
                 try {
                     val body = response.text()
-                    println("[RESPONSE BODY] $body")
+                    log.debug("[RESPONSE BODY] $body")
                 } catch (e: Exception) {
-                    println("[RESPONSE BODY] (unable to read: ${e.message})")
+                    log.debug("[RESPONSE BODY] (unable to read: ${e.message})")
                 }
             }
         }
