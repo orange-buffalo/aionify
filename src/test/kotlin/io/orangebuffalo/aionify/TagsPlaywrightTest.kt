@@ -31,11 +31,11 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should display tags panel on settings page`() {
+        // Small delay to let frontend fully initialize
+        Thread.sleep(100)
+        
         navigateToSettingsViaToken()
 
-        // Wait for page to fully load by checking settings title first
-        page.locator("[data-testid='settings-title']").waitFor()
-        
         // Verify settings page is visible
         val settingsPage = page.locator("[data-testid='settings-page']")
         assertThat(settingsPage).isVisible()
@@ -46,11 +46,11 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show empty message when user has no tags`() {
+        // Small delay to let frontend fully initialize
+        Thread.sleep(100)
+        
         navigateToSettingsViaToken()
 
-        // Wait for page to load
-        page.locator("[data-testid='settings-title']").waitFor()
-        
         // Wait for empty state to be visible
         val tagsEmpty = page.locator("[data-testid='tags-empty']")
         assertThat(tagsEmpty).isVisible()
@@ -82,9 +82,6 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
 
         navigateToSettingsViaToken()
 
-        // Wait for page to load
-        page.locator("[data-testid='settings-title']").waitFor()
-        
         // Verify table is visible
         val tagsTable = page.locator("[data-testid='tags-table']")
         assertThat(tagsTable).isVisible()

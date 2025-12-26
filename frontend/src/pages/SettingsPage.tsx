@@ -2,7 +2,6 @@ import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { PortalLayout } from "@/components/layout/PortalLayout"
 import { Card } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { FormMessage } from "@/components/ui/form-message"
 import { apiGet } from "@/lib/api"
 
@@ -21,21 +20,21 @@ export function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const loadTags = async () => {
-      setLoading(true)
-      setError(null)
-      
-      try {
-        const data = await apiGet<TagStatsResponse>("/api/tags/stats")
-        setTags(data.tags)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred")
-      } finally {
-        setLoading(false)
-      }
+  const loadTags = async () => {
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const data = await apiGet<TagStatsResponse>("/api/tags/stats")
+      setTags(data.tags)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred")
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     loadTags()
   }, [])
 
@@ -69,26 +68,26 @@ export function SettingsPage() {
                 </div>
               ) : (
                 <div data-testid="tags-table">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>{t("settings.tags.table.tag")}</TableHead>
-                        <TableHead className="w-[100px]">{t("settings.tags.table.count")}</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                  <table className="w-full">
+                    <thead className="[&_tr]:border-b">
+                      <tr className="border-b">
+                        <th className="h-12 px-4 text-left align-middle font-medium text-foreground">{t("settings.tags.table.tag")}</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-foreground w-[100px]">{t("settings.tags.table.count")}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="[&_tr:last-child]:border-0">
                       {tags.map((tagStat) => (
-                        <TableRow key={tagStat.tag} data-testid={`tag-row-${tagStat.tag}`}>
-                          <TableCell data-testid={`tag-name-${tagStat.tag}`}>
+                        <tr key={tagStat.tag} className="border-b hover:bg-muted/50" data-testid={`tag-row-${tagStat.tag}`}>
+                          <td className="p-4 align-middle text-foreground" data-testid={`tag-name-${tagStat.tag}`}>
                             {tagStat.tag}
-                          </TableCell>
-                          <TableCell data-testid={`tag-count-${tagStat.tag}`}>
+                          </td>
+                          <td className="p-4 align-middle text-foreground" data-testid={`tag-count-${tagStat.tag}`}>
                             {tagStat.count}
-                          </TableCell>
-                        </TableRow>
+                          </td>
+                        </tr>
                       ))}
-                    </TableBody>
-                  </Table>
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>
