@@ -347,8 +347,34 @@ data class TimeLogEntryDto(
     val endTime: Instant?,
     val title: String,
     val ownerId: Long,
-    val tags: List<String> = emptyList()
-)
+    val tags: Array<String> = emptyArray()
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        
+        other as TimeLogEntryDto
+        
+        if (id != other.id) return false
+        if (startTime != other.startTime) return false
+        if (endTime != other.endTime) return false
+        if (title != other.title) return false
+        if (ownerId != other.ownerId) return false
+        if (!tags.contentEquals(other.tags)) return false
+        
+        return true
+    }
+    
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + startTime.hashCode()
+        result = 31 * result + (endTime?.hashCode() ?: 0)
+        result = 31 * result + title.hashCode()
+        result = 31 * result + ownerId.hashCode()
+        result = 31 * result + tags.contentHashCode()
+        return result
+    }
+}
 
 @Serdeable
 @Introspected

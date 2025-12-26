@@ -72,14 +72,15 @@ const resources = {
           changing: "Changing...",
           changeSuccess: "Password changed successfully",
         },
-        tags: {
-          title: "Tags",
-          subtitle: "View tags used in your time log entries",
-          noTags: "No tags found in your time log entries",
-          table: {
-            tag: "Tag",
-            count: "Entries",
-          },
+      },
+      // Tags Page
+      tags: {
+        title: "Tags",
+        subtitle: "View tags used in your time log entries",
+        noTags: "No tags found in your time log entries",
+        table: {
+          tag: "Tag",
+          count: "Entries",
         },
       },
       // Time Logs Page
@@ -219,6 +220,7 @@ const resources = {
         settings: "Settings",
         logout: "Logout",
         timeEntry: "Time Log",
+        tags: "Tags",
         calendar: "Calendar",
         reports: "Reports",
         users: "Users",
@@ -375,14 +377,15 @@ const resources = {
           changing: "Зміна...",
           changeSuccess: "Пароль успішно змінено",
         },
-        tags: {
-          title: "Теги",
-          subtitle: "Перегляд тегів у ваших записах часу",
-          noTags: "Теги не знайдено у ваших записах часу",
-          table: {
-            tag: "Тег",
-            count: "Записи",
-          },
+      },
+      // Tags Page
+      tags: {
+        title: "Теги",
+        subtitle: "Перегляд тегів у ваших записах часу",
+        noTags: "Теги не знайдено у ваших записах часу",
+        table: {
+          tag: "Тег",
+          count: "Записи",
         },
       },
       // Time Logs Page
@@ -522,6 +525,7 @@ const resources = {
         settings: "Налаштування",
         logout: "Вийти",
         timeEntry: "Журнал часу",
+        tags: "Теги",
         calendar: "Календар",
         reports: "Звіти",
         users: "Користувачі",

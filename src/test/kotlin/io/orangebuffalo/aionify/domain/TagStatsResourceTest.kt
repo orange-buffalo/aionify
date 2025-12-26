@@ -79,7 +79,7 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "User 1 Task",
                 ownerId = requireNotNull(user1.id),
-                tags = listOf("kotlin", "backend")
+                tags = arrayOf("kotlin", "backend")
             )
         )
 
@@ -89,7 +89,7 @@ class TagStatsResourceTest {
                 endTime = null,
                 title = "User 2 Task",
                 ownerId = requireNotNull(user2.id),
-                tags = listOf("react", "frontend")
+                tags = arrayOf("react", "frontend")
             )
         )
 
@@ -144,7 +144,7 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "User 1 Task",
                 ownerId = requireNotNull(user1.id),
-                tags = emptyList()
+                tags = emptyArray()
             )
         )
 
@@ -172,7 +172,7 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Task 1",
                 ownerId = requireNotNull(user1.id),
-                tags = listOf("kotlin", "backend")
+                tags = arrayOf("kotlin", "backend")
             )
         )
 
@@ -182,7 +182,7 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T13:00:00Z"),
                 title = "Task 2",
                 ownerId = requireNotNull(user1.id),
-                tags = listOf("kotlin", "testing")
+                tags = arrayOf("kotlin", "testing")
             )
         )
 
@@ -192,7 +192,7 @@ class TagStatsResourceTest {
                 endTime = null,
                 title = "Task 3",
                 ownerId = requireNotNull(user1.id),
-                tags = listOf("kotlin")
+                tags = arrayOf("kotlin")
             )
         )
 
@@ -220,6 +220,77 @@ class TagStatsResourceTest {
     }
 
     @Test
+    fun `should count tags only from current user entries`() {
+        // Given: User 1 has entries with "kotlin" tag
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T10:00:00Z"),
+                endTime = Instant.parse("2024-01-15T11:00:00Z"),
+                title = "User 1 Task 1",
+                ownerId = requireNotNull(user1.id),
+                tags = arrayOf("kotlin")
+            )
+        )
+
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T12:00:00Z"),
+                endTime = Instant.parse("2024-01-15T13:00:00Z"),
+                title = "User 1 Task 2",
+                ownerId = requireNotNull(user1.id),
+                tags = arrayOf("kotlin")
+            )
+        )
+
+        // And: User 2 also has entries with "kotlin" tag
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T14:00:00Z"),
+                endTime = Instant.parse("2024-01-15T15:00:00Z"),
+                title = "User 2 Task 1",
+                ownerId = requireNotNull(user2.id),
+                tags = arrayOf("kotlin")
+            )
+        )
+
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T16:00:00Z"),
+                endTime = Instant.parse("2024-01-15T17:00:00Z"),
+                title = "User 2 Task 2",
+                ownerId = requireNotNull(user2.id),
+                tags = arrayOf("kotlin")
+            )
+        )
+
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T18:00:00Z"),
+                endTime = Instant.parse("2024-01-15T19:00:00Z"),
+                title = "User 2 Task 3",
+                ownerId = requireNotNull(user2.id),
+                tags = arrayOf("kotlin")
+            )
+        )
+
+        val user1Token = testAuthSupport.generateToken(user1)
+
+        // When: User 1 requests tag stats
+        val response = client.toBlocking().exchange(
+            HttpRequest.GET<Any>("/api/tags/stats")
+                .bearerAuth(user1Token),
+            TagStatsResponse::class.java
+        )
+
+        // Then: Should show count only from User 1's entries (2), not User 2's entries (3)
+        assertEquals(HttpStatus.OK, response.status)
+        val stats = response.body()?.tags ?: emptyList()
+        assertEquals(1, stats.size)
+        assertEquals("kotlin", stats[0].tag)
+        assertEquals(2L, stats[0].count) // Only User 1's 2 entries, not User 2's 3 entries
+    }
+
+    @Test
     fun `should handle mix of entries with and without tags`() {
         // Given: User 1 has entries with and without tags
         testDatabaseSupport.insert(
@@ -228,7 +299,7 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Tagged Task",
                 ownerId = requireNotNull(user1.id),
-                tags = listOf("kotlin")
+                tags = arrayOf("kotlin")
             )
         )
 
@@ -238,7 +309,7 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T13:00:00Z"),
                 title = "Untagged Task",
                 ownerId = requireNotNull(user1.id),
-                tags = emptyList()
+                tags = emptyArray()
             )
         )
 
@@ -268,7 +339,7 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Task",
                 ownerId = requireNotNull(user1.id),
-                tags = listOf("zebra", "apple", "mango", "banana")
+                tags = arrayOf("zebra", "apple", "mango", "banana")
             )
         )
 
@@ -300,7 +371,7 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Single Tag Task",
                 ownerId = requireNotNull(user1.id),
-                tags = listOf("solo")
+                tags = arrayOf("solo")
             )
         )
 

@@ -7,7 +7,6 @@ import io.orangebuffalo.aionify.domain.User
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mindrot.jbcrypt.BCrypt
 import java.time.Instant
 
 @MicronautTest(transactional = false)
@@ -16,44 +15,23 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
     @Inject
     lateinit var testAuthSupport: TestAuthSupport
 
-    private val testPassword = "testPassword123"
-    private val regularUserName = "tagsTestUser"
-    private val regularUserGreeting = "Tags Test User"
-
     private lateinit var regularUser: User
     private lateinit var otherUser: User
 
     @BeforeEach
     fun setupTestData() {
         // Create test users
-        regularUser = testDatabaseSupport.insert(
-            User.create(
-                userName = regularUserName,
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = regularUserGreeting,
-                isAdmin = false,
-                locale = java.util.Locale.US
-            )
-        )
-
-        otherUser = testDatabaseSupport.insert(
-            User.create(
-                userName = "otherUser",
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = "Other User",
-                isAdmin = false,
-                locale = java.util.Locale.US
-            )
-        )
+        regularUser = testUsers.createRegularUser("tagsTestUser", "Tags Test User")
+        otherUser = testUsers.createRegularUser("otherUser", "Other User")
     }
 
-    private fun navigateToSettingsViaToken() {
-        loginViaToken("/portal/settings", regularUser, testAuthSupport)
+    private fun navigateToTagsViaToken() {
+        loginViaToken("/portal/tags", regularUser, testAuthSupport)
     }
 
     @Test
     fun `should display tags panel on settings page`() {
-        navigateToSettingsViaToken()
+        navigateToTagsViaToken()
 
         // Verify tags panel is visible
         val tagsPanel = page.locator("[data-testid='tags-panel']")
@@ -65,7 +43,7 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show empty message when user has no tags`() {
-        navigateToSettingsViaToken()
+        navigateToTagsViaToken()
 
         // Wait for loading to complete
         val tagsEmpty = page.locator("[data-testid='tags-empty']")
@@ -82,7 +60,7 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Task 1",
                 ownerId = requireNotNull(regularUser.id),
-                tags = listOf("kotlin", "backend")
+                tags = arrayOf("kotlin", "backend")
             )
         )
 
@@ -92,11 +70,11 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T13:00:00Z"),
                 title = "Task 2",
                 ownerId = requireNotNull(regularUser.id),
-                tags = listOf("react", "frontend")
+                tags = arrayOf("react", "frontend")
             )
         )
 
-        navigateToSettingsViaToken()
+        navigateToTagsViaToken()
 
         // Verify table is visible
         val tagsTable = page.locator("[data-testid='tags-table']")
@@ -137,7 +115,7 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Task 1",
                 ownerId = requireNotNull(regularUser.id),
-                tags = listOf("kotlin", "backend")
+                tags = arrayOf("kotlin", "backend")
             )
         )
 
@@ -147,7 +125,7 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T13:00:00Z"),
                 title = "Task 2",
                 ownerId = requireNotNull(regularUser.id),
-                tags = listOf("kotlin", "testing")
+                tags = arrayOf("kotlin", "testing")
             )
         )
 
@@ -157,11 +135,11 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = null,
                 title = "Task 3",
                 ownerId = requireNotNull(regularUser.id),
-                tags = listOf("kotlin")
+                tags = arrayOf("kotlin")
             )
         )
 
-        navigateToSettingsViaToken()
+        navigateToTagsViaToken()
 
         // Verify kotlin has count of 3
         assertThat(page.locator("[data-testid='tag-count-kotlin']")).containsText("3")
@@ -182,7 +160,7 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "My Task",
                 ownerId = requireNotNull(regularUser.id),
-                tags = listOf("my-tag")
+                tags = arrayOf("my-tag")
             )
         )
 
@@ -193,11 +171,11 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = null,
                 title = "Other Task",
                 ownerId = requireNotNull(otherUser.id),
-                tags = listOf("other-tag")
+                tags = arrayOf("other-tag")
             )
         )
 
-        navigateToSettingsViaToken()
+        navigateToTagsViaToken()
 
         // Verify only current user's tag is visible
         assertThat(page.locator("[data-testid='tag-row-my-tag']")).isVisible()
@@ -215,11 +193,11 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Task",
                 ownerId = requireNotNull(regularUser.id),
-                tags = listOf("zebra", "apple", "mango", "banana")
+                tags = arrayOf("zebra", "apple", "mango", "banana")
             )
         )
 
-        navigateToSettingsViaToken()
+        navigateToTagsViaToken()
 
         // Get all tag rows
         val tagRows = page.locator("[data-testid^='tag-row-']")
@@ -236,31 +214,6 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
     }
 
     @Test
-    fun `should highlight row on hover`() {
-        // Create entry with tag
-        testDatabaseSupport.insert(
-            TimeLogEntry(
-                startTime = Instant.parse("2024-01-15T10:00:00Z"),
-                endTime = Instant.parse("2024-01-15T11:00:00Z"),
-                title = "Task",
-                ownerId = requireNotNull(regularUser.id),
-                tags = listOf("hover-test")
-            )
-        )
-
-        navigateToSettingsViaToken()
-
-        val row = page.locator("[data-testid='tag-row-hover-test']")
-        
-        // Hover over the row
-        row.hover()
-        
-        // The row should be visible and hoverable (we can't test the exact hover styling in Playwright,
-        // but we can verify the row exists and is interactive)
-        assertThat(row).isVisible()
-    }
-
-    @Test
     fun `should handle mix of entries with and without tags`() {
         // Create entries with and without tags
         testDatabaseSupport.insert(
@@ -269,7 +222,7 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Tagged Task",
                 ownerId = requireNotNull(regularUser.id),
-                tags = listOf("important")
+                tags = arrayOf("important")
             )
         )
 
@@ -279,11 +232,11 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T13:00:00Z"),
                 title = "Untagged Task",
                 ownerId = requireNotNull(regularUser.id),
-                tags = emptyList()
+                tags = emptyArray()
             )
         )
 
-        navigateToSettingsViaToken()
+        navigateToTagsViaToken()
 
         // Verify only the tag from tagged entry is shown
         assertThat(page.locator("[data-testid='tag-row-important']")).isVisible()
@@ -291,20 +244,5 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
         
         // Verify we only have 1 tag row
         assertThat(page.locator("[data-testid^='tag-row-']")).hasCount(1)
-    }
-
-    @Test
-    fun `should navigate to settings from portal menu`() {
-        // Start at time logs page
-        loginViaToken("/portal/time-logs", regularUser, testAuthSupport)
-
-        // Click on Settings menu item
-        page.locator("[data-testid='nav-item-settings']").click()
-
-        // Should navigate to settings page
-        page.waitForURL("**/portal/settings")
-
-        // Verify tags panel is visible
-        assertThat(page.locator("[data-testid='tags-panel']")).isVisible()
     }
 }
