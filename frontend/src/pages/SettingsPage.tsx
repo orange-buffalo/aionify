@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { PortalLayout } from "@/components/layout/PortalLayout"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { FormMessage } from "@/components/ui/form-message"
 import { apiGet } from "@/lib/api"
@@ -48,48 +48,51 @@ export function SettingsPage() {
             <p className="text-muted-foreground">{t("settings.subtitle")}</p>
           </div>
 
-          {error && (
-            <div className="mb-4">
-              <FormMessage type="error" message={error} testId="tags-error" />
-            </div>
-          )}
+          <Card className="border-none shadow-md">
+            <div className="p-6">
+              <h2 className="text-2xl font-semibold text-foreground mb-2">{t("settings.tags.title")}</h2>
+              <p className="text-sm text-muted-foreground mb-6">{t("settings.tags.subtitle")}</p>
 
-          {loading ? (
-            <div className="text-center py-8 text-foreground" data-testid="tags-loading">
-              {t("common.loading")}
-            </div>
-          ) : tags.length === 0 ? (
-            <Card className="border-none shadow-md" data-testid="tags-empty-card">
-              <CardContent className="pt-6">
+              {error && (
+                <div className="mb-4">
+                  <FormMessage type="error" message={error} testId="tags-error" />
+                </div>
+              )}
+
+              {loading ? (
+                <div className="text-center py-8 text-foreground" data-testid="tags-loading">
+                  {t("common.loading")}
+                </div>
+              ) : tags.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground" data-testid="tags-empty">
                   {t("settings.tags.noTags")}
                 </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="border-none shadow-md" data-testid="tags-table-container">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("settings.tags.table.tag")}</TableHead>
-                    <TableHead className="w-[100px]">{t("settings.tags.table.count")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tags.map((tagStat) => (
-                    <TableRow key={tagStat.tag} data-testid={`tag-row-${tagStat.tag}`}>
-                      <TableCell data-testid={`tag-name-${tagStat.tag}`}>
-                        {tagStat.tag}
-                      </TableCell>
-                      <TableCell data-testid={`tag-count-${tagStat.tag}`}>
-                        {tagStat.count}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Card>
-          )}
+              ) : (
+                <div data-testid="tags-table">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("settings.tags.table.tag")}</TableHead>
+                        <TableHead className="w-[100px]">{t("settings.tags.table.count")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {tags.map((tagStat) => (
+                        <TableRow key={tagStat.tag} data-testid={`tag-row-${tagStat.tag}`}>
+                          <TableCell data-testid={`tag-name-${tagStat.tag}`}>
+                            {tagStat.tag}
+                          </TableCell>
+                          <TableCell data-testid={`tag-count-${tagStat.tag}`}>
+                            {tagStat.count}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
+          </Card>
         </div>
       </div>
     </PortalLayout>

@@ -62,7 +62,7 @@ class ProfilePlaywrightTest : PlaywrightTestBase() {
     fun `should navigate to profile page when clicking settings menu item`() {
         navigateToPortalViaToken()
 
-        // Open profile menu and click settings
+        // Open profile menu and click profile
         page.locator("[data-testid='profile-menu-button']").click()
         page.locator("[data-testid='profile-menu-item']").click()
 
@@ -70,13 +70,13 @@ class ProfilePlaywrightTest : PlaywrightTestBase() {
         page.waitForURL("**/portal/profile")
 
         // Verify profile page is displayed
-        val settingsPage = page.locator("[data-testid='settings-page']")
-        assertThat(settingsPage).isVisible()
+        val profilePage = page.locator("[data-testid='profile-page']")
+        assertThat(profilePage).isVisible()
 
-        // Verify settings title
-        val settingsTitle = page.locator("[data-testid='profile-title']")
-        assertThat(settingsTitle).isVisible()
-        assertThat(settingsTitle).hasText("Settings")
+        // Verify profile title
+        val profileTitle = page.locator("[data-testid='profile-title']")
+        assertThat(profileTitle).isVisible()
+        assertThat(profileTitle).hasText("Profile")
     }
 
     // === Profile Management Tests ===
@@ -569,11 +569,11 @@ class ProfilePlaywrightTest : PlaywrightTestBase() {
         )
 
         // Use token-based auth for admin
-        loginViaToken("/admin/settings", adminUser, testAuthSupport)
+        loginViaToken("/admin/profile", adminUser, testAuthSupport)
 
         // Verify profile page is displayed
-        val settingsPage = page.locator("[data-testid='settings-page']")
-        assertThat(settingsPage).isVisible()
+        val profilePage = page.locator("[data-testid='profile-page']")
+        assertThat(profilePage).isVisible()
 
         val newPassword = "newAdminPassword789"
 

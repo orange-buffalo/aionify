@@ -78,6 +78,8 @@ const resources = {
         title: "Settings",
         subtitle: "Manage operational settings",
         tags: {
+          title: "Tags",
+          subtitle: "View tags used in your time log entries",
           noTags: "No tags found in your time log entries",
           table: {
             tag: "Tag",
@@ -386,6 +388,8 @@ const resources = {
         title: "Налаштування",
         subtitle: "Керуйте операційними налаштуваннями",
         tags: {
+          title: "Теги",
+          subtitle: "Перегляд тегів у ваших записах часу",
           noTags: "Теги не знайдено у ваших записах часу",
           table: {
             tag: "Тег",

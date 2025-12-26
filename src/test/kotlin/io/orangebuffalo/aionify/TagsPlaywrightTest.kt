@@ -26,12 +26,15 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
     }
 
     private fun navigateToSettingsViaToken() {
-        loginViaToken("/portal/tags", regularUser, testAuthSupport)
+        loginViaToken("/portal/settings", regularUser, testAuthSupport)
     }
 
     @Test
     fun `should display tags panel on settings page`() {
         navigateToSettingsViaToken()
+
+        // Wait for the page to load
+        page.waitForSelector("[data-testid='settings-title']")
 
         // Verify tags panel is visible
         val tagsPanel = page.locator("[data-testid='settings-page']")
@@ -46,6 +49,7 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
         navigateToSettingsViaToken()
 
         // Wait for loading to complete
+        page.waitForSelector("[data-testid='tags-empty']")
         val tagsEmpty = page.locator("[data-testid='tags-empty']")
         assertThat(tagsEmpty).isVisible()
         assertThat(tagsEmpty).containsText("No tags found")
@@ -75,6 +79,9 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
         )
 
         navigateToSettingsViaToken()
+
+        // Wait for table to load
+        page.waitForSelector("[data-testid='tags-table']")
 
         // Verify table is visible
         val tagsTable = page.locator("[data-testid='tags-table']")
