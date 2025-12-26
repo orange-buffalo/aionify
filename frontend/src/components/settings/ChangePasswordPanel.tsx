@@ -54,7 +54,7 @@ export function ChangePasswordPanel() {
         currentPassword,
         newPassword,
       })
-      setSuccess(t("settings.changePassword.changeSuccess"))
+      setSuccess(t("profile.changePassword.changeSuccess"))
 
       // Reset form on success
       setCurrentPassword("")
@@ -72,22 +72,22 @@ export function ChangePasswordPanel() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <KeyRound className="h-5 w-5" />
-          {t("settings.changePassword.title")}
+          {t("profile.changePassword.title")}
         </CardTitle>
-        <CardDescription>{t("settings.changePassword.subtitle")}</CardDescription>
+        <CardDescription>{t("profile.changePassword.subtitle")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
           {/* Current Password */}
           <div className="space-y-2">
             <Label htmlFor="currentPassword" className="text-muted-foreground">
-              {t("settings.changePassword.currentPassword")}
+              {t("profile.changePassword.currentPassword")}
             </Label>
             <div className="relative">
               <Input
                 id="currentPassword"
                 type={showCurrentPassword ? "text" : "password"}
-                placeholder={t("settings.changePassword.currentPasswordPlaceholder")}
+                placeholder={t("profile.changePassword.currentPasswordPlaceholder")}
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 className="pr-10 bg-background/50"
@@ -109,13 +109,13 @@ export function ChangePasswordPanel() {
           {/* New Password */}
           <div className="space-y-2">
             <Label htmlFor="newPassword" className="text-muted-foreground">
-              {t("settings.changePassword.newPassword")}
+              {t("profile.changePassword.newPassword")}
             </Label>
             <div className="relative">
               <Input
                 id="newPassword"
                 type={showNewPassword ? "text" : "password"}
-                placeholder={t("settings.changePassword.newPasswordPlaceholder")}
+                placeholder={t("profile.changePassword.newPasswordPlaceholder")}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="pr-10 bg-background/50"
@@ -137,13 +137,13 @@ export function ChangePasswordPanel() {
           {/* Confirm New Password */}
           <div className="space-y-2">
             <Label htmlFor="confirmPassword" className="text-muted-foreground">
-              {t("settings.changePassword.confirmPassword")}
+              {t("profile.changePassword.confirmPassword")}
             </Label>
             <div className="relative">
               <Input
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
-                placeholder={t("settings.changePassword.confirmPasswordPlaceholder")}
+                placeholder={t("profile.changePassword.confirmPasswordPlaceholder")}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="pr-10 bg-background/50"
@@ -179,7 +179,7 @@ export function ChangePasswordPanel() {
             disabled={loading}
             data-testid="change-password-button"
           >
-            {loading ? t("settings.changePassword.changing") : t("settings.changePassword.change")}
+            {loading ? t("profile.changePassword.changing") : t("profile.changePassword.change")}
           </Button>
         </form>
       </CardContent>

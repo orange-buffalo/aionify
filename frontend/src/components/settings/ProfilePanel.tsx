@@ -144,27 +144,27 @@ export function ProfilePanel() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <User className="h-5 w-5" />
-          {t("settings.profile.title")}
+          {t("profile.profile.title")}
         </CardTitle>
-        <CardDescription>{t("settings.profile.subtitle")}</CardDescription>
+        <CardDescription>{t("profile.profile.subtitle")}</CardDescription>
       </CardHeader>
       <CardContent>
         {loading ? (
           <div className="flex items-center gap-2 text-muted-foreground" data-testid="profile-loading">
             <Loader2 className="h-4 w-4 animate-spin" />
-            {t("settings.profile.loading")}
+            {t("profile.profile.loading")}
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
             {/* Greeting */}
             <div className="space-y-2">
               <Label htmlFor="greeting" className="text-muted-foreground">
-                {t("settings.profile.greeting")}
+                {t("profile.profile.greeting")}
               </Label>
               <Input
                 id="greeting"
                 type="text"
-                placeholder={t("settings.profile.greetingPlaceholder")}
+                placeholder={t("profile.profile.greetingPlaceholder")}
                 value={greeting}
                 onChange={(e) => setGreeting(e.target.value)}
                 className="bg-background/50"
@@ -176,7 +176,7 @@ export function ProfilePanel() {
             {/* Language (shown as locale dropdown) */}
             <div className="space-y-2">
               <Label htmlFor="locale" className="text-muted-foreground">
-                {t("settings.profile.language")}
+                {t("profile.profile.language")}
               </Label>
               <Select value={locale} onValueChange={setLocale}>
                 <SelectTrigger
@@ -184,7 +184,7 @@ export function ProfilePanel() {
                   className="bg-background/50"
                   data-testid="profile-locale-select"
                 >
-                  <SelectValue placeholder={t("settings.profile.languagePlaceholder")} />
+                  <SelectValue placeholder={t("profile.profile.languagePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent data-testid="profile-locale-dropdown" className="dark">
                   {LOCALES.map((localeCode) => (
@@ -200,7 +200,7 @@ export function ProfilePanel() {
               </Select>
               {localeExample && (
                 <p className="text-xs text-muted-foreground" data-testid="locale-example">
-                  {t("settings.profile.localeExample", { example: localeExample })}
+                  {t("profile.profile.localeExample", { example: localeExample })}
                 </p>
               )}
             </div>
@@ -212,7 +212,7 @@ export function ProfilePanel() {
 
             {/* Success Message */}
             {success && (
-              <FormMessage type="success" message={t("settings.profile.updateSuccess")} testId="profile-success" />
+              <FormMessage type="success" message={t("profile.profile.updateSuccess")} testId="profile-success" />
             )}
 
             {/* Submit Button */}
@@ -222,7 +222,7 @@ export function ProfilePanel() {
               disabled={saving}
               data-testid="profile-save-button"
             >
-              {saving ? t("settings.profile.saving") : t("settings.profile.save")}
+              {saving ? t("profile.profile.saving") : t("profile.profile.save")}
             </Button>
           </form>
         )}

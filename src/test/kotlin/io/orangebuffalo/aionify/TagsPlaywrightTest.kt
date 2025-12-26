@@ -25,13 +25,13 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
         otherUser = testUsers.createRegularUser("otherUser", "Other User")
     }
 
-    private fun navigateToTagsViaToken() {
+    private fun navigateToSettingsViaToken() {
         loginViaToken("/portal/tags", regularUser, testAuthSupport)
     }
 
     @Test
     fun `should display tags panel on settings page`() {
-        navigateToTagsViaToken()
+        navigateToSettingsViaToken()
 
         // Verify tags panel is visible
         val tagsPanel = page.locator("[data-testid='tags-panel']")
@@ -43,7 +43,7 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show empty message when user has no tags`() {
-        navigateToTagsViaToken()
+        navigateToSettingsViaToken()
 
         // Wait for loading to complete
         val tagsEmpty = page.locator("[data-testid='tags-empty']")
@@ -74,7 +74,7 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
             )
         )
 
-        navigateToTagsViaToken()
+        navigateToSettingsViaToken()
 
         // Verify table is visible
         val tagsTable = page.locator("[data-testid='tags-table']")
@@ -139,7 +139,7 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
             )
         )
 
-        navigateToTagsViaToken()
+        navigateToSettingsViaToken()
 
         // Verify kotlin has count of 3
         assertThat(page.locator("[data-testid='tag-count-kotlin']")).containsText("3")
@@ -175,7 +175,7 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
             )
         )
 
-        navigateToTagsViaToken()
+        navigateToSettingsViaToken()
 
         // Verify only current user's tag is visible
         assertThat(page.locator("[data-testid='tag-row-my-tag']")).isVisible()
@@ -197,7 +197,7 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
             )
         )
 
-        navigateToTagsViaToken()
+        navigateToSettingsViaToken()
 
         // Get all tag rows
         val tagRows = page.locator("[data-testid^='tag-row-']")
@@ -236,7 +236,7 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
             )
         )
 
-        navigateToTagsViaToken()
+        navigateToSettingsViaToken()
 
         // Verify only the tag from tagged entry is shown
         assertThat(page.locator("[data-testid='tag-row-important']")).isVisible()

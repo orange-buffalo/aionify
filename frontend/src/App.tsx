@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router"
 import { LoginPage } from "@/pages/LoginPage"
 import { ActivateAccountPage } from "@/pages/ActivateAccountPage"
 import { SettingsPage } from "@/pages/SettingsPage"
-import { TagsPage } from "@/pages/TagsPage"
+import { ProfilePage } from "@/pages/ProfilePage"
 import { UsersPage } from "@/pages/UsersPage"
 import { CreateUserPage } from "@/pages/CreateUserPage"
 import { EditUserPage } from "@/pages/EditUserPage"
@@ -31,9 +31,9 @@ export function App() {
             <EditUserPage />
           </ProtectedRoute>
         } />
-        <Route path="/admin/settings" element={
+        <Route path="/admin/profile" element={
           <ProtectedRoute requireAdmin={true}>
-            <SettingsPage />
+            <ProfilePage />
           </ProtectedRoute>
         } />
         <Route path="/portal/time-logs" element={
@@ -46,9 +46,9 @@ export function App() {
             <SettingsPage />
           </ProtectedRoute>
         } />
-        <Route path="/portal/tags" element={
+        <Route path="/portal/profile" element={
           <ProtectedRoute requireAdmin={false}>
-            <TagsPage />
+            <ProfilePage />
           </ProtectedRoute>
         } />
         <Route path="/" element={<RootRedirect />} />
