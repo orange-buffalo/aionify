@@ -10,13 +10,13 @@ import org.junit.jupiter.api.Test
 import org.mindrot.jbcrypt.BCrypt
 
 @MicronautTest(transactional = false)
-class SettingsPlaywrightTest : PlaywrightTestBase() {
+class ProfilePlaywrightTest : PlaywrightTestBase() {
 
     @Inject
     lateinit var testAuthSupport: TestAuthSupport
 
     private val testPassword = "testPassword123"
-    private val regularUserName = "settingsTestUser"
+    private val regularUserName = "profileTestUser"
     private val regularUserGreeting = "Settings Test User"
 
     private lateinit var regularUser: User
@@ -36,8 +36,8 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         )
     }
 
-    private fun navigateToSettingsViaToken() {
-        loginViaToken("/portal/settings", regularUser, testAuthSupport)
+    private fun navigateToProfileViaToken() {
+        loginViaToken("/portal/profile", regularUser, testAuthSupport)
     }
 
     private fun navigateToPortalViaToken() {
@@ -54,22 +54,22 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='profile-menu-button']").click()
 
         // Verify settings menu item is visible
-        val settingsMenuItem = page.locator("[data-testid='settings-menu-item']")
+        val settingsMenuItem = page.locator("[data-testid='profile-menu-item']")
         assertThat(settingsMenuItem).isVisible()
     }
 
     @Test
-    fun `should navigate to settings page when clicking settings menu item`() {
+    fun `should navigate to profile page when clicking settings menu item`() {
         navigateToPortalViaToken()
 
         // Open profile menu and click settings
         page.locator("[data-testid='profile-menu-button']").click()
-        page.locator("[data-testid='settings-menu-item']").click()
+        page.locator("[data-testid='profile-menu-item']").click()
 
-        // Wait for navigation to settings page
-        page.waitForURL("**/portal/settings")
+        // Wait for navigation to profile page
+        page.waitForURL("**/portal/profile")
 
-        // Verify settings page is displayed
+        // Verify profile page is displayed
         val settingsPage = page.locator("[data-testid='settings-page']")
         assertThat(settingsPage).isVisible()
 
@@ -83,7 +83,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should display profile form with existing user data`() {
-        navigateToSettingsViaToken()
+        navigateToProfileViaToken()
 
         // Wait for profile to load
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
@@ -115,7 +115,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
             )
         )
 
-        loginViaToken("/portal/settings", ukUser, testAuthSupport)
+        loginViaToken("/portal/profile", ukUser, testAuthSupport)
 
         // Wait for profile to load and verify Ukrainian data is loaded
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
@@ -140,7 +140,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
             )
         )
 
-        loginViaToken("/portal/settings", deUser, testAuthSupport)
+        loginViaToken("/portal/profile", deUser, testAuthSupport)
 
         // Wait for profile to load and verify data is loaded
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
@@ -151,7 +151,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show error when greeting is blank`() {
-        navigateToSettingsViaToken()
+        navigateToProfileViaToken()
 
         // Wait for profile to load
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
@@ -169,7 +169,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show error when greeting is only whitespace`() {
-        navigateToSettingsViaToken()
+        navigateToProfileViaToken()
 
         // Wait for profile to load
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
@@ -187,7 +187,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show error for greeting exceeding max length`() {
-        navigateToSettingsViaToken()
+        navigateToProfileViaToken()
 
         // Wait for profile to load
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
@@ -207,7 +207,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should successfully update profile and show success message`() {
-        navigateToSettingsViaToken()
+        navigateToProfileViaToken()
 
         // Wait for profile to load
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
@@ -238,7 +238,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should allow greeting at max length of 255 characters`() {
-        navigateToSettingsViaToken()
+        navigateToProfileViaToken()
 
         // Wait for profile to load
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
@@ -256,7 +256,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should display locale dropdown with all options`() {
-        navigateToSettingsViaToken()
+        navigateToProfileViaToken()
 
         // Wait for profile to load
         val localeSelect = page.locator("[data-testid='profile-locale-select']")
@@ -280,7 +280,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should display change password form with all required elements`() {
-        navigateToSettingsViaToken()
+        navigateToProfileViaToken()
 
         // Verify all password inputs are visible
         val currentPasswordInput = page.locator("[data-testid='current-password-input']")
@@ -298,7 +298,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should toggle current password visibility`() {
-        navigateToSettingsViaToken()
+        navigateToProfileViaToken()
 
         val currentPasswordInput = page.locator("[data-testid='current-password-input']")
         val toggleButton = page.locator("[data-testid='toggle-current-password-visibility']")
@@ -317,7 +317,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should toggle new password visibility`() {
-        navigateToSettingsViaToken()
+        navigateToProfileViaToken()
 
         val newPasswordInput = page.locator("[data-testid='new-password-input']")
         val toggleButton = page.locator("[data-testid='toggle-new-password-visibility']")
@@ -336,7 +336,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should toggle confirm password visibility`() {
-        navigateToSettingsViaToken()
+        navigateToProfileViaToken()
 
         val confirmPasswordInput = page.locator("[data-testid='confirm-password-input']")
         val toggleButton = page.locator("[data-testid='toggle-confirm-password-visibility']")
@@ -355,7 +355,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show error when current password is empty`() {
-        navigateToSettingsViaToken()
+        navigateToProfileViaToken()
 
         // Fill only new password and confirmation
         page.locator("[data-testid='new-password-input']").fill("newPassword123")
@@ -372,7 +372,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show error when new password is empty`() {
-        navigateToSettingsViaToken()
+        navigateToProfileViaToken()
 
         // Fill only current password
         page.locator("[data-testid='current-password-input']").fill(testPassword)
@@ -388,7 +388,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show error when passwords do not match`() {
-        navigateToSettingsViaToken()
+        navigateToProfileViaToken()
 
         // Fill with mismatched passwords
         page.locator("[data-testid='current-password-input']").fill(testPassword)
@@ -406,7 +406,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show error when current password is incorrect`() {
-        navigateToSettingsViaToken()
+        navigateToProfileViaToken()
 
         // Fill with incorrect current password
         page.locator("[data-testid='current-password-input']").fill("wrongPassword")
@@ -424,7 +424,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should show error for password exceeding max length`() {
-        navigateToSettingsViaToken()
+        navigateToProfileViaToken()
 
         // Create a password that exceeds 50 characters
         // The input has maxLength=50, so we need to bypass it by evaluating JS
@@ -448,7 +448,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should successfully change password and show success message`() {
-        navigateToSettingsViaToken()
+        navigateToProfileViaToken()
 
         val newPassword = "brandNewPassword456"
 
@@ -477,7 +477,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should be able to login with new password after change`() {
-        navigateToSettingsViaToken()
+        navigateToProfileViaToken()
 
         val newPassword = "loginAfterChangeTest"
 
@@ -508,7 +508,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should not reset inputs on validation failure`() {
-        navigateToSettingsViaToken()
+        navigateToProfileViaToken()
 
         // Fill with mismatched passwords
         page.locator("[data-testid='current-password-input']").fill(testPassword)
@@ -534,7 +534,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should allow changing password to max length of 50 characters`() {
-        navigateToSettingsViaToken()
+        navigateToProfileViaToken()
 
         // Use exactly 50 characters password
         val maxLengthPassword = "a".repeat(50)
@@ -571,7 +571,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
         // Use token-based auth for admin
         loginViaToken("/admin/settings", adminUser, testAuthSupport)
 
-        // Verify settings page is displayed
+        // Verify profile page is displayed
         val settingsPage = page.locator("[data-testid='settings-page']")
         assertThat(settingsPage).isVisible()
 
@@ -594,7 +594,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `newly created user should have locale properly set when created via admin`() {
         // This test verifies the fix for the bug where newly created users
-        // had an empty locale dropdown in settings page.
+        // had an empty locale dropdown in profile page.
         // The issue was that UserAdminResource.createUser() was using Locale.ENGLISH
         // which converts to "en" (language only), but the frontend expects full locale
         // tags like "en-US", causing the locale dropdown to show as empty.
@@ -611,7 +611,7 @@ class SettingsPlaywrightTest : PlaywrightTestBase() {
             )
         )
 
-        loginViaToken("/portal/settings", userWithProperLocale, testAuthSupport)
+        loginViaToken("/portal/profile", userWithProperLocale, testAuthSupport)
 
         // Wait for profile to load
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")

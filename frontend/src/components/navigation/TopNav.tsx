@@ -37,12 +37,12 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
     navigate("/login")
   }
 
-  const handleSettings = () => {
-    // Navigate to settings based on current portal (admin or user)
+  const handleProfile = () => {
+    // Navigate to profile based on current portal (admin or user)
     if (location.pathname.startsWith("/admin")) {
-      navigate("/admin/settings")
+      navigate("/admin/profile")
     } else {
-      navigate("/portal/settings")
+      navigate("/portal/profile")
     }
   }
 
@@ -147,12 +147,12 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
                   </>
                 )}
                 <DropdownMenuItem
-                  onClick={handleSettings}
+                  onClick={handleProfile}
                   className="cursor-pointer"
-                  data-testid="settings-menu-item"
+                  data-testid="profile-menu-item"
                 >
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>{t("nav.settings")}</span>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>{t("nav.profile")}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={handleLogout}

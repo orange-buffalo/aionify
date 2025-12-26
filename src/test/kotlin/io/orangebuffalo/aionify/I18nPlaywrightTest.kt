@@ -167,7 +167,7 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         assertThat(successMessage).isVisible()
 
         // Verify UI switched to Ukrainian immediately
-        assertThat(settingsTitle).hasText("Налаштування")
+        assertThat(settingsTitle).hasText("Профіль")
         assertThat(successMessage).containsText("успішно оновлено")
 
         // Verify the locale dropdown now shows Ukrainian locale in Ukrainian
@@ -301,7 +301,7 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
 
         // Verify UI is still in Ukrainian
         val settingsTitle = page.locator("[data-testid='settings-title']")
-        assertThat(settingsTitle).hasText("Налаштування")
+        assertThat(settingsTitle).hasText("Профіль")
 
         // Navigate to time logs page
         page.navigate("/portal/time-logs")

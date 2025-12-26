@@ -34,7 +34,7 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
         navigateToSettingsViaToken()
 
         // Verify tags panel is visible
-        val tagsPanel = page.locator("[data-testid='tags-panel']")
+        val tagsPanel = page.locator("[data-testid='settings-page']")
         assertThat(tagsPanel).isVisible()
 
         // Verify title
