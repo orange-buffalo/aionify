@@ -72,12 +72,14 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
         // Verify user-specific menu items are present (desktop view)
         val timeEntry = page.locator("[data-testid='nav-item-time-log']")
-        val calendar = page.locator("[data-testid='nav-item-calendar']")
-        val reports = page.locator("[data-testid='nav-item-reports']")
+        val settings = page.locator("[data-testid='nav-item-settings']")
 
         assertThat(timeEntry).isVisible()
-        assertThat(calendar).isVisible()
-        assertThat(reports).isVisible()
+        assertThat(settings).isVisible()
+        
+        // Profile is in the dropdown menu, not in top navigation
+        val profile = page.locator("[data-testid='nav-item-profile']")
+        assertThat(profile).hasCount(0)
     }
 
     @Test
@@ -135,12 +137,10 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
         val timeEntry = page.locator("[data-testid='nav-item-time-log']")
         assertThat(timeEntry).isVisible()
 
-        // Verify admin-specific items are NOT present
+        // Verify admin-specific items are NOT present (users is admin-only)
         val users = page.locator("[data-testid='nav-item-users']")
-        val settings = page.locator("[data-testid='nav-item-settings']")
 
         assertThat(users).hasCount(0)
-        assertThat(settings).hasCount(0)
     }
 
     @Test
@@ -231,12 +231,14 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
         // Verify all user menu items are in mobile menu
         val timeEntry = page.locator("[data-testid='mobile-nav-item-time-log']")
-        val calendar = page.locator("[data-testid='mobile-nav-item-calendar']")
-        val reports = page.locator("[data-testid='mobile-nav-item-reports']")
+        val settings = page.locator("[data-testid='mobile-nav-item-settings']")
 
         assertThat(timeEntry).isVisible()
-        assertThat(calendar).isVisible()
-        assertThat(reports).isVisible()
+        assertThat(settings).isVisible()
+        
+        // Profile is not in mobile menu (it's in the profile dropdown)
+        val profile = page.locator("[data-testid='mobile-nav-item-profile']")
+        assertThat(profile).hasCount(0)
     }
 
     @Test

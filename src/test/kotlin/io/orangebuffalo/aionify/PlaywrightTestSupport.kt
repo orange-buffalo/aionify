@@ -81,14 +81,14 @@ abstract class PlaywrightTestBase {
         // Local storage keys matching frontend constants
         const val TOKEN_KEY = "aionify_token"
         const val LAST_USERNAME_KEY = "aionify_last_username"
-        
+
         /**
          * Fixed time for all Playwright tests defined in NZDT (New Zealand Daylight Time, UTC+13):
          * Saturday, March 16, 2024 at 03:30:00 NZDT
-         * 
+         *
          * This corresponds to Friday, March 15, 2024 at 14:30:00 UTC.
          * This is the same time used by TestTimeService for backend operations.
-         * 
+         *
          * All tests run in Pacific/Auckland timezone to ensure timezone awareness and catch
          * any timezone-related bugs early. Test expectations should use NZDT values (Saturday 03:30).
          */
@@ -128,7 +128,29 @@ abstract class PlaywrightTestBase {
         _page.onConsoleMessage { message ->
             consoleMessages.add(message)
         }
+
+        // Add request/response logging for AJAX debugging
+        _page.onRequest { request ->
+            if (request.url().contains("/api/")) {
+                println("[REQUEST] ${request.method()} ${request.url()}")
+                if (request.postData() != null) {
+                    println("[REQUEST BODY] ${request.postData()}")
+                }
+            }
+        }
         
+        _page.onResponse { response ->
+            if (response.url().contains("/api/")) {
+                println("[RESPONSE] ${response.status()} ${response.url()}")
+                try {
+                    val body = response.text()
+                    println("[RESPONSE BODY] $body")
+                } catch (e: Exception) {
+                    println("[RESPONSE BODY] (unable to read: ${e.message})")
+                }
+            }
+        }
+
         // Install Playwright clock with fixed time for deterministic tests
         // Use pauseAt to prevent automatic time progression - time only advances when explicitly requested
         // This ensures frontend JavaScript Date API uses the same fixed time as backend TimeService
@@ -168,7 +190,7 @@ abstract class PlaywrightTestBase {
 
         // Navigate to root to establish localStorage origin
         page.navigate("/")
-        
+
         // Set localStorage items
         page.evaluate("""
             (data) => {
@@ -225,7 +247,7 @@ abstract class PlaywrightTestBase {
     /**
      * Verifies that no browser console errors or warnings were logged during the test.
      * Throws an AssertionError if any errors or warnings are found.
-     * 
+     *
      * Note: "Failed to load resource" errors are ignored as they are expected when testing
      * error scenarios (e.g., 401 Unauthorized, 400 Bad Request responses).
      */
@@ -233,7 +255,7 @@ abstract class PlaywrightTestBase {
         val errorMessages = consoleMessages.filter { message ->
             val isErrorOrWarning = message.type() == "error" || message.type() == "warning"
             val isNetworkError = message.text().startsWith("Failed to load resource:")
-            
+
             // Filter to only actual errors/warnings, excluding network-related errors
             isErrorOrWarning && !isNetworkError
         }

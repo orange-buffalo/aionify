@@ -124,10 +124,13 @@ Playwright tests should extend `PlaywrightTestBase` which provides:
 - This ensures data is committed and visible to HTTP requests from browsers and other connections
 
 **Important Playwright Testing Rules:**
-- **Never use `page.waitForTimeout()` or similar time-based waits** - these make tests flaky
+- **Never use `page.waitForTimeout()`, `Thread.sleep()` or similar time-based waits** - these make tests flaky and hide real bugs
+- **Always assume test failures are caused by bugs in your code**, not by timing issues or test environment problems
 - **Always use Playwright's built-in auto-waiting assertions** like `assertThat().isVisible()`, `assertThat().containsText()`, etc.
 - These assertions automatically retry until the condition is met or timeout occurs
 - When verifying pagination or table content changes, check actual content (e.g., usernames) not just counts
+- **When a test fails, investigate the root cause in your implementation** - check browser console, API responses (logged by PlaywrightTestBase), and component code
+- PlaywrightTestBase automatically logs all AJAX requests and responses to help debug API-related issues
 
 Example:
 ```kotlin

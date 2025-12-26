@@ -42,10 +42,10 @@ const resources = {
         setPassword: "Set Password",
         settingPassword: "Setting password...",
       },
-      // Settings Page
-      settings: {
-        title: "Settings",
-        subtitle: "Manage your account settings",
+      // Profile Page (formerly Settings)
+      profile: {
+        title: "Profile",
+        subtitle: "Manage your profile settings",
         profile: {
           title: "My Profile",
           subtitle: "View and manage your profile information",
@@ -71,6 +71,20 @@ const resources = {
           change: "Change Password",
           changing: "Changing...",
           changeSuccess: "Password changed successfully",
+        },
+      },
+      // Settings Page (operational settings like tags)
+      settings: {
+        title: "Settings",
+        subtitle: "Manage operational settings",
+        tags: {
+          title: "Tags",
+          subtitle: "View tags used in your time log entries",
+          noTags: "No tags found in your time log entries",
+          table: {
+            tag: "Tag",
+            count: "Entries",
+          },
         },
       },
       // Time Logs Page
@@ -208,8 +222,10 @@ const resources = {
       nav: {
         menu: "Menu",
         settings: "Settings",
+        profile: "Profile",
         logout: "Logout",
         timeEntry: "Time Log",
+        tags: "Tags",
         calendar: "Calendar",
         reports: "Reports",
         users: "Users",
@@ -336,10 +352,10 @@ const resources = {
         setPassword: "Встановити пароль",
         settingPassword: "Встановлення пароля...",
       },
-      // Settings Page
-      settings: {
-        title: "Налаштування",
-        subtitle: "Керуйте налаштуваннями облікового запису",
+      // Profile Page (formerly Settings)
+      profile: {
+        title: "Профіль",
+        subtitle: "Керуйте налаштуваннями профілю",
         profile: {
           title: "Мій профіль",
           subtitle: "Перегляд та керування інформацією профілю",
@@ -365,6 +381,20 @@ const resources = {
           change: "Змінити пароль",
           changing: "Зміна...",
           changeSuccess: "Пароль успішно змінено",
+        },
+      },
+      // Settings Page (operational settings like tags)
+      settings: {
+        title: "Налаштування",
+        subtitle: "Керуйте операційними налаштуваннями",
+        tags: {
+          title: "Теги",
+          subtitle: "Перегляд тегів у ваших записах часу",
+          noTags: "Теги не знайдено у ваших записах часу",
+          table: {
+            tag: "Тег",
+            count: "Записи",
+          },
         },
       },
       // Time Logs Page
@@ -502,8 +532,10 @@ const resources = {
       nav: {
         menu: "Меню",
         settings: "Налаштування",
+        profile: "Профіль",
         logout: "Вийти",
         timeEntry: "Журнал часу",
+        tags: "Теги",
         calendar: "Календар",
         reports: "Звіти",
         users: "Користувачі",
