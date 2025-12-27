@@ -115,6 +115,10 @@ const resources = {
           dateLabel: "Date",
           timeLabel: "Time",
         },
+        tags: {
+          addNewPlaceholder: "Add new tag...",
+          noTags: "No tags yet. Add tags above to create them.",
+        },
         datePicker: {
           apply: "Apply",
           cancel: "Cancel",
@@ -432,6 +436,10 @@ const resources = {
           endTimeLabel: "Час закінчення",
           dateLabel: "Дата",
           timeLabel: "Час",
+        },
+        tags: {
+          addNewPlaceholder: "Додати новий тег...",
+          noTags: "Тегів ще немає. Додайте теги вище, щоб їх створити.",
         },
         datePicker: {
           apply: "Застосувати",

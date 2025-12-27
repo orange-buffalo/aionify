@@ -8,6 +8,7 @@ export interface TimeEntry {
   endTime: string | null
   title: string
   ownerId: number
+  tags: string[]
 }
 
 export interface TimeLogEntry extends TimeEntry {}

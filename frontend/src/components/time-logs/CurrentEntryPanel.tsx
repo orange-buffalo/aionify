@@ -7,6 +7,7 @@ import { Play, Square, Pencil } from "lucide-react"
 import { formatDateTime } from "@/lib/date-format"
 import { formatDuration } from "@/lib/time-utils"
 import { EditEntryForm } from "./EditEntryForm"
+import { TagSelector } from "./TagSelector"
 import type { TimeEntry } from "./types"
 
 interface CurrentEntryPanelProps {
@@ -17,7 +18,7 @@ interface CurrentEntryPanelProps {
   isStopping: boolean
   isSaving: boolean
   isEditingStoppedEntry: boolean
-  onStart: (title: string) => Promise<void>
+  onStart: (title: string, tags?: string[]) => Promise<void>
   onStop: () => Promise<void>
   onSaveEdit: (title: string, startTime: string) => Promise<void>
   onEditStart: () => void
@@ -38,6 +39,7 @@ export function CurrentEntryPanel({
 }: CurrentEntryPanelProps) {
   const { t } = useTranslation()
   const [newEntryTitle, setNewEntryTitle] = useState("")
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [isEditMode, setIsEditMode] = useState(false)
   const [editTitle, setEditTitle] = useState("")
   const [editDateTime, setEditDateTime] = useState<Date>(new Date())
@@ -49,8 +51,9 @@ export function CurrentEntryPanel({
 
   const handleStart = async () => {
     if (!newEntryTitle.trim()) return
-    await onStart(newEntryTitle.trim())
+    await onStart(newEntryTitle.trim(), selectedTags)
     setNewEntryTitle("")
+    setSelectedTags([])
   }
 
   const handleEditClick = () => {
@@ -132,7 +135,7 @@ export function CurrentEntryPanel({
             </div>
           )
         ) : (
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <Input
               value={newEntryTitle}
               onChange={(e) => setNewEntryTitle(e.target.value)}
@@ -145,6 +148,12 @@ export function CurrentEntryPanel({
               className="flex-1 text-foreground"
               data-testid="new-entry-input"
               disabled={isStarting}
+            />
+            <TagSelector
+              selectedTags={selectedTags}
+              onTagsChange={setSelectedTags}
+              disabled={isStarting}
+              testIdPrefix="new-entry-tags"
             />
             <Button
               onClick={handleStart}
