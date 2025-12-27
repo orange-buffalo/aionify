@@ -1,14 +1,20 @@
-import { mkdir, rm } from "fs/promises"
+import { mkdir, rm, cp } from "fs/promises"
 import { existsSync } from "fs"
 import { join } from "path"
 
 const outDir = join(import.meta.dir, "dist")
+const publicDir = join(import.meta.dir, "public")
 
 // Clean output directory
 if (existsSync(outDir)) {
   await rm(outDir, { recursive: true })
 }
 await mkdir(outDir, { recursive: true })
+
+// Copy public directory if it exists
+if (existsSync(publicDir)) {
+  await cp(publicDir, outDir, { recursive: true })
+}
 
 // Build React application with Bun
 const buildResult = await Bun.build({
@@ -58,6 +64,7 @@ const html = `<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Aionify - Time Tracking</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
