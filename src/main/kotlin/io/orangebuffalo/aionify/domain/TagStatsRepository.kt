@@ -16,12 +16,11 @@ interface TagStatsRepository : GenericRepository<TimeLogEntry, Long> {
      * Returns a list of tag statistics sorted alphabetically by tag name.
      */
     @Query(
-        """SELECT unnest(tags) AS tag, COUNT(*) AS count,
-           EXISTS(SELECT 1 FROM legacy_tag WHERE legacy_tag.user_id = :ownerId AND legacy_tag.name = unnest(tags)) AS is_legacy
-           FROM time_log_entry 
-           WHERE owner_id = :ownerId AND array_length(tags, 1) > 0
-           GROUP BY tag 
-           ORDER BY tag ASC"""
+        """SELECT t.tag, COUNT(*) AS count, (lt.id IS NOT NULL) AS is_legacy
+           FROM (SELECT unnest(tags) AS tag FROM time_log_entry WHERE owner_id = :ownerId AND array_length(tags, 1) > 0) t
+           LEFT JOIN legacy_tag lt ON lt.user_id = :ownerId AND lt.name = t.tag
+           GROUP BY t.tag, lt.id
+           ORDER BY t.tag ASC"""
     )
     fun findTagStatsByOwnerId(ownerId: Long): List<TagStatRow>
 }
