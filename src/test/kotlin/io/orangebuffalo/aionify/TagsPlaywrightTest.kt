@@ -4,6 +4,7 @@ import com.microsoft.playwright.Page
 import com.microsoft.playwright.options.AriaRole
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import io.orangebuffalo.aionify.domain.LegacyTag
 import io.orangebuffalo.aionify.domain.TimeLogEntry
 import io.orangebuffalo.aionify.domain.User
 import jakarta.inject.Inject
@@ -251,5 +252,213 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
 
         // Verify we only have 1 tag row
         assertThat(page.locator("[data-testid^='tag-row-']")).hasCount(1)
+    }
+
+    @Test
+    fun `should display legacy tag column with tooltip`() {
+        // Create entry with tag
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T10:00:00Z"),
+                endTime = Instant.parse("2024-01-15T11:00:00Z"),
+                title = "Task",
+                ownerId = requireNotNull(regularUser.id),
+                tags = arrayOf("kotlin")
+            )
+        )
+
+        navigateToSettingsViaToken()
+
+        // Verify "Is Legacy?" header is visible
+        assertThat(page.locator("[data-testid='tags-header-legacy']")).isVisible()
+
+        // Verify tooltip trigger is visible
+        assertThat(page.locator("[data-testid='tags-legacy-tooltip-trigger']")).isVisible()
+    }
+
+    @Test
+    fun `should show Yes for legacy tags and empty for regular tags`() {
+        // Create entries with tags
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T10:00:00Z"),
+                endTime = Instant.parse("2024-01-15T11:00:00Z"),
+                title = "Task 1",
+                ownerId = requireNotNull(regularUser.id),
+                tags = arrayOf("kotlin", "java")
+            )
+        )
+
+        // Mark "kotlin" as legacy
+        testDatabaseSupport.insert(
+            LegacyTag(
+                userId = requireNotNull(regularUser.id),
+                name = "kotlin"
+            )
+        )
+
+        navigateToSettingsViaToken()
+
+        // Verify "kotlin" shows "Yes" in legacy column
+        val kotlinLegacyCell = page.locator("[data-testid='tag-legacy-kotlin']")
+        assertThat(kotlinLegacyCell).containsText("Yes")
+
+        // Verify "java" has empty legacy cell
+        val javaLegacyCell = page.locator("[data-testid='tag-legacy-java']")
+        assertThat(javaLegacyCell).not().containsText("Yes")
+    }
+
+    @Test
+    fun `should show mark as legacy button for regular tags`() {
+        // Create entry with tag
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T10:00:00Z"),
+                endTime = Instant.parse("2024-01-15T11:00:00Z"),
+                title = "Task",
+                ownerId = requireNotNull(regularUser.id),
+                tags = arrayOf("kotlin")
+            )
+        )
+
+        navigateToSettingsViaToken()
+
+        // Verify "Mark as legacy" button is visible
+        assertThat(page.locator("[data-testid='tag-mark-legacy-kotlin']")).isVisible()
+
+        // Verify "Remove legacy mark" button is not visible
+        assertThat(page.locator("[data-testid='tag-unmark-legacy-kotlin']")).not().isVisible()
+    }
+
+    @Test
+    fun `should show remove legacy mark button for legacy tags`() {
+        // Create entry with tag
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T10:00:00Z"),
+                endTime = Instant.parse("2024-01-15T11:00:00Z"),
+                title = "Task",
+                ownerId = requireNotNull(regularUser.id),
+                tags = arrayOf("kotlin")
+            )
+        )
+
+        // Mark as legacy
+        testDatabaseSupport.insert(
+            LegacyTag(
+                userId = requireNotNull(regularUser.id),
+                name = "kotlin"
+            )
+        )
+
+        navigateToSettingsViaToken()
+
+        // Verify "Remove legacy mark" button is visible
+        assertThat(page.locator("[data-testid='tag-unmark-legacy-kotlin']")).isVisible()
+
+        // Verify "Mark as legacy" button is not visible
+        assertThat(page.locator("[data-testid='tag-mark-legacy-kotlin']")).not().isVisible()
+    }
+
+    @Test
+    fun `should mark tag as legacy when clicking mark button`() {
+        // Create entry with tag
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T10:00:00Z"),
+                endTime = Instant.parse("2024-01-15T11:00:00Z"),
+                title = "Task",
+                ownerId = requireNotNull(regularUser.id),
+                tags = arrayOf("kotlin")
+            )
+        )
+
+        navigateToSettingsViaToken()
+
+        // Click "Mark as legacy" button
+        page.locator("[data-testid='tag-mark-legacy-kotlin']").click()
+
+        // Wait for the action to complete and page to update
+        assertThat(page.locator("[data-testid='tag-legacy-kotlin']")).containsText("Yes")
+
+        // Verify button changed to "Remove legacy mark"
+        assertThat(page.locator("[data-testid='tag-unmark-legacy-kotlin']")).isVisible()
+        assertThat(page.locator("[data-testid='tag-mark-legacy-kotlin']")).not().isVisible()
+    }
+
+    @Test
+    fun `should unmark tag as legacy when clicking remove button`() {
+        // Create entry with tag
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T10:00:00Z"),
+                endTime = Instant.parse("2024-01-15T11:00:00Z"),
+                title = "Task",
+                ownerId = requireNotNull(regularUser.id),
+                tags = arrayOf("kotlin")
+            )
+        )
+
+        // Mark as legacy
+        testDatabaseSupport.insert(
+            LegacyTag(
+                userId = requireNotNull(regularUser.id),
+                name = "kotlin"
+            )
+        )
+
+        navigateToSettingsViaToken()
+
+        // Click "Remove legacy mark" button
+        page.locator("[data-testid='tag-unmark-legacy-kotlin']").click()
+
+        // Wait for the action to complete and page to update
+        assertThat(page.locator("[data-testid='tag-legacy-kotlin']")).not().containsText("Yes")
+
+        // Verify button changed to "Mark as legacy"
+        assertThat(page.locator("[data-testid='tag-mark-legacy-kotlin']")).isVisible()
+        assertThat(page.locator("[data-testid='tag-unmark-legacy-kotlin']")).not().isVisible()
+    }
+
+    @Test
+    fun `should only consider current user legacy tags`() {
+        // Create entries with same tag for both users
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T10:00:00Z"),
+                endTime = Instant.parse("2024-01-15T11:00:00Z"),
+                title = "Regular User Task",
+                ownerId = requireNotNull(regularUser.id),
+                tags = arrayOf("shared-tag")
+            )
+        )
+
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T12:00:00Z"),
+                endTime = Instant.parse("2024-01-15T13:00:00Z"),
+                title = "Other User Task",
+                ownerId = requireNotNull(otherUser.id),
+                tags = arrayOf("shared-tag")
+            )
+        )
+
+        // Other user marks the tag as legacy
+        testDatabaseSupport.insert(
+            LegacyTag(
+                userId = requireNotNull(otherUser.id),
+                name = "shared-tag"
+            )
+        )
+
+        navigateToSettingsViaToken()
+
+        // Verify regular user sees tag as NOT legacy (other user's legacy mark doesn't affect them)
+        val legacyCell = page.locator("[data-testid='tag-legacy-shared-tag']")
+        assertThat(legacyCell).not().containsText("Yes")
+
+        // Verify "Mark as legacy" button is shown (not "Remove legacy mark")
+        assertThat(page.locator("[data-testid='tag-mark-legacy-shared-tag']")).isVisible()
+        assertThat(page.locator("[data-testid='tag-unmark-legacy-shared-tag']")).not().isVisible()
     }
 }
