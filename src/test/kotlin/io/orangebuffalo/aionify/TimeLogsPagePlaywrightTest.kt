@@ -16,16 +16,15 @@ import org.junit.jupiter.params.provider.MethodSource
 
 /**
  * Playwright tests for the Time Logs page functionality.
- * 
+ *
  * These tests use a page object model with comprehensive state assertions
  * to ensure reliable and clear test feedback.
  */
 @MicronautTest(transactional = false)
 class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
-
     @Inject
     lateinit var testAuthSupport: TestAuthSupport
-    
+
     @Inject
     lateinit var timeLogEntryRepository: TimeLogEntryRepository
 
@@ -87,28 +86,32 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         // Verify entry is started with active timer
         // Note: Active entries appear in the day groups list immediately
-        val activeState = initialState.copy(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Test Task",
-                duration = "00:00:00",
-                startedAt = "16 Mar, 03:30",  // Started at FIXED_TEST_TIME (03:30)
-            ),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:00:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Test Task",
-                            timeRange = "03:30 - in progress",
-                            duration = "00:00:00"
-                        )
-                    )
-                )
+        val activeState =
+            initialState.copy(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Test Task",
+                        duration = "00:00:00",
+                        startedAt = "16 Mar, 03:30", // Started at FIXED_TEST_TIME (03:30)
+                    ),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:00:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Test Task",
+                                        timeRange = "03:30 - in progress",
+                                        duration = "00:00:00",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(activeState)
-        
+
         // Verify database state after starting
         val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(activeEntry, "Active entry should exist in database")
@@ -121,28 +124,31 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         timeLogsPage.clickStop()
 
         // Verify we're back to ready state with the completed entry visible
-        val stoppedState = activeState.copy(
-            currentEntry = CurrentEntryState.NoActiveEntry(),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:00:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Test Task",
-                            timeRange = "03:30 - 03:30",
-                            duration = "00:00:00"
-                        )
-                    )
-                )
+        val stoppedState =
+            activeState.copy(
+                currentEntry = CurrentEntryState.NoActiveEntry(),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:00:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Test Task",
+                                        timeRange = "03:30 - 03:30",
+                                        duration = "00:00:00",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(stoppedState)
-        
+
         // Verify database state after stopping
         val noActiveEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNull(noActiveEntry, "Should not have active entry after stopping")
-        
+
         // Verify the stopped entry has correct timestamps
         val stoppedEntry = timeLogEntryRepository.findById(activeEntry.id!!).orElse(null)
         assertNotNull(stoppedEntry, "Stopped entry should still exist in database")
@@ -160,30 +166,33 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 startTime = FIXED_TEST_TIME.minusSeconds(3600),
                 endTime = FIXED_TEST_TIME.minusSeconds(1800),
                 title = "Previous Task",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify initial state with the existing entry
-        val initialState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.NoActiveEntry(),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Previous Task",
-                            timeRange = "02:30 - 03:00",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
-            ),
-        )
+        val initialState =
+            TimeLogsPageState(
+                currentEntry = CurrentEntryState.NoActiveEntry(),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Previous Task",
+                                        timeRange = "02:30 - 03:00",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
         timeLogsPage.assertPageState(initialState)
 
         // Click continue button
@@ -191,36 +200,40 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         // Verify the entry is started immediately with the same title
         // Note: The new active entry appears in the day groups, plus the previous completed entry
-        val activeState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Previous Task",
-                duration = "00:00:00",
-                startedAt = "16 Mar, 03:30",  // Started at FIXED_TEST_TIME (backend time)
-            ),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:30:00",  // Total includes both entries
-                    entries = listOf(
-                        // New active entry appears first (most recent)
-                        EntryState(
-                            title = "Previous Task",
-                            timeRange = "03:30 - in progress",  // Started at FIXED_TEST_TIME (backend time)
-                            duration = "00:00:00"
+        val activeState =
+            TimeLogsPageState(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Previous Task",
+                        duration = "00:00:00",
+                        startedAt = "16 Mar, 03:30", // Started at FIXED_TEST_TIME (backend time)
+                    ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00", // Total includes both entries
+                            entries =
+                                listOf(
+                                    // New active entry appears first (most recent)
+                                    EntryState(
+                                        title = "Previous Task",
+                                        timeRange = "03:30 - in progress", // Started at FIXED_TEST_TIME (backend time)
+                                        duration = "00:00:00",
+                                    ),
+                                    // Original completed entry
+                                    EntryState(
+                                        title = "Previous Task",
+                                        timeRange = "02:30 - 03:00",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
                         ),
-                        // Original completed entry
-                        EntryState(
-                            title = "Previous Task",
-                            timeRange = "02:30 - 03:00",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
-            ),
-        )
+                    ),
+            )
         timeLogsPage.assertPageState(activeState)
-        
+
         // Verify database state - new entry created with backend timestamp
         val newActiveEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(newActiveEntry, "New active entry should exist in database")
@@ -238,30 +251,33 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 startTime = FIXED_TEST_TIME.minusSeconds(3600),
                 endTime = FIXED_TEST_TIME.minusSeconds(1800),
                 title = "Task to Delete",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify entry exists
-        val initialState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.NoActiveEntry(),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Task to Delete",
-                            timeRange = "02:30 - 03:00",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
-            ),
-        )
+        val initialState =
+            TimeLogsPageState(
+                currentEntry = CurrentEntryState.NoActiveEntry(),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Task to Delete",
+                                        timeRange = "02:30 - 03:00",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
         timeLogsPage.assertPageState(initialState)
 
         // Delete the entry
@@ -273,12 +289,13 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         }
 
         // Verify entry is deleted and page shows no entries
-        val deletedState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.NoActiveEntry(),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = emptyList(),
-            errorMessageVisible = false
-        )
+        val deletedState =
+            TimeLogsPageState(
+                currentEntry = CurrentEntryState.NoActiveEntry(),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups = emptyList(),
+                errorMessageVisible = false,
+            )
         timeLogsPage.assertPageState(deletedState)
     }
 
@@ -286,75 +303,81 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     fun `should navigate between weeks`() {
         // Create entries for different weeks
         val lastWeek = FIXED_TEST_TIME.minusSeconds(7 * 24 * 3600)
-        
+
         // Current week entry
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(3600),
                 endTime = FIXED_TEST_TIME.minusSeconds(1800),
                 title = "This Week Task",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
-        
+
         // Last week entry
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = lastWeek.minusSeconds(3600),
                 endTime = lastWeek.minusSeconds(1800),
                 title = "Last Week Task",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify current week with its entry
-        val currentWeekState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.NoActiveEntry(),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "This Week Task",
-                            timeRange = "02:30 - 03:00",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
-            ),
-        )
+        val currentWeekState =
+            TimeLogsPageState(
+                currentEntry = CurrentEntryState.NoActiveEntry(),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "This Week Task",
+                                        timeRange = "02:30 - 03:00",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
         timeLogsPage.assertPageState(currentWeekState)
 
         // Navigate to previous week
         timeLogsPage.goToPreviousWeek()
 
         // Verify last week with its entry
-        val lastWeekState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.NoActiveEntry(),
-            weekNavigation = WeekNavigationState(weekRange = "4 Mar - 10 Mar"),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Saturday, 9 Mar",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Last Week Task",
-                            timeRange = "02:30 - 03:00",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
-            ),
-        )
+        val lastWeekState =
+            TimeLogsPageState(
+                currentEntry = CurrentEntryState.NoActiveEntry(),
+                weekNavigation = WeekNavigationState(weekRange = "4 Mar - 10 Mar"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Saturday, 9 Mar",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Last Week Task",
+                                        timeRange = "02:30 - 03:00",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
         timeLogsPage.assertPageState(lastWeekState)
-        
+
         // Navigate back to current week
         timeLogsPage.goToNextWeek()
-        
+
         // Verify we're back to current week
         timeLogsPage.assertPageState(currentWeekState)
     }
@@ -367,14 +390,14 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // Friday 20:00 NZDT to Saturday 02:30 NZDT (6.5 hours, spans midnight)
         val yesterdayEvening = FIXED_TEST_TIME.minusSeconds(27000) // Friday 20:00 NZDT (7.5 hours = 27000 seconds before Saturday 03:30)
         val todayMorning = FIXED_TEST_TIME.minusSeconds(3600) // Saturday 02:30 NZDT (1 hour before Saturday 03:30)
-        
+
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = yesterdayEvening, // Started on Friday evening NZDT
                 endTime = todayMorning, // Ended on Saturday morning NZDT
                 title = "Spanning Entry",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
@@ -382,36 +405,40 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // Entry should appear split across two day groups
         // Friday 20:00 NZDT to Saturday 02:30 NZDT (6.5 hours total)
         // Split at midnight: Friday 20:00 - 23:59:59.999 and Saturday 00:00 - 02:30
-        val expectedState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.NoActiveEntry(),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = listOf(
-                // Saturday (today) - shows portion from midnight to 02:30 (2:30 duration)
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "02:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Spanning Entry",
-                            timeRange = "00:00 - 02:30",
-                            duration = "02:30:00"
-                        )
-                    )
-                ),
-                // Friday (yesterday) - shows portion from 20:00 to 23:59:59.999 (03:59:59 duration)
-                DayGroupState(
-                    displayTitle = "Yesterday",
-                    totalDuration = "03:59:59",  // Due to midnight split at 23:59:59.999
-                    entries = listOf(
-                        EntryState(
-                            title = "Spanning Entry",
-                            timeRange = "20:00 - 23:59",
-                            duration = "03:59:59"
-                        )
-                    )
-                )
-            ),
-        )
+        val expectedState =
+            TimeLogsPageState(
+                currentEntry = CurrentEntryState.NoActiveEntry(),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups =
+                    listOf(
+                        // Saturday (today) - shows portion from midnight to 02:30 (2:30 duration)
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "02:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Spanning Entry",
+                                        timeRange = "00:00 - 02:30",
+                                        duration = "02:30:00",
+                                    ),
+                                ),
+                        ),
+                        // Friday (yesterday) - shows portion from 20:00 to 23:59:59.999 (03:59:59 duration)
+                        DayGroupState(
+                            displayTitle = "Yesterday",
+                            totalDuration = "03:59:59", // Due to midnight split at 23:59:59.999
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Spanning Entry",
+                                        timeRange = "20:00 - 23:59",
+                                        duration = "03:59:59",
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
         timeLogsPage.assertPageState(expectedState)
     }
 
@@ -420,11 +447,12 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify empty state
-        val emptyState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.NoActiveEntry(),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = emptyList(),
-        )
+        val emptyState =
+            TimeLogsPageState(
+                currentEntry = CurrentEntryState.NoActiveEntry(),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups = emptyList(),
+            )
         timeLogsPage.assertPageState(emptyState)
     }
 
@@ -436,35 +464,39 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 startTime = FIXED_TEST_TIME.minusSeconds(1800),
                 endTime = null,
                 title = "Active Task",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify active entry is shown with timer
         // Note: Active entries appear in the day groups immediately
-        val activeState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Active Task",
-                duration = "00:30:00",
-                startedAt = "16 Mar, 03:00",
-            ),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Active Task",
-                            timeRange = "03:00 - in progress",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
-            ),
-        )
+        val activeState =
+            TimeLogsPageState(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Active Task",
+                        duration = "00:30:00",
+                        startedAt = "16 Mar, 03:00",
+                    ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Active Task",
+                                        timeRange = "03:00 - in progress",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
         timeLogsPage.assertPageState(activeState)
     }
 
@@ -473,15 +505,17 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify start button is disabled without title
-        val initialState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.NoActiveEntry(
-                inputVisible = true,
-                startButtonVisible = true,
-                startButtonEnabled = false
-            ),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = emptyList(),
-        )
+        val initialState =
+            TimeLogsPageState(
+                currentEntry =
+                    CurrentEntryState.NoActiveEntry(
+                        inputVisible = true,
+                        startButtonVisible = true,
+                        startButtonEnabled = false,
+                    ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups = emptyList(),
+            )
         timeLogsPage.assertPageState(initialState)
     }
 
@@ -495,29 +529,33 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         // Verify entry is started
         // Active entry appears in day groups immediately
-        val activeState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Quick Entry",
-                duration = "00:00:00",
-                startedAt = "16 Mar, 03:30",  // Started at FIXED_TEST_TIME (backend time)
-            ),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:00:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Quick Entry",
-                            timeRange = "03:30 - in progress",  // Started at FIXED_TEST_TIME (backend time)
-                            duration = "00:00:00"
-                        )
-                    )
-                )
-            ),
-        )
+        val activeState =
+            TimeLogsPageState(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Quick Entry",
+                        duration = "00:00:00",
+                        startedAt = "16 Mar, 03:30", // Started at FIXED_TEST_TIME (backend time)
+                    ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:00:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Quick Entry",
+                                        timeRange = "03:30 - in progress", // Started at FIXED_TEST_TIME (backend time)
+                                        duration = "00:00:00",
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
         timeLogsPage.assertPageState(activeState)
-        
+
         // Verify database state - entry should be created with backend timestamp
         val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(activeEntry, "Active entry should exist in database")
@@ -535,35 +573,39 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 startTime = FIXED_TEST_TIME.minusSeconds(1800),
                 endTime = null,
                 title = "Active Task",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify we cannot start a new entry (input and start button are hidden)
         // Active entry appears in day groups
-        val activeState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Active Task",
-                duration = "00:30:00",
-                startedAt = "16 Mar, 03:00",
-            ),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Active Task",
-                            timeRange = "03:00 - in progress",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
-            ),
-        )
+        val activeState =
+            TimeLogsPageState(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Active Task",
+                        duration = "00:30:00",
+                        startedAt = "16 Mar, 03:00",
+                    ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Active Task",
+                                        timeRange = "03:00 - in progress",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
         timeLogsPage.assertPageState(activeState)
     }
 
@@ -575,93 +617,105 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 startTime = FIXED_TEST_TIME.minusSeconds(1800),
                 endTime = null,
                 title = "Active Task",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify active timer shows the correct duration (30 minutes = 00:30:00)
-        val initialState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Active Task",
-                duration = "00:30:00",
-                startedAt = "16 Mar, 03:00",
-            ),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Active Task",
-                            timeRange = "03:00 - in progress",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
+        val initialState =
+            TimeLogsPageState(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Active Task",
+                        duration = "00:30:00",
+                        startedAt = "16 Mar, 03:00",
+                    ),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Active Task",
+                                        timeRange = "03:00 - in progress",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(initialState)
-        
+
         // Advance the clock by 5 minutes
         timeLogsPage.advanceClock(5 * 60 * 1000)
-        
+
         // Timer and day group totals should now show 35 minutes
-        val state35min = initialState.copy(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Active Task",
-                duration = "00:35:00",
-                startedAt = "16 Mar, 03:00",
-            ),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:35:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Active Task",
-                            timeRange = "03:00 - in progress",
-                            duration = "00:35:00"
-                        )
-                    )
-                )
+        val state35min =
+            initialState.copy(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Active Task",
+                        duration = "00:35:00",
+                        startedAt = "16 Mar, 03:00",
+                    ),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:35:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Active Task",
+                                        timeRange = "03:00 - in progress",
+                                        duration = "00:35:00",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(state35min)
-        
+
         // Advance another 25 minutes to reach 1 hour
         timeLogsPage.advanceClock(25 * 60 * 1000)
-        
+
         // Timer and day group totals should now show 1 hour
-        val state1hour = state35min.copy(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Active Task",
-                duration = "01:00:00",
-                startedAt = "16 Mar, 03:00",
-            ),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "01:00:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Active Task",
-                            timeRange = "03:00 - in progress",
-                            duration = "01:00:00"
-                        )
-                    )
-                )
+        val state1hour =
+            state35min.copy(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Active Task",
+                        duration = "01:00:00",
+                        startedAt = "16 Mar, 03:00",
+                    ),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "01:00:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Active Task",
+                                        timeRange = "03:00 - in progress",
+                                        duration = "01:00:00",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(state1hour)
     }
-    
+
     @Test
     fun `should render entries from multiple days with varying entry counts`() {
         // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30 NZDT
         // Let's create entries for different days in the current week (Mon Mar 11 - Sun Mar 17)
-        
+
         // Monday (Mar 11) - 2 entries (5 days before Saturday)
         val monday = FIXED_TEST_TIME.minusSeconds(5 * 24 * 3600) // 5 days before Saturday
         testDatabaseSupport.insert(
@@ -669,18 +723,18 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 startTime = monday.minusSeconds(7200),
                 endTime = monday.minusSeconds(5400),
                 title = "Monday Task 1",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = monday.minusSeconds(3600),
                 endTime = monday.minusSeconds(1800),
                 title = "Monday Task 2",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
-        
+
         // Tuesday (Mar 12) - 1 entry (4 days before Saturday)
         val tuesday = FIXED_TEST_TIME.minusSeconds(4 * 24 * 3600)
         testDatabaseSupport.insert(
@@ -688,10 +742,10 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 startTime = tuesday.minusSeconds(3600),
                 endTime = tuesday.minusSeconds(1800),
                 title = "Tuesday Task",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
-        
+
         // Wednesday (Mar 13) - 3 entries (3 days before Saturday)
         val wednesday = FIXED_TEST_TIME.minusSeconds(3 * 24 * 3600)
         testDatabaseSupport.insert(
@@ -699,111 +753,117 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 startTime = wednesday.minusSeconds(10800),
                 endTime = wednesday.minusSeconds(9000),
                 title = "Wednesday Task 1",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = wednesday.minusSeconds(7200),
                 endTime = wednesday.minusSeconds(5400),
                 title = "Wednesday Task 2",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = wednesday.minusSeconds(3600),
                 endTime = wednesday.minusSeconds(1800),
                 title = "Wednesday Task 3",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
-        
+
         // Saturday (Mar 16) - today - 1 entry
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(3600),
                 endTime = FIXED_TEST_TIME.minusSeconds(1800),
                 title = "Saturday Task",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify all days and entries are displayed correctly
-        val expectedState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.NoActiveEntry(),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = listOf(
-                // Saturday (today) - 1 entry
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Saturday Task",
-                            timeRange = "02:30 - 03:00",
-                            duration = "00:30:00"
-                        )
-                    )
-                ),
-                // Wednesday - 3 entries (in reverse chronological order within the day)
-                DayGroupState(
-                    displayTitle = "Wednesday, 13 Mar",
-                    totalDuration = "01:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Wednesday Task 3",
-                            timeRange = "02:30 - 03:00",
-                            duration = "00:30:00"
+        val expectedState =
+            TimeLogsPageState(
+                currentEntry = CurrentEntryState.NoActiveEntry(),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups =
+                    listOf(
+                        // Saturday (today) - 1 entry
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Saturday Task",
+                                        timeRange = "02:30 - 03:00",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
                         ),
-                        EntryState(
-                            title = "Wednesday Task 2",
-                            timeRange = "01:30 - 02:00",
-                            duration = "00:30:00"
+                        // Wednesday - 3 entries (in reverse chronological order within the day)
+                        DayGroupState(
+                            displayTitle = "Wednesday, 13 Mar",
+                            totalDuration = "01:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Wednesday Task 3",
+                                        timeRange = "02:30 - 03:00",
+                                        duration = "00:30:00",
+                                    ),
+                                    EntryState(
+                                        title = "Wednesday Task 2",
+                                        timeRange = "01:30 - 02:00",
+                                        duration = "00:30:00",
+                                    ),
+                                    EntryState(
+                                        title = "Wednesday Task 1",
+                                        timeRange = "00:30 - 01:00",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
                         ),
-                        EntryState(
-                            title = "Wednesday Task 1",
-                            timeRange = "00:30 - 01:00",
-                            duration = "00:30:00"
-                        )
-                    )
-                ),
-                // Tuesday - 1 entry
-                DayGroupState(
-                    displayTitle = "Tuesday, 12 Mar",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Tuesday Task",
-                            timeRange = "02:30 - 03:00",
-                            duration = "00:30:00"
-                        )
-                    )
-                ),
-                // Monday - 2 entries
-                DayGroupState(
-                    displayTitle = "Monday, 11 Mar",
-                    totalDuration = "01:00:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Monday Task 2",
-                            timeRange = "02:30 - 03:00",
-                            duration = "00:30:00"
+                        // Tuesday - 1 entry
+                        DayGroupState(
+                            displayTitle = "Tuesday, 12 Mar",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Tuesday Task",
+                                        timeRange = "02:30 - 03:00",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
                         ),
-                        EntryState(
-                            title = "Monday Task 1",
-                            timeRange = "01:30 - 02:00",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
-            ),
-        )
+                        // Monday - 2 entries
+                        DayGroupState(
+                            displayTitle = "Monday, 11 Mar",
+                            totalDuration = "01:00:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Monday Task 2",
+                                        timeRange = "02:30 - 03:00",
+                                        duration = "00:30:00",
+                                    ),
+                                    EntryState(
+                                        title = "Monday Task 1",
+                                        timeRange = "01:30 - 02:00",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
         timeLogsPage.assertPageState(expectedState)
     }
-    
+
     @Test
     fun `should handle midnight split scenario correctly`() {
         // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30:00 NZDT
@@ -811,14 +871,14 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // Friday 22:00 NZDT to Saturday 02:00 NZDT (4 hours, spans midnight)
         val fridayEvening = FIXED_TEST_TIME.minusSeconds(19800) // Friday 22:00 NZDT (5.5 hours = 19800 seconds before Saturday 03:30)
         val saturdayMorning = FIXED_TEST_TIME.minusSeconds(5400) // Saturday 02:00 NZDT (1.5 hours = 5400 seconds before Saturday 03:30)
-        
+
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = fridayEvening,
                 endTime = saturdayMorning,
                 title = "Midnight Spanning Task",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
@@ -826,53 +886,57 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // Verify the entry appears split across 2 day groups
         // Friday 22:00 to Saturday 02:00 NZDT (4 hours total, spans midnight)
         // Split at midnight: Friday 22:00 - 23:59:59.999 and Saturday 00:00 - 02:00
-        val expectedState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.NoActiveEntry(),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = listOf(
-                // Saturday (today) - portion from 00:00 to 02:00
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "02:00:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Midnight Spanning Task",
-                            timeRange = "00:00 - 02:00",
-                            duration = "02:00:00"
-                        )
-                    )
-                ),
-                // Friday (yesterday) - portion from 22:00 to 23:59:59.999 (displays as 01:59:59)
-                DayGroupState(
-                    displayTitle = "Yesterday",
-                    totalDuration = "01:59:59",  // Due to midnight split at 23:59:59.999
-                    entries = listOf(
-                        EntryState(
-                            title = "Midnight Spanning Task",
-                            timeRange = "22:00 - 23:59",
-                            duration = "01:59:59"
-                        )
-                    )
-                )
-            ),
-        )
+        val expectedState =
+            TimeLogsPageState(
+                currentEntry = CurrentEntryState.NoActiveEntry(),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups =
+                    listOf(
+                        // Saturday (today) - portion from 00:00 to 02:00
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "02:00:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Midnight Spanning Task",
+                                        timeRange = "00:00 - 02:00",
+                                        duration = "02:00:00",
+                                    ),
+                                ),
+                        ),
+                        // Friday (yesterday) - portion from 22:00 to 23:59:59.999 (displays as 01:59:59)
+                        DayGroupState(
+                            displayTitle = "Yesterday",
+                            totalDuration = "01:59:59", // Due to midnight split at 23:59:59.999
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Midnight Spanning Task",
+                                        timeRange = "22:00 - 23:59",
+                                        duration = "01:59:59",
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
         timeLogsPage.assertPageState(expectedState)
     }
-    
+
     @Test
     fun `should delete midnight-split entry correctly`() {
         // Create an entry that spans midnight
         // Friday 22:00 NZDT to Saturday 02:00 NZDT (4 hours, spans midnight)
         val fridayEvening = FIXED_TEST_TIME.minusSeconds(19800) // Friday 22:00 NZDT (5.5 hours = 19800 seconds before Saturday 03:30)
         val saturdayMorning = FIXED_TEST_TIME.minusSeconds(5400) // Saturday 02:00 NZDT (1.5 hours = 5400 seconds before Saturday 03:30)
-        
+
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = fridayEvening,
                 endTime = saturdayMorning,
                 title = "Task to Delete",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
@@ -880,36 +944,40 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // Verify initial state with split entry across two days
         // Entry runs from Friday 22:00 to Saturday 02:00 NZDT
         // Split at midnight: Friday 22:00 - 23:59:59.999 and Saturday 00:00 - 02:00
-        val initialState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.NoActiveEntry(),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = listOf(
-                // Saturday (today) portion: 00:00 - 02:00 = 2 hours
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "02:00:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Task to Delete",
-                            timeRange = "00:00 - 02:00",
-                            duration = "02:00:00"
-                        )
-                    )
-                ),
-                // Friday (yesterday) portion: 22:00 to 23:59:59.999 (displays as 01:59:59)
-                DayGroupState(
-                    displayTitle = "Yesterday",
-                    totalDuration = "01:59:59",  // Due to midnight split at 23:59:59.999
-                    entries = listOf(
-                        EntryState(
-                            title = "Task to Delete",
-                            timeRange = "22:00 - 23:59",
-                            duration = "01:59:59"
-                        )
-                    )
-                )
-            ),
-        )
+        val initialState =
+            TimeLogsPageState(
+                currentEntry = CurrentEntryState.NoActiveEntry(),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups =
+                    listOf(
+                        // Saturday (today) portion: 00:00 - 02:00 = 2 hours
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "02:00:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Task to Delete",
+                                        timeRange = "00:00 - 02:00",
+                                        duration = "02:00:00",
+                                    ),
+                                ),
+                        ),
+                        // Friday (yesterday) portion: 22:00 to 23:59:59.999 (displays as 01:59:59)
+                        DayGroupState(
+                            displayTitle = "Yesterday",
+                            totalDuration = "01:59:59", // Due to midnight split at 23:59:59.999
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Task to Delete",
+                                        timeRange = "22:00 - 23:59",
+                                        duration = "01:59:59",
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
         timeLogsPage.assertPageState(initialState)
 
         // Delete the entry (deleting from first occurrence)
@@ -921,12 +989,13 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         }
 
         // Verify both parts of the entry are deleted
-        val deletedState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.NoActiveEntry(),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = emptyList(),
-            errorMessageVisible = false
-        )
+        val deletedState =
+            TimeLogsPageState(
+                currentEntry = CurrentEntryState.NoActiveEntry(),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups = emptyList(),
+                errorMessageVisible = false,
+            )
         timeLogsPage.assertPageState(deletedState)
     }
 
@@ -938,51 +1007,58 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 startTime = FIXED_TEST_TIME.minusSeconds(1800),
                 endTime = null,
                 title = "Original Title",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify initial active state
-        val initialState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Original Title",
-                duration = "00:30:00",
-                startedAt = "16 Mar, 03:00"
-            ),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Original Title",
-                            timeRange = "03:00 - in progress",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
+        val initialState =
+            TimeLogsPageState(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Original Title",
+                        duration = "00:30:00",
+                        startedAt = "16 Mar, 03:00",
+                    ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Original Title",
+                                        timeRange = "03:00 - in progress",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(initialState)
 
         // Click edit button - transition to edit mode
         timeLogsPage.clickEditEntry()
-        
-        val editModeState = initialState.copy(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Original Title",
-                duration = "00:30:00",
-                startedAt = "16 Mar, 03:00",
-                editMode = EditModeState.Editing(
-                    titleValue = "Original Title",
-                    dateValue = "16 Mar 2024",
-                    timeValue = "03:00"
-                )
+
+        val editModeState =
+            initialState.copy(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Original Title",
+                        duration = "00:30:00",
+                        startedAt = "16 Mar, 03:00",
+                        editMode =
+                            EditModeState.Editing(
+                                titleValue = "Original Title",
+                                dateValue = "16 Mar 2024",
+                                timeValue = "03:00",
+                            ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(editModeState)
 
         // Change the title
@@ -992,28 +1068,32 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         timeLogsPage.clickSaveEdit()
 
         // Verify entry is updated - mutation from initial state
-        val updatedState = initialState.copy(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Updated Title",
-                duration = "00:30:00",
-                startedAt = "16 Mar, 03:00"
-            ),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Updated Title",
-                            timeRange = "03:00 - in progress",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
+        val updatedState =
+            initialState.copy(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Updated Title",
+                        duration = "00:30:00",
+                        startedAt = "16 Mar, 03:00",
+                    ),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Updated Title",
+                                        timeRange = "03:00 - in progress",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(updatedState)
-        
+
         // Verify database state - title should be updated
         val editedEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(editedEntry, "Active entry should still exist in database")
@@ -1030,40 +1110,44 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 startTime = FIXED_TEST_TIME.minusSeconds(1800), // 14:00
                 endTime = null,
                 title = "Test Task",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify initial state
-        val initialState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Test Task",
-                duration = "00:30:00",
-                startedAt = "16 Mar, 03:00"
-            ),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Test Task",
-                            timeRange = "03:00 - in progress",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
+        val initialState =
+            TimeLogsPageState(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Test Task",
+                        duration = "00:30:00",
+                        startedAt = "16 Mar, 03:00",
+                    ),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Test Task",
+                                        timeRange = "03:00 - in progress",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(initialState)
 
         // Click edit button
         timeLogsPage.clickEditEntry()
 
         // Change start time to 1 hour ago (02:30) - need to set date explicitly to today
-        timeLogsPage.fillEditDate("2024-03-16")  // Saturday (today)
+        timeLogsPage.fillEditDate("2024-03-16") // Saturday (today)
         timeLogsPage.fillEditTime("02:30")
 
         // Save changes
@@ -1071,28 +1155,32 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         // Verify the start time and duration are updated - mutation from initial state
         // Duration should now be 1 hour (from 02:30 to 03:30)
-        val updatedState = initialState.copy(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Test Task",
-                duration = "01:00:00",
-                startedAt = "16 Mar, 02:30"
-            ),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "01:00:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Test Task",
-                            timeRange = "02:30 - in progress",
-                            duration = "01:00:00"
-                        )
-                    )
-                )
+        val updatedState =
+            initialState.copy(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Test Task",
+                        duration = "01:00:00",
+                        startedAt = "16 Mar, 02:30",
+                    ),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "01:00:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Test Task",
+                                        timeRange = "02:30 - in progress",
+                                        duration = "01:00:00",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(updatedState)
-        
+
         // Verify database state - startTime should be updated to user-provided time
         val editedEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(editedEntry, "Active entry should still exist in database")
@@ -1111,33 +1199,37 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 startTime = FIXED_TEST_TIME.minusSeconds(1800), // 14:00
                 endTime = null,
                 title = "Original Task",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify initial state
-        val initialState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Original Task",
-                duration = "00:30:00",
-                startedAt = "16 Mar, 03:00"
-            ),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Original Task",
-                            timeRange = "03:00 - in progress",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
+        val initialState =
+            TimeLogsPageState(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Original Task",
+                        duration = "00:30:00",
+                        startedAt = "16 Mar, 03:00",
+                    ),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Original Task",
+                                        timeRange = "03:00 - in progress",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(initialState)
 
         // Click edit button
@@ -1145,7 +1237,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         // Change both title and start time - need to set date explicitly to today
         timeLogsPage.fillEditTitle("Modified Task")
-        timeLogsPage.fillEditDate("2024-03-16")  // Saturday (today)
+        timeLogsPage.fillEditDate("2024-03-16") // Saturday (today)
         timeLogsPage.fillEditTime("01:00")
 
         // Save changes
@@ -1153,28 +1245,32 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         // Verify both fields are updated - mutation from initial state
         // Duration should be 2.5 hours (from 01:00 to 03:30)
-        val updatedState = initialState.copy(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Modified Task",
-                duration = "02:30:00",
-                startedAt = "16 Mar, 01:00"
-            ),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "02:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Modified Task",
-                            timeRange = "01:00 - in progress",
-                            duration = "02:30:00"
-                        )
-                    )
-                )
+        val updatedState =
+            initialState.copy(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Modified Task",
+                        duration = "02:30:00",
+                        startedAt = "16 Mar, 01:00",
+                    ),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "02:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Modified Task",
+                                        timeRange = "01:00 - in progress",
+                                        duration = "02:30:00",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(updatedState)
-        
+
         // Verify database state - both title and startTime should be updated
         val editedEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(editedEntry, "Active entry should still exist in database")
@@ -1192,33 +1288,37 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 startTime = FIXED_TEST_TIME.minusSeconds(1800),
                 endTime = null,
                 title = "Original Title",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify initial state
-        val initialState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Original Title",
-                duration = "00:30:00",
-                startedAt = "16 Mar, 03:00"
-            ),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Original Title",
-                            timeRange = "03:00 - in progress",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
+        val initialState =
+            TimeLogsPageState(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Original Title",
+                        duration = "00:30:00",
+                        startedAt = "16 Mar, 03:00",
+                    ),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Original Title",
+                                        timeRange = "03:00 - in progress",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(initialState)
 
         // Click edit button
@@ -1243,33 +1343,37 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 startTime = FIXED_TEST_TIME.minusSeconds(1800), // Friday 14:00
                 endTime = null,
                 title = "Cross-Day Task",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify initial state
-        val initialState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Cross-Day Task",
-                duration = "00:30:00",
-                startedAt = "16 Mar, 03:00"
-            ),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Cross-Day Task",
-                            timeRange = "03:00 - in progress",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
+        val initialState =
+            TimeLogsPageState(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Cross-Day Task",
+                        duration = "00:30:00",
+                        startedAt = "16 Mar, 03:00",
+                    ),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Cross-Day Task",
+                                        timeRange = "03:00 - in progress",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(initialState)
 
         // Click edit button
@@ -1286,39 +1390,44 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // Duration should be from Friday 05:00 to Saturday 03:30 NZDT = 22:30:00
         // This spans midnight, so it's split: Yesterday (05:00-23:59:59.999) + Today (00:00-03:30)
         // The UI rounds the split to whole seconds: Yesterday: 18:59:59, Today: 03:30:00
-        val updatedState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Cross-Day Task",
-                duration = "22:30:00",  // Total duration from Friday 05:00 to Saturday 03:30
-                startedAt = "15 Mar, 05:00"  // Start time from yesterday
-            ),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = listOf(
-                // Entry should span across two days after the update
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "03:30:00", // From midnight to 03:30
-                    entries = listOf(
-                        EntryState(
-                            title = "Cross-Day Task",
-                            timeRange = "00:00 - in progress",
-                            duration = "03:30:00"
-                        )
-                    )
-                ),
-                DayGroupState(
-                    displayTitle = "Yesterday",
-                    totalDuration = "18:59:59", // 05:00 to midnight (23:59:59.999 rounds to 18:59:59)
-                    entries = listOf(
-                        EntryState(
-                            title = "Cross-Day Task",
-                            timeRange = "05:00 - 23:59",
-                            duration = "18:59:59"
-                        )
-                    )
-                )
+        val updatedState =
+            TimeLogsPageState(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Cross-Day Task",
+                        duration = "22:30:00", // Total duration from Friday 05:00 to Saturday 03:30
+                        startedAt = "15 Mar, 05:00", // Start time from yesterday
+                    ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups =
+                    listOf(
+                        // Entry should span across two days after the update
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "03:30:00", // From midnight to 03:30
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Cross-Day Task",
+                                        timeRange = "00:00 - in progress",
+                                        duration = "03:30:00",
+                                    ),
+                                ),
+                        ),
+                        DayGroupState(
+                            displayTitle = "Yesterday",
+                            totalDuration = "18:59:59", // 05:00 to midnight (23:59:59.999 rounds to 18:59:59)
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Cross-Day Task",
+                                        timeRange = "05:00 - 23:59",
+                                        duration = "18:59:59",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(updatedState)
     }
 
@@ -1330,70 +1439,80 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 startTime = FIXED_TEST_TIME.minusSeconds(1800),
                 endTime = null,
                 title = "Valid Title",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify initial state
-        val initialState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Valid Title",
-                duration = "00:30:00",
-                startedAt = "16 Mar, 03:00"
-            ),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Valid Title",
-                            timeRange = "03:00 - in progress",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
+        val initialState =
+            TimeLogsPageState(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Valid Title",
+                        duration = "00:30:00",
+                        startedAt = "16 Mar, 03:00",
+                    ),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Valid Title",
+                                        timeRange = "03:00 - in progress",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(initialState)
 
         // Click edit button
         timeLogsPage.clickEditEntry()
 
         // Verify edit mode state
-        val editModeState = initialState.copy(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Valid Title",
-                duration = "00:30:00",
-                startedAt = "16 Mar, 03:00",
-                editMode = EditModeState.Editing(
-                    titleValue = "Valid Title",
-                    dateValue = "16 Mar 2024",
-                    timeValue = "03:00"
-                )
+        val editModeState =
+            initialState.copy(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Valid Title",
+                        duration = "00:30:00",
+                        startedAt = "16 Mar, 03:00",
+                        editMode =
+                            EditModeState.Editing(
+                                titleValue = "Valid Title",
+                                dateValue = "16 Mar 2024",
+                                timeValue = "03:00",
+                            ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(editModeState)
 
         // Clear the title
         timeLogsPage.fillEditTitle("")
 
         // Verify save button is disabled with empty title
-        val editWithEmptyTitleState = initialState.copy(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Valid Title",
-                duration = "00:30:00",
-                startedAt = "16 Mar, 03:00",
-                editMode = EditModeState.Editing(
-                    titleValue = "",
-                    dateValue = "16 Mar 2024",
-                    timeValue = "03:00",
-                    saveButtonEnabled = false
-                )
+        val editWithEmptyTitleState =
+            initialState.copy(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Valid Title",
+                        duration = "00:30:00",
+                        startedAt = "16 Mar, 03:00",
+                        editMode =
+                            EditModeState.Editing(
+                                titleValue = "",
+                                dateValue = "16 Mar 2024",
+                                timeValue = "03:00",
+                                saveButtonEnabled = false,
+                            ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(editWithEmptyTitleState)
     }
 
@@ -1405,33 +1524,37 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 startTime = FIXED_TEST_TIME.minusSeconds(1800),
                 endTime = null,
                 title = "Test Task",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify initial state
-        val initialState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Test Task",
-                duration = "00:30:00",
-                startedAt = "16 Mar, 03:00"
-            ),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Test Task",
-                            timeRange = "03:00 - in progress",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
+        val initialState =
+            TimeLogsPageState(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Test Task",
+                        duration = "00:30:00",
+                        startedAt = "16 Mar, 03:00",
+                    ),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Test Task",
+                                        timeRange = "03:00 - in progress",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(initialState)
 
         // Click edit button
@@ -1445,21 +1568,24 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         timeLogsPage.clickSaveEdit()
 
         // Verify error is shown and we remain in edit mode
-        val errorState = initialState.copy(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Test Task",
-                duration = "00:30:00",
-                startedAt = "16 Mar, 03:00",
-                editMode = EditModeState.Editing(
-                    titleValue = "Test Task",
-                    dateValue = "16 Mar 2024",
-                    timeValue = "10:00",
-                    saveButtonEnabled = true
-                )
-            ),
-            errorMessageVisible = true,
-            errorMessage = "Start time cannot be in the future"
-        )
+        val errorState =
+            initialState.copy(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Test Task",
+                        duration = "00:30:00",
+                        startedAt = "16 Mar, 03:00",
+                        editMode =
+                            EditModeState.Editing(
+                                titleValue = "Test Task",
+                                dateValue = "16 Mar 2024",
+                                timeValue = "10:00",
+                                saveButtonEnabled = true,
+                            ),
+                    ),
+                errorMessageVisible = true,
+                errorMessage = "Start time cannot be in the future",
+            )
         timeLogsPage.assertPageState(errorState)
     }
 
@@ -1476,37 +1602,38 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     @MethodSource("localeTestCases")
     fun `should display dates and times according to user locale`(testCase: LocaleTestCase) {
         // Create a user with the specified locale
-        val testUser = testUsers.createUserWithLocale(
-            username = testCase.username,
-            greeting = testCase.greeting,
-            locale = java.util.Locale.forLanguageTag(testCase.localeTag)
-        )
-        
+        val testUser =
+            testUsers.createUserWithLocale(
+                username = testCase.username,
+                greeting = testCase.greeting,
+                locale = java.util.Locale.forLanguageTag(testCase.localeTag),
+            )
+
         // Create an entry that started at 14:30 (2:30 PM) - afternoon time to clearly show 12/24-hour format difference
         // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30:00 NZDT
         // We want 14:30 NZDT, which is 11 hours later
         val afternoonTime = FIXED_TEST_TIME.plusSeconds(11 * 3600) // 14:30 NZDT
-        
+
         // Set the browser clock to the afternoon time for this test
         page.clock().pauseAt(afternoonTime.toEpochMilli())
-        
+
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = afternoonTime.minusSeconds(1800), // Started 30 minutes ago at 14:00 (2:00 PM)
                 endTime = null,
                 title = testCase.taskTitle,
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
-        
+
         // Also create a completed entry to test time ranges in the day groups
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = afternoonTime.minusSeconds(7200), // Started 2 hours ago at 12:30 (12:30 PM)
                 endTime = afternoonTime.minusSeconds(5400), // Ended 1.5 hours ago at 13:00 (1:00 PM)
                 title = testCase.completedTaskTitle,
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
@@ -1515,29 +1642,33 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         val startedAtLocator = page.locator("[data-testid='active-entry-started-at']")
         assertThat(startedAtLocator).isVisible()
         assertThat(startedAtLocator).containsText(testCase.expectedStartedAtText)
-        
+
         // Verify the active entry time range in day groups uses locale format
-        val activeEntryTimeRange = page.locator("[data-testid='time-entry']:has-text('${testCase.taskTitle}')")
-            .locator("[data-testid='entry-time-range']")
+        val activeEntryTimeRange =
+            page
+                .locator("[data-testid='time-entry']:has-text('${testCase.taskTitle}')")
+                .locator("[data-testid='entry-time-range']")
         assertThat(activeEntryTimeRange).isVisible()
         assertThat(activeEntryTimeRange).hasText(testCase.expectedActiveTimeRangeText)
-        
+
         // Verify the completed entry time range in day groups uses locale format
-        val completedEntryTimeRange = page.locator("[data-testid='time-entry']:has-text('${testCase.completedTaskTitle}')")
-            .locator("[data-testid='entry-time-range']")
+        val completedEntryTimeRange =
+            page
+                .locator("[data-testid='time-entry']:has-text('${testCase.completedTaskTitle}')")
+                .locator("[data-testid='entry-time-range']")
         assertThat(completedEntryTimeRange).isVisible()
         assertThat(completedEntryTimeRange).hasText(testCase.expectedCompletedTimeRangeText)
-        
+
         // Verify week range uses locale format
         val weekRangeLocator = page.locator("[data-testid='week-range']")
         assertThat(weekRangeLocator).isVisible()
         assertThat(weekRangeLocator).hasText(testCase.expectedWeekRangeText)
-        
+
         // Verify day title uses locale format
         val dayTitleLocator = page.locator("[data-testid='day-title']").first()
         assertThat(dayTitleLocator).isVisible()
         assertThat(dayTitleLocator).hasText(testCase.expectedDayTitle)
-        
+
         // Click edit button to test datetime picker with the locale
         timeLogsPage.clickEditEntry()
 
@@ -1545,64 +1676,65 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         val dateInput = page.locator("[data-testid='edit-date-input']")
         assertThat(dateInput).isVisible()
         assertThat(dateInput).hasValue(testCase.expectedEditDateValue)
-        
+
         // Verify edit mode time input uses locale format
         val timeInput = page.locator("[data-testid='edit-time-input']")
         assertThat(timeInput).isVisible()
         assertThat(timeInput).hasValue(testCase.expectedEditTimeValue)
     }
-    
+
     companion object {
         @JvmStatic
-        fun localeTestCases() = listOf(
-            // US locale - 12-hour format with AM/PM
-            LocaleTestCase(
-                localeTag = "en-US",
-                username = "us_user",
-                greeting = "US User",
-                taskTitle = "Active Task",
-                completedTaskTitle = "Completed Task",
-                expectedStartedAtText = "Mar 16, 02:00 PM", // 14:00 in 12-hour format
-                expectedActiveTimeRangeText = "02:00 PM - in progress", // 14:00 in 12-hour format
-                expectedCompletedTimeRangeText = "12:30 PM - 01:00 PM", // 12:30 - 13:00 in 12-hour format
-                expectedWeekRangeText = "Mar 11 - Mar 17",
-                expectedDayTitle = "Today",
-                expectedEditDateValue = "Mar 16, 2024",
-                expectedEditTimeValue = "02:00 PM"
-            ),
-            // UK locale - 24-hour format
-            LocaleTestCase(
-                localeTag = "en-GB",
-                username = "uk_user",
-                greeting = "UK User",
-                taskTitle = "Active Task",
-                completedTaskTitle = "Completed Task",
-                expectedStartedAtText = "16 Mar, 14:00", // 14:00 in 24-hour format
-                expectedActiveTimeRangeText = "14:00 - in progress", // 14:00 in 24-hour format
-                expectedCompletedTimeRangeText = "12:30 - 13:00", // 12:30 - 13:00 in 24-hour format
-                expectedWeekRangeText = "11 Mar - 17 Mar",
-                expectedDayTitle = "Today",
-                expectedEditDateValue = "16 Mar 2024",
-                expectedEditTimeValue = "14:00"
-            ),
-            // Ukrainian locale - 24-hour format
-            LocaleTestCase(
-                localeTag = "uk",
-                username = "ua_user",
-                greeting = "Українець",
-                taskTitle = "Українське завдання",
-                completedTaskTitle = "Завершене завдання",
-                expectedStartedAtText = "16 бер., 14:00", // 14:00 in 24-hour format with Ukrainian month
-                expectedActiveTimeRangeText = "14:00 - виконується", // 14:00 in 24-hour format
-                expectedCompletedTimeRangeText = "12:30 - 13:00", // 12:30 - 13:00 in 24-hour format
-                expectedWeekRangeText = "11 бер. - 17 бер.",
-                expectedDayTitle = "Сьогодні",
-                expectedEditDateValue = "16 бер. 2024 р.",
-                expectedEditTimeValue = "14:00"
+        fun localeTestCases() =
+            listOf(
+                // US locale - 12-hour format with AM/PM
+                LocaleTestCase(
+                    localeTag = "en-US",
+                    username = "us_user",
+                    greeting = "US User",
+                    taskTitle = "Active Task",
+                    completedTaskTitle = "Completed Task",
+                    expectedStartedAtText = "Mar 16, 02:00 PM", // 14:00 in 12-hour format
+                    expectedActiveTimeRangeText = "02:00 PM - in progress", // 14:00 in 12-hour format
+                    expectedCompletedTimeRangeText = "12:30 PM - 01:00 PM", // 12:30 - 13:00 in 12-hour format
+                    expectedWeekRangeText = "Mar 11 - Mar 17",
+                    expectedDayTitle = "Today",
+                    expectedEditDateValue = "Mar 16, 2024",
+                    expectedEditTimeValue = "02:00 PM",
+                ),
+                // UK locale - 24-hour format
+                LocaleTestCase(
+                    localeTag = "en-GB",
+                    username = "uk_user",
+                    greeting = "UK User",
+                    taskTitle = "Active Task",
+                    completedTaskTitle = "Completed Task",
+                    expectedStartedAtText = "16 Mar, 14:00", // 14:00 in 24-hour format
+                    expectedActiveTimeRangeText = "14:00 - in progress", // 14:00 in 24-hour format
+                    expectedCompletedTimeRangeText = "12:30 - 13:00", // 12:30 - 13:00 in 24-hour format
+                    expectedWeekRangeText = "11 Mar - 17 Mar",
+                    expectedDayTitle = "Today",
+                    expectedEditDateValue = "16 Mar 2024",
+                    expectedEditTimeValue = "14:00",
+                ),
+                // Ukrainian locale - 24-hour format
+                LocaleTestCase(
+                    localeTag = "uk",
+                    username = "ua_user",
+                    greeting = "Українець",
+                    taskTitle = "Українське завдання",
+                    completedTaskTitle = "Завершене завдання",
+                    expectedStartedAtText = "16 бер., 14:00", // 14:00 in 24-hour format with Ukrainian month
+                    expectedActiveTimeRangeText = "14:00 - виконується", // 14:00 in 24-hour format
+                    expectedCompletedTimeRangeText = "12:30 - 13:00", // 12:30 - 13:00 in 24-hour format
+                    expectedWeekRangeText = "11 бер. - 17 бер.",
+                    expectedDayTitle = "Сьогодні",
+                    expectedEditDateValue = "16 бер. 2024 р.",
+                    expectedEditTimeValue = "14:00",
+                ),
             )
-        )
     }
-    
+
     data class LocaleTestCase(
         val localeTag: String,
         val username: String,
@@ -1615,7 +1747,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         val expectedWeekRangeText: String,
         val expectedDayTitle: String,
         val expectedEditDateValue: String,
-        val expectedEditTimeValue: String
+        val expectedEditTimeValue: String,
     )
 
     @Test
@@ -1626,49 +1758,54 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 startTime = FIXED_TEST_TIME.minusSeconds(7200), // 2 hours ago (12:30)
                 endTime = FIXED_TEST_TIME.minusSeconds(5400), // 1.5 hours ago (13:00)
                 title = "Completed Task",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         // Create an active entry
-        val previouslyActiveEntry = testDatabaseSupport.insert(
-            TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago (03:00)
-                endTime = null,
-                title = "Currently Active Task",
-                ownerId = requireNotNull(testUser.id)
+        val previouslyActiveEntry =
+            testDatabaseSupport.insert(
+                TimeLogEntry(
+                    startTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago (03:00)
+                    endTime = null,
+                    title = "Currently Active Task",
+                    ownerId = requireNotNull(testUser.id),
+                ),
             )
-        )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify initial state with both active and completed entries
-        val initialState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Currently Active Task",
-                duration = "00:30:00",
-                startedAt = "16 Mar, 03:00",
-            ),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "01:00:00", // 30 min active + 30 min completed
-                    entries = listOf(
-                        EntryState(
-                            title = "Currently Active Task",
-                            timeRange = "03:00 - in progress",
-                            duration = "00:30:00"
+        val initialState =
+            TimeLogsPageState(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Currently Active Task",
+                        duration = "00:30:00",
+                        startedAt = "16 Mar, 03:00",
+                    ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "01:00:00", // 30 min active + 30 min completed
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Currently Active Task",
+                                        timeRange = "03:00 - in progress",
+                                        duration = "00:30:00",
+                                    ),
+                                    EntryState(
+                                        title = "Completed Task",
+                                        timeRange = "01:30 - 02:00",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
                         ),
-                        EntryState(
-                            title = "Completed Task",
-                            timeRange = "01:30 - 02:00",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
-            ),
-        )
+                    ),
+            )
         timeLogsPage.assertPageState(initialState)
 
         // Click start button on the completed entry
@@ -1680,42 +1817,46 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // Verify the new state:
         // - The previously active entry should now be stopped
         // - A new active entry with "Completed Task" title should be started
-        val newState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.ActiveEntry(
-                title = "Completed Task",
-                duration = "00:00:00",
-                startedAt = "16 Mar, 03:30",  // Started at FIXED_TEST_TIME (backend time)
-            ),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "01:00:00", // All entries combined
-                    entries = listOf(
-                        // New active entry (most recent)
-                        EntryState(
-                            title = "Completed Task",
-                            timeRange = "03:30 - in progress",  // Started at FIXED_TEST_TIME (backend time)
-                            duration = "00:00:00"
+        val newState =
+            TimeLogsPageState(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Completed Task",
+                        duration = "00:00:00",
+                        startedAt = "16 Mar, 03:30", // Started at FIXED_TEST_TIME (backend time)
+                    ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "01:00:00", // All entries combined
+                            entries =
+                                listOf(
+                                    // New active entry (most recent)
+                                    EntryState(
+                                        title = "Completed Task",
+                                        timeRange = "03:30 - in progress", // Started at FIXED_TEST_TIME (backend time)
+                                        duration = "00:00:00",
+                                    ),
+                                    // Previously active entry, now stopped
+                                    EntryState(
+                                        title = "Currently Active Task",
+                                        timeRange = "03:00 - 03:30", // Stopped at FIXED_TEST_TIME (backend time)
+                                        duration = "00:30:00",
+                                    ),
+                                    // Original completed entry
+                                    EntryState(
+                                        title = "Completed Task",
+                                        timeRange = "01:30 - 02:00",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
                         ),
-                        // Previously active entry, now stopped
-                        EntryState(
-                            title = "Currently Active Task",
-                            timeRange = "03:00 - 03:30",  // Stopped at FIXED_TEST_TIME (backend time)
-                            duration = "00:30:00"
-                        ),
-                        // Original completed entry
-                        EntryState(
-                            title = "Completed Task",
-                            timeRange = "01:30 - 02:00",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
-            ),
-        )
+                    ),
+            )
         timeLogsPage.assertPageState(newState)
-        
+
         // Verify database state:
         // 1. The previously active entry should be stopped with endTime from backend
         val stoppedPreviousEntry = timeLogEntryRepository.findById(previouslyActiveEntry.id!!).orElse(null)
@@ -1723,7 +1864,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         assertEquals(FIXED_TEST_TIME.minusSeconds(1800), stoppedPreviousEntry!!.startTime)
         // Verify endTime is set by backend to FIXED_TEST_TIME
         assertEquals(FIXED_TEST_TIME, stoppedPreviousEntry.endTime, "End time should be set by backend when stopping")
-        
+
         // 2. A new active entry should be created with startTime from backend
         val newActiveEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(newActiveEntry, "New active entry should exist in database")
@@ -1739,76 +1880,83 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // Sunday, March 17, 2024 at 14:30:00 UTC = Monday, March 18, 2024 at 03:30:00 NZDT
         // To test Sunday in Auckland, we need Sunday at 03:30 NZDT = Saturday at 14:30 UTC
         val sundayTime = FIXED_TEST_TIME.plusSeconds(24 * 3600) // Saturday 14:30 UTC = Sunday 03:30 NZDT
-        
+
         // Override the test time to Sunday
         page.clock().pauseAt(sundayTime.toEpochMilli())
-        
+
         // Create an entry for Sunday in Auckland timezone
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = sundayTime.minusSeconds(1800), // 30 minutes ago (Saturday 14:00 UTC = Sunday 03:00 NZDT)
                 endTime = sundayTime.minusSeconds(900), // 15 minutes ago (Saturday 14:15 UTC = Sunday 03:15 NZDT)
                 title = "Sunday Task",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Expected: The Sunday entry should appear in the "Today" section
         // Week should be Monday Mar 11 - Sunday Mar 17 (in Auckland timezone)
-        val expectedState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.NoActiveEntry(),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:15:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Sunday Task",
-                            timeRange = "03:00 - 03:15",
-                            duration = "00:15:00"
-                        )
-                    )
-                )
-            ),
-        )
+        val expectedState =
+            TimeLogsPageState(
+                currentEntry = CurrentEntryState.NoActiveEntry(),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:15:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Sunday Task",
+                                        timeRange = "03:00 - 03:15",
+                                        duration = "00:15:00",
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
         timeLogsPage.assertPageState(expectedState)
     }
 
     @Test
     fun `should edit stopped entry title`() {
         // Create a stopped entry
-        val createdEntry = testDatabaseSupport.insert(
-            TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
-                title = "Original Task",
-                ownerId = requireNotNull(testUser.id)
+        val createdEntry =
+            testDatabaseSupport.insert(
+                TimeLogEntry(
+                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
+                    endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                    title = "Original Task",
+                    ownerId = requireNotNull(testUser.id),
+                ),
             )
-        )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify initial state
-        val initialState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.NoActiveEntry(),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Original Task",
-                            timeRange = "02:30 - 03:00",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
+        val initialState =
+            TimeLogsPageState(
+                currentEntry = CurrentEntryState.NoActiveEntry(),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Original Task",
+                                        timeRange = "02:30 - 03:00",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(initialState)
 
         // Click edit for the entry
@@ -1821,7 +1969,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             expectedStartDate = "16 Mar 2024",
             expectedStartTime = "02:30",
             expectedEndDate = "16 Mar 2024",
-            expectedEndTime = "03:00"
+            expectedEndTime = "03:00",
         )
 
         // Change the title
@@ -1834,28 +1982,33 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         timeLogsPage.assertStoppedEntryEditHidden()
 
         // Verify the entry is updated in UI
-        val updatedState = initialState.copy(
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Updated Task",
-                            timeRange = "02:30 - 03:00",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
+        val updatedState =
+            initialState.copy(
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Updated Task",
+                                        timeRange = "02:30 - 03:00",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(updatedState)
-        
+
         // Verify database state - only title changed, rest unchanged
-        val updatedEntry = timeLogEntryRepository.findByIdAndOwnerId(
-            requireNotNull(createdEntry.id),
-            requireNotNull(testUser.id)
-        ).orElse(null)
+        val updatedEntry =
+            timeLogEntryRepository
+                .findByIdAndOwnerId(
+                    requireNotNull(createdEntry.id),
+                    requireNotNull(testUser.id),
+                ).orElse(null)
         assertNotNull(updatedEntry, "Entry should exist in database")
         assertEquals("Updated Task", updatedEntry!!.title, "Title should be updated")
         assertEquals(FIXED_TEST_TIME.minusSeconds(3600), updatedEntry.startTime, "Start time should be unchanged")
@@ -1866,14 +2019,15 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should edit stopped entry start and end times`() {
         // Create a stopped entry
-        val createdEntry = testDatabaseSupport.insert(
-            TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600), // 02:30
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),   // 03:00
-                title = "Task to Edit",
-                ownerId = requireNotNull(testUser.id)
+        val createdEntry =
+            testDatabaseSupport.insert(
+                TimeLogEntry(
+                    startTime = FIXED_TEST_TIME.minusSeconds(3600), // 02:30
+                    endTime = FIXED_TEST_TIME.minusSeconds(1800), // 03:00
+                    title = "Task to Edit",
+                    ownerId = requireNotNull(testUser.id),
+                ),
             )
-        )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
@@ -1887,7 +2041,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             expectedStartDate = "16 Mar 2024",
             expectedStartTime = "02:30",
             expectedEndDate = "16 Mar 2024",
-            expectedEndTime = "03:00"
+            expectedEndTime = "03:00",
         )
 
         // Change start time to 01:00 and end time to 02:00
@@ -1903,30 +2057,35 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         timeLogsPage.assertStoppedEntryEditHidden()
 
         // Verify the entry is updated with new times and duration (1 hour)
-        val updatedState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.NoActiveEntry(),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "01:00:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Task to Edit",
-                            timeRange = "01:00 - 02:00",
-                            duration = "01:00:00"
-                        )
-                    )
-                )
+        val updatedState =
+            TimeLogsPageState(
+                currentEntry = CurrentEntryState.NoActiveEntry(),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "01:00:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Task to Edit",
+                                        timeRange = "01:00 - 02:00",
+                                        duration = "01:00:00",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(updatedState)
-        
+
         // Verify database state - times updated, title and owner unchanged
-        val updatedEntry = timeLogEntryRepository.findByIdAndOwnerId(
-            requireNotNull(createdEntry.id),
-            requireNotNull(testUser.id)
-        ).orElse(null)
+        val updatedEntry =
+            timeLogEntryRepository
+                .findByIdAndOwnerId(
+                    requireNotNull(createdEntry.id),
+                    requireNotNull(testUser.id),
+                ).orElse(null)
         assertNotNull(updatedEntry, "Entry should exist in database")
         assertEquals("Task to Edit", updatedEntry!!.title, "Title should be unchanged")
         assertEquals(FIXED_TEST_TIME.minusSeconds(9000), updatedEntry.startTime, "Start time should be updated to 01:00")
@@ -1937,35 +2096,39 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should cancel editing stopped entry`() {
         // Create a stopped entry
-        val createdEntry = testDatabaseSupport.insert(
-            TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
-                title = "Original Task",
-                ownerId = requireNotNull(testUser.id)
+        val createdEntry =
+            testDatabaseSupport.insert(
+                TimeLogEntry(
+                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
+                    endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                    title = "Original Task",
+                    ownerId = requireNotNull(testUser.id),
+                ),
             )
-        )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify initial state
-        val initialState = TimeLogsPageState(
-            currentEntry = CurrentEntryState.NoActiveEntry(),
-            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
-            dayGroups = listOf(
-                DayGroupState(
-                    displayTitle = "Today",
-                    totalDuration = "00:30:00",
-                    entries = listOf(
-                        EntryState(
-                            title = "Original Task",
-                            timeRange = "02:30 - 03:00",
-                            duration = "00:30:00"
-                        )
-                    )
-                )
+        val initialState =
+            TimeLogsPageState(
+                currentEntry = CurrentEntryState.NoActiveEntry(),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Original Task",
+                                        timeRange = "02:30 - 03:00",
+                                        duration = "00:30:00",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
-        )
         timeLogsPage.assertPageState(initialState)
 
         // Click edit for the entry
@@ -1978,7 +2141,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             expectedStartDate = "16 Mar 2024",
             expectedStartTime = "02:30",
             expectedEndDate = "16 Mar 2024",
-            expectedEndTime = "03:00"
+            expectedEndTime = "03:00",
         )
 
         // Make some changes
@@ -1993,12 +2156,14 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         // Verify original state is preserved
         timeLogsPage.assertPageState(initialState)
-        
+
         // Verify database state is unchanged
-        val unchangedEntry = timeLogEntryRepository.findByIdAndOwnerId(
-            requireNotNull(createdEntry.id),
-            requireNotNull(testUser.id)
-        ).orElse(null)
+        val unchangedEntry =
+            timeLogEntryRepository
+                .findByIdAndOwnerId(
+                    requireNotNull(createdEntry.id),
+                    requireNotNull(testUser.id),
+                ).orElse(null)
         assertNotNull(unchangedEntry, "Entry should exist in database")
         assertEquals("Original Task", unchangedEntry!!.title, "Title should be unchanged")
         assertEquals(FIXED_TEST_TIME.minusSeconds(3600), unchangedEntry.startTime, "Start time should be unchanged")
@@ -2014,8 +2179,8 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 startTime = FIXED_TEST_TIME.minusSeconds(1800),
                 endTime = null,
                 title = "Active Task",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         // Create a stopped entry
@@ -2024,8 +2189,8 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 startTime = FIXED_TEST_TIME.minusSeconds(3600),
                 endTime = FIXED_TEST_TIME.minusSeconds(2700),
                 title = "Stopped Task",
-                ownerId = requireNotNull(testUser.id)
-            )
+                ownerId = requireNotNull(testUser.id),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
@@ -2061,14 +2226,15 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should show error when end time is before start time`() {
         // Create a stopped entry
-        val createdEntry = testDatabaseSupport.insert(
-            TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
-                title = "Task to Edit",
-                ownerId = requireNotNull(testUser.id)
+        val createdEntry =
+            testDatabaseSupport.insert(
+                TimeLogEntry(
+                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
+                    endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                    title = "Task to Edit",
+                    ownerId = requireNotNull(testUser.id),
+                ),
             )
-        )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
@@ -2082,7 +2248,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             expectedStartDate = "16 Mar 2024",
             expectedStartTime = "02:30",
             expectedEndDate = "16 Mar 2024",
-            expectedEndTime = "03:00"
+            expectedEndTime = "03:00",
         )
 
         // Set end time before start time
@@ -2100,12 +2266,14 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         // Verify we're still in edit mode with all controls visible
         timeLogsPage.assertStoppedEntryEditVisible()
-        
+
         // Verify database state is unchanged (validation prevented the update)
-        val unchangedEntry = timeLogEntryRepository.findByIdAndOwnerId(
-            requireNotNull(createdEntry.id),
-            requireNotNull(testUser.id)
-        ).orElse(null)
+        val unchangedEntry =
+            timeLogEntryRepository
+                .findByIdAndOwnerId(
+                    requireNotNull(createdEntry.id),
+                    requireNotNull(testUser.id),
+                ).orElse(null)
         assertNotNull(unchangedEntry, "Entry should exist in database")
         assertEquals("Task to Edit", unchangedEntry!!.title, "Title should be unchanged")
         assertEquals(FIXED_TEST_TIME.minusSeconds(3600), unchangedEntry.startTime, "Start time should be unchanged")

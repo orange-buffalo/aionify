@@ -1,33 +1,38 @@
-import { useTranslation } from "react-i18next"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatDuration } from "@/lib/time-utils"
-import { TimeEntry } from "./TimeEntry"
-import type { DayGroup as DayGroupType, TimeLogEntry } from "./types"
+import { useTranslation } from "react-i18next";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatDuration } from "@/lib/time-utils";
+import { TimeEntry } from "./TimeEntry";
+import type { DayGroup as DayGroupType, TimeLogEntry } from "./types";
 
 interface DayGroupProps {
-  group: DayGroupType
-  locale: string
-  editingEntryId: number | null
-  isSaving: boolean
-  onContinue: (entry: TimeLogEntry) => void
-  onDelete: (entry: TimeLogEntry) => void
-  onEdit: (entry: TimeLogEntry) => void
-  onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string) => Promise<void>
-  onCancelEdit: () => void
+  group: DayGroupType;
+  locale: string;
+  editingEntryId: number | null;
+  isSaving: boolean;
+  onContinue: (entry: TimeLogEntry) => void;
+  onDelete: (entry: TimeLogEntry) => void;
+  onEdit: (entry: TimeLogEntry) => void;
+  onSaveEdit: (
+    entry: TimeLogEntry,
+    title: string,
+    startTime: string,
+    endTime: string
+  ) => Promise<void>;
+  onCancelEdit: () => void;
 }
 
-export function DayGroup({ 
-  group, 
-  locale, 
+export function DayGroup({
+  group,
+  locale,
   editingEntryId,
   isSaving,
-  onContinue, 
+  onContinue,
   onDelete,
   onEdit,
   onSaveEdit,
-  onCancelEdit
+  onCancelEdit,
 }: DayGroupProps) {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
 
   return (
     <Card className="border-none shadow-md" data-testid="day-group">
@@ -37,7 +42,7 @@ export function DayGroup({
             {group.displayTitle}
           </CardTitle>
           <div className="text-sm text-muted-foreground" data-testid="day-total-duration">
-            {t('timeLogs.totalDuration')}: {formatDuration(group.totalDuration)}
+            {t("timeLogs.totalDuration")}: {formatDuration(group.totalDuration)}
           </div>
         </div>
       </CardHeader>
@@ -60,5 +65,5 @@ export function DayGroup({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

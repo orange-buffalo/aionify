@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test
  */
 @MicronautTest(transactional = false)
 class AuthenticationRoutingPlaywrightTest : PlaywrightTestBase() {
-
     @Inject
     lateinit var userRepository: UserRepository
 
@@ -136,11 +135,14 @@ class AuthenticationRoutingPlaywrightTest : PlaywrightTestBase() {
         page.navigate("/login")
 
         // Set the expired token in localStorage
-        page.evaluate("""
+        page.evaluate(
+            """
             (token) => {
                 localStorage.setItem('$TOKEN_KEY', token);
             }
-        """.trimIndent(), expiredToken)
+            """.trimIndent(),
+            expiredToken,
+        )
 
         // Navigate to a page that makes an API call (settings page loads profile)
         page.navigate("/portal/settings")

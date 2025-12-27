@@ -11,8 +11,6 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.Instant
-import java.time.ZoneId
-import java.time.ZonedDateTime
 
 /**
  * Base class for Playwright tests that provides browser lifecycle management, automatic trace recording,
@@ -49,7 +47,6 @@ import java.time.ZonedDateTime
  * ```
  */
 abstract class PlaywrightTestBase {
-
     private val log = LoggerFactory.getLogger(PlaywrightTestBase::class.java)
 
     @Inject
@@ -109,9 +106,10 @@ abstract class PlaywrightTestBase {
         consoleMessages.clear()
 
         playwright = Playwright.create()
-        browser = playwright.chromium().launch(
-            BrowserType.LaunchOptions().setHeadless(true)
-        )
+        browser =
+            playwright.chromium().launch(
+                BrowserType.LaunchOptions().setHeadless(true),
+            )
 
         // Create context with base URL for simpler navigation
         // Can be overridden by calling createBrowserContext() before navigation
@@ -119,10 +117,11 @@ abstract class PlaywrightTestBase {
 
         // Start tracing for this test
         browserContext.tracing().start(
-            Tracing.StartOptions()
+            Tracing
+                .StartOptions()
                 .setScreenshots(true)
                 .setSnapshots(true)
-                .setSources(true)
+                .setSources(true),
         )
 
         _page = browserContext.newPage()
@@ -141,7 +140,7 @@ abstract class PlaywrightTestBase {
                 }
             }
         }
-        
+
         _page.onResponse { response ->
             if (response.url().contains("/api/")) {
                 log.debug("[RESPONSE] ${response.status()} ${response.url()}")
@@ -160,19 +159,23 @@ abstract class PlaywrightTestBase {
         _page.clock().pauseAt(FIXED_TEST_TIME.toEpochMilli())
     }
 
-    private fun createBrowserContext(): BrowserContext {
-        return browser.newContext(
-            Browser.NewContextOptions()
+    private fun createBrowserContext(): BrowserContext =
+        browser.newContext(
+            Browser
+                .NewContextOptions()
                 .setBaseURL(baseUrl)
-                .setTimezoneId("Pacific/Auckland")
+                .setTimezoneId("Pacific/Auckland"),
         )
-    }
 
     /**
      * Performs UI-based login for tests that need to test the actual login flow.
      * Use this when testing login functionality itself.
      */
-    protected fun loginViaUI(userName: String, password: String, expectedRedirectPattern: String) {
+    protected fun loginViaUI(
+        userName: String,
+        password: String,
+        expectedRedirectPattern: String,
+    ) {
         page.navigate("/login")
         page.locator("[data-testid='username-input']").fill(userName)
         page.locator("[data-testid='password-input']").fill(password)
@@ -188,14 +191,19 @@ abstract class PlaywrightTestBase {
      * @param user The user to authenticate as
      * @param testAuthSupport The auth support instance for generating tokens
      */
-    protected fun loginViaToken(targetPath: String, user: User, testAuthSupport: TestAuthSupport) {
+    protected fun loginViaToken(
+        targetPath: String,
+        user: User,
+        testAuthSupport: TestAuthSupport,
+    ) {
         val authData = testAuthSupport.generateAuthStorageData(user)
 
         // Navigate to root to establish localStorage origin
         page.navigate("/")
 
         // Set localStorage items
-        page.evaluate("""
+        page.evaluate(
+            """
             (data) => {
                 localStorage.setItem('aionify_language', data.languageCode);
                 localStorage.setItem('$TOKEN_KEY', data.token);
@@ -204,12 +212,14 @@ abstract class PlaywrightTestBase {
                     greeting: data.greeting
                 }));
             }
-        """.trimIndent(), mapOf(
-            "token" to authData.token,
-            "userName" to authData.userName,
-            "greeting" to authData.greeting,
-            "languageCode" to user.languageCode
-        ))
+            """.trimIndent(),
+            mapOf(
+                "token" to authData.token,
+                "userName" to authData.userName,
+                "greeting" to authData.greeting,
+                "languageCode" to user.languageCode,
+            ),
+        )
 
         // Navigate to the target page - this will cause i18n to re-initialize with localStorage values
         page.navigate(targetPath)
@@ -226,7 +236,7 @@ abstract class PlaywrightTestBase {
 
             // Stop tracing and save to file
             browserContext.tracing().stop(
-                Tracing.StopOptions().setPath(tracePath)
+                Tracing.StopOptions().setPath(tracePath),
             )
         } finally {
             _page.close()
@@ -244,7 +254,7 @@ abstract class PlaywrightTestBase {
         val methodName = testInfo.testMethod.map { it.name }.orElse("unknownMethod")
         // Sanitize method name (replace special characters)
         val sanitizedMethodName = methodName.replace(SANITIZE_REGEX, "_")
-        return "${className}_${sanitizedMethodName}.zip"
+        return "${className}_$sanitizedMethodName.zip"
     }
 
     /**
@@ -255,20 +265,22 @@ abstract class PlaywrightTestBase {
      * error scenarios (e.g., 401 Unauthorized, 400 Bad Request responses).
      */
     private fun verifyConsoleMessages() {
-        val errorMessages = consoleMessages.filter { message ->
-            val isErrorOrWarning = message.type() == "error" || message.type() == "warning"
-            val isNetworkError = message.text().startsWith("Failed to load resource:")
+        val errorMessages =
+            consoleMessages.filter { message ->
+                val isErrorOrWarning = message.type() == "error" || message.type() == "warning"
+                val isNetworkError = message.text().startsWith("Failed to load resource:")
 
-            // Filter to only actual errors/warnings, excluding network-related errors
-            isErrorOrWarning && !isNetworkError
-        }
+                // Filter to only actual errors/warnings, excluding network-related errors
+                isErrorOrWarning && !isNetworkError
+            }
 
         if (errorMessages.isNotEmpty()) {
-            val formattedMessages = errorMessages.joinToString("\n") { message ->
-                "[${message.type().uppercase()}] ${message.text()} (${message.location()})"
-            }
+            val formattedMessages =
+                errorMessages.joinToString("\n") { message ->
+                    "[${message.type().uppercase()}] ${message.text()} (${message.location()})"
+                }
             throw AssertionError(
-                "Browser console contained ${errorMessages.size} error(s) or warning(s):\n$formattedMessages"
+                "Browser console contained ${errorMessages.size} error(s) or warning(s):\n$formattedMessages",
             )
         }
     }

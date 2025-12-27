@@ -1,16 +1,16 @@
-import { useTranslation } from "react-i18next"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface WeekNavigationProps {
-  weekRange: string
-  onPreviousWeek: () => void
-  onNextWeek: () => void
+  weekRange: string;
+  onPreviousWeek: () => void;
+  onNextWeek: () => void;
 }
 
 export function WeekNavigation({ weekRange, onPreviousWeek, onNextWeek }: WeekNavigationProps) {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
 
   return (
     <Card className="border-none shadow-md mb-6">
@@ -22,7 +22,7 @@ export function WeekNavigation({ weekRange, onPreviousWeek, onNextWeek }: WeekNa
           className="text-foreground"
         >
           <ChevronLeft className="h-4 w-4 mr-2" />
-          {t('timeLogs.previousWeek')}
+          {t("timeLogs.previousWeek")}
         </Button>
         <h2 className="text-xl font-semibold text-foreground" data-testid="week-range">
           {weekRange}
@@ -33,10 +33,10 @@ export function WeekNavigation({ weekRange, onPreviousWeek, onNextWeek }: WeekNa
           data-testid="next-week-button"
           className="text-foreground"
         >
-          {t('timeLogs.nextWeek')}
+          {t("timeLogs.nextWeek")}
           <ChevronRight className="h-4 w-4 ml-2" />
         </Button>
       </CardContent>
     </Card>
-  )
+  );
 }

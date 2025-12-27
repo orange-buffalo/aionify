@@ -1,14 +1,20 @@
-import { useState, useEffect, useMemo } from "react"
-import { useTranslation } from "react-i18next"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { FormMessage } from "@/components/ui/form-message"
-import { User, Loader2 } from "lucide-react"
-import { apiGet, apiPut } from "@/lib/api"
-import { initializeLanguage, translateErrorCode } from "@/lib/i18n"
+import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { FormMessage } from "@/components/ui/form-message";
+import { User, Loader2 } from "lucide-react";
+import { apiGet, apiPut } from "@/lib/api";
+import { initializeLanguage, translateErrorCode } from "@/lib/i18n";
 
 // Standard locales (BCP 47 language tags with region)
 const LOCALES = [
@@ -39,105 +45,105 @@ const LOCALES = [
   "zh-CN",
   "zh-TW",
   "ko-KR",
-]
+];
 
 interface ProfileResponse {
-  userName: string
-  greeting: string
-  locale: string
+  userName: string;
+  greeting: string;
+  locale: string;
 }
 
 interface ProfileUpdateResponse {
-  message: string
+  message: string;
 }
 
 function formatDateTimeExample(locale: string): string {
   try {
-    const now = new Date()
+    const now = new Date();
     return new Intl.DateTimeFormat(locale, {
       dateStyle: "medium",
-      timeStyle: "medium"
-    }).format(now)
+      timeStyle: "medium",
+    }).format(now);
   } catch {
-    return ""
+    return "";
   }
 }
 
 export function ProfilePanel() {
-  const { t, i18n } = useTranslation()
-  const [greeting, setGreeting] = useState("")
-  const [locale, setLocale] = useState("")
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+  const { t, i18n } = useTranslation();
+  const [greeting, setGreeting] = useState("");
+  const [locale, setLocale] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   // Format example based on selected locale
   const localeExample = useMemo(() => {
-    if (!locale) return ""
-    return formatDateTimeExample(locale)
-  }, [locale])
+    if (!locale) return "";
+    return formatDateTimeExample(locale);
+  }, [locale]);
 
   // Load profile data on mount
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        const data = await apiGet<ProfileResponse>("/api/users/profile")
-        setGreeting(data.greeting)
-        setLocale(data.locale)
+        const data = await apiGet<ProfileResponse>("/api/users/profile");
+        setGreeting(data.greeting);
+        setLocale(data.locale);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load profile")
+        setError(err instanceof Error ? err.message : "Failed to load profile");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    loadProfile()
-  }, [])
+    loadProfile();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setSuccess(null)
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
 
     // Client-side validation
     if (!greeting.trim()) {
-      setError(t("validation.greetingBlank"))
-      return
+      setError(t("validation.greetingBlank"));
+      return;
     }
     if (greeting.length > 255) {
-      setError(t("validation.greetingTooLong"))
-      return
+      setError(t("validation.greetingTooLong"));
+      return;
     }
     if (!locale) {
-      setError(t("validation.localeRequired"))
-      return
+      setError(t("validation.localeRequired"));
+      return;
     }
 
-    setSaving(true)
+    setSaving(true);
 
     try {
       await apiPut<ProfileUpdateResponse>("/api/users/profile", {
         greeting,
         locale,
-      })
+      });
 
       // Extract language from locale (e.g., "en" from "en-US")
-      const language = locale.split("-")[0]
-      
+      const language = locale.split("-")[0];
+
       // Update user language preference and apply changes
-      await initializeLanguage(language)
+      await initializeLanguage(language);
 
       // Set success flag (translation will be applied in JSX with current language)
-      setSuccess("success")
+      setSuccess("success");
     } catch (err) {
       // Translate error using error code if available
-      const errorMessage = err instanceof Error ? err.message : t("common.error")
-      setError(errorMessage)
+      const errorMessage = err instanceof Error ? err.message : t("common.error");
+      setError(errorMessage);
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   return (
     <Card className="border-none shadow-md">
@@ -150,7 +156,10 @@ export function ProfilePanel() {
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="flex items-center gap-2 text-muted-foreground" data-testid="profile-loading">
+          <div
+            className="flex items-center gap-2 text-muted-foreground"
+            data-testid="profile-loading"
+          >
             <Loader2 className="h-4 w-4 animate-spin" />
             {t("profile.profile.loading")}
           </div>
@@ -206,13 +215,15 @@ export function ProfilePanel() {
             </div>
 
             {/* Error Message */}
-            {error && (
-              <FormMessage type="error" message={error} testId="profile-error" />
-            )}
+            {error && <FormMessage type="error" message={error} testId="profile-error" />}
 
             {/* Success Message */}
             {success && (
-              <FormMessage type="success" message={t("profile.profile.updateSuccess")} testId="profile-success" />
+              <FormMessage
+                type="success"
+                message={t("profile.profile.updateSuccess")}
+                testId="profile-success"
+              />
             )}
 
             {/* Submit Button */}
@@ -228,5 +239,5 @@ export function ProfilePanel() {
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

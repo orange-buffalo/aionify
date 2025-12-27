@@ -1,148 +1,160 @@
-import { useState, useEffect } from "react"
-import { useTranslation } from "react-i18next"
-import { useParams, useNavigate } from "react-router"
-import { PortalLayout } from "@/components/layout/PortalLayout"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FormMessage } from "@/components/ui/form-message"
-import { apiGet, apiPut, apiPost } from "@/lib/api"
-import { ArrowLeft } from "lucide-react"
+import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { useParams, useNavigate } from "react-router";
+import { PortalLayout } from "@/components/layout/PortalLayout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormMessage } from "@/components/ui/form-message";
+import { apiGet, apiPut, apiPost } from "@/lib/api";
+import { ArrowLeft } from "lucide-react";
 
 interface ActivationTokenInfo {
-  token: string
-  expiresAt: string
+  token: string;
+  expiresAt: string;
 }
 
 interface UserDetail {
-  id: number
-  userName: string
-  greeting: string
-  isAdmin: boolean
-  activationToken: ActivationTokenInfo | null
+  id: number;
+  userName: string;
+  greeting: string;
+  isAdmin: boolean;
+  activationToken: ActivationTokenInfo | null;
 }
 
 interface ActivationTokenResponse {
-  token: string
-  expiresAt: string
+  token: string;
+  expiresAt: string;
 }
 
 export function EditUserPage() {
-  const { t } = useTranslation()
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  
-  const [user, setUser] = useState<UserDetail | null>(null)
-  const [userName, setUserName] = useState("")
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [regenerating, setRegenerating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const { t } = useTranslation();
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+
+  const [user, setUser] = useState<UserDetail | null>(null);
+  const [userName, setUserName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const loadUser = async () => {
-    setLoading(true)
-    setError(null)
-    
+    setLoading(true);
+    setError(null);
+
     try {
-      const data = await apiGet<UserDetail>(`/api/admin/users/${id}`)
-      setUser(data)
-      setUserName(data.userName)
+      const data = await apiGet<UserDetail>(`/api/admin/users/${id}`);
+      setUser(data);
+      setUserName(data.userName);
     } catch (err) {
-      const errorCode = (err as any).errorCode
+      const errorCode = (err as any).errorCode;
       if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`, { defaultValue: err instanceof Error ? err.message : "An error occurred" }))
+        setError(
+          t(`errorCodes.${errorCode}`, {
+            defaultValue: err instanceof Error ? err.message : "An error occurred",
+          })
+        );
       } else {
-        setError(err instanceof Error ? err.message : "An error occurred")
+        setError(err instanceof Error ? err.message : "An error occurred");
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    loadUser()
-    
+    loadUser();
+
     // Check if we have a success message from session storage (e.g., after creating a user)
-    const userCreated = sessionStorage.getItem("userCreated")
+    const userCreated = sessionStorage.getItem("userCreated");
     if (userCreated) {
-      setSuccessMessage(t("portal.admin.users.create.createSuccess"))
-      sessionStorage.removeItem("userCreated")
+      setSuccessMessage(t("portal.admin.users.create.createSuccess"));
+      sessionStorage.removeItem("userCreated");
     }
-  }, [id])
+  }, [id]);
 
   const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setSuccessMessage(null)
+    e.preventDefault();
+    setError(null);
+    setSuccessMessage(null);
 
     // Client-side validation
     if (!userName || userName.trim() === "") {
-      setError(t("validation.usernameBlank"))
-      return
+      setError(t("validation.usernameBlank"));
+      return;
     }
 
     if (userName.length > 255) {
-      setError(t("validation.usernameTooLong"))
-      return
+      setError(t("validation.usernameTooLong"));
+      return;
     }
 
-    setSaving(true)
+    setSaving(true);
 
     try {
       await apiPut(`/api/admin/users/${id}`, {
-        userName: userName
-      })
-      
-      setSuccessMessage(t("portal.admin.users.edit.updateSuccess"))
+        userName: userName,
+      });
+
+      setSuccessMessage(t("portal.admin.users.edit.updateSuccess"));
       // Reload user to get updated data
-      await loadUser()
+      await loadUser();
     } catch (err) {
-      const errorCode = (err as any).errorCode
+      const errorCode = (err as any).errorCode;
       if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`, { defaultValue: err instanceof Error ? err.message : "An error occurred" }))
+        setError(
+          t(`errorCodes.${errorCode}`, {
+            defaultValue: err instanceof Error ? err.message : "An error occurred",
+          })
+        );
       } else {
-        setError(err instanceof Error ? err.message : "An error occurred")
+        setError(err instanceof Error ? err.message : "An error occurred");
       }
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   const handleRegenerateToken = async () => {
-    setError(null)
-    setSuccessMessage(null)
-    setRegenerating(true)
+    setError(null);
+    setSuccessMessage(null);
+    setRegenerating(true);
 
     try {
       const response = await apiPost<ActivationTokenResponse>(
         `/api/admin/users/${id}/regenerate-activation-token`,
         {}
-      )
-      
-      setSuccessMessage(t("portal.admin.users.edit.tokenRegenerated"))
+      );
+
+      setSuccessMessage(t("portal.admin.users.edit.tokenRegenerated"));
       // Reload user to get updated activation token
-      await loadUser()
+      await loadUser();
     } catch (err) {
-      const errorCode = (err as any).errorCode
+      const errorCode = (err as any).errorCode;
       if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`, { defaultValue: err instanceof Error ? err.message : "An error occurred" }))
+        setError(
+          t(`errorCodes.${errorCode}`, {
+            defaultValue: err instanceof Error ? err.message : "An error occurred",
+          })
+        );
       } else {
-        setError(err instanceof Error ? err.message : "An error occurred")
+        setError(err instanceof Error ? err.message : "An error occurred");
       }
     } finally {
-      setRegenerating(false)
+      setRegenerating(false);
     }
-  }
+  };
 
   const getActivationUrl = (token: string) => {
-    return `${window.location.origin}/activate?token=${token}`
-  }
+    return `${window.location.origin}/activate?token=${token}`;
+  };
 
   const handleBack = () => {
-    navigate("/admin/users")
-  }
+    navigate("/admin/users");
+  };
 
   return (
     <PortalLayout testId="edit-user-page">
@@ -159,7 +171,7 @@ export function EditUserPage() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               {t("portal.admin.users.edit.back")}
             </Button>
-            
+
             <h1 className="text-3xl font-bold text-foreground" data-testid="edit-user-title">
               {t("portal.admin.users.edit.title")}
             </h1>
@@ -192,30 +204,34 @@ export function EditUserPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                <form onSubmit={handleSave} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="userName" className="text-foreground">{t("portal.admin.users.edit.username")}</Label>
-                    <Input
-                      id="userName"
-                      type="text"
-                      value={userName}
-                      onChange={(e) => setUserName(e.target.value.trim())}
-                      placeholder={t("portal.admin.users.edit.usernamePlaceholder")}
-                      required
-                      className="text-foreground"
-                      data-testid="username-input"
-                    />
-                  </div>
+                  <form onSubmit={handleSave} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="userName" className="text-foreground">
+                        {t("portal.admin.users.edit.username")}
+                      </Label>
+                      <Input
+                        id="userName"
+                        type="text"
+                        value={userName}
+                        onChange={(e) => setUserName(e.target.value.trim())}
+                        placeholder={t("portal.admin.users.edit.usernamePlaceholder")}
+                        required
+                        className="text-foreground"
+                        data-testid="username-input"
+                      />
+                    </div>
 
-                  <Button 
-                    type="submit" 
-                    disabled={saving || userName === user.userName}
-                    data-testid="save-button"
-                    className="bg-teal-600 hover:bg-teal-700"
-                  >
-                    {saving ? t("portal.admin.users.edit.saving") : t("portal.admin.users.edit.save")}
-                  </Button>
-                </form>
+                    <Button
+                      type="submit"
+                      disabled={saving || userName === user.userName}
+                      data-testid="save-button"
+                      className="bg-teal-600 hover:bg-teal-700"
+                    >
+                      {saving
+                        ? t("portal.admin.users.edit.saving")
+                        : t("portal.admin.users.edit.save")}
+                    </Button>
+                  </form>
                 </CardContent>
               </Card>
 
@@ -227,77 +243,97 @@ export function EditUserPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                <div className="space-y-3 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">{t("portal.admin.users.edit.greeting")}:</span>
-                    <span className="ml-2 text-foreground" data-testid="user-greeting">{user.greeting}</span>
+                  <div className="space-y-3 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">
+                        {t("portal.admin.users.edit.greeting")}:
+                      </span>
+                      <span className="ml-2 text-foreground" data-testid="user-greeting">
+                        {user.greeting}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">
+                        {t("portal.admin.users.edit.userType")}:
+                      </span>
+                      <span className="ml-2 text-foreground" data-testid="user-type">
+                        {user.isAdmin
+                          ? t("portal.admin.users.table.admin")
+                          : t("portal.admin.users.table.regularUser")}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-muted-foreground">{t("portal.admin.users.edit.userType")}:</span>
-                    <span className="ml-2 text-foreground" data-testid="user-type">
-                      {user.isAdmin ? t("portal.admin.users.table.admin") : t("portal.admin.users.table.regularUser")}
-                    </span>
+
+                  <div className="mt-4 p-3 bg-muted rounded text-sm" data-testid="user-info-note">
+                    <p className="text-muted-foreground">
+                      {t("portal.admin.users.edit.profileNote")}
+                    </p>
                   </div>
-                </div>
-                
-                <div className="mt-4 p-3 bg-muted rounded text-sm" data-testid="user-info-note">
-                  <p className="text-muted-foreground">
-                    {t("portal.admin.users.edit.profileNote")}
-                  </p>
-                </div>
                 </CardContent>
               </Card>
 
               {/* Activation Token */}
               <Card className="border-none shadow-md">
                 <CardHeader>
-                  <CardTitle className="text-xl font-semibold" data-testid="activation-section-title">
+                  <CardTitle
+                    className="text-xl font-semibold"
+                    data-testid="activation-section-title"
+                  >
                     {t("portal.admin.users.edit.activationSection")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                {user.activationToken ? (
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="activationUrl" className="text-foreground">{t("portal.admin.users.edit.activationUrl")}</Label>
-                      <Input
-                        id="activationUrl"
-                        type="text"
-                        value={getActivationUrl(user.activationToken.token)}
-                        readOnly
-                        className="font-mono text-xs text-foreground"
-                        data-testid="activation-url"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1" data-testid="activation-note">
-                        {t("portal.admin.users.edit.activationNote")}
-                      </p>
+                  {user.activationToken ? (
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="activationUrl" className="text-foreground">
+                          {t("portal.admin.users.edit.activationUrl")}
+                        </Label>
+                        <Input
+                          id="activationUrl"
+                          type="text"
+                          value={getActivationUrl(user.activationToken.token)}
+                          readOnly
+                          className="font-mono text-xs text-foreground"
+                          data-testid="activation-url"
+                        />
+                        <p
+                          className="text-xs text-muted-foreground mt-1"
+                          data-testid="activation-note"
+                        >
+                          {t("portal.admin.users.edit.activationNote")}
+                        </p>
+                      </div>
+
+                      <Button
+                        onClick={handleRegenerateToken}
+                        disabled={regenerating}
+                        variant="outline"
+                        data-testid="regenerate-token-button"
+                      >
+                        {regenerating
+                          ? t("portal.admin.users.edit.regenerating")
+                          : t("portal.admin.users.edit.regenerateToken")}
+                      </Button>
                     </div>
-                    
-                    <Button
-                      onClick={handleRegenerateToken}
-                      disabled={regenerating}
-                      variant="outline"
-                      data-testid="regenerate-token-button"
-                    >
-                      {regenerating ? t("portal.admin.users.edit.regenerating") : t("portal.admin.users.edit.regenerateToken")}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <p className="text-muted-foreground" data-testid="no-activation-token">
-                      {t("portal.admin.users.edit.noActivationToken")}
-                    </p>
-                    
-                    <Button
-                      onClick={handleRegenerateToken}
-                      disabled={regenerating}
-                      variant="outline"
-                      data-testid="generate-token-button"
-                    >
-                      {regenerating ? t("portal.admin.users.edit.generating") : t("portal.admin.users.edit.generateToken")}
-                    </Button>
-                  </div>
-                )}
+                  ) : (
+                    <div className="space-y-4">
+                      <p className="text-muted-foreground" data-testid="no-activation-token">
+                        {t("portal.admin.users.edit.noActivationToken")}
+                      </p>
+
+                      <Button
+                        onClick={handleRegenerateToken}
+                        disabled={regenerating}
+                        variant="outline"
+                        data-testid="generate-token-button"
+                      >
+                        {regenerating
+                          ? t("portal.admin.users.edit.generating")
+                          : t("portal.admin.users.edit.generateToken")}
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -309,10 +345,13 @@ export function EditUserPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                <div className="space-y-2 text-sm text-muted-foreground" data-testid="limitations-list">
-                  <p>• {t("portal.admin.users.edit.noTypeChange")}</p>
-                  <p>• {t("portal.admin.users.edit.noPasswordChange")}</p>
-                </div>
+                  <div
+                    className="space-y-2 text-sm text-muted-foreground"
+                    data-testid="limitations-list"
+                  >
+                    <p>• {t("portal.admin.users.edit.noTypeChange")}</p>
+                    <p>• {t("portal.admin.users.edit.noPasswordChange")}</p>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -320,5 +359,5 @@ export function EditUserPage() {
         </div>
       </div>
     </PortalLayout>
-  )
+  );
 }

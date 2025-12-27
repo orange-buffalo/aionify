@@ -8,14 +8,16 @@ import org.slf4j.LoggerFactory
 @Singleton
 class AuthService(
     private val userRepository: UserRepository,
-    private val jwtTokenService: JwtTokenService
+    private val jwtTokenService: JwtTokenService,
 ) {
-
     private val log = LoggerFactory.getLogger(AuthService::class.java)
 
-    fun authenticate(userName: String, password: String): LoginResponse {
+    fun authenticate(
+        userName: String,
+        password: String,
+    ): LoginResponse {
         log.debug("Attempting authentication for user: {}", userName)
-        
+
         val user = userRepository.findByUserName(userName).orElse(null)
         if (user == null) {
             log.debug("Authentication failed: user not found: {}", userName)
@@ -28,26 +30,31 @@ class AuthService(
         }
 
         log.info("User authenticated successfully: {}", userName)
-        
-        val token = jwtTokenService.generateToken(
-            userName = user.userName,
-            userId = requireNotNull(user.id) { "User must have an ID" },
-            isAdmin = user.isAdmin,
-            greeting = user.greeting
-        )
+
+        val token =
+            jwtTokenService.generateToken(
+                userName = user.userName,
+                userId = requireNotNull(user.id) { "User must have an ID" },
+                isAdmin = user.isAdmin,
+                greeting = user.greeting,
+            )
 
         return LoginResponse(
             token = token,
             userName = user.userName,
             greeting = user.greeting,
             admin = user.isAdmin,
-            languageCode = user.languageCode
+            languageCode = user.languageCode,
         )
     }
 
-    fun changePassword(userName: String, currentPassword: String, newPassword: String) {
+    fun changePassword(
+        userName: String,
+        currentPassword: String,
+        newPassword: String,
+    ) {
         log.debug("Attempting to change password for user: {}", userName)
-        
+
         val user = userRepository.findByUserName(userName).orElse(null)
         if (user == null) {
             log.debug("Password change failed: user not found: {}", userName)
@@ -61,7 +68,7 @@ class AuthService(
 
         val newPasswordHash = BCrypt.hashpw(newPassword, BCrypt.gensalt())
         userRepository.updatePasswordHash(userName, newPasswordHash)
-        
+
         log.info("Password changed successfully for user: {}", userName)
     }
 }

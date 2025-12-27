@@ -1,14 +1,14 @@
-import { useTranslation } from "react-i18next"
-import { PortalLayout } from "@/components/layout/PortalLayout"
-import { FormMessage } from "@/components/ui/form-message"
-import { CurrentEntryPanel } from "@/components/time-logs/CurrentEntryPanel"
-import { WeekNavigation } from "@/components/time-logs/WeekNavigation"
-import { DayGroup } from "@/components/time-logs/DayGroup"
-import { DeleteConfirmationDialog } from "@/components/time-logs/DeleteConfirmationDialog"
-import { useTimeLogs } from "@/hooks/useTimeLogs"
+import { useTranslation } from "react-i18next";
+import { PortalLayout } from "@/components/layout/PortalLayout";
+import { FormMessage } from "@/components/ui/form-message";
+import { CurrentEntryPanel } from "@/components/time-logs/CurrentEntryPanel";
+import { WeekNavigation } from "@/components/time-logs/WeekNavigation";
+import { DayGroup } from "@/components/time-logs/DayGroup";
+import { DeleteConfirmationDialog } from "@/components/time-logs/DeleteConfirmationDialog";
+import { useTimeLogs } from "@/hooks/useTimeLogs";
 
 export function TimeLogsPage() {
-  const { t, i18n } = useTranslation()
+  const { t, i18n } = useTranslation();
   const {
     activeEntry,
     activeDuration,
@@ -38,7 +38,7 @@ export function TimeLogsPage() {
     handleNextWeek,
     getWeekRangeDisplay,
     setDeleteDialogOpen,
-  } = useTimeLogs()
+  } = useTimeLogs();
 
   // Don't render page elements until we have the user locale
   if (!userLocale) {
@@ -46,15 +46,15 @@ export function TimeLogsPage() {
       <PortalLayout testId="time-logs-page">
         <div className="p-8">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center py-8 text-foreground">{t('common.loading')}</div>
+            <div className="text-center py-8 text-foreground">{t("common.loading")}</div>
           </div>
         </div>
       </PortalLayout>
-    )
+    );
   }
 
-  const locale = userLocale || i18n.language || 'en'
-  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const locale = userLocale || i18n.language || "en";
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   return (
     <PortalLayout testId="time-logs-page">
@@ -63,19 +63,13 @@ export function TimeLogsPage() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground mb-2" data-testid="time-logs-title">
-              {t('timeLogs.title')}
+              {t("timeLogs.title")}
             </h1>
-            <div className="text-muted-foreground">{t('timeLogs.subtitle')}</div>
+            <div className="text-muted-foreground">{t("timeLogs.subtitle")}</div>
           </div>
 
           {/* Error Message */}
-          {error && (
-            <FormMessage
-              type="error"
-              message={error}
-              testId="time-logs-error"
-            />
-          )}
+          {error && <FormMessage type="error" message={error} testId="time-logs-error" />}
 
           {/* Current Entry Panel */}
           <CurrentEntryPanel
@@ -101,10 +95,10 @@ export function TimeLogsPage() {
 
           {/* Time Entries List */}
           {loading ? (
-            <div className="text-center py-8 text-foreground">{t('common.loading')}</div>
+            <div className="text-center py-8 text-foreground">{t("common.loading")}</div>
           ) : dayGroups.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground" data-testid="no-entries">
-              {t('timeLogs.noEntries')}
+              {t("timeLogs.noEntries")}
             </div>
           ) : (
             <div className="space-y-6">
@@ -127,7 +121,7 @@ export function TimeLogsPage() {
 
           {/* Timezone Hint */}
           <div className="mt-8 text-right text-xs text-muted-foreground">
-            {t('timeLogs.timezoneHint', { timezone: timeZone })}
+            {t("timeLogs.timezoneHint", { timezone: timeZone })}
           </div>
         </div>
       </div>
@@ -142,5 +136,5 @@ export function TimeLogsPage() {
         onConfirm={handleDelete}
       />
     </PortalLayout>
-  )
+  );
 }

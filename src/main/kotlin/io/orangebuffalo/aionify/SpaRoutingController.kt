@@ -16,12 +16,17 @@ import java.io.InputStream
 @Controller
 @Secured(SecurityRule.IS_ANONYMOUS)
 open class SpaRoutingController {
-
     @Get(uri = "/{path:(?!api/|.*\\.(css|js|ico|svg|png|jpg|jpeg|gif|woff|woff2|ttf|eot)).*}", produces = [MediaType.TEXT_HTML])
-    open fun serveIndex(path: String?, request: HttpRequest<*>): HttpResponse<InputStream> {
-        val inputStream = Thread.currentThread().contextClassLoader
-            .getResourceAsStream("META-INF/resources/index.html")
-            ?: return HttpResponse.notFound()
+    open fun serveIndex(
+        path: String?,
+        request: HttpRequest<*>,
+    ): HttpResponse<InputStream> {
+        val inputStream =
+            Thread
+                .currentThread()
+                .contextClassLoader
+                .getResourceAsStream("META-INF/resources/index.html")
+                ?: return HttpResponse.notFound()
 
         return HttpResponse.ok(inputStream).contentType(MediaType.TEXT_HTML_TYPE)
     }

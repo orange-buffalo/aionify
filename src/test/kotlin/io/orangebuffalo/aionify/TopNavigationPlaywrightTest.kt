@@ -1,9 +1,8 @@
 package io.orangebuffalo.aionify
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
-import io.orangebuffalo.aionify.domain.User
-import io.orangebuffalo.aionify.domain.UserRepository
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import io.orangebuffalo.aionify.domain.User
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -11,7 +10,6 @@ import org.mindrot.jbcrypt.BCrypt
 
 @MicronautTest(transactional = false)
 class TopNavigationPlaywrightTest : PlaywrightTestBase() {
-
     @Inject
     lateinit var testAuthSupport: TestAuthSupport
 
@@ -28,25 +26,27 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
     fun setupTestData() {
         // Create test users with known credentials
         // Wrap in transaction to commit immediately and make visible to browser HTTP requests
-        regularUser = testDatabaseSupport.insert(
-            User.create(
-                userName = regularUserName,
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = regularUserGreeting,
-                isAdmin = false,
-                locale = java.util.Locale.US
+        regularUser =
+            testDatabaseSupport.insert(
+                User.create(
+                    userName = regularUserName,
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = regularUserGreeting,
+                    isAdmin = false,
+                    locale = java.util.Locale.US,
+                ),
             )
-        )
 
-        adminUser = testDatabaseSupport.insert(
-            User.create(
-                userName = adminUserName,
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = adminUserGreeting,
-                isAdmin = true,
-                locale = java.util.Locale.US
+        adminUser =
+            testDatabaseSupport.insert(
+                User.create(
+                    userName = adminUserName,
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = adminUserGreeting,
+                    isAdmin = true,
+                    locale = java.util.Locale.US,
+                ),
             )
-        )
     }
 
     private fun navigateToPortalViaToken() {
@@ -211,7 +211,7 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
         assertThat(timeEntry).isVisible()
         assertThat(settings).isVisible()
-        
+
         // Profile is not in mobile menu (it's in the profile dropdown)
         val profile = page.locator("[data-testid='mobile-nav-item-profile']")
         assertThat(profile).hasCount(0)

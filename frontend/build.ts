@@ -1,19 +1,19 @@
-import { mkdir, rm, cp } from "fs/promises"
-import { existsSync } from "fs"
-import { join } from "path"
+import { mkdir, rm, cp } from "fs/promises";
+import { existsSync } from "fs";
+import { join } from "path";
 
-const outDir = join(import.meta.dir, "dist")
-const publicDir = join(import.meta.dir, "public")
+const outDir = join(import.meta.dir, "dist");
+const publicDir = join(import.meta.dir, "public");
 
 // Clean output directory
 if (existsSync(outDir)) {
-  await rm(outDir, { recursive: true })
+  await rm(outDir, { recursive: true });
 }
-await mkdir(outDir, { recursive: true })
+await mkdir(outDir, { recursive: true });
 
 // Copy public directory if it exists
 if (existsSync(publicDir)) {
-  await cp(publicDir, outDir, { recursive: true })
+  await cp(publicDir, outDir, { recursive: true });
 }
 
 // Build React application with Bun
@@ -28,34 +28,31 @@ const buildResult = await Bun.build({
   naming: {
     entry: "[name].[ext]",
     chunk: "[name].[ext]",
-    asset: "[name].[ext]"
-  }
-})
+    asset: "[name].[ext]",
+  },
+});
 
 if (!buildResult.success) {
-  console.error("Build failed:")
+  console.error("Build failed:");
   for (const log of buildResult.logs) {
-    console.error(log)
+    console.error(log);
   }
-  process.exit(1)
+  process.exit(1);
 }
 
-const cssInput = join(import.meta.dir, "src/styles.css")
-const cssOutput = join(outDir, "styles.css")
+const cssInput = join(import.meta.dir, "src/styles.css");
+const cssOutput = join(outDir, "styles.css");
 
-const cssProcess = Bun.spawn([
-  "bunx",
-  "@tailwindcss/cli",
-  "-i", cssInput,
-  "-o", cssOutput,
-  "--minify"
-], {
-  cwd: import.meta.dir,
-  stdout: "inherit",
-  stderr: "inherit"
-})
+const cssProcess = Bun.spawn(
+  ["bunx", "@tailwindcss/cli", "-i", cssInput, "-o", cssOutput, "--minify"],
+  {
+    cwd: import.meta.dir,
+    stdout: "inherit",
+    stderr: "inherit",
+  }
+);
 
-await cssProcess.exited
+await cssProcess.exited;
 
 // Create HTML file
 const html = `<!DOCTYPE html>
@@ -71,14 +68,14 @@ const html = `<!DOCTYPE html>
   <div id="root"></div>
   <script type="module" src="/main.js"></script>
 </body>
-</html>`
+</html>`;
 
-await Bun.write(join(outDir, "index.html"), html)
+await Bun.write(join(outDir, "index.html"), html);
 
-console.log("Build complete! Output in dist/")
-console.log("Generated files:")
+console.log("Build complete! Output in dist/");
+console.log("Generated files:");
 for (const output of buildResult.outputs) {
-  console.log(`  - ${output.path.split("/").pop()}`)
+  console.log(`  - ${output.path.split("/").pop()}`);
 }
-console.log("  - index.html")
-console.log("  - styles.css")
+console.log("  - index.html");
+console.log("  - styles.css");

@@ -8,15 +8,14 @@ import java.util.Locale
 /**
  * Singleton that provides commonly used test users and credentials.
  * Simplifies test setup by centralizing user creation patterns.
- * 
+ *
  * **CRITICAL:** All saves are wrapped in testDatabaseSupport.insert to ensure
  * they are committed immediately and visible to browser HTTP requests.
  */
 @Singleton
 class TestUsers(
-    private val testDatabaseSupport: TestDatabaseSupport
+    private val testDatabaseSupport: TestDatabaseSupport,
 ) {
-    
     companion object {
         const val TEST_PASSWORD = "testPassword123"
         const val ADMIN_USERNAME = "admin"
@@ -24,7 +23,7 @@ class TestUsers(
         const val REGULAR_USERNAME = "testuser"
         const val REGULAR_GREETING = "Test User"
     }
-    
+
     /**
      * Creates and saves an admin user with standard test credentials.
      * Uses testDatabaseSupport to commit the transaction immediately,
@@ -32,19 +31,18 @@ class TestUsers(
      */
     fun createAdmin(
         username: String = ADMIN_USERNAME,
-        greeting: String = ADMIN_GREETING
-    ): User {
-        return testDatabaseSupport.insert(
+        greeting: String = ADMIN_GREETING,
+    ): User =
+        testDatabaseSupport.insert(
             User.create(
                 userName = username,
                 passwordHash = BCrypt.hashpw(TEST_PASSWORD, BCrypt.gensalt()),
                 greeting = greeting,
                 isAdmin = true,
-                locale = Locale.UK  // Use UK locale for 24-hour time format in tests
-            )
+                locale = Locale.UK, // Use UK locale for 24-hour time format in tests
+            ),
         )
-    }
-    
+
     /**
      * Creates and saves a regular (non-admin) user with standard test credentials.
      * Uses testDatabaseSupport to commit the transaction immediately,
@@ -52,19 +50,18 @@ class TestUsers(
      */
     fun createRegularUser(
         username: String = REGULAR_USERNAME,
-        greeting: String = REGULAR_GREETING
-    ): User {
-        return testDatabaseSupport.insert(
+        greeting: String = REGULAR_GREETING,
+    ): User =
+        testDatabaseSupport.insert(
             User.create(
                 userName = username,
                 passwordHash = BCrypt.hashpw(TEST_PASSWORD, BCrypt.gensalt()),
                 greeting = greeting,
                 isAdmin = false,
-                locale = Locale.UK  // Use UK locale for 24-hour time format in tests
-            )
+                locale = Locale.UK, // Use UK locale for 24-hour time format in tests
+            ),
         )
-    }
-    
+
     /**
      * Creates and saves a user with custom locale.
      * Uses testDatabaseSupport to commit the transaction immediately,
@@ -74,16 +71,15 @@ class TestUsers(
         username: String,
         greeting: String,
         isAdmin: Boolean = false,
-        locale: Locale
-    ): User {
-        return testDatabaseSupport.insert(
+        locale: Locale,
+    ): User =
+        testDatabaseSupport.insert(
             User.create(
                 userName = username,
                 passwordHash = BCrypt.hashpw(TEST_PASSWORD, BCrypt.gensalt()),
                 greeting = greeting,
                 isAdmin = isAdmin,
-                locale = locale
-            )
+                locale = locale,
+            ),
         )
-    }
 }

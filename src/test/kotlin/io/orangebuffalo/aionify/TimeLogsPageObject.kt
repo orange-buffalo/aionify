@@ -2,17 +2,16 @@ package io.orangebuffalo.aionify
 
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
-import com.microsoft.playwright.options.AriaRole
 
 /**
  * Page state model representing the complete state of the Time Logs page.
  * This model is used for comprehensive page state assertions.
- * 
+ *
  * Business invariants:
  * - weekRange is always visible and has a value
  * - timezoneHint is always visible
  * - noEntriesMessageVisible is automatically determined from dayGroups
- * 
+ *
  * **CRITICAL TESTING PRINCIPLE:**
  * We **MUST** ensure that we **NEVER** show unexpected elements and that **ALL** expected
  * elements have the proper state at any given time during test execution. Every test
@@ -25,28 +24,34 @@ data class TimeLogsPageState(
     val weekNavigation: WeekNavigationState = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
     val dayGroups: List<DayGroupState> = emptyList(),
     val errorMessageVisible: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
 ) {
     /**
      * Registers a new entry in the specified day, creating the day group if it doesn't exist.
      */
-    fun withEntry(dayTitle: String, entry: EntryState): TimeLogsPageState {
+    fun withEntry(
+        dayTitle: String,
+        entry: EntryState,
+    ): TimeLogsPageState {
         val existingDay = dayGroups.find { it.displayTitle == dayTitle }
-        val updatedDayGroups = if (existingDay != null) {
-            dayGroups.map { 
-                if (it.displayTitle == dayTitle) {
-                    it.copy(entries = listOf(entry) + it.entries)
-                } else {
-                    it
+        val updatedDayGroups =
+            if (existingDay != null) {
+                dayGroups.map {
+                    if (it.displayTitle == dayTitle) {
+                        it.copy(entries = listOf(entry) + it.entries)
+                    } else {
+                        it
+                    }
                 }
+            } else {
+                listOf(
+                    DayGroupState(
+                        displayTitle = dayTitle,
+                        totalDuration = entry.duration,
+                        entries = listOf(entry),
+                    ),
+                ) + dayGroups
             }
-        } else {
-            listOf(DayGroupState(
-                displayTitle = dayTitle,
-                totalDuration = entry.duration,
-                entries = listOf(entry)
-            )) + dayGroups
-        }
         return copy(dayGroups = updatedDayGroups)
     }
 }
@@ -61,13 +66,13 @@ sealed class CurrentEntryState {
     data class NoActiveEntry(
         val inputVisible: Boolean = true,
         val startButtonVisible: Boolean = true,
-        val startButtonEnabled: Boolean = false
+        val startButtonEnabled: Boolean = false,
     ) : CurrentEntryState()
 
     /**
      * Active entry in progress - shows entry details and stop button.
      * Can be in view mode or edit mode.
-     * 
+     *
      * Business invariants:
      * - startedAt is always present (formatted start time)
      * - stopButtonVisible is always true
@@ -75,11 +80,11 @@ sealed class CurrentEntryState {
     data class ActiveEntry(
         val title: String,
         val duration: String,
-        val startedAt: String,  // Always present - formatted start time display (e.g., "14:00")
+        val startedAt: String, // Always present - formatted start time display (e.g., "14:00")
         val stopButtonVisible: Boolean = true,
         val inputVisible: Boolean = false,
         val startButtonVisible: Boolean = false,
-        val editMode: EditModeState = EditModeState.NotEditing
+        val editMode: EditModeState = EditModeState.NotEditing,
     ) : CurrentEntryState()
 }
 
@@ -89,22 +94,22 @@ sealed class CurrentEntryState {
 sealed class EditModeState {
     /**
      * Not in edit mode - showing view mode with edit button.
-     * 
+     *
      * Business invariant: edit button is always visible in view mode.
      */
     object NotEditing : EditModeState()
-    
+
     /**
      * In edit mode - showing edit form with save/cancel buttons.
-     * 
+     *
      * Business invariants:
      * - Cancel button is always visible
      */
     data class Editing(
         val titleValue: String,
-        val dateValue: String,  // Locale-formatted date display value
-        val timeValue: String,  // Locale-formatted time display value
-        val saveButtonEnabled: Boolean = true
+        val dateValue: String, // Locale-formatted date display value
+        val timeValue: String, // Locale-formatted time display value
+        val saveButtonEnabled: Boolean = true,
     ) : EditModeState()
 }
 
@@ -113,7 +118,7 @@ sealed class EditModeState {
  * Business invariant: weekRange is always present and navigation buttons are always visible.
  */
 data class WeekNavigationState(
-    val weekRange: String
+    val weekRange: String,
 )
 
 /**
@@ -122,7 +127,7 @@ data class WeekNavigationState(
 data class DayGroupState(
     val displayTitle: String,
     val totalDuration: String,
-    val entries: List<EntryState>
+    val entries: List<EntryState>,
 )
 
 /**
@@ -133,22 +138,23 @@ data class EntryState(
     val timeRange: String,
     val duration: String,
     val continueButtonVisible: Boolean = true,
-    val menuButtonVisible: Boolean = true
+    val menuButtonVisible: Boolean = true,
 )
 
 /**
  * Page Object for the Time Logs page, providing methods to interact with the page
  * and assert its state.
  */
-class TimeLogsPageObject(private val page: Page) {
-
+class TimeLogsPageObject(
+    private val page: Page,
+) {
     /**
      * Asserts that the page is in the expected state.
      * Uses Playwright assertions to verify all elements of the page state.
-     * 
+     *
      * Important: This method uses content-based array assertions rather than count assertions
      * for better failure feedback.
-     * 
+     *
      * Business invariants enforced:
      * - Week navigation is always visible with a range
      * - Timezone hint is always visible
@@ -230,18 +236,18 @@ class TimeLogsPageObject(private val page: Page) {
                     is EditModeState.NotEditing -> {
                         // View mode: show title, startedAt, edit button, timer, and stop button
                         assertThat(page.locator("[data-testid='current-entry-panel']").locator("text=${currentEntry.title}")).isVisible()
-                        
+
                         // startedAt is always present (business invariant)
                         assertThat(page.locator("[data-testid='active-entry-started-at']")).isVisible()
                         assertThat(page.locator("[data-testid='active-entry-started-at']")).containsText(currentEntry.startedAt)
-                        
+
                         // Edit button is always visible in view mode (business invariant)
                         assertThat(page.locator("[data-testid='edit-entry-button']")).isVisible()
 
                         // Timer and stop button visible in view mode
                         assertThat(page.locator("[data-testid='active-timer']")).isVisible()
                         assertThat(page.locator("[data-testid='active-timer']")).hasText(currentEntry.duration)
-                        
+
                         if (currentEntry.stopButtonVisible) {
                             assertThat(page.locator("[data-testid='stop-button']")).isVisible()
                         } else {
@@ -255,25 +261,25 @@ class TimeLogsPageObject(private val page: Page) {
                         assertThat(page.locator("[data-testid='save-edit-button']")).not().isVisible()
                         assertThat(page.locator("[data-testid='cancel-edit-button']")).not().isVisible()
                     }
-                    
+
                     is EditModeState.Editing -> {
                         // Edit mode: show edit form, timer/stop button NOT visible
                         val editMode = currentEntry.editMode
-                        
+
                         // Title input
                         assertThat(page.locator("[data-testid='edit-title-input']")).isVisible()
                         assertThat(page.locator("[data-testid='edit-title-input']")).hasValue(editMode.titleValue)
-                        
+
                         // Date picker input - check value
                         val dateInput = page.locator("[data-testid='edit-date-input']")
                         assertThat(dateInput).isVisible()
                         assertThat(dateInput).hasValue(editMode.dateValue)
-                        
+
                         // Time picker input - check value
                         val timeInput = page.locator("[data-testid='edit-time-input']")
                         assertThat(timeInput).isVisible()
                         assertThat(timeInput).hasValue(editMode.timeValue)
-                        
+
                         // Save button
                         assertThat(page.locator("[data-testid='save-edit-button']")).isVisible()
                         if (editMode.saveButtonEnabled) {
@@ -281,7 +287,7 @@ class TimeLogsPageObject(private val page: Page) {
                         } else {
                             assertThat(page.locator("[data-testid='save-edit-button']")).isDisabled()
                         }
-                        
+
                         // Cancel button is always visible (business invariant)
                         assertThat(page.locator("[data-testid='cancel-edit-button']")).isVisible()
 
@@ -305,12 +311,12 @@ class TimeLogsPageObject(private val page: Page) {
 
     private fun assertDayGroups(expectedDayGroups: List<DayGroupState>) {
         val dayGroupLocator = page.locator("[data-testid='day-group']")
-        
+
         // Assert day group titles using content-based assertion
         val expectedTitles = expectedDayGroups.map { it.displayTitle }
         val titleLocators = dayGroupLocator.locator("[data-testid='day-title']")
         assertThat(titleLocators).containsText(expectedTitles.toTypedArray())
-        
+
         // Assert day group total durations with exact match including "Total: " prefix
         val expectedDurationsWithPrefix = expectedDayGroups.map { "Total: ${it.totalDuration}" }
         val durationLocators = dayGroupLocator.locator("[data-testid='day-total-duration']")
@@ -320,26 +326,29 @@ class TimeLogsPageObject(private val page: Page) {
         for (i in expectedDayGroups.indices) {
             val dayGroup = expectedDayGroups[i]
             val dayGroupElement = dayGroupLocator.nth(i)
-            
+
             if (dayGroup.entries.isNotEmpty()) {
                 assertEntriesInDayGroup(dayGroupElement, dayGroup.entries)
             }
         }
     }
 
-    private fun assertEntriesInDayGroup(dayGroupLocator: com.microsoft.playwright.Locator, expectedEntries: List<EntryState>) {
+    private fun assertEntriesInDayGroup(
+        dayGroupLocator: com.microsoft.playwright.Locator,
+        expectedEntries: List<EntryState>,
+    ) {
         val entryLocator = dayGroupLocator.locator("[data-testid='time-entry']")
-        
+
         // Assert entry titles using content-based assertion
         val expectedTitles = expectedEntries.map { it.title }
         val titleLocators = entryLocator.locator("[data-testid='entry-title']")
         assertThat(titleLocators).containsText(expectedTitles.toTypedArray())
-        
+
         // Assert entry time ranges using content-based assertion
         val expectedTimeRanges = expectedEntries.map { it.timeRange }
         val timeRangeLocators = entryLocator.locator("[data-testid='entry-time-range']")
         assertThat(timeRangeLocators).containsText(expectedTimeRanges.toTypedArray())
-        
+
         // Assert entry durations using content-based assertion
         val expectedDurations = expectedEntries.map { it.duration }
         val durationLocators = entryLocator.locator("[data-testid='entry-duration']")
@@ -349,13 +358,13 @@ class TimeLogsPageObject(private val page: Page) {
         for (i in expectedEntries.indices) {
             val entry = expectedEntries[i]
             val entryElement = entryLocator.nth(i)
-            
+
             if (entry.continueButtonVisible) {
                 assertThat(entryElement.locator("[data-testid='continue-button']")).isVisible()
             } else {
                 assertThat(entryElement.locator("[data-testid='continue-button']")).not().isVisible()
             }
-            
+
             if (entry.menuButtonVisible) {
                 assertThat(entryElement.locator("[data-testid='entry-menu-button']")).isVisible()
             } else {
@@ -399,7 +408,8 @@ class TimeLogsPageObject(private val page: Page) {
      * The entry must be uniquely identifiable by title.
      */
     fun clickContinueForEntry(entryTitle: String) {
-        page.locator("[data-testid='time-entry']:has-text('$entryTitle')")
+        page
+            .locator("[data-testid='time-entry']:has-text('$entryTitle')")
             .locator("[data-testid='continue-button']")
             .click()
     }
@@ -411,7 +421,7 @@ class TimeLogsPageObject(private val page: Page) {
     fun deleteEntry(entryTitle: String) {
         // Find all entries with this title
         val matchingEntries = page.locator("[data-testid='time-entry']:has-text('$entryTitle')")
-        
+
         // For midnight-spanning entries, there will be multiple matches (same entry split across days)
         // Click the menu button for the first occurrence
         matchingEntries.first().locator("[data-testid='entry-menu-button']").click()
@@ -471,34 +481,48 @@ class TimeLogsPageObject(private val page: Page) {
      * @param date in format "YYYY-MM-DD" (e.g., "2024-03-15")
      * @param time in format "HH:mm" (e.g., "14:30")
      */
-    fun fillEditDateTime(date: String, time: String) {
+    fun fillEditDateTime(
+        date: String,
+        time: String,
+    ) {
         // Click the date trigger button to open the date picker popover
         val dateTrigger = page.locator("[data-testid='edit-date-trigger']")
         dateTrigger.click()
-        
+
         // Wait for popover to appear
         page.locator("[role='dialog']").waitFor()
-        
+
         // Parse the date to get the day we need to click
         val dateParts = date.split("-")
         val targetDay = dateParts[2].toInt()
-        
+
         // Click on the day button in the calendar grid
         // Find button with exact text matching the day number
         // Clicking the day now automatically applies and closes the popover
         val popover = page.locator("[role='dialog']")
-        popover.locator("button").locator("text=${targetDay}").first().click()
-        
+        popover
+            .locator("button")
+            .locator("text=$targetDay")
+            .first()
+            .click()
+
         // Wait for popover to close
-        page.locator("[role='dialog']").waitFor(com.microsoft.playwright.Locator.WaitForOptions().setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN))
-        
+        page
+            .locator(
+                "[role='dialog']",
+            ).waitFor(
+                com.microsoft.playwright.Locator
+                    .WaitForOptions()
+                    .setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN),
+            )
+
         // Fill in the time input
         val (hours, minutes) = time.split(":")
         val timeInput = page.locator("[data-testid='edit-time-input']")
-        
+
         // Use 24-hour format which is now accepted by both locale formats
-        val timeStr = "${hours.padStart(2, '0')}:${minutes}"
-        
+        val timeStr = "${hours.padStart(2, '0')}:$minutes"
+
         // Use fill() to set the value
         timeInput.fill(timeStr)
     }
@@ -541,12 +565,12 @@ class TimeLogsPageObject(private val page: Page) {
     }
 
     // Helper functions for editing stopped entries
-    
+
     fun clickEditForEntry(entryTitle: String) {
         // Find the entry with the title and click the menu button
         val entryLocator = page.locator("[data-testid='time-entry']:has-text('$entryTitle')")
         entryLocator.locator("[data-testid='entry-menu-button']").click()
-        
+
         // Click the edit menu item
         page.locator("[data-testid='edit-menu-item']").click()
     }
@@ -638,7 +662,7 @@ class TimeLogsPageObject(private val page: Page) {
         expectedStartDate: String,
         expectedStartTime: String,
         expectedEndDate: String,
-        expectedEndTime: String
+        expectedEndTime: String,
     ) {
         assertThat(page.locator("[data-testid='stopped-entry-edit-title-input']")).hasValue(expectedTitle)
         assertThat(page.locator("[data-testid='stopped-entry-edit-date-input']")).hasValue(expectedStartDate)

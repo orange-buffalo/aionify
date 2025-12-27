@@ -1,51 +1,51 @@
-import { useState, useEffect } from "react"
-import { useTranslation } from "react-i18next"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "lucide-react"
+import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "lucide-react";
 
 interface DatePickerProps {
-  value: Date
-  onChange: (date: Date) => void
-  disabled?: boolean
-  locale: string
-  testIdPrefix: string
+  value: Date;
+  onChange: (date: Date) => void;
+  disabled?: boolean;
+  locale: string;
+  testIdPrefix: string;
 }
 
 export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: DatePickerProps) {
-  const { t } = useTranslation()
-  const [isOpen, setIsOpen] = useState(false)
-  const [selectedDate, setSelectedDate] = useState(value)
+  const { t } = useTranslation();
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(value);
 
   // Format display value using Intl API for proper localization (date only)
   const formatDisplayValue = (date: Date) => {
     return new Intl.DateTimeFormat(locale, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    }).format(date)
-  }
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }).format(date);
+  };
 
-  const [inputValue, setInputValue] = useState(formatDisplayValue(value))
+  const [inputValue, setInputValue] = useState(formatDisplayValue(value));
 
   // Update input value when value prop changes
   useEffect(() => {
-    setInputValue(formatDisplayValue(value))
-    setSelectedDate(value)
-  }, [value])
+    setInputValue(formatDisplayValue(value));
+    setSelectedDate(value);
+  }, [value]);
 
   // Parse date string - try multiple formats
   const parseDate = (dateStr: string): Date | null => {
-    dateStr = dateStr.trim()
+    dateStr = dateStr.trim();
 
     // Try locale-specific format first using Intl API
     try {
       // Common date separators
-      const separators = ['-', '/', '.', ' ']
+      const separators = ["-", "/", ".", " "];
 
       for (const sep of separators) {
-        const parts = dateStr.split(sep)
+        const parts = dateStr.split(sep);
 
         if (parts.length === 3) {
           // Try different date formats based on locale
@@ -56,24 +56,31 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
             // DD-MM-YYYY
             { year: 2, month: 1, day: 0 },
             // MM-DD-YYYY (US format)
-            { year: 2, month: 0, day: 1 }
-          ]
+            { year: 2, month: 0, day: 1 },
+          ];
 
           for (const format of formats) {
-            const year = parseInt(parts[format.year], 10)
-            const month = parseInt(parts[format.month], 10)
-            const day = parseInt(parts[format.day], 10)
+            const year = parseInt(parts[format.year], 10);
+            const month = parseInt(parts[format.month], 10);
+            const day = parseInt(parts[format.day], 10);
 
             // Basic validation
-            if (year >= 1900 && year <= 2100 &&
-                month >= 1 && month <= 12 &&
-                day >= 1 && day <= 31) {
-              const date = new Date(year, month - 1, day)
+            if (
+              year >= 1900 &&
+              year <= 2100 &&
+              month >= 1 &&
+              month <= 12 &&
+              day >= 1 &&
+              day <= 31
+            ) {
+              const date = new Date(year, month - 1, day);
               // Verify the date is valid (e.g., not Feb 31)
-              if (date.getFullYear() === year &&
-                  date.getMonth() === month - 1 &&
-                  date.getDate() === day) {
-                return date
+              if (
+                date.getFullYear() === year &&
+                date.getMonth() === month - 1 &&
+                date.getDate() === day
+              ) {
+                return date;
               }
             }
           }
@@ -83,102 +90,110 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
       // Parsing failed
     }
 
-    return null
-  }
+    return null;
+  };
 
   const handleInputChange = (inputStr: string) => {
-    setInputValue(inputStr)
+    setInputValue(inputStr);
 
-    const parsed = parseDate(inputStr)
+    const parsed = parseDate(inputStr);
     if (parsed !== null) {
-      setSelectedDate(parsed)
-      onChange(parsed)
+      setSelectedDate(parsed);
+      onChange(parsed);
     }
-  }
+  };
 
   const handleBlur = () => {
     // On blur, reformat the input to ensure it's in the correct format
-    const parsed = parseDate(inputValue)
+    const parsed = parseDate(inputValue);
     if (parsed !== null) {
-      setInputValue(formatDisplayValue(parsed))
-      setSelectedDate(parsed)
+      setInputValue(formatDisplayValue(parsed));
+      setSelectedDate(parsed);
     } else {
       // Reset to current value if invalid
-      setInputValue(formatDisplayValue(value))
-      setSelectedDate(value)
+      setInputValue(formatDisplayValue(value));
+      setSelectedDate(value);
     }
-  }
+  };
 
   // Generate calendar days for current month
   const generateCalendar = (date: Date) => {
-    const year = date.getFullYear()
-    const month = date.getMonth()
-    const firstDay = new Date(year, month, 1)
-    const lastDay = new Date(year, month + 1, 0)
-    const startDate = new Date(firstDay)
-    startDate.setDate(startDate.getDate() - firstDay.getDay())
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
 
-    const days: Date[] = []
-    const current = new Date(startDate)
+    const days: Date[] = [];
+    const current = new Date(startDate);
 
     for (let i = 0; i < 42; i++) {
-      days.push(new Date(current))
-      current.setDate(current.getDate() + 1)
+      days.push(new Date(current));
+      current.setDate(current.getDate() + 1);
     }
 
-    return { days, month, year }
-  }
+    return { days, month, year };
+  };
 
-  const { days, month, year } = generateCalendar(selectedDate)
+  const { days, month, year } = generateCalendar(selectedDate);
 
   // Get localized month name using Intl API
   const getMonthName = (monthIndex: number) => {
-    return new Intl.DateTimeFormat(locale, { month: 'long' }).format(new Date(year, monthIndex, 1))
-  }
+    return new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(year, monthIndex, 1));
+  };
 
   // Get localized day names using Intl API
   const getDayNames = () => {
     // Use Sunday, Jan 2, 2000 as base date (arbitrary past date, day of week is what matters)
-    const baseDate = new Date(2000, 0, 2)
+    const baseDate = new Date(2000, 0, 2);
     return Array.from({ length: 7 }, (_, i) => {
-      const date = new Date(baseDate)
-      date.setDate(baseDate.getDate() + i)
-      return new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(date).toUpperCase()
-    })
-  }
+      const date = new Date(baseDate);
+      date.setDate(baseDate.getDate() + i);
+      return new Intl.DateTimeFormat(locale, { weekday: "short" }).format(date).toUpperCase();
+    });
+  };
 
-  const dayNames = getDayNames()
-  const monthName = getMonthName(month)
+  const dayNames = getDayNames();
+  const monthName = getMonthName(month);
 
   const handleDateClick = (day: Date) => {
-    const newDate = new Date(selectedDate)
-    newDate.setFullYear(day.getFullYear(), day.getMonth(), day.getDate())
-    setSelectedDate(newDate)
-    setInputValue(formatDisplayValue(newDate))
-    onChange(newDate)
-    setIsOpen(false)
-  }
+    const newDate = new Date(selectedDate);
+    newDate.setFullYear(day.getFullYear(), day.getMonth(), day.getDate());
+    setSelectedDate(newDate);
+    setInputValue(formatDisplayValue(newDate));
+    onChange(newDate);
+    setIsOpen(false);
+  };
 
   const isToday = (date: Date) => {
-    const today = new Date()
-    return date.getDate() === today.getDate() &&
-           date.getMonth() === today.getMonth() &&
-           date.getFullYear() === today.getFullYear()
-  }
+    const today = new Date();
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    );
+  };
 
   const isSelected = (date: Date) => {
-    return date.getDate() === selectedDate.getDate() &&
-           date.getMonth() === selectedDate.getMonth() &&
-           date.getFullYear() === selectedDate.getFullYear()
-  }
+    return (
+      date.getDate() === selectedDate.getDate() &&
+      date.getMonth() === selectedDate.getMonth() &&
+      date.getFullYear() === selectedDate.getFullYear()
+    );
+  };
 
   const prevMonth = () => {
-    setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, selectedDate.getDate()))
-  }
+    setSelectedDate(
+      new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, selectedDate.getDate())
+    );
+  };
 
   const nextMonth = () => {
-    setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, selectedDate.getDate()))
-  }
+    setSelectedDate(
+      new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, selectedDate.getDate())
+    );
+  };
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -196,13 +211,13 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
               type="text"
               value={inputValue}
               onChange={(e) => {
-                e.stopPropagation()
-                handleInputChange(e.target.value)
+                e.stopPropagation();
+                handleInputChange(e.target.value);
               }}
               onBlur={handleBlur}
               onClick={(e) => {
-                e.stopPropagation()
-                setIsOpen(true)
+                e.stopPropagation();
+                setIsOpen(true);
               }}
               disabled={disabled}
               className="w-full bg-transparent border-none outline-none p-0 m-0 text-foreground"
@@ -244,9 +259,9 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
               </div>
             ))}
             {days.map((day, idx) => {
-              const isCurrentMonth = day.getMonth() === month
-              const todayDate = isToday(day)
-              const selected = isSelected(day)
+              const isCurrentMonth = day.getMonth() === month;
+              const todayDate = isToday(day);
+              const selected = isSelected(day);
 
               return (
                 <Button
@@ -263,11 +278,11 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
                 >
                   {day.getDate()}
                 </Button>
-              )
+              );
             })}
           </div>
         </div>
       </PopoverContent>
     </Popover>
-  )
+  );
 }

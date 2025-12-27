@@ -1,8 +1,8 @@
 package io.orangebuffalo.aionify
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
-import io.orangebuffalo.aionify.domain.User
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import io.orangebuffalo.aionify.domain.User
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mindrot.jbcrypt.BCrypt
@@ -12,7 +12,6 @@ import org.mindrot.jbcrypt.BCrypt
  */
 @MicronautTest(transactional = false)
 class LoginPlaywrightTest : PlaywrightTestBase() {
-
     private lateinit var regularUser: User
     private lateinit var adminUser: User
 
@@ -206,8 +205,8 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testAdminPassword, BCrypt.gensalt()),
                 greeting = "Test Admin 2",
                 isAdmin = true,
-                locale = java.util.Locale.US
-            )
+                locale = java.util.Locale.US,
+            ),
         )
 
         page.navigate("/login")
@@ -241,36 +240,36 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
         val loginPage = page.locator("[data-testid='login-page']")
         assertThat(loginPage).isVisible()
     }
-    
+
     @Test
     fun `should display forgot password dialog when lost password link is clicked`() {
         page.navigate("/login")
-        
+
         // Verify lost password link is visible
         val lostPasswordLink = page.locator("[data-testid='lost-password-link']")
         assertThat(lostPasswordLink).isVisible()
-        
+
         // Click the lost password link
         lostPasswordLink.click()
-        
+
         // Wait for dialog to appear
         page.waitForSelector("[data-testid='forgot-password-dialog']")
-        
+
         // Verify dialog is visible
         val dialog = page.locator("[data-testid='forgot-password-dialog']")
         assertThat(dialog).isVisible()
-        
+
         // Verify dialog contains expected text
         assertThat(dialog).containsText("Password Reset")
         assertThat(dialog).containsText("contact your system administrator")
-        
+
         // Verify close button is present
         val closeButton = page.locator("[data-testid='forgot-password-dialog-close']")
         assertThat(closeButton).isVisible()
-        
+
         // Click close button
         closeButton.click()
-        
+
         // Dialog should close
         assertThat(dialog).not().isVisible()
     }

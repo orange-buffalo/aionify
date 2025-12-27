@@ -1,115 +1,129 @@
-import { useState } from "react"
-import { useTranslation } from "react-i18next"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "lucide-react"
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "lucide-react";
 
 interface DateTimePickerProps {
-  value: Date
-  onChange: (date: Date) => void
-  disabled?: boolean
-  locale: string
-  testIdPrefix: string
+  value: Date;
+  onChange: (date: Date) => void;
+  disabled?: boolean;
+  locale: string;
+  testIdPrefix: string;
 }
 
-export function DateTimePicker({ value, onChange, disabled, locale, testIdPrefix }: DateTimePickerProps) {
-  const { t } = useTranslation()
-  const [isOpen, setIsOpen] = useState(false)
-  const [selectedDate, setSelectedDate] = useState(value)
+export function DateTimePicker({
+  value,
+  onChange,
+  disabled,
+  locale,
+  testIdPrefix,
+}: DateTimePickerProps) {
+  const { t } = useTranslation();
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(value);
 
   // Format display value using Intl API for proper localization
   const formatDisplayValue = (date: Date) => {
     return new Intl.DateTimeFormat(locale, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    }).format(date)
-  }
-  
-  const displayValue = formatDisplayValue(value)
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(date);
+  };
+
+  const displayValue = formatDisplayValue(value);
 
   // Generate calendar days for current month
   const generateCalendar = (date: Date) => {
-    const year = date.getFullYear()
-    const month = date.getMonth()
-    const firstDay = new Date(year, month, 1)
-    const lastDay = new Date(year, month + 1, 0)
-    const startDate = new Date(firstDay)
-    startDate.setDate(startDate.getDate() - firstDay.getDay())
-    
-    const days: Date[] = []
-    const current = new Date(startDate)
-    
-    for (let i = 0; i < 42; i++) {
-      days.push(new Date(current))
-      current.setDate(current.getDate() + 1)
-    }
-    
-    return { days, month, year }
-  }
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
 
-  const { days, month, year } = generateCalendar(selectedDate)
-  
+    const days: Date[] = [];
+    const current = new Date(startDate);
+
+    for (let i = 0; i < 42; i++) {
+      days.push(new Date(current));
+      current.setDate(current.getDate() + 1);
+    }
+
+    return { days, month, year };
+  };
+
+  const { days, month, year } = generateCalendar(selectedDate);
+
   // Get localized month name using Intl API
   const getMonthName = (monthIndex: number) => {
-    return new Intl.DateTimeFormat(locale, { month: 'long' }).format(new Date(year, monthIndex, 1))
-  }
-  
+    return new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(year, monthIndex, 1));
+  };
+
   // Get localized day names using Intl API
   const getDayNames = () => {
     // Use Sunday, Jan 2, 2000 as base date (arbitrary past date, day of week is what matters)
-    const baseDate = new Date(2000, 0, 2)
+    const baseDate = new Date(2000, 0, 2);
     return Array.from({ length: 7 }, (_, i) => {
-      const date = new Date(baseDate)
-      date.setDate(baseDate.getDate() + i)
-      return new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(date).toUpperCase()
-    })
-  }
-  
-  const dayNames = getDayNames()
-  const monthName = getMonthName(month)
+      const date = new Date(baseDate);
+      date.setDate(baseDate.getDate() + i);
+      return new Intl.DateTimeFormat(locale, { weekday: "short" }).format(date).toUpperCase();
+    });
+  };
+
+  const dayNames = getDayNames();
+  const monthName = getMonthName(month);
 
   const handleDateClick = (day: Date) => {
-    const newDate = new Date(selectedDate)
-    newDate.setFullYear(day.getFullYear(), day.getMonth(), day.getDate())
-    setSelectedDate(newDate)
-  }
+    const newDate = new Date(selectedDate);
+    newDate.setFullYear(day.getFullYear(), day.getMonth(), day.getDate());
+    setSelectedDate(newDate);
+  };
 
   const handleTimeChange = (hours: number, minutes: number) => {
-    const newDate = new Date(selectedDate)
-    newDate.setHours(hours, minutes)
-    setSelectedDate(newDate)
-  }
+    const newDate = new Date(selectedDate);
+    newDate.setHours(hours, minutes);
+    setSelectedDate(newDate);
+  };
 
   const handleApply = () => {
-    onChange(selectedDate)
-    setIsOpen(false)
-  }
+    onChange(selectedDate);
+    setIsOpen(false);
+  };
 
   const isToday = (date: Date) => {
-    const today = new Date()
-    return date.getDate() === today.getDate() &&
-           date.getMonth() === today.getMonth() &&
-           date.getFullYear() === today.getFullYear()
-  }
+    const today = new Date();
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    );
+  };
 
   const isSelected = (date: Date) => {
-    return date.getDate() === selectedDate.getDate() &&
-           date.getMonth() === selectedDate.getMonth() &&
-           date.getFullYear() === selectedDate.getFullYear()
-  }
+    return (
+      date.getDate() === selectedDate.getDate() &&
+      date.getMonth() === selectedDate.getMonth() &&
+      date.getFullYear() === selectedDate.getFullYear()
+    );
+  };
 
   const prevMonth = () => {
-    setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, selectedDate.getDate()))
-  }
+    setSelectedDate(
+      new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, selectedDate.getDate())
+    );
+  };
 
   const nextMonth = () => {
-    setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, selectedDate.getDate()))
-  }
+    setSelectedDate(
+      new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, selectedDate.getDate())
+    );
+  };
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -157,10 +171,10 @@ export function DateTimePicker({ value, onChange, disabled, locale, testIdPrefix
               </div>
             ))}
             {days.map((day, idx) => {
-              const isCurrentMonth = day.getMonth() === month
-              const todayDate = isToday(day)
-              const selected = isSelected(day)
-              
+              const isCurrentMonth = day.getMonth() === month;
+              const todayDate = isToday(day);
+              const selected = isSelected(day);
+
               return (
                 <Button
                   key={idx}
@@ -176,19 +190,21 @@ export function DateTimePicker({ value, onChange, disabled, locale, testIdPrefix
                 >
                   {day.getDate()}
                 </Button>
-              )
+              );
             })}
           </div>
 
           {/* Time Picker */}
           <div className="flex items-center gap-2 pt-4 border-t">
-            <span className="text-sm text-foreground">{t('timeLogs.datePicker.timeLabel')}:</span>
+            <span className="text-sm text-foreground">{t("timeLogs.datePicker.timeLabel")}:</span>
             <Input
               type="number"
               min="0"
               max="23"
               value={selectedDate.getHours()}
-              onChange={(e) => handleTimeChange(parseInt(e.target.value) || 0, selectedDate.getMinutes())}
+              onChange={(e) =>
+                handleTimeChange(parseInt(e.target.value) || 0, selectedDate.getMinutes())
+              }
               className="w-16 text-foreground"
               data-testid={`${testIdPrefix}-hours`}
             />
@@ -198,7 +214,9 @@ export function DateTimePicker({ value, onChange, disabled, locale, testIdPrefix
               min="0"
               max="59"
               value={selectedDate.getMinutes()}
-              onChange={(e) => handleTimeChange(selectedDate.getHours(), parseInt(e.target.value) || 0)}
+              onChange={(e) =>
+                handleTimeChange(selectedDate.getHours(), parseInt(e.target.value) || 0)
+              }
               className="w-16 text-foreground"
               data-testid={`${testIdPrefix}-minutes`}
             />
@@ -212,18 +230,14 @@ export function DateTimePicker({ value, onChange, disabled, locale, testIdPrefix
               onClick={() => setIsOpen(false)}
               className="text-foreground"
             >
-              {t('timeLogs.datePicker.cancel')}
+              {t("timeLogs.datePicker.cancel")}
             </Button>
-            <Button
-              size="sm"
-              onClick={handleApply}
-              data-testid={`${testIdPrefix}-apply`}
-            >
-              {t('timeLogs.datePicker.apply')}
+            <Button size="sm" onClick={handleApply} data-testid={`${testIdPrefix}-apply`}>
+              {t("timeLogs.datePicker.apply")}
             </Button>
           </div>
         </div>
       </PopoverContent>
     </Popover>
-  )
+  );
 }

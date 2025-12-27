@@ -4,126 +4,136 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.TestDatabaseSupport
 import io.orangebuffalo.aionify.TestTimeService
 import jakarta.inject.Inject
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mindrot.jbcrypt.BCrypt
 import java.time.Duration
-import java.time.Instant
 import java.util.Locale
 import java.util.UUID
 
 @MicronautTest(transactional = false)
 class ActivationTokenServiceTest {
-
     @Inject
     lateinit var activationTokenService: ActivationTokenService
-    
+
     @Inject
     lateinit var activationTokenRepository: ActivationTokenRepository
-    
+
     @Inject
     lateinit var testDatabaseSupport: TestDatabaseSupport
-    
-    private fun createTestUser(): User {
-        return testDatabaseSupport.insert(
+
+    private fun createTestUser(): User =
+        testDatabaseSupport.insert(
             User.create(
                 userName = "tokentest-${UUID.randomUUID()}",
                 passwordHash = BCrypt.hashpw("password", BCrypt.gensalt()),
                 greeting = "Token Test",
                 isAdmin = false,
                 locale = Locale.ENGLISH,
-            )
+            ),
         )
-    }
 
     @Test
     fun `should create activation token with 10 days expiration by default`() {
         val testUser = createTestUser()
-        
+
         // Create token with default expiration
-        val token = testDatabaseSupport.inTransaction {
-            activationTokenService.createToken(requireNotNull(testUser.id))
-        }
-        
+        val token =
+            testDatabaseSupport.inTransaction {
+                activationTokenService.createToken(requireNotNull(testUser.id))
+            }
+
         assertNotNull(token.token)
         assertNotNull(token.expiresAt)
-        
+
         // Calculate the duration between the fixed test time and expiration
         val now = TestTimeService.FIXED_TEST_TIME
         val duration = Duration.between(now, token.expiresAt)
-        
+
         // Should be approximately 10 days (240 hours)
         // Allow for a small tolerance due to execution time
         val tenDaysInSeconds = 10L * 24 * 60 * 60
         val actualSeconds = duration.seconds
-        
+
         // Assert it's within a reasonable range (9.9 to 10 days)
-        assertTrue(actualSeconds >= tenDaysInSeconds - 3600, 
-            "Token expiration should be at least 9.9 days, but was ${actualSeconds}s")
-        assertTrue(actualSeconds <= tenDaysInSeconds, 
-            "Token expiration should be at most 10 days, but was ${actualSeconds}s")
+        assertTrue(
+            actualSeconds >= tenDaysInSeconds - 3600,
+            "Token expiration should be at least 9.9 days, but was ${actualSeconds}s",
+        )
+        assertTrue(
+            actualSeconds <= tenDaysInSeconds,
+            "Token expiration should be at most 10 days, but was ${actualSeconds}s",
+        )
     }
-    
+
     @Test
     fun `should allow custom expiration time`() {
         val testUser = createTestUser()
-        
+
         // Create token with custom 48 hour expiration
-        val token = testDatabaseSupport.inTransaction {
-            activationTokenService.createToken(requireNotNull(testUser.id), expirationHours = 48)
-        }
-        
+        val token =
+            testDatabaseSupport.inTransaction {
+                activationTokenService.createToken(requireNotNull(testUser.id), expirationHours = 48)
+            }
+
         assertNotNull(token.token)
         assertNotNull(token.expiresAt)
-        
+
         // Calculate the duration using the fixed test time
         val now = TestTimeService.FIXED_TEST_TIME
         val duration = Duration.between(now, token.expiresAt)
-        
+
         // Should be approximately 48 hours
         val twoDaysInSeconds = 48L * 60 * 60
         val actualSeconds = duration.seconds
-        
+
         // Assert it's within a reasonable range
-        assertTrue(actualSeconds >= twoDaysInSeconds - 3600, 
-            "Token expiration should be at least 47 hours, but was ${actualSeconds}s")
-        assertTrue(actualSeconds <= twoDaysInSeconds, 
-            "Token expiration should be at most 48 hours, but was ${actualSeconds}s")
+        assertTrue(
+            actualSeconds >= twoDaysInSeconds - 3600,
+            "Token expiration should be at least 47 hours, but was ${actualSeconds}s",
+        )
+        assertTrue(
+            actualSeconds <= twoDaysInSeconds,
+            "Token expiration should be at most 48 hours, but was ${actualSeconds}s",
+        )
     }
-    
+
     @Test
     fun `should delete any existing tokens when creating new one`() {
         val testUser = createTestUser()
-        
+
         // Create first token
-        val firstToken = testDatabaseSupport.inTransaction {
-            activationTokenService.createToken(requireNotNull(testUser.id))
-        }
-        
+        val firstToken =
+            testDatabaseSupport.inTransaction {
+                activationTokenService.createToken(requireNotNull(testUser.id))
+            }
+
         // Verify it exists
-        val foundFirst = testDatabaseSupport.inTransaction {
-            activationTokenRepository.findByToken(firstToken.token)
-        }
+        val foundFirst =
+            testDatabaseSupport.inTransaction {
+                activationTokenRepository.findByToken(firstToken.token)
+            }
         assertTrue(foundFirst.isPresent)
-        
+
         // Create second token - should delete the first one
-        val secondToken = testDatabaseSupport.inTransaction {
-            activationTokenService.createToken(requireNotNull(testUser.id))
-        }
-        
+        val secondToken =
+            testDatabaseSupport.inTransaction {
+                activationTokenService.createToken(requireNotNull(testUser.id))
+            }
+
         // First token should no longer exist
-        val foundFirstAfter = testDatabaseSupport.inTransaction {
-            activationTokenRepository.findByToken(firstToken.token)
-        }
+        val foundFirstAfter =
+            testDatabaseSupport.inTransaction {
+                activationTokenRepository.findByToken(firstToken.token)
+            }
         assertTrue(foundFirstAfter.isEmpty)
-        
+
         // Second token should exist
-        val foundSecond = testDatabaseSupport.inTransaction {
-            activationTokenRepository.findByToken(secondToken.token)
-        }
+        val foundSecond =
+            testDatabaseSupport.inTransaction {
+                activationTokenRepository.findByToken(secondToken.token)
+            }
         assertTrue(foundSecond.isPresent)
     }
 }

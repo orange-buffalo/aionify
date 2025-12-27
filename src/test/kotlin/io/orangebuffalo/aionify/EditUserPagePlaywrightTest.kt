@@ -10,7 +10,6 @@ import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mindrot.jbcrypt.BCrypt
-import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 /**
@@ -18,7 +17,6 @@ import java.time.temporal.ChronoUnit
  */
 @MicronautTest(transactional = false)
 class EditUserPagePlaywrightTest : PlaywrightTestBase() {
-
     @Inject
     lateinit var userRepository: UserRepository
 
@@ -35,26 +33,28 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
     @BeforeEach
     fun setupTestData() {
         // Create admin user
-        adminUser = testDatabaseSupport.insert(
-            User.create(
-                userName = "admin",
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = "Admin User",
-                isAdmin = true,
-                locale = java.util.Locale.US
+        adminUser =
+            testDatabaseSupport.insert(
+                User.create(
+                    userName = "admin",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "Admin User",
+                    isAdmin = true,
+                    locale = java.util.Locale.US,
+                ),
             )
-        )
 
         // Create regular user
-        regularUser = testDatabaseSupport.insert(
-            User.create(
-                userName = "testuser",
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = "Test User",
-                isAdmin = false,
-                locale = java.util.Locale.US
+        regularUser =
+            testDatabaseSupport.insert(
+                User.create(
+                    userName = "testuser",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "Test User",
+                    isAdmin = false,
+                    locale = java.util.Locale.US,
+                ),
             )
-        )
     }
 
     @Test
@@ -92,7 +92,7 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
 
         // Verify navigation to users page
         page.waitForURL("**/admin/users")
-        
+
         // Verify users page is displayed
         val usersPage = page.locator("[data-testid='users-page']")
         assertThat(usersPage).isVisible()
@@ -122,15 +122,16 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should show error when username already exists`() {
         // Create another user with a different username
-        val anotherUser = testDatabaseSupport.insert(
-            User.create(
-                userName = "existinguser",
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = "Existing User",
-                isAdmin = false,
-                locale = java.util.Locale.US
+        val anotherUser =
+            testDatabaseSupport.insert(
+                User.create(
+                    userName = "existinguser",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "Existing User",
+                    isAdmin = false,
+                    locale = java.util.Locale.US,
+                ),
             )
-        )
 
         loginViaToken("/admin/users/${regularUser.id}", adminUser, testAuthSupport)
 
@@ -176,14 +177,15 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should display activation token when it exists`() {
         // Create activation token for the user
-        val activationToken = testDatabaseSupport.insert(
-            ActivationToken(
-                userId = requireNotNull(regularUser.id),
-                token = "test-activation-token-123",
-                expiresAt = TestTimeService.FIXED_TEST_TIME.plus(24, ChronoUnit.HOURS),
-                createdAt = TestTimeService.FIXED_TEST_TIME
+        val activationToken =
+            testDatabaseSupport.insert(
+                ActivationToken(
+                    userId = requireNotNull(regularUser.id),
+                    token = "test-activation-token-123",
+                    expiresAt = TestTimeService.FIXED_TEST_TIME.plus(24, ChronoUnit.HOURS),
+                    createdAt = TestTimeService.FIXED_TEST_TIME,
+                ),
             )
-        )
 
         loginViaToken("/admin/users/${regularUser.id}", adminUser, testAuthSupport)
 
@@ -202,10 +204,8 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
         val regenerateButton = page.locator("[data-testid='regenerate-token-button']")
         assertThat(regenerateButton).isVisible()
     }
-    
-    private fun buildActivationUrl(token: String): String {
-        return "$baseUrl/activate?token=$token"
-    }
+
+    private fun buildActivationUrl(token: String): String = "$baseUrl/activate?token=$token"
 
     @Test
     fun `should show message when no activation token exists`() {
@@ -224,14 +224,15 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should regenerate activation token successfully`() {
         // Create activation token for the user
-        val oldToken = testDatabaseSupport.insert(
-            ActivationToken(
-                userId = requireNotNull(regularUser.id),
-                token = "old-activation-token",
-                expiresAt = TestTimeService.FIXED_TEST_TIME.plus(24, ChronoUnit.HOURS),
-                createdAt = TestTimeService.FIXED_TEST_TIME
+        val oldToken =
+            testDatabaseSupport.insert(
+                ActivationToken(
+                    userId = requireNotNull(regularUser.id),
+                    token = "old-activation-token",
+                    expiresAt = TestTimeService.FIXED_TEST_TIME.plus(24, ChronoUnit.HOURS),
+                    createdAt = TestTimeService.FIXED_TEST_TIME,
+                ),
             )
-        )
 
         loginViaToken("/admin/users/${regularUser.id}", adminUser, testAuthSupport)
 
@@ -351,14 +352,15 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should not show expired activation token`() {
         // Create expired activation token for the user
-        val expiredToken = testDatabaseSupport.insert(
-            ActivationToken(
-                userId = requireNotNull(regularUser.id),
-                token = "expired-token",
-                expiresAt = TestTimeService.FIXED_TEST_TIME.minus(1, ChronoUnit.HOURS),
-                createdAt = TestTimeService.FIXED_TEST_TIME.minus(2, ChronoUnit.HOURS)
+        val expiredToken =
+            testDatabaseSupport.insert(
+                ActivationToken(
+                    userId = requireNotNull(regularUser.id),
+                    token = "expired-token",
+                    expiresAt = TestTimeService.FIXED_TEST_TIME.minus(1, ChronoUnit.HOURS),
+                    createdAt = TestTimeService.FIXED_TEST_TIME.minus(2, ChronoUnit.HOURS),
+                ),
             )
-        )
 
         loginViaToken("/admin/users/${regularUser.id}", adminUser, testAuthSupport)
 

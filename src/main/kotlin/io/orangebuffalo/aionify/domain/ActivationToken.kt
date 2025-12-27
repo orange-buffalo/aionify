@@ -11,15 +11,11 @@ data class ActivationToken(
     @field:Id
     @field:GeneratedValue(GeneratedValue.Type.IDENTITY)
     val id: Long? = null,
-    
     @field:MappedProperty("user_id")
     val userId: Long,
-    
     val token: String,
-    
     @field:MappedProperty("expires_at")
     val expiresAt: Instant,
-    
     @field:MappedProperty("created_at")
-    val createdAt: Instant
+    val createdAt: Instant,
 )

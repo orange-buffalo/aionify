@@ -2,12 +2,10 @@ package io.orangebuffalo.aionify
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import jakarta.inject.Inject
 import org.junit.jupiter.api.Test
 
 @MicronautTest(transactional = false)
 class FrontendPlaywrightTest : PlaywrightTestBase() {
-
     @Test
     fun `should display login page with title and form`() {
         page.navigate("/")

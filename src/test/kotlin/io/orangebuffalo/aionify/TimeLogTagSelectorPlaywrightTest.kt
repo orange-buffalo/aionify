@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test
 
 /**
  * Playwright tests for tag selection functionality on time log entries.
- * 
+ *
  * Tests verify:
  * - Tag selector UI appears and functions correctly
  * - Tags are loaded from the current user only
@@ -24,10 +24,9 @@ import org.junit.jupiter.api.Test
  */
 @MicronautTest(transactional = false)
 class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
-
     @Inject
     lateinit var testAuthSupport: TestAuthSupport
-    
+
     @Inject
     lateinit var timeLogEntryRepository: TimeLogEntryRepository
 
@@ -91,8 +90,8 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
                 endTime = FIXED_TEST_TIME.plusSeconds(3600),
                 title = "Task 1",
                 ownerId = requireNotNull(testUser.id),
-                tags = arrayOf("kotlin", "backend")
-            )
+                tags = arrayOf("kotlin", "backend"),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
@@ -118,16 +117,16 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
                 endTime = FIXED_TEST_TIME.plusSeconds(3600),
                 title = "Task 1",
                 ownerId = requireNotNull(testUser.id),
-                tags = arrayOf("active-tag", "legacy-tag")
-            )
+                tags = arrayOf("active-tag", "legacy-tag"),
+            ),
         )
 
         // Mark one tag as legacy
         testDatabaseSupport.insert(
             LegacyTag(
                 userId = requireNotNull(testUser.id),
-                name = "legacy-tag"
-            )
+                name = "legacy-tag",
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
@@ -149,8 +148,8 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
                 endTime = FIXED_TEST_TIME.plusSeconds(3600),
                 title = "My Task",
                 ownerId = requireNotNull(testUser.id),
-                tags = arrayOf("my-tag")
-            )
+                tags = arrayOf("my-tag"),
+            ),
         )
 
         // Create entry with tags for other user
@@ -160,8 +159,8 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
                 endTime = FIXED_TEST_TIME.plusSeconds(3600),
                 title = "Other Task",
                 ownerId = requireNotNull(otherUser.id),
-                tags = arrayOf("other-tag")
-            )
+                tags = arrayOf("other-tag"),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
@@ -257,8 +256,8 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
                 endTime = FIXED_TEST_TIME.plusSeconds(3600),
                 title = "Task 1",
                 ownerId = requireNotNull(testUser.id),
-                tags = arrayOf("toggle-tag")
-            )
+                tags = arrayOf("toggle-tag"),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
@@ -302,7 +301,7 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
         val highlightedClasses = tagButton.getAttribute("class") ?: ""
         assertTrue(
             highlightedClasses.contains("bg-teal-600") || highlightedClasses.contains("teal"),
-            "Button should have teal styling when tags are selected. Classes: $highlightedClasses"
+            "Button should have teal styling when tags are selected. Classes: $highlightedClasses",
         )
     }
 
@@ -315,8 +314,8 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
                 endTime = FIXED_TEST_TIME.minusSeconds(3600),
                 title = "Previous Task",
                 ownerId = requireNotNull(testUser.id),
-                tags = arrayOf("existing-tag", "another-tag")
-            )
+                tags = arrayOf("existing-tag", "another-tag"),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
@@ -376,8 +375,8 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
                 endTime = FIXED_TEST_TIME.minusSeconds(3600),
                 title = "Previous Task",
                 ownerId = requireNotNull(testUser.id),
-                tags = arrayOf("test-tag")
-            )
+                tags = arrayOf("test-tag"),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
@@ -407,7 +406,7 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
         val clearedClasses = tagButton.getAttribute("class") ?: ""
         assertTrue(
             !clearedClasses.contains("bg-teal-600"),
-            "Button should not have teal background after starting entry. Classes: $clearedClasses"
+            "Button should not have teal background after starting entry. Classes: $clearedClasses",
         )
     }
 }

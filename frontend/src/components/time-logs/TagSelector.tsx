@@ -1,28 +1,24 @@
-import { useState, useEffect } from "react"
-import { useTranslation } from "react-i18next"
-import { Button } from "@/components/ui/button"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import { Tag, Plus } from "lucide-react"
-import { apiGet } from "@/lib/api"
-import { cn } from "@/lib/utils"
+import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Tag, Plus } from "lucide-react";
+import { apiGet } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 interface TagSelectorProps {
-  selectedTags: string[]
-  onTagsChange: (tags: string[]) => void
-  disabled?: boolean
-  testIdPrefix?: string
+  selectedTags: string[];
+  onTagsChange: (tags: string[]) => void;
+  disabled?: boolean;
+  testIdPrefix?: string;
 }
 
 interface TagStat {
-  tag: string
-  count: number
-  isLegacy: boolean
+  tag: string;
+  count: number;
+  isLegacy: boolean;
 }
 
 /**
@@ -35,69 +31,69 @@ export function TagSelector({
   disabled = false,
   testIdPrefix = "tag-selector",
 }: TagSelectorProps) {
-  const { t } = useTranslation()
-  const [open, setOpen] = useState(false)
-  const [availableTags, setAvailableTags] = useState<string[]>([])
-  const [newTagInput, setNewTagInput] = useState("")
-  const [loading, setLoading] = useState(false)
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [newTagInput, setNewTagInput] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // Load available tags from the API
   useEffect(() => {
     async function loadTags() {
-      if (!open) return // Only load when popover is opened
+      if (!open) return; // Only load when popover is opened
 
       try {
-        setLoading(true)
-        const response = await apiGet<{ tags: TagStat[] }>("/api/tags/stats")
+        setLoading(true);
+        const response = await apiGet<{ tags: TagStat[] }>("/api/tags/stats");
 
         // Filter out legacy tags and extract tag names
         const nonLegacyTags = (response.tags || [])
-          .filter(stat => !stat.isLegacy)
-          .map(stat => stat.tag)
+          .filter((stat) => !stat.isLegacy)
+          .map((stat) => stat.tag);
 
-        setAvailableTags(nonLegacyTags)
+        setAvailableTags(nonLegacyTags);
       } catch (err) {
-        console.error("Failed to load tags:", err)
-        setAvailableTags([])
+        console.error("Failed to load tags:", err);
+        setAvailableTags([]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    loadTags()
-  }, [open])
+    loadTags();
+  }, [open]);
 
   const handleToggleTag = (tag: string) => {
     if (selectedTags.includes(tag)) {
-      onTagsChange(selectedTags.filter(t => t !== tag))
+      onTagsChange(selectedTags.filter((t) => t !== tag));
     } else {
-      onTagsChange([...selectedTags, tag])
+      onTagsChange([...selectedTags, tag]);
     }
-  }
+  };
 
   const handleAddNewTag = () => {
-    const trimmedTag = newTagInput.trim()
-    if (!trimmedTag) return
+    const trimmedTag = newTagInput.trim();
+    if (!trimmedTag) return;
 
     // Add to selected tags if not already selected
     if (!selectedTags.includes(trimmedTag)) {
-      onTagsChange([...selectedTags, trimmedTag])
+      onTagsChange([...selectedTags, trimmedTag]);
     }
 
     // Add to available tags if not already there
     if (!availableTags.includes(trimmedTag)) {
-      setAvailableTags([...availableTags, trimmedTag].sort())
+      setAvailableTags([...availableTags, trimmedTag].sort());
     }
 
-    setNewTagInput("")
-  }
+    setNewTagInput("");
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      e.preventDefault()
-      handleAddNewTag()
+      e.preventDefault();
+      handleAddNewTag();
     }
-  }
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -116,7 +112,11 @@ export function TagSelector({
           <Tag className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="dark w-80 p-0" align="start" data-testid={`${testIdPrefix}-popover`}>
+      <PopoverContent
+        className="dark w-80 p-0"
+        align="start"
+        data-testid={`${testIdPrefix}-popover`}
+      >
         <div className="p-3 space-y-2">
           {/* Add new tag section */}
           <div className="flex gap-2 pb-2 border-b border-border">
@@ -124,7 +124,7 @@ export function TagSelector({
               value={newTagInput}
               onChange={(e) => setNewTagInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={t('timeLogs.tags.addNewPlaceholder')}
+              placeholder={t("timeLogs.tags.addNewPlaceholder")}
               className="flex-1 text-foreground"
               data-testid={`${testIdPrefix}-new-tag-input`}
               disabled={loading}
@@ -144,12 +144,18 @@ export function TagSelector({
           {/* Tags list */}
           <div className="max-h-64 overflow-y-auto">
             {loading ? (
-              <div className="text-center py-4 text-sm text-muted-foreground" data-testid={`${testIdPrefix}-loading`}>
-                {t('common.loading')}
+              <div
+                className="text-center py-4 text-sm text-muted-foreground"
+                data-testid={`${testIdPrefix}-loading`}
+              >
+                {t("common.loading")}
               </div>
             ) : availableTags.length === 0 ? (
-              <div className="text-center py-4 text-sm text-muted-foreground" data-testid={`${testIdPrefix}-empty`}>
-                {t('timeLogs.tags.noTags')}
+              <div
+                className="text-center py-4 text-sm text-muted-foreground"
+                data-testid={`${testIdPrefix}-empty`}
+              >
+                {t("timeLogs.tags.noTags")}
               </div>
             ) : (
               <div className="space-y-1" data-testid={`${testIdPrefix}-list`}>
@@ -173,5 +179,5 @@ export function TagSelector({
         </div>
       </PopoverContent>
     </Popover>
-  )
+  );
 }

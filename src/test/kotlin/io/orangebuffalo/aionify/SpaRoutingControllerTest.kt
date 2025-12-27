@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test
  */
 @MicronautTest(transactional = false)
 class SpaRoutingControllerTest {
-
     @Inject
     @field:Client("/")
     lateinit var client: HttpClient
@@ -24,13 +23,14 @@ class SpaRoutingControllerTest {
     @Test
     fun `should not return HTML for favicon requests`() {
         // When: Browser requests favicon.ico
-        val exception = assertThrows(HttpClientResponseException::class.java) {
-            client.toBlocking().exchange(
-                HttpRequest.GET<Any>("/favicon.ico"),
-                String::class.java
-            )
-        }
-        
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest.GET<Any>("/favicon.ico"),
+                    String::class.java,
+                )
+            }
+
         // Then: Should return 404 (not found) instead of returning HTML
         assertEquals(HttpStatus.NOT_FOUND, exception.status)
     }
@@ -38,13 +38,14 @@ class SpaRoutingControllerTest {
     @Test
     fun `should not return HTML for SVG icon requests`() {
         // When: Browser requests an SVG icon
-        val exception = assertThrows(HttpClientResponseException::class.java) {
-            client.toBlocking().exchange(
-                HttpRequest.GET<Any>("/logo.svg"),
-                String::class.java
-            )
-        }
-        
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest.GET<Any>("/logo.svg"),
+                    String::class.java,
+                )
+            }
+
         // Then: Should return 404 (not found) instead of returning HTML
         assertEquals(HttpStatus.NOT_FOUND, exception.status)
     }
@@ -52,13 +53,14 @@ class SpaRoutingControllerTest {
     @Test
     fun `should not return HTML for PNG image requests`() {
         // When: Browser requests a PNG image
-        val exception = assertThrows(HttpClientResponseException::class.java) {
-            client.toBlocking().exchange(
-                HttpRequest.GET<Any>("/image.png"),
-                String::class.java
-            )
-        }
-        
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest.GET<Any>("/image.png"),
+                    String::class.java,
+                )
+            }
+
         // Then: Should return 404 (not found) instead of returning HTML
         assertEquals(HttpStatus.NOT_FOUND, exception.status)
     }
@@ -66,13 +68,14 @@ class SpaRoutingControllerTest {
     @Test
     fun `should not return HTML for font file requests`() {
         // When: Browser requests a font file
-        val exception = assertThrows(HttpClientResponseException::class.java) {
-            client.toBlocking().exchange(
-                HttpRequest.GET<Any>("/fonts/myfont.woff2"),
-                String::class.java
-            )
-        }
-        
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest.GET<Any>("/fonts/myfont.woff2"),
+                    String::class.java,
+                )
+            }
+
         // Then: Should return 404 (not found) instead of returning HTML
         assertEquals(HttpStatus.NOT_FOUND, exception.status)
     }
@@ -80,11 +83,12 @@ class SpaRoutingControllerTest {
     @Test
     fun `should return HTML for SPA routes`() {
         // When: Browser requests a frontend route
-        val response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/dashboard"),
-            String::class.java
-        )
-        
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest.GET<Any>("/dashboard"),
+                String::class.java,
+            )
+
         // Then: Should return HTML with 200 OK
         assertEquals(HttpStatus.OK, response.status)
         assertEquals(MediaType.TEXT_HTML_TYPE, response.contentType.orElse(null))
@@ -95,11 +99,12 @@ class SpaRoutingControllerTest {
     @Test
     fun `should return HTML for root path`() {
         // When: Browser requests the root path
-        val response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/"),
-            String::class.java
-        )
-        
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest.GET<Any>("/"),
+                String::class.java,
+            )
+
         // Then: Should return HTML with 200 OK
         assertEquals(HttpStatus.OK, response.status)
         assertEquals(MediaType.TEXT_HTML_TYPE, response.contentType.orElse(null))

@@ -1,60 +1,57 @@
-import { TOKEN_KEY } from "./constants"
+import { TOKEN_KEY } from "./constants";
 
 /**
  * Makes an authenticated API request with the stored JWT token.
  * If a 401 Unauthorized response is received, clears the token and redirects to login.
  */
-export async function apiRequest<T>(
-  url: string,
-  options: RequestInit = {}
-): Promise<T> {
-  const token = localStorage.getItem(TOKEN_KEY)
-  
+export async function apiRequest<T>(url: string, options: RequestInit = {}): Promise<T> {
+  const token = localStorage.getItem(TOKEN_KEY);
+
   const headers: HeadersInit = {
     ...options.headers,
-    ...(token ? { "Authorization": `Bearer ${token}` } : {})
-  }
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
 
   if (options.body && typeof options.body === "string") {
-    headers["Content-Type"] = "application/json"
+    headers["Content-Type"] = "application/json";
   }
 
   const response = await fetch(url, {
     ...options,
-    headers
-  })
+    headers,
+  });
 
   if (!response.ok) {
     // Handle 401 Unauthorized - token expired or invalid
     if (response.status === 401) {
       // Clear the token
-      localStorage.removeItem(TOKEN_KEY)
-      
+      localStorage.removeItem(TOKEN_KEY);
+
       // Store a flag to show session expired message on login page
-      sessionStorage.setItem("sessionExpired", "true")
-      
+      sessionStorage.setItem("sessionExpired", "true");
+
       // Redirect to login page
-      window.location.href = "/login"
-      
+      window.location.href = "/login";
+
       // Throw error to prevent further processing
-      throw new Error("Session expired")
+      throw new Error("Session expired");
     }
-    
-    const errorData = await response.json().catch(() => ({}))
-    const error = new Error(errorData.error || `Request failed with status ${response.status}`)
+
+    const errorData = await response.json().catch(() => ({}));
+    const error = new Error(errorData.error || `Request failed with status ${response.status}`);
     // Attach errorCode to the error for translation
-    ;(error as any).errorCode = errorData.errorCode
-    throw error
+    (error as any).errorCode = errorData.errorCode;
+    throw error;
   }
 
-  return response.json()
+  return response.json();
 }
 
 /**
  * GET request helper
  */
 export async function apiGet<T>(url: string): Promise<T> {
-  return apiRequest<T>(url)
+  return apiRequest<T>(url);
 }
 
 /**
@@ -63,8 +60,8 @@ export async function apiGet<T>(url: string): Promise<T> {
 export async function apiPost<T>(url: string, body: unknown): Promise<T> {
   return apiRequest<T>(url, {
     method: "POST",
-    body: JSON.stringify(body)
-  })
+    body: JSON.stringify(body),
+  });
 }
 
 /**
@@ -73,8 +70,8 @@ export async function apiPost<T>(url: string, body: unknown): Promise<T> {
 export async function apiPut<T>(url: string, body: unknown): Promise<T> {
   return apiRequest<T>(url, {
     method: "PUT",
-    body: JSON.stringify(body)
-  })
+    body: JSON.stringify(body),
+  });
 }
 
 /**
@@ -82,6 +79,6 @@ export async function apiPut<T>(url: string, body: unknown): Promise<T> {
  */
 export async function apiDelete<T>(url: string): Promise<T> {
   return apiRequest<T>(url, {
-    method: "DELETE"
-  })
+    method: "DELETE",
+  });
 }
