@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, LogIn, User, KeyRound } from "lucide-react"
 import { FormMessage } from "@/components/ui/form-message"
+import { Logo } from "@/components/ui/logo"
 import { LAST_USERNAME_KEY, TOKEN_KEY } from "@/lib/constants"
 import { initializeLanguage, translateErrorCode } from "@/lib/i18n"
 import {
@@ -110,6 +111,9 @@ export function LoginPage() {
       {/* Centered Login form */}
       <Card className="w-full max-w-md border-none shadow-md">
           <CardHeader className="space-y-1">
+            <div className="flex justify-center mb-4">
+              <Logo width={200} height={48} className="mb-2" />
+            </div>
             <CardTitle className="text-2xl font-bold" data-testid="login-title">{t("login.title")}</CardTitle>
             <CardDescription>
               {lastUserGreeting

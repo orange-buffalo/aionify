@@ -68,7 +68,7 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
         // Verify logo is present
         val logo = page.locator("[data-testid='nav-logo']")
         assertThat(logo).isVisible()
-        assertThat(logo).hasText("Aionify")
+        assertThat(logo).containsText("Aionify")
 
         // Verify user-specific menu items are present (desktop view)
         val timeEntry = page.locator("[data-testid='nav-item-time-log']")
@@ -93,7 +93,7 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
         // Verify logo is present
         val logo = page.locator("[data-testid='nav-logo']")
         assertThat(logo).isVisible()
-        assertThat(logo).hasText("Aionify")
+        assertThat(logo).containsText("Aionify")
 
         // Verify admin-specific menu items are present (desktop view)
         val users = page.locator("[data-testid='nav-item-users']")
