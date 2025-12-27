@@ -153,12 +153,12 @@ export function useTimeLogs() {
   }
 
   // Start a new time entry
-  async function handleStart(title: string) {
+  async function handleStart(title: string, tags: string[] = []) {
     try {
       setIsStarting(true)
       setError(null)
 
-      const entry = await apiPost<TimeEntry>('/api/time-log-entries', { title })
+      const entry = await apiPost<TimeEntry>('/api/time-log-entries', { title, tags })
 
       setActiveEntry(entry)
       setSuccess(t('timeLogs.success.started'))

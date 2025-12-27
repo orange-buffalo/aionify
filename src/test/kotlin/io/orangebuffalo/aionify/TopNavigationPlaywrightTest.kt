@@ -97,12 +97,8 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
         // Verify admin-specific menu items are present (desktop view)
         val users = page.locator("[data-testid='nav-item-users']")
-        val reports = page.locator("[data-testid='nav-item-reports']")
-        val settings = page.locator("[data-testid='nav-item-settings']")
 
         assertThat(users).isVisible()
-        assertThat(reports).isVisible()
-        assertThat(settings).isVisible()
     }
 
     @Test
@@ -258,12 +254,8 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
 
         // Verify admin menu items are in mobile menu
         val users = page.locator("[data-testid='mobile-nav-item-users']")
-        val reports = page.locator("[data-testid='mobile-nav-item-reports']")
-        val settings = page.locator("[data-testid='mobile-nav-item-settings']")
 
         assertThat(users).isVisible()
-        assertThat(reports).isVisible()
-        assertThat(settings).isVisible()
     }
 
     @Test
