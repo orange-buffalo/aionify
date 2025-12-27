@@ -129,7 +129,7 @@ export function SettingsPage() {
                                 </svg>
                               </button>
                             </PopoverTrigger>
-                            <PopoverContent className="text-sm" data-testid="tags-legacy-tooltip">
+                            <PopoverContent className="dark text-sm" data-testid="tags-legacy-tooltip">
                               {t("settings.tags.table.isLegacyTooltip")}
                             </PopoverContent>
                           </Popover>
@@ -153,9 +153,9 @@ export function SettingsPage() {
                         <TableCell data-testid={`tag-actions-${tagStat.tag}`}>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 disabled={actionInProgress === tagStat.tag}
                                 data-testid={`tag-actions-menu-${tagStat.tag}`}
                               >
