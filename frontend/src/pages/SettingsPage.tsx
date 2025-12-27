@@ -57,7 +57,7 @@ export function SettingsPage() {
 
           <Card className="border-none shadow-md">
             <CardHeader>
-              <CardTitle>{t("settings.tags.title")}</CardTitle>
+              <CardTitle data-testid="tags-title">{t("settings.tags.title")}</CardTitle>
               <CardDescription>{t("settings.tags.subtitle")}</CardDescription>
             </CardHeader>
             <CardContent>
