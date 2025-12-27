@@ -131,6 +131,11 @@ Playwright tests should extend `PlaywrightTestBase` which provides:
 - When verifying pagination or table content changes, check actual content (e.g., usernames) not just counts
 - **When a test fails, investigate the root cause in your implementation** - check browser console, API responses (logged by PlaywrightTestBase), and component code
 - PlaywrightTestBase automatically logs all AJAX requests and responses to help debug API-related issues
+- **CRITICAL: When verifying lists, always use array-based assertions with `allTextContents()`** to ensure no extra items appear:
+  - ❌ BAD: Check individual items with `isVisible()` and `not().isVisible()` - this misses extra items
+  - ✅ GOOD: Get all items with `allTextContents()` and compare to expected list
+  - Example: `val items = page.locator("[data-testid^='item-']").allTextContents(); assert(items == listOf("expected1", "expected2"))`
+  - This pattern catches implementation errors where extra items appear on the page
 
 Example:
 ```kotlin

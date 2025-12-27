@@ -104,14 +104,12 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
         val tagsList = page.locator("[data-testid='new-entry-tags-list']")
         assertThat(tagsList).isVisible()
 
-        // Verify tags are displayed in alphabetical order
-        val backendItem = page.locator("[data-testid='new-entry-tags-item-backend']")
-        assertThat(backendItem).isVisible()
-        assertThat(backendItem).containsText("backend")
-
-        val kotlinItem = page.locator("[data-testid='new-entry-tags-item-kotlin']")
-        assertThat(kotlinItem).isVisible()
-        assertThat(kotlinItem).containsText("kotlin")
+        // Verify exactly the expected tags are displayed in alphabetical order
+        val displayedTags = page.locator("[data-testid^='new-entry-tags-item-'] span").allTextContents()
+        val expectedTags = listOf("backend", "kotlin")
+        assert(displayedTags == expectedTags) {
+            "Expected tags $expectedTags but got $displayedTags"
+        }
     }
 
     @Test
@@ -140,13 +138,12 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
         // Click the tag selector button
         page.locator("[data-testid='new-entry-tags-button']").click()
 
-        // Verify active tag is visible
-        val activeTagItem = page.locator("[data-testid='new-entry-tags-item-active-tag']")
-        assertThat(activeTagItem).isVisible()
-
-        // Verify legacy tag is NOT visible
-        val legacyTagItem = page.locator("[data-testid='new-entry-tags-item-legacy-tag']")
-        assertThat(legacyTagItem).not().isVisible()
+        // Verify only active tag is displayed (legacy tag is filtered out)
+        val displayedTags = page.locator("[data-testid^='new-entry-tags-item-'] span").allTextContents()
+        val expectedTags = listOf("active-tag")
+        assert(displayedTags == expectedTags) {
+            "Expected only active tag $expectedTags but got $displayedTags (legacy tag should be filtered)"
+        }
     }
 
     @Test
@@ -178,13 +175,12 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
         // Click the tag selector button
         page.locator("[data-testid='new-entry-tags-button']").click()
 
-        // Verify only current user's tag is visible
-        val myTagItem = page.locator("[data-testid='new-entry-tags-item-my-tag']")
-        assertThat(myTagItem).isVisible()
-
-        // Verify other user's tag is NOT visible
-        val otherTagItem = page.locator("[data-testid='new-entry-tags-item-other-tag']")
-        assertThat(otherTagItem).not().isVisible()
+        // Verify only current user's tag is displayed (other user's tags are filtered out)
+        val displayedTags = page.locator("[data-testid^='new-entry-tags-item-'] span").allTextContents()
+        val expectedTags = listOf("my-tag")
+        assert(displayedTags == expectedTags) {
+            "Expected only current user's tag $expectedTags but got $displayedTags (other user's tags should be filtered)"
+        }
     }
 
     @Test
