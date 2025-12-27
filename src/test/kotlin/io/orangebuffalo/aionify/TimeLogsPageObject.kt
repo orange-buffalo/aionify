@@ -132,6 +132,7 @@ data class EntryState(
     val title: String,
     val timeRange: String,
     val duration: String,
+    val tags: List<String> = emptyList(),
     val continueButtonVisible: Boolean = true,
     val menuButtonVisible: Boolean = true
 )
@@ -344,6 +345,27 @@ class TimeLogsPageObject(private val page: Page) {
         val expectedDurations = expectedEntries.map { it.duration }
         val durationLocators = entryLocator.locator("[data-testid='entry-duration']")
         assertThat(durationLocators).containsText(expectedDurations.toTypedArray())
+
+        // Assert tags for each entry
+        for (i in expectedEntries.indices) {
+            val entry = expectedEntries[i]
+            val entryElement = entryLocator.nth(i)
+            
+            if (entry.tags.isNotEmpty()) {
+                // Tags container should be visible
+                assertThat(entryElement.locator("[data-testid='entry-tags']")).isVisible()
+                
+                // Assert each tag is present
+                for (tag in entry.tags) {
+                    val tagLocator = entryElement.locator("[data-testid='entry-tag-$tag']")
+                    assertThat(tagLocator).isVisible()
+                    assertThat(tagLocator).hasText(tag)
+                }
+            } else {
+                // Tags container should not be visible when there are no tags
+                assertThat(entryElement.locator("[data-testid='entry-tags']")).not().isVisible()
+            }
+        }
 
         // Assert action buttons visibility for each entry
         for (i in expectedEntries.indices) {
