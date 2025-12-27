@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { PortalLayout } from "@/components/layout/PortalLayout"
-import { Card } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { FormMessage } from "@/components/ui/form-message"
 import { apiGet } from "@/lib/api"
@@ -24,7 +24,7 @@ export function SettingsPage() {
   const loadTags = async () => {
     setLoading(true)
     setError(null)
-    
+
     try {
       const data = await apiGet<TagStatsResponse>("/api/tags/stats")
       // Defensive check: Handle edge case where API might return empty object
@@ -56,10 +56,11 @@ export function SettingsPage() {
           </div>
 
           <Card className="border-none shadow-md">
-            <div className="p-6">
-              <h2 className="text-2xl font-semibold text-foreground mb-2">{t("settings.tags.title")}</h2>
-              <p className="text-sm text-muted-foreground mb-6">{t("settings.tags.subtitle")}</p>
-
+            <CardHeader>
+              <CardTitle>{t("settings.tags.title")}</CardTitle>
+              <CardDescription>{t("settings.tags.subtitle")}</CardDescription>
+            </CardHeader>
+            <CardContent>
               {error && (
                 <div className="mb-4">
                   <FormMessage type="error" message={error} testId="tags-error" />
@@ -96,7 +97,7 @@ export function SettingsPage() {
                   </TableBody>
                 </Table>
               )}
-            </div>
+            </CardContent>
           </Card>
         </div>
       </div>
