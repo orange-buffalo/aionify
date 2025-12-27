@@ -2112,4 +2112,73 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         assertEquals(FIXED_TEST_TIME.minusSeconds(1800), unchangedEntry.endTime, "End time should be unchanged")
         assertEquals(testUser.id, unchangedEntry.ownerId, "Owner ID should be unchanged")
     }
+
+    @Test
+    fun `should display tags on time entries`() {
+        // Create entries with various tag configurations
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(7200), // 2 hours ago
+                endTime = FIXED_TEST_TIME.minusSeconds(5400),   // 1.5 hours ago
+                title = "Entry with Multiple Tags",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("work", "urgent", "frontend")
+            )
+        )
+        
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(5400), // 1.5 hours ago
+                endTime = FIXED_TEST_TIME.minusSeconds(3600),   // 1 hour ago
+                title = "Entry with Single Tag",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("backend")
+            )
+        )
+        
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(3600), // 1 hour ago
+                endTime = FIXED_TEST_TIME.minusSeconds(1800),   // 30 minutes ago
+                title = "Entry without Tags",
+                ownerId = requireNotNull(testUser.id),
+                tags = emptyArray()
+            )
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Verify entries are displayed with their tags
+        val expectedState = TimeLogsPageState(
+            currentEntry = CurrentEntryState.NoActiveEntry(),
+            weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+            dayGroups = listOf(
+                DayGroupState(
+                    displayTitle = "Today",
+                    totalDuration = "01:30:00",
+                    entries = listOf(
+                        EntryState(
+                            title = "Entry without Tags",
+                            timeRange = "02:30 - 03:00",
+                            duration = "00:30:00",
+                            tags = emptyList()
+                        ),
+                        EntryState(
+                            title = "Entry with Single Tag",
+                            timeRange = "02:00 - 02:30",
+                            duration = "00:30:00",
+                            tags = listOf("backend")
+                        ),
+                        EntryState(
+                            title = "Entry with Multiple Tags",
+                            timeRange = "01:30 - 02:00",
+                            duration = "00:30:00",
+                            tags = listOf("work", "urgent", "frontend")
+                        )
+                    )
+                )
+            ),
+        )
+        timeLogsPage.assertPageState(expectedState)
+    }
 }
