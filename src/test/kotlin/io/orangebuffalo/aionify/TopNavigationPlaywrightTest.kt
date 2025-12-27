@@ -70,16 +70,9 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
         assertThat(logo).isVisible()
         assertThat(logo).containsText("Aionify")
 
-        // Verify user-specific menu items are present (desktop view)
-        val timeEntry = page.locator("[data-testid='nav-item-time-log']")
-        val settings = page.locator("[data-testid='nav-item-settings']")
-
-        assertThat(timeEntry).isVisible()
-        assertThat(settings).isVisible()
-        
-        // Profile is in the dropdown menu, not in top navigation
-        val profile = page.locator("[data-testid='nav-item-profile']")
-        assertThat(profile).hasCount(0)
+        // Verify exactly the expected user-specific menu items are present (desktop view)
+        val navItems = page.locator("[data-testid^='nav-item-']")
+        assertThat(navItems).containsText(arrayOf("Time Log", "Settings"))
     }
 
     @Test
@@ -95,10 +88,9 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
         assertThat(logo).isVisible()
         assertThat(logo).containsText("Aionify")
 
-        // Verify admin-specific menu items are present (desktop view)
-        val users = page.locator("[data-testid='nav-item-users']")
-
-        assertThat(users).isVisible()
+        // Verify exactly the expected admin-specific menu items are present (desktop view)
+        val navItems = page.locator("[data-testid^='nav-item-']")
+        assertThat(navItems).containsText(arrayOf("Users"))
     }
 
     @Test
@@ -109,16 +101,9 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
         val topNav = page.locator("[data-testid='top-nav']")
         assertThat(topNav).isVisible()
 
-        // Verify admin-specific items are there
-        val users = page.locator("[data-testid='nav-item-users']")
-        assertThat(users).isVisible()
-
-        // Verify user-specific items are NOT present
-        val timeEntry = page.locator("[data-testid='nav-item-time-log']")
-        val calendar = page.locator("[data-testid='nav-item-calendar']")
-
-        assertThat(timeEntry).hasCount(0)
-        assertThat(calendar).hasCount(0)
+        // Verify only admin-specific items are present (no user-specific items)
+        val navItems = page.locator("[data-testid^='nav-item-']")
+        assertThat(navItems).containsText(arrayOf("Users"))
     }
 
     @Test
@@ -129,14 +114,9 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
         val topNav = page.locator("[data-testid='top-nav']")
         assertThat(topNav).isVisible()
 
-        // Verify user-specific items are there
-        val timeEntry = page.locator("[data-testid='nav-item-time-log']")
-        assertThat(timeEntry).isVisible()
-
-        // Verify admin-specific items are NOT present (users is admin-only)
-        val users = page.locator("[data-testid='nav-item-users']")
-
-        assertThat(users).hasCount(0)
+        // Verify only user-specific items are present (no admin-specific items)
+        val navItems = page.locator("[data-testid^='nav-item-']")
+        assertThat(navItems).containsText(arrayOf("Time Log", "Settings"))
     }
 
     @Test

@@ -104,14 +104,9 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
         val tagsList = page.locator("[data-testid='new-entry-tags-list']")
         assertThat(tagsList).isVisible()
 
-        // Verify tags are displayed in alphabetical order
-        val backendItem = page.locator("[data-testid='new-entry-tags-item-backend']")
-        assertThat(backendItem).isVisible()
-        assertThat(backendItem).containsText("backend")
-
-        val kotlinItem = page.locator("[data-testid='new-entry-tags-item-kotlin']")
-        assertThat(kotlinItem).isVisible()
-        assertThat(kotlinItem).containsText("kotlin")
+        // Verify exactly the expected tags are displayed in alphabetical order
+        val tagItems = page.locator("[data-testid^='new-entry-tags-item-'] span")
+        assertThat(tagItems).containsText(arrayOf("backend", "kotlin"))
     }
 
     @Test
@@ -140,13 +135,9 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
         // Click the tag selector button
         page.locator("[data-testid='new-entry-tags-button']").click()
 
-        // Verify active tag is visible
-        val activeTagItem = page.locator("[data-testid='new-entry-tags-item-active-tag']")
-        assertThat(activeTagItem).isVisible()
-
-        // Verify legacy tag is NOT visible
-        val legacyTagItem = page.locator("[data-testid='new-entry-tags-item-legacy-tag']")
-        assertThat(legacyTagItem).not().isVisible()
+        // Verify only active tag is displayed (legacy tag is filtered out)
+        val tagItems = page.locator("[data-testid^='new-entry-tags-item-'] span")
+        assertThat(tagItems).containsText(arrayOf("active-tag"))
     }
 
     @Test
@@ -178,13 +169,9 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
         // Click the tag selector button
         page.locator("[data-testid='new-entry-tags-button']").click()
 
-        // Verify only current user's tag is visible
-        val myTagItem = page.locator("[data-testid='new-entry-tags-item-my-tag']")
-        assertThat(myTagItem).isVisible()
-
-        // Verify other user's tag is NOT visible
-        val otherTagItem = page.locator("[data-testid='new-entry-tags-item-other-tag']")
-        assertThat(otherTagItem).not().isVisible()
+        // Verify only current user's tag is displayed (other user's tags are filtered out)
+        val tagItems = page.locator("[data-testid^='new-entry-tags-item-'] span")
+        assertThat(tagItems).containsText(arrayOf("my-tag"))
     }
 
     @Test

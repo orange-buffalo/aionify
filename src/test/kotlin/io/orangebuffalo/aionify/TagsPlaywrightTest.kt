@@ -92,25 +92,14 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
         assertThat(page.locator("[data-testid='tags-header-tag']")).isVisible()
         assertThat(page.locator("[data-testid='tags-header-count']")).isVisible()
 
-        // Verify tags are displayed (sorted alphabetically)
-        val backendRow = page.locator("[data-testid='tag-row-backend']")
-        assertThat(backendRow).isVisible()
-        assertThat(page.locator("[data-testid='tag-name-backend']")).containsText("backend")
+        // Verify exactly the expected tags are displayed (sorted alphabetically)
+        val tagNames = page.locator("[data-testid^='tag-name-']")
+        assertThat(tagNames).containsText(arrayOf("backend", "frontend", "kotlin", "react"))
+
+        // Verify counts for each tag
         assertThat(page.locator("[data-testid='tag-count-backend']")).containsText("1")
-
-        val frontendRow = page.locator("[data-testid='tag-row-frontend']")
-        assertThat(frontendRow).isVisible()
-        assertThat(page.locator("[data-testid='tag-name-frontend']")).containsText("frontend")
         assertThat(page.locator("[data-testid='tag-count-frontend']")).containsText("1")
-
-        val kotlinRow = page.locator("[data-testid='tag-row-kotlin']")
-        assertThat(kotlinRow).isVisible()
-        assertThat(page.locator("[data-testid='tag-name-kotlin']")).containsText("kotlin")
         assertThat(page.locator("[data-testid='tag-count-kotlin']")).containsText("1")
-
-        val reactRow = page.locator("[data-testid='tag-row-react']")
-        assertThat(reactRow).isVisible()
-        assertThat(page.locator("[data-testid='tag-name-react']")).containsText("react")
         assertThat(page.locator("[data-testid='tag-count-react']")).containsText("1")
     }
 
@@ -185,11 +174,9 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
 
         navigateToSettingsViaToken()
 
-        // Verify only current user's tag is visible
-        assertThat(page.locator("[data-testid='tag-row-my-tag']")).isVisible()
-
-        // Verify other user's tag is not visible
-        assertThat(page.locator("[data-testid='tag-row-other-tag']")).not().isVisible()
+        // Verify only current user's tag is displayed (other user's tags filtered out)
+        val tagNames = page.locator("[data-testid^='tag-name-']")
+        assertThat(tagNames).containsText(arrayOf("my-tag"))
     }
 
     @Test
@@ -207,18 +194,9 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
 
         navigateToSettingsViaToken()
 
-        // Get all tag rows
-        val tagRows = page.locator("[data-testid^='tag-row-']")
-        val count = tagRows.count()
-
-        // Verify we have 4 tags
-        assertThat(tagRows).hasCount(4)
-
-        // Verify they are in alphabetical order
-        assertThat(tagRows.nth(0).locator("[data-testid^='tag-name-']")).containsText("apple")
-        assertThat(tagRows.nth(1).locator("[data-testid^='tag-name-']")).containsText("banana")
-        assertThat(tagRows.nth(2).locator("[data-testid^='tag-name-']")).containsText("mango")
-        assertThat(tagRows.nth(3).locator("[data-testid^='tag-name-']")).containsText("zebra")
+        // Verify exactly the expected tags are displayed in alphabetical order
+        val tagNames = page.locator("[data-testid^='tag-name-']")
+        assertThat(tagNames).containsText(arrayOf("apple", "banana", "mango", "zebra"))
     }
 
     @Test
