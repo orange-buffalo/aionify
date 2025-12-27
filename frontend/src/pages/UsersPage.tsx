@@ -4,12 +4,12 @@ import { useNavigate } from "react-router"
 import { PortalLayout } from "@/components/layout/PortalLayout"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import {Card, CardContent} from "@/components/ui/card"
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { FormMessage } from "@/components/ui/form-message"
 import { apiGet, apiRequest } from "@/lib/api"
-import { MoreVertical, ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react"
+import { MoreVertical, ChevronLeft, ChevronRight, Pencil, Trash2, Plus } from "lucide-react"
 
 interface User {
   id: number
@@ -98,20 +98,11 @@ export function UsersPage() {
     <PortalLayout testId="users-page">
       <div className="p-8">
         <div className="max-w-6xl mx-auto">
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground" data-testid="users-title">
-                {t("portal.admin.users.title")}
-              </h1>
-              <p className="text-muted-foreground">{t("portal.admin.users.subtitle")}</p>
-            </div>
-            <Button
-              onClick={() => navigate("/admin/users/create")}
-              data-testid="create-user-button"
-              className="bg-teal-600 hover:bg-teal-700"
-            >
-              {t("portal.admin.users.createUser")}
-            </Button>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground" data-testid="users-title">
+              {t("portal.admin.users.title")}
+            </h1>
+            <p className="text-muted-foreground">{t("portal.admin.users.subtitle")}</p>
           </div>
 
           {error && (
@@ -133,7 +124,20 @@ export function UsersPage() {
           ) : (
             <>
               <Card className="border-none shadow-md" data-testid="users-table-container">
-                <CardContent className="p-4">
+                <CardHeader>
+                  <CardTitle>{t("portal.admin.users.listTitle")}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-4 flex justify-end">
+                    <Button
+                      variant="ghost"
+                      onClick={() => navigate("/admin/users/create")}
+                      data-testid="create-user-button"
+                    >
+                      <Plus className="h-4 w-4" />
+                      {t("portal.admin.users.createUser")}
+                    </Button>
+                  </div>
                   <Table>
                     <TableHeader>
                       <TableRow>
