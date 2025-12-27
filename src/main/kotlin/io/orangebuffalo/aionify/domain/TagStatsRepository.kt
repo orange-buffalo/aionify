@@ -12,14 +12,15 @@ interface TagStatsRepository : GenericRepository<TimeLogEntry, Long> {
     
     /**
      * Get unique tags with their usage counts for a specific user.
+     * Includes information about whether each tag is marked as legacy.
      * Returns a list of tag statistics sorted alphabetically by tag name.
      */
     @Query(
-        """SELECT unnest(tags) AS tag, COUNT(*) AS count 
-           FROM time_log_entry 
-           WHERE owner_id = :ownerId AND array_length(tags, 1) > 0
-           GROUP BY tag 
-           ORDER BY tag ASC"""
+        """SELECT t.tag, COUNT(*) AS count, (lt.id IS NOT NULL) AS is_legacy
+           FROM (SELECT unnest(tags) AS tag FROM time_log_entry WHERE owner_id = :ownerId AND array_length(tags, 1) > 0) t
+           LEFT JOIN legacy_tag lt ON lt.user_id = :ownerId AND lt.name = t.tag
+           GROUP BY t.tag, lt.id
+           ORDER BY t.tag ASC"""
     )
     fun findTagStatsByOwnerId(ownerId: Long): List<TagStatRow>
 }
@@ -28,5 +29,6 @@ interface TagStatsRepository : GenericRepository<TimeLogEntry, Long> {
 @Introspected
 data class TagStatRow(
     val tag: String,
-    val count: Long
+    val count: Long,
+    val isLegacy: Boolean
 )

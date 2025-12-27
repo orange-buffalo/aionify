@@ -24,6 +24,7 @@ import java.time.Instant
  * 1. Authentication is required to access tag stats endpoints
  * 2. Users can only access their own tag statistics
  * 3. Tag statistics are calculated only from the current user's entries
+ * 4. Users can only mark/unmark their own tags as legacy
  */
 @MicronautTest(transactional = false)
 class TagStatsResourceTest {
@@ -34,6 +35,9 @@ class TagStatsResourceTest {
 
     @Inject
     lateinit var timeLogEntryRepository: TimeLogEntryRepository
+
+    @Inject
+    lateinit var legacyTagRepository: LegacyTagRepository
 
     @Inject
     lateinit var testAuthSupport: TestAuthSupport
@@ -390,5 +394,278 @@ class TagStatsResourceTest {
         assertEquals(1, stats.size)
         assertEquals("solo", stats[0].tag)
         assertEquals(1L, stats[0].count)
+    }
+
+    @Test
+    fun `should require authentication to mark tag as legacy`() {
+        // When: Trying to mark tag as legacy without authentication
+        val exception = assertThrows(HttpClientResponseException::class.java) {
+            client.toBlocking().exchange(
+                HttpRequest.POST("/api/tags/legacy", LegacyTagRequest("kotlin")),
+                String::class.java
+            )
+        }
+
+        // Then: Access should be unauthorized
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+    }
+
+    @Test
+    fun `should require authentication to unmark tag as legacy`() {
+        // When: Trying to unmark tag as legacy without authentication
+        val exception = assertThrows(HttpClientResponseException::class.java) {
+            client.toBlocking().exchange(
+                HttpRequest.DELETE("/api/tags/legacy", LegacyTagRequest("kotlin")),
+                String::class.java
+            )
+        }
+
+        // Then: Access should be unauthorized
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+    }
+
+    @Test
+    fun `should only consider current user legacy tags in stats`() {
+        // Given: User 1 has tag "kotlin", User 2 marks "kotlin" as legacy
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T10:00:00Z"),
+                endTime = Instant.parse("2024-01-15T11:00:00Z"),
+                title = "User 1 Task",
+                ownerId = requireNotNull(user1.id),
+                tags = arrayOf("kotlin")
+            )
+        )
+
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T12:00:00Z"),
+                endTime = Instant.parse("2024-01-15T13:00:00Z"),
+                title = "User 2 Task",
+                ownerId = requireNotNull(user2.id),
+                tags = arrayOf("kotlin")
+            )
+        )
+
+        // User 2 marks "kotlin" as legacy
+        testDatabaseSupport.insert(
+            LegacyTag(
+                userId = requireNotNull(user2.id),
+                name = "kotlin"
+            )
+        )
+
+        val user1Token = testAuthSupport.generateToken(user1)
+
+        // When: User 1 requests tag stats
+        val response = client.toBlocking().exchange(
+            HttpRequest.GET<Any>("/api/tags/stats")
+                .bearerAuth(user1Token),
+            TagStatsResponse::class.java
+        )
+
+        // Then: User 1 should see "kotlin" as NOT legacy (only User 2 marked it)
+        assertEquals(HttpStatus.OK, response.status)
+        val stats = response.body()?.tags ?: emptyList()
+        assertEquals(1, stats.size)
+        assertEquals("kotlin", stats[0].tag)
+        assertFalse(stats[0].isLegacy)
+    }
+
+    @Test
+    fun `should mark tag as legacy for current user only`() {
+        // Given: Both users have "kotlin" tag in their entries
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T10:00:00Z"),
+                endTime = Instant.parse("2024-01-15T11:00:00Z"),
+                title = "User 1 Task",
+                ownerId = requireNotNull(user1.id),
+                tags = arrayOf("kotlin")
+            )
+        )
+
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T12:00:00Z"),
+                endTime = Instant.parse("2024-01-15T13:00:00Z"),
+                title = "User 2 Task",
+                ownerId = requireNotNull(user2.id),
+                tags = arrayOf("kotlin")
+            )
+        )
+
+        val user1Token = testAuthSupport.generateToken(user1)
+        val user2Token = testAuthSupport.generateToken(user2)
+
+        // When: User 1 marks "kotlin" as legacy
+        val markResponse = client.toBlocking().exchange(
+            HttpRequest.POST("/api/tags/legacy", LegacyTagRequest("kotlin"))
+                .bearerAuth(user1Token),
+            LegacyTagResponse::class.java
+        )
+
+        assertEquals(HttpStatus.OK, markResponse.status)
+
+        // Then: User 1 should see "kotlin" as legacy
+        val user1Response = client.toBlocking().exchange(
+            HttpRequest.GET<Any>("/api/tags/stats")
+                .bearerAuth(user1Token),
+            TagStatsResponse::class.java
+        )
+
+        assertEquals(HttpStatus.OK, user1Response.status)
+        val user1Stats = user1Response.body()?.tags ?: emptyList()
+        assertEquals(1, user1Stats.size)
+        assertTrue(user1Stats[0].isLegacy)
+
+        // And: User 2 should see "kotlin" as NOT legacy
+        val user2Response = client.toBlocking().exchange(
+            HttpRequest.GET<Any>("/api/tags/stats")
+                .bearerAuth(user2Token),
+            TagStatsResponse::class.java
+        )
+
+        assertEquals(HttpStatus.OK, user2Response.status)
+        val user2Stats = user2Response.body()?.tags ?: emptyList()
+        assertEquals(1, user2Stats.size)
+        assertFalse(user2Stats[0].isLegacy)
+    }
+
+    @Test
+    fun `should unmark tag as legacy for current user only`() {
+        // Given: Both users have "kotlin" marked as legacy
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T10:00:00Z"),
+                endTime = Instant.parse("2024-01-15T11:00:00Z"),
+                title = "User 1 Task",
+                ownerId = requireNotNull(user1.id),
+                tags = arrayOf("kotlin")
+            )
+        )
+
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T12:00:00Z"),
+                endTime = Instant.parse("2024-01-15T13:00:00Z"),
+                title = "User 2 Task",
+                ownerId = requireNotNull(user2.id),
+                tags = arrayOf("kotlin")
+            )
+        )
+
+        testDatabaseSupport.insert(
+            LegacyTag(
+                userId = requireNotNull(user1.id),
+                name = "kotlin"
+            )
+        )
+
+        testDatabaseSupport.insert(
+            LegacyTag(
+                userId = requireNotNull(user2.id),
+                name = "kotlin"
+            )
+        )
+
+        val user1Token = testAuthSupport.generateToken(user1)
+        val user2Token = testAuthSupport.generateToken(user2)
+
+        // When: User 1 unmarks "kotlin" as legacy
+        val unmarkResponse = client.toBlocking().exchange(
+            HttpRequest.DELETE("/api/tags/legacy", LegacyTagRequest("kotlin"))
+                .bearerAuth(user1Token),
+            LegacyTagResponse::class.java
+        )
+
+        assertEquals(HttpStatus.OK, unmarkResponse.status)
+
+        // Then: User 1 should see "kotlin" as NOT legacy
+        val user1Response = client.toBlocking().exchange(
+            HttpRequest.GET<Any>("/api/tags/stats")
+                .bearerAuth(user1Token),
+            TagStatsResponse::class.java
+        )
+
+        assertEquals(HttpStatus.OK, user1Response.status)
+        val user1Stats = user1Response.body()?.tags ?: emptyList()
+        assertEquals(1, user1Stats.size)
+        assertFalse(user1Stats[0].isLegacy)
+
+        // And: User 2 should still see "kotlin" as legacy
+        val user2Response = client.toBlocking().exchange(
+            HttpRequest.GET<Any>("/api/tags/stats")
+                .bearerAuth(user2Token),
+            TagStatsResponse::class.java
+        )
+
+        assertEquals(HttpStatus.OK, user2Response.status)
+        val user2Stats = user2Response.body()?.tags ?: emptyList()
+        assertEquals(1, user2Stats.size)
+        assertTrue(user2Stats[0].isLegacy)
+    }
+
+    @Test
+    fun `should handle marking tag as legacy when already marked`() {
+        // Given: User 1 has "kotlin" already marked as legacy
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T10:00:00Z"),
+                endTime = Instant.parse("2024-01-15T11:00:00Z"),
+                title = "User 1 Task",
+                ownerId = requireNotNull(user1.id),
+                tags = arrayOf("kotlin")
+            )
+        )
+
+        testDatabaseSupport.insert(
+            LegacyTag(
+                userId = requireNotNull(user1.id),
+                name = "kotlin"
+            )
+        )
+
+        val user1Token = testAuthSupport.generateToken(user1)
+
+        // When: User 1 tries to mark "kotlin" as legacy again
+        val markResponse = client.toBlocking().exchange(
+            HttpRequest.POST("/api/tags/legacy", LegacyTagRequest("kotlin"))
+                .bearerAuth(user1Token),
+            LegacyTagResponse::class.java
+        )
+
+        // Then: Should succeed with appropriate message
+        assertEquals(HttpStatus.OK, markResponse.status)
+
+        // And: Verify it's still marked as legacy (no duplicates)
+        val legacyTags = legacyTagRepository.findByUserId(requireNotNull(user1.id))
+        assertEquals(1, legacyTags.size)
+    }
+
+    @Test
+    fun `should handle unmarking tag that was not marked as legacy`() {
+        // Given: User 1 has "kotlin" but not marked as legacy
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = Instant.parse("2024-01-15T10:00:00Z"),
+                endTime = Instant.parse("2024-01-15T11:00:00Z"),
+                title = "User 1 Task",
+                ownerId = requireNotNull(user1.id),
+                tags = arrayOf("kotlin")
+            )
+        )
+
+        val user1Token = testAuthSupport.generateToken(user1)
+
+        // When: User 1 tries to unmark "kotlin" as legacy
+        val unmarkResponse = client.toBlocking().exchange(
+            HttpRequest.DELETE("/api/tags/legacy", LegacyTagRequest("kotlin"))
+                .bearerAuth(user1Token),
+            LegacyTagResponse::class.java
+        )
+
+        // Then: Should succeed (idempotent operation)
+        assertEquals(HttpStatus.OK, unmarkResponse.status)
     }
 }

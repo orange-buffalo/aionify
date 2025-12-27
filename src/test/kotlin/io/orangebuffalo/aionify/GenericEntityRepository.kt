@@ -4,6 +4,7 @@ import io.micronaut.data.annotation.Repository
 import io.micronaut.data.jdbc.annotation.JdbcRepository
 import io.micronaut.data.model.query.builder.sql.Dialect
 import io.orangebuffalo.aionify.domain.ActivationToken
+import io.orangebuffalo.aionify.domain.LegacyTag
 import io.orangebuffalo.aionify.domain.TimeLogEntry
 import io.orangebuffalo.aionify.domain.User
 
@@ -34,6 +35,11 @@ interface GenericEntityRepository {
     fun save(entity: ActivationToken): ActivationToken
     
     /**
+     * Inserts/updates a LegacyTag entity.
+     */
+    fun save(entity: LegacyTag): LegacyTag
+    
+    /**
      * Updates a User entity.
      */
     fun update(entity: User): User
@@ -47,4 +53,9 @@ interface GenericEntityRepository {
      * Updates an ActivationToken entity.
      */
     fun update(entity: ActivationToken): ActivationToken
+    
+    /**
+     * Updates a LegacyTag entity.
+     */
+    fun update(entity: LegacyTag): LegacyTag
 }
