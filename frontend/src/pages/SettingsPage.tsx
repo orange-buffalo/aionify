@@ -6,7 +6,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { FormMessage } from "@/components/ui/form-message"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { apiGet, apiPost, apiRequest } from "@/lib/api"
+import { MoreVertical, Archive, ArchiveRestore } from "lucide-react"
 
 interface TagStat {
   tag: string
@@ -116,7 +118,7 @@ export function SettingsPage() {
                     <TableRow>
                       <TableHead data-testid="tags-header-tag">{t("settings.tags.table.tag")}</TableHead>
                       <TableHead className="w-[100px]" data-testid="tags-header-count">{t("settings.tags.table.count")}</TableHead>
-                      <TableHead className="w-[120px]" data-testid="tags-header-legacy">
+                      <TableHead className="w-auto" data-testid="tags-header-legacy">
                         <div className="flex items-center gap-2">
                           <span>{t("settings.tags.table.isLegacy")}</span>
                           <Popover>
@@ -127,13 +129,13 @@ export function SettingsPage() {
                                 </svg>
                               </button>
                             </PopoverTrigger>
-                            <PopoverContent className="text-sm text-foreground" data-testid="tags-legacy-tooltip">
+                            <PopoverContent className="text-sm" data-testid="tags-legacy-tooltip">
                               {t("settings.tags.table.isLegacyTooltip")}
                             </PopoverContent>
                           </Popover>
                         </div>
                       </TableHead>
-                      <TableHead className="w-[180px]" data-testid="tags-header-actions">Actions</TableHead>
+                      <TableHead className="w-[100px]" data-testid="tags-header-actions">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -149,29 +151,37 @@ export function SettingsPage() {
                           {tagStat.isLegacy && <span className="text-foreground">{t("settings.tags.yes")}</span>}
                         </TableCell>
                         <TableCell data-testid={`tag-actions-${tagStat.tag}`}>
-                          {tagStat.isLegacy ? (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleRemoveFromLegacy(tagStat.tag)}
-                              disabled={actionInProgress === tagStat.tag}
-                              className="text-foreground"
-                              data-testid={`tag-unmark-legacy-${tagStat.tag}`}
-                            >
-                              {t("settings.tags.actions.removeFromLegacy")}
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleMarkAsLegacy(tagStat.tag)}
-                              disabled={actionInProgress === tagStat.tag}
-                              className="text-foreground"
-                              data-testid={`tag-mark-legacy-${tagStat.tag}`}
-                            >
-                              {t("settings.tags.actions.markAsLegacy")}
-                            </Button>
-                          )}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                disabled={actionInProgress === tagStat.tag}
+                                data-testid={`tag-actions-menu-${tagStat.tag}`}
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="dark">
+                              {tagStat.isLegacy ? (
+                                <DropdownMenuItem
+                                  onClick={() => handleRemoveFromLegacy(tagStat.tag)}
+                                  data-testid={`tag-unmark-legacy-${tagStat.tag}`}
+                                >
+                                  <ArchiveRestore className="h-4 w-4 mr-2" />
+                                  {t("settings.tags.actions.removeFromLegacy")}
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem
+                                  onClick={() => handleMarkAsLegacy(tagStat.tag)}
+                                  data-testid={`tag-mark-legacy-${tagStat.tag}`}
+                                >
+                                  <Archive className="h-4 w-4 mr-2" />
+                                  {t("settings.tags.actions.markAsLegacy")}
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}

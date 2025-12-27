@@ -323,10 +323,13 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
 
         navigateToSettingsViaToken()
 
-        // Verify "Mark as legacy" button is visible
+        // Open the actions menu
+        page.locator("[data-testid='tag-actions-menu-kotlin']").click()
+
+        // Verify "Mark as legacy" menu item is visible
         assertThat(page.locator("[data-testid='tag-mark-legacy-kotlin']")).isVisible()
 
-        // Verify "Remove legacy mark" button is not visible
+        // Verify "Remove legacy mark" menu item is not visible
         assertThat(page.locator("[data-testid='tag-unmark-legacy-kotlin']")).not().isVisible()
     }
 
@@ -353,10 +356,13 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
 
         navigateToSettingsViaToken()
 
-        // Verify "Remove legacy mark" button is visible
+        // Open the actions menu
+        page.locator("[data-testid='tag-actions-menu-kotlin']").click()
+
+        // Verify "Remove legacy mark" menu item is visible
         assertThat(page.locator("[data-testid='tag-unmark-legacy-kotlin']")).isVisible()
 
-        // Verify "Mark as legacy" button is not visible
+        // Verify "Mark as legacy" menu item is not visible
         assertThat(page.locator("[data-testid='tag-mark-legacy-kotlin']")).not().isVisible()
     }
 
@@ -375,13 +381,19 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
 
         navigateToSettingsViaToken()
 
-        // Click "Mark as legacy" button
+        // Open the actions menu
+        page.locator("[data-testid='tag-actions-menu-kotlin']").click()
+
+        // Click "Mark as legacy" menu item
         page.locator("[data-testid='tag-mark-legacy-kotlin']").click()
 
         // Wait for the action to complete and page to update
         assertThat(page.locator("[data-testid='tag-legacy-kotlin']")).containsText("Yes")
 
-        // Verify button changed to "Remove legacy mark"
+        // Open the actions menu again to verify the menu item changed
+        page.locator("[data-testid='tag-actions-menu-kotlin']").click()
+
+        // Verify menu item changed to "Remove legacy mark"
         assertThat(page.locator("[data-testid='tag-unmark-legacy-kotlin']")).isVisible()
         assertThat(page.locator("[data-testid='tag-mark-legacy-kotlin']")).not().isVisible()
     }
@@ -409,13 +421,19 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
 
         navigateToSettingsViaToken()
 
-        // Click "Remove legacy mark" button
+        // Open the actions menu
+        page.locator("[data-testid='tag-actions-menu-kotlin']").click()
+
+        // Click "Remove legacy mark" menu item
         page.locator("[data-testid='tag-unmark-legacy-kotlin']").click()
 
         // Wait for the action to complete and page to update
         assertThat(page.locator("[data-testid='tag-legacy-kotlin']")).not().containsText("Yes")
 
-        // Verify button changed to "Mark as legacy"
+        // Open the actions menu again to verify the menu item changed
+        page.locator("[data-testid='tag-actions-menu-kotlin']").click()
+
+        // Verify menu item changed to "Mark as legacy"
         assertThat(page.locator("[data-testid='tag-mark-legacy-kotlin']")).isVisible()
         assertThat(page.locator("[data-testid='tag-unmark-legacy-kotlin']")).not().isVisible()
     }
@@ -457,7 +475,8 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
         val legacyCell = page.locator("[data-testid='tag-legacy-shared-tag']")
         assertThat(legacyCell).not().containsText("Yes")
 
-        // Verify "Mark as legacy" button is shown (not "Remove legacy mark")
+        // Open the actions menu to verify "Mark as legacy" is shown (not "Remove legacy mark")
+        page.locator("[data-testid='tag-actions-menu-shared-tag']").click()
         assertThat(page.locator("[data-testid='tag-mark-legacy-shared-tag']")).isVisible()
         assertThat(page.locator("[data-testid='tag-unmark-legacy-shared-tag']")).not().isVisible()
     }
