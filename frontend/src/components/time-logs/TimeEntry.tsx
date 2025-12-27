@@ -91,8 +91,8 @@ export function TimeEntry({
         <p className="font-medium text-foreground" data-testid="entry-title">{entry.title}</p>
         {entry.tags && entry.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-1.5" data-testid="entry-tags">
-            {entry.tags.map((tag) => (
-              <Badge key={tag} variant="outline" className="text-[0.7rem]" data-testid={`entry-tag-${tag}`}>
+            {entry.tags.map((tag, index) => (
+              <Badge key={tag} variant="outline" className="text-[0.7rem]" data-testid={`entry-tag-${index}`}>
                 {tag}
               </Badge>
             ))}

@@ -355,11 +355,15 @@ class TimeLogsPageObject(private val page: Page) {
                 // Tags container should be visible
                 assertThat(entryElement.locator("[data-testid='entry-tags']")).isVisible()
                 
-                // Assert each tag is present
-                for (tag in entry.tags) {
-                    val tagLocator = entryElement.locator("[data-testid='entry-tag-$tag']")
+                // Assert each tag is present by checking the count and text content
+                val tagLocators = entryElement.locator("[data-testid^='entry-tag-']")
+                assertThat(tagLocators).hasCount(entry.tags.size)
+                
+                // Verify tag text content matches expected tags
+                for (j in entry.tags.indices) {
+                    val tagLocator = entryElement.locator("[data-testid='entry-tag-$j']")
                     assertThat(tagLocator).isVisible()
-                    assertThat(tagLocator).hasText(tag)
+                    assertThat(tagLocator).hasText(entry.tags[j])
                 }
             } else {
                 // Tags container should not be visible when there are no tags
