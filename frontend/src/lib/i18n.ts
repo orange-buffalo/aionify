@@ -84,7 +84,14 @@ const resources = {
           table: {
             tag: "Tag",
             count: "Entries",
+            isLegacy: "Is legacy?",
+            isLegacyTooltip: "Legacy tags are still visible on historical entries, but not available for selection when editing.",
           },
+          actions: {
+            markAsLegacy: "Mark as legacy",
+            removeFromLegacy: "Remove legacy mark",
+          },
+          yes: "Yes",
         },
       },
       // Time Logs Page
@@ -395,7 +402,14 @@ const resources = {
           table: {
             tag: "Тег",
             count: "Записи",
+            isLegacy: "Застарілий?",
+            isLegacyTooltip: "Застарілі теги все ще видимі в історичних записах, але недоступні для вибору під час редагування.",
           },
+          actions: {
+            markAsLegacy: "Позначити як застарілий",
+            removeFromLegacy: "Зняти позначку застарілого",
+          },
+          yes: "Так",
         },
       },
       // Time Logs Page

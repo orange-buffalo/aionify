@@ -4,11 +4,14 @@ import { PortalLayout } from "@/components/layout/PortalLayout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { FormMessage } from "@/components/ui/form-message"
-import { apiGet } from "@/lib/api"
+import { Button } from "@/components/ui/button"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { apiGet, apiPost, apiRequest } from "@/lib/api"
 
 interface TagStat {
   tag: string
   count: number
+  isLegacy: boolean
 }
 
 interface TagStatsResponse {
@@ -20,6 +23,7 @@ export function SettingsPage() {
   const [tags, setTags] = useState<TagStat[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [actionInProgress, setActionInProgress] = useState<string | null>(null)
 
   const loadTags = async () => {
     setLoading(true)
@@ -39,6 +43,37 @@ export function SettingsPage() {
       setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleMarkAsLegacy = async (tag: string) => {
+    setActionInProgress(tag)
+    setError(null)
+
+    try {
+      await apiPost("/api/tags/legacy", { tag })
+      await loadTags()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred")
+    } finally {
+      setActionInProgress(null)
+    }
+  }
+
+  const handleRemoveFromLegacy = async (tag: string) => {
+    setActionInProgress(tag)
+    setError(null)
+
+    try {
+      await apiRequest("/api/tags/legacy", {
+        method: "DELETE",
+        body: JSON.stringify({ tag }),
+      })
+      await loadTags()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred")
+    } finally {
+      setActionInProgress(null)
     }
   }
 
@@ -81,6 +116,24 @@ export function SettingsPage() {
                     <TableRow>
                       <TableHead data-testid="tags-header-tag">{t("settings.tags.table.tag")}</TableHead>
                       <TableHead className="w-[100px]" data-testid="tags-header-count">{t("settings.tags.table.count")}</TableHead>
+                      <TableHead className="w-[120px]" data-testid="tags-header-legacy">
+                        <div className="flex items-center gap-2">
+                          <span>{t("settings.tags.table.isLegacy")}</span>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button className="text-muted-foreground hover:text-foreground" data-testid="tags-legacy-tooltip-trigger">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                                </svg>
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="text-sm text-foreground" data-testid="tags-legacy-tooltip">
+                              {t("settings.tags.table.isLegacyTooltip")}
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      </TableHead>
+                      <TableHead className="w-[180px]" data-testid="tags-header-actions">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -91,6 +144,34 @@ export function SettingsPage() {
                         </TableCell>
                         <TableCell data-testid={`tag-count-${tagStat.tag}`}>
                           {tagStat.count}
+                        </TableCell>
+                        <TableCell data-testid={`tag-legacy-${tagStat.tag}`}>
+                          {tagStat.isLegacy && <span className="text-foreground">{t("settings.tags.yes")}</span>}
+                        </TableCell>
+                        <TableCell data-testid={`tag-actions-${tagStat.tag}`}>
+                          {tagStat.isLegacy ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveFromLegacy(tagStat.tag)}
+                              disabled={actionInProgress === tagStat.tag}
+                              className="text-foreground"
+                              data-testid={`tag-unmark-legacy-${tagStat.tag}`}
+                            >
+                              {t("settings.tags.actions.removeFromLegacy")}
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleMarkAsLegacy(tagStat.tag)}
+                              disabled={actionInProgress === tagStat.tag}
+                              className="text-foreground"
+                              data-testid={`tag-mark-legacy-${tagStat.tag}`}
+                            >
+                              {t("settings.tags.actions.markAsLegacy")}
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
