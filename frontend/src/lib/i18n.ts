@@ -150,6 +150,7 @@ const resources = {
             subtitle: "View and manage system users",
             deleteSuccess: "User deleted successfully",
             createUser: "Create User",
+            listTitle: "Users List",
             table: {
               username: "Username",
               greeting: "Greeting",
@@ -460,6 +461,7 @@ const resources = {
             subtitle: "Перегляд та керування користувачами системи",
             deleteSuccess: "Користувача успішно видалено",
             createUser: "Створити користувача",
+            listTitle: "Список користувачів",
             table: {
               username: "Ім'я користувача",
               greeting: "Привітання",
@@ -672,10 +674,10 @@ export const translateErrorCode = (errorCode: string | undefined): string => {
   if (!errorCode) {
     return i18n.t("common.error")
   }
-  
+
   const translationKey = `errorCodes.${errorCode}`
   const translated = i18n.t(translationKey)
-  
+
   // If translation key not found, return the fallback
   return translated === translationKey ? i18n.t("common.error") : translated
 }
