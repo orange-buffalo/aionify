@@ -50,7 +50,7 @@ export function TagSelector({
         const response = await apiGet<{ tags: TagStat[] }>("/api/tags/stats")
         
         // Filter out legacy tags and extract tag names
-        const nonLegacyTags = response.tags
+        const nonLegacyTags = (response.tags || [])
           .filter(stat => !stat.isLegacy)
           .map(stat => stat.tag)
         
