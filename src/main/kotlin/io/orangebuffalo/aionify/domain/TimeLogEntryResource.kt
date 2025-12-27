@@ -148,7 +148,8 @@ open class TimeLogEntryResource(
                 startTime = timeService.now(),
                 endTime = null,
                 title = request.title,
-                ownerId = userId
+                ownerId = userId,
+                tags = request.tags.toTypedArray()
             )
         )
 
@@ -368,7 +369,8 @@ data class CreateTimeLogEntryRequest(
     @field:NotBlank(message = "Title cannot be blank")
     @field:Size(max = 1000, message = "Title cannot exceed 1000 characters")
     val title: String,
-    val stopActiveEntry: Boolean = false
+    val stopActiveEntry: Boolean = false,
+    val tags: List<String> = emptyList()
 )
 
 @Serdeable
