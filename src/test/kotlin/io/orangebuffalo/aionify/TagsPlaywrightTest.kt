@@ -40,8 +40,12 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
         val settingsPage = page.locator("[data-testid='settings-page']")
         assertThat(settingsPage).isVisible()
 
-        // Verify Tags heading is present
-        assertThat(page.getByRole(AriaRole.HEADING, Page.GetByRoleOptions().setName("Tags"))).isVisible()
+        // Wait for loading to complete
+        val tagsLoading = page.locator("[data-testid='tags-loading']")
+        assertThat(tagsLoading).not().isVisible()
+
+        // Verify Tags title is present
+        assertThat(page.locator("[data-testid='tags-title']")).isVisible()
     }
 
     @Test

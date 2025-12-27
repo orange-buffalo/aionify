@@ -4,12 +4,12 @@ import { useNavigate } from "react-router"
 import { PortalLayout } from "@/components/layout/PortalLayout"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { FormMessage } from "@/components/ui/form-message"
 import { apiGet, apiRequest } from "@/lib/api"
-import { MoreVertical, ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react"
+import { MoreVertical, ChevronLeft, ChevronRight, Pencil, Trash2, Plus } from "lucide-react"
 
 interface User {
   id: number
@@ -98,20 +98,11 @@ export function UsersPage() {
     <PortalLayout testId="users-page">
       <div className="p-8">
         <div className="max-w-6xl mx-auto">
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground" data-testid="users-title">
-                {t("portal.admin.users.title")}
-              </h1>
-              <p className="text-muted-foreground">{t("portal.admin.users.subtitle")}</p>
-            </div>
-            <Button
-              onClick={() => navigate("/admin/users/create")}
-              data-testid="create-user-button"
-              className="bg-teal-600 hover:bg-teal-700"
-            >
-              {t("portal.admin.users.createUser")}
-            </Button>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground" data-testid="users-title">
+              {t("portal.admin.users.title")}
+            </h1>
+            <p className="text-muted-foreground">{t("portal.admin.users.subtitle")}</p>
           </div>
 
           {error && (
@@ -133,98 +124,113 @@ export function UsersPage() {
           ) : (
             <>
               <Card className="border-none shadow-md" data-testid="users-table-container">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t("portal.admin.users.table.username")}</TableHead>
-                      <TableHead>{t("portal.admin.users.table.greeting")}</TableHead>
-                      <TableHead>{t("portal.admin.users.table.type")}</TableHead>
-                      <TableHead className="w-[50px]">{t("portal.admin.users.table.actions")}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {users.length === 0 ? (
+                <CardHeader>
+                  <CardTitle>{t("portal.admin.users.listTitle")}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-4 flex justify-end">
+                    <Button
+                      variant="ghost"
+                      onClick={() => navigate("/admin/users/create")}
+                      data-testid="create-user-button"
+                    >
+                      <Plus className="h-4 w-4" />
+                      {t("portal.admin.users.createUser")}
+                    </Button>
+                  </div>
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground">
-                          {t("portal.admin.users.table.noUsers")}
-                        </TableCell>
+                        <TableHead>{t("portal.admin.users.table.username")}</TableHead>
+                        <TableHead>{t("portal.admin.users.table.greeting")}</TableHead>
+                        <TableHead>{t("portal.admin.users.table.type")}</TableHead>
+                        <TableHead className="w-[50px]">{t("portal.admin.users.table.actions")}</TableHead>
                       </TableRow>
-                    ) : (
-                      users.map((user) => (
-                        <TableRow key={user.id} data-testid={`user-row-${user.userName}`}>
-                          <TableCell data-testid={`user-username-${user.userName}`}>{user.userName}</TableCell>
-                          <TableCell data-testid={`user-greeting-${user.userName}`}>{user.greeting}</TableCell>
-                          <TableCell data-testid={`user-type-${user.userName}`}>
-                            {user.isAdmin ? t("portal.admin.users.table.admin") : t("portal.admin.users.table.regularUser")}
-                          </TableCell>
-                          <TableCell>
-                            {user.userName !== currentUserName && (
-                              <>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="sm" data-testid={`user-actions-${user.userName}`}>
-                                      <MoreVertical className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="dark">
-                                    <DropdownMenuItem
-                                      data-testid={`user-edit-${user.userName}`}
-                                      onClick={() => navigate(`/admin/users/${user.id}`)}
-                                    >
-                                      <Pencil className="h-4 w-4 mr-2" />
-                                      {t("portal.admin.users.table.edit")}
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                      data-testid={`user-delete-${user.userName}`}
-                                      onClick={() => setDeletePopoverOpen(user.id)}
-                                      className="text-destructive focus:text-destructive"
-                                    >
-                                      <Trash2 className="h-4 w-4 mr-2" />
-                                      {t("portal.admin.users.table.delete")}
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-
-                                <Dialog
-                                  open={deletePopoverOpen === user.id}
-                                  onOpenChange={(open) => setDeletePopoverOpen(open ? user.id : null)}
-                                >
-                                  <DialogContent data-testid={`delete-confirm-${user.userName}`} className="dark">
-                                    <DialogHeader>
-                                      <DialogTitle className="text-foreground">{t("portal.admin.users.deleteConfirm.title")}</DialogTitle>
-                                      <DialogDescription className="text-foreground">
-                                        {t("portal.admin.users.deleteConfirm.message", { userName: user.userName })}
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    <DialogFooter>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => setDeletePopoverOpen(null)}
-                                        data-testid={`delete-cancel-${user.userName}`}
-                                        className="text-foreground"
-                                      >
-                                        {t("portal.admin.users.deleteConfirm.cancel")}
-                                      </Button>
-                                      <Button
-                                        variant="destructive"
-                                        size="sm"
-                                        onClick={() => handleDelete(user.id)}
-                                        data-testid={`delete-confirm-button-${user.userName}`}
-                                      >
-                                        {t("portal.admin.users.deleteConfirm.confirm")}
-                                      </Button>
-                                    </DialogFooter>
-                                  </DialogContent>
-                                </Dialog>
-                              </>
-                            )}
+                    </TableHeader>
+                    <TableBody>
+                      {users.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center text-muted-foreground">
+                            {t("portal.admin.users.table.noUsers")}
                           </TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+                      ) : (
+                        users.map((user) => (
+                          <TableRow key={user.id} data-testid={`user-row-${user.userName}`}>
+                            <TableCell data-testid={`user-username-${user.userName}`}>{user.userName}</TableCell>
+                            <TableCell data-testid={`user-greeting-${user.userName}`}>{user.greeting}</TableCell>
+                            <TableCell data-testid={`user-type-${user.userName}`}>
+                              {user.isAdmin ? t("portal.admin.users.table.admin") : t("portal.admin.users.table.regularUser")}
+                            </TableCell>
+                            <TableCell>
+                              {user.userName !== currentUserName && (
+                                <>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="sm" data-testid={`user-actions-${user.userName}`}>
+                                        <MoreVertical className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="dark">
+                                      <DropdownMenuItem
+                                        data-testid={`user-edit-${user.userName}`}
+                                        onClick={() => navigate(`/admin/users/${user.id}`)}
+                                      >
+                                        <Pencil className="h-4 w-4 mr-2" />
+                                        {t("portal.admin.users.table.edit")}
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        data-testid={`user-delete-${user.userName}`}
+                                        onClick={() => setDeletePopoverOpen(user.id)}
+                                        className="text-destructive focus:text-destructive"
+                                      >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        {t("portal.admin.users.table.delete")}
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+
+                                  <Dialog
+                                    open={deletePopoverOpen === user.id}
+                                    onOpenChange={(open) => setDeletePopoverOpen(open ? user.id : null)}
+                                  >
+                                    <DialogContent data-testid={`delete-confirm-${user.userName}`} className="dark">
+                                      <DialogHeader>
+                                        <DialogTitle className="text-foreground">{t("portal.admin.users.deleteConfirm.title")}</DialogTitle>
+                                        <DialogDescription className="text-foreground">
+                                          {t("portal.admin.users.deleteConfirm.message", { userName: user.userName })}
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      <DialogFooter>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => setDeletePopoverOpen(null)}
+                                          data-testid={`delete-cancel-${user.userName}`}
+                                          className="text-foreground"
+                                        >
+                                          {t("portal.admin.users.deleteConfirm.cancel")}
+                                        </Button>
+                                        <Button
+                                          variant="destructive"
+                                          size="sm"
+                                          onClick={() => handleDelete(user.id)}
+                                          data-testid={`delete-confirm-button-${user.userName}`}
+                                        >
+                                          {t("portal.admin.users.deleteConfirm.confirm")}
+                                        </Button>
+                                      </DialogFooter>
+                                    </DialogContent>
+                                  </Dialog>
+                                </>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
               </Card>
 
               {totalPages > 1 && (
