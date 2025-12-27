@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api"
 import { getWeekStart, formatISODate, calculateDuration } from "@/lib/time-utils"
 import { formatDate } from "@/lib/date-format"
+import { useDocumentTitle } from "./useDocumentTitle"
 import type { TimeEntry, TimeLogEntry, DayGroup } from "../components/time-logs/types"
 
 /**
@@ -27,6 +28,9 @@ export function useTimeLogs() {
   const [userLocale, setUserLocale] = useState<string | null>(null)
   const [editingEntryId, setEditingEntryId] = useState<number | null>(null)
   const [isEditingActive, setIsEditingActive] = useState(false)
+
+  // Update browser tab title based on active entry
+  useDocumentTitle(activeEntry?.title || null)
 
   // Get day title (Today, Yesterday, or day of week + date)
   function getDayTitle(dateStr: string, locale: string): string {
