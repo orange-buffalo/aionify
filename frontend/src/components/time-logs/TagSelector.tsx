@@ -49,12 +49,12 @@ export function TagSelector({
       try {
         setLoading(true)
         const response = await apiGet<{ tags: TagStat[] }>("/api/tags/stats")
-        
+
         // Filter out legacy tags and extract tag names
         const nonLegacyTags = (response.tags || [])
           .filter(stat => !stat.isLegacy)
           .map(stat => stat.tag)
-        
+
         setAvailableTags(nonLegacyTags)
       } catch (err) {
         console.error("Failed to load tags:", err)
@@ -116,7 +116,7 @@ export function TagSelector({
           <Tag className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="start" data-testid={`${testIdPrefix}-popover`}>
+      <PopoverContent className="dark w-80 p-0" align="start" data-testid={`${testIdPrefix}-popover`}>
         <div className="p-3 space-y-2">
           {/* Add new tag section */}
           <div className="flex gap-2 pb-2 border-b border-border">
@@ -135,7 +135,7 @@ export function TagSelector({
               disabled={!newTagInput.trim() || loading}
               data-testid={`${testIdPrefix}-add-tag-button`}
               type="button"
-              className="bg-teal-600 hover:bg-teal-700"
+              variant="ghost"
             >
               <Plus className="h-4 w-4" />
             </Button>
