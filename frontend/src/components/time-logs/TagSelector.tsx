@@ -6,6 +6,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Tag, Plus } from "lucide-react"
 import { apiGet } from "@/lib/api"
@@ -158,15 +159,11 @@ export function TagSelector({
                     className="flex items-center gap-2 px-2 py-1.5 rounded-sm hover:bg-accent cursor-pointer"
                     data-testid={`${testIdPrefix}-item-${tag}`}
                   >
-                    <div className="relative flex h-4 w-4 items-center justify-center">
-                      <input
-                        type="checkbox"
-                        checked={selectedTags.includes(tag)}
-                        onChange={() => handleToggleTag(tag)}
-                        className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-600"
-                        data-testid={`${testIdPrefix}-checkbox-${tag}`}
-                      />
-                    </div>
+                    <Checkbox
+                      checked={selectedTags.includes(tag)}
+                      onCheckedChange={() => handleToggleTag(tag)}
+                      data-testid={`${testIdPrefix}-checkbox-${tag}`}
+                    />
                     <span className="text-sm text-foreground flex-1">{tag}</span>
                   </label>
                 ))}
