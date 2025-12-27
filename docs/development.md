@@ -168,6 +168,30 @@ bun add <package-name>
 
 For detailed coding conventions and standards, see the [GitHub Copilot Instructions](../.github/copilot-instructions.md) file. This file is kept up-to-date with the latest project conventions.
 
+### Code Formatting
+
+The project uses automatic code formatters to maintain consistent code style:
+
+**Before committing any code, always run:**
+```bash
+./gradlew format
+```
+
+This command formats both Kotlin code (using ktlint) and frontend code (using Prettier).
+
+**To check if code is properly formatted:**
+```bash
+./gradlew check
+```
+
+The `check` task runs all formatting checks and will fail if code is not properly formatted. This task is also run in CI.
+
+**Individual formatters:**
+- Format Kotlin only: `./gradlew ktlintFormat`
+- Format frontend only: `./gradlew prettierFormat`
+- Check Kotlin formatting: `./gradlew ktlintCheck`
+- Check frontend formatting: `./gradlew prettierCheck`
+
 ## Troubleshooting
 
 ### Testcontainers issues
