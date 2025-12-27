@@ -12,6 +12,7 @@ import {
 import { User, LogOut, Menu, Settings } from "lucide-react"
 import { useState } from "react"
 import { TOKEN_KEY } from "@/lib/constants"
+import { Logo } from "@/components/ui/logo"
 
 export interface NavItem {
   label: string
@@ -61,9 +62,7 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
         <div className="flex justify-between items-center h-16">
           {/* Logo / Brand */}
           <div className="flex-shrink-0">
-            <span className="text-xl font-bold text-foreground" data-testid="nav-logo">
-              Aionify
-            </span>
+            <Logo width={120} height={29} onClick={() => navigate("/")} data-testid="nav-logo" />
           </div>
 
           {/* Desktop Navigation - Left menu items */}
