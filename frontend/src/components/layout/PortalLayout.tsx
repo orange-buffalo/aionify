@@ -1,7 +1,7 @@
 import { useEffect, useState, ReactNode } from "react"
 import { useLocation } from "react-router"
 import { useTranslation } from "react-i18next"
-import { Settings, Users, BarChart, Clock, User } from "lucide-react"
+import { Settings, Users, Clock } from "lucide-react"
 import { TopNav, NavItem } from "@/components/navigation/TopNav"
 import { LAST_USERNAME_KEY } from "@/lib/constants"
 
@@ -29,8 +29,6 @@ export function PortalLayout({ children, testId }: PortalLayoutProps) {
 
   const adminMenuItems: NavItem[] = [
     { label: t("nav.users"), icon: <Users className="h-4 w-4 mr-2" />, href: "/admin/users" },
-    { label: t("nav.reports"), icon: <BarChart className="h-4 w-4 mr-2" /> },
-    { label: t("nav.settings"), icon: <Settings className="h-4 w-4 mr-2" /> },
   ]
 
   const userMenuItems: NavItem[] = [
