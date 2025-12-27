@@ -56,7 +56,7 @@ open class TagStatsResource(
     }
 
     @Post("/legacy")
-    open fun markTagAsLegacy(@Body request: MarkLegacyTagRequest, principal: Principal?): HttpResponse<*> {
+    open fun markTagAsLegacy(@Body request: LegacyTagRequest, principal: Principal?): HttpResponse<*> {
         val userName = principal?.name
         if (userName == null) {
             log.debug("Mark tag as legacy failed: user not authenticated")
@@ -77,7 +77,7 @@ open class TagStatsResource(
         val existing = legacyTagRepository.findByUserIdAndName(userId, request.tag)
         if (existing.isPresent) {
             log.debug("Tag '{}' is already marked as legacy for user: {}", request.tag, userName)
-            return HttpResponse.ok(MarkLegacyTagResponse("Tag is already marked as legacy"))
+            return HttpResponse.ok(LegacyTagResponse("Tag is already marked as legacy"))
         }
 
         log.debug("Marking tag '{}' as legacy for user: {}", request.tag, userName)
@@ -89,11 +89,11 @@ open class TagStatsResource(
             )
         )
 
-        return HttpResponse.ok(MarkLegacyTagResponse("Tag marked as legacy successfully"))
+        return HttpResponse.ok(LegacyTagResponse("Tag marked as legacy successfully"))
     }
 
     @Delete("/legacy")
-    open fun unmarkTagAsLegacy(@Body request: UnmarkLegacyTagRequest, principal: Principal?): HttpResponse<*> {
+    open fun unmarkTagAsLegacy(@Body request: LegacyTagRequest, principal: Principal?): HttpResponse<*> {
         val userName = principal?.name
         if (userName == null) {
             log.debug("Unmark tag as legacy failed: user not authenticated")
@@ -118,7 +118,7 @@ open class TagStatsResource(
             log.debug("Tag '{}' was not marked as legacy for user: {}", request.tag, userName)
         }
 
-        return HttpResponse.ok(UnmarkLegacyTagResponse("Tag unmarked as legacy successfully"))
+        return HttpResponse.ok(LegacyTagResponse("Tag unmarked as legacy successfully"))
     }
 }
 
@@ -145,24 +145,12 @@ data class TagStatsErrorResponse(
 
 @Serdeable
 @Introspected
-data class MarkLegacyTagRequest(
+data class LegacyTagRequest(
     val tag: String
 )
 
 @Serdeable
 @Introspected
-data class MarkLegacyTagResponse(
-    val message: String
-)
-
-@Serdeable
-@Introspected
-data class UnmarkLegacyTagRequest(
-    val tag: String
-)
-
-@Serdeable
-@Introspected
-data class UnmarkLegacyTagResponse(
+data class LegacyTagResponse(
     val message: String
 )

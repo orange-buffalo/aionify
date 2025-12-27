@@ -401,7 +401,7 @@ class TagStatsResourceTest {
         // When: Trying to mark tag as legacy without authentication
         val exception = assertThrows(HttpClientResponseException::class.java) {
             client.toBlocking().exchange(
-                HttpRequest.POST("/api/tags/legacy", MarkLegacyTagRequest("kotlin")),
+                HttpRequest.POST("/api/tags/legacy", LegacyTagRequest("kotlin")),
                 String::class.java
             )
         }
@@ -415,7 +415,7 @@ class TagStatsResourceTest {
         // When: Trying to unmark tag as legacy without authentication
         val exception = assertThrows(HttpClientResponseException::class.java) {
             client.toBlocking().exchange(
-                HttpRequest.DELETE("/api/tags/legacy", UnmarkLegacyTagRequest("kotlin")),
+                HttpRequest.DELETE("/api/tags/legacy", LegacyTagRequest("kotlin")),
                 String::class.java
             )
         }
@@ -500,9 +500,9 @@ class TagStatsResourceTest {
 
         // When: User 1 marks "kotlin" as legacy
         val markResponse = client.toBlocking().exchange(
-            HttpRequest.POST("/api/tags/legacy", MarkLegacyTagRequest("kotlin"))
+            HttpRequest.POST("/api/tags/legacy", LegacyTagRequest("kotlin"))
                 .bearerAuth(user1Token),
-            MarkLegacyTagResponse::class.java
+            LegacyTagResponse::class.java
         )
 
         assertEquals(HttpStatus.OK, markResponse.status)
@@ -574,9 +574,9 @@ class TagStatsResourceTest {
 
         // When: User 1 unmarks "kotlin" as legacy
         val unmarkResponse = client.toBlocking().exchange(
-            HttpRequest.DELETE("/api/tags/legacy", UnmarkLegacyTagRequest("kotlin"))
+            HttpRequest.DELETE("/api/tags/legacy", LegacyTagRequest("kotlin"))
                 .bearerAuth(user1Token),
-            UnmarkLegacyTagResponse::class.java
+            LegacyTagResponse::class.java
         )
 
         assertEquals(HttpStatus.OK, unmarkResponse.status)
@@ -630,9 +630,9 @@ class TagStatsResourceTest {
 
         // When: User 1 tries to mark "kotlin" as legacy again
         val markResponse = client.toBlocking().exchange(
-            HttpRequest.POST("/api/tags/legacy", MarkLegacyTagRequest("kotlin"))
+            HttpRequest.POST("/api/tags/legacy", LegacyTagRequest("kotlin"))
                 .bearerAuth(user1Token),
-            MarkLegacyTagResponse::class.java
+            LegacyTagResponse::class.java
         )
 
         // Then: Should succeed with appropriate message
@@ -660,9 +660,9 @@ class TagStatsResourceTest {
 
         // When: User 1 tries to unmark "kotlin" as legacy
         val unmarkResponse = client.toBlocking().exchange(
-            HttpRequest.DELETE("/api/tags/legacy", UnmarkLegacyTagRequest("kotlin"))
+            HttpRequest.DELETE("/api/tags/legacy", LegacyTagRequest("kotlin"))
                 .bearerAuth(user1Token),
-            UnmarkLegacyTagResponse::class.java
+            LegacyTagResponse::class.java
         )
 
         // Then: Should succeed (idempotent operation)
