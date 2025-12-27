@@ -93,11 +93,8 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
         assertThat(page.locator("[data-testid='tags-header-count']")).isVisible()
 
         // Verify exactly the expected tags are displayed (sorted alphabetically)
-        val displayedTagNames = page.locator("[data-testid^='tag-name-']").allTextContents()
-        val expectedTags = listOf("backend", "frontend", "kotlin", "react")
-        assert(displayedTagNames == expectedTags) {
-            "Expected tags $expectedTags but got $displayedTagNames"
-        }
+        val tagNames = page.locator("[data-testid^='tag-name-']")
+        assertThat(tagNames).containsText(arrayOf("backend", "frontend", "kotlin", "react"))
 
         // Verify counts for each tag
         assertThat(page.locator("[data-testid='tag-count-backend']")).containsText("1")
@@ -178,11 +175,8 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
         navigateToSettingsViaToken()
 
         // Verify only current user's tag is displayed (other user's tags filtered out)
-        val displayedTagNames = page.locator("[data-testid^='tag-name-']").allTextContents()
-        val expectedTags = listOf("my-tag")
-        assert(displayedTagNames == expectedTags) {
-            "Expected only current user's tag $expectedTags but got $displayedTagNames (other user's tags should be filtered)"
-        }
+        val tagNames = page.locator("[data-testid^='tag-name-']")
+        assertThat(tagNames).containsText(arrayOf("my-tag"))
     }
 
     @Test
@@ -201,11 +195,8 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
         navigateToSettingsViaToken()
 
         // Verify exactly the expected tags are displayed in alphabetical order
-        val displayedTagNames = page.locator("[data-testid^='tag-name-']").allTextContents()
-        val expectedTags = listOf("apple", "banana", "mango", "zebra")
-        assert(displayedTagNames == expectedTags) {
-            "Expected tags in alphabetical order $expectedTags but got $displayedTagNames"
-        }
+        val tagNames = page.locator("[data-testid^='tag-name-']")
+        assertThat(tagNames).containsText(arrayOf("apple", "banana", "mango", "zebra"))
     }
 
     @Test

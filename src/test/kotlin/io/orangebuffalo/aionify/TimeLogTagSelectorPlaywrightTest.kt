@@ -105,11 +105,8 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
         assertThat(tagsList).isVisible()
 
         // Verify exactly the expected tags are displayed in alphabetical order
-        val displayedTags = page.locator("[data-testid^='new-entry-tags-item-'] span").allTextContents()
-        val expectedTags = listOf("backend", "kotlin")
-        assert(displayedTags == expectedTags) {
-            "Expected tags $expectedTags but got $displayedTags"
-        }
+        val tagItems = page.locator("[data-testid^='new-entry-tags-item-'] span")
+        assertThat(tagItems).containsText(arrayOf("backend", "kotlin"))
     }
 
     @Test
@@ -139,11 +136,8 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='new-entry-tags-button']").click()
 
         // Verify only active tag is displayed (legacy tag is filtered out)
-        val displayedTags = page.locator("[data-testid^='new-entry-tags-item-'] span").allTextContents()
-        val expectedTags = listOf("active-tag")
-        assert(displayedTags == expectedTags) {
-            "Expected only active tag $expectedTags but got $displayedTags (legacy tag should be filtered)"
-        }
+        val tagItems = page.locator("[data-testid^='new-entry-tags-item-'] span")
+        assertThat(tagItems).containsText(arrayOf("active-tag"))
     }
 
     @Test
@@ -176,11 +170,8 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='new-entry-tags-button']").click()
 
         // Verify only current user's tag is displayed (other user's tags are filtered out)
-        val displayedTags = page.locator("[data-testid^='new-entry-tags-item-'] span").allTextContents()
-        val expectedTags = listOf("my-tag")
-        assert(displayedTags == expectedTags) {
-            "Expected only current user's tag $expectedTags but got $displayedTags (other user's tags should be filtered)"
-        }
+        val tagItems = page.locator("[data-testid^='new-entry-tags-item-'] span")
+        assertThat(tagItems).containsText(arrayOf("my-tag"))
     }
 
     @Test

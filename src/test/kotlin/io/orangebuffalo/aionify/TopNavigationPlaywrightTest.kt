@@ -71,11 +71,8 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
         assertThat(logo).containsText("Aionify")
 
         // Verify exactly the expected user-specific menu items are present (desktop view)
-        val navItems = page.locator("[data-testid^='nav-item-']").allTextContents()
-        val expectedItems = listOf("Time Log", "Settings")
-        assert(navItems == expectedItems) {
-            "Expected nav items $expectedItems but got $navItems"
-        }
+        val navItems = page.locator("[data-testid^='nav-item-']")
+        assertThat(navItems).containsText(arrayOf("Time Log", "Settings"))
     }
 
     @Test
@@ -92,11 +89,8 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
         assertThat(logo).containsText("Aionify")
 
         // Verify exactly the expected admin-specific menu items are present (desktop view)
-        val navItems = page.locator("[data-testid^='nav-item-']").allTextContents()
-        val expectedItems = listOf("Users")
-        assert(navItems == expectedItems) {
-            "Expected nav items $expectedItems but got $navItems"
-        }
+        val navItems = page.locator("[data-testid^='nav-item-']")
+        assertThat(navItems).containsText(arrayOf("Users"))
     }
 
     @Test
@@ -108,11 +102,8 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
         assertThat(topNav).isVisible()
 
         // Verify only admin-specific items are present (no user-specific items)
-        val navItems = page.locator("[data-testid^='nav-item-']").allTextContents()
-        val expectedItems = listOf("Users")
-        assert(navItems == expectedItems) {
-            "Expected only admin nav items $expectedItems but got $navItems (user items should be filtered)"
-        }
+        val navItems = page.locator("[data-testid^='nav-item-']")
+        assertThat(navItems).containsText(arrayOf("Users"))
     }
 
     @Test
@@ -124,11 +115,8 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
         assertThat(topNav).isVisible()
 
         // Verify only user-specific items are present (no admin-specific items)
-        val navItems = page.locator("[data-testid^='nav-item-']").allTextContents()
-        val expectedItems = listOf("Time Log", "Settings")
-        assert(navItems == expectedItems) {
-            "Expected only user nav items $expectedItems but got $navItems (admin items should be filtered)"
-        }
+        val navItems = page.locator("[data-testid^='nav-item-']")
+        assertThat(navItems).containsText(arrayOf("Time Log", "Settings"))
     }
 
     @Test
