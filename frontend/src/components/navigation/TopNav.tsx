@@ -62,7 +62,7 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
         <div className="flex justify-between items-center h-16">
           {/* Logo / Brand */}
           <div className="flex-shrink-0">
-            <Logo width={120} height={29} onClick={() => navigate("/")} />
+            <Logo width={120} height={29} onClick={() => navigate("/")} data-testid="nav-logo" />
           </div>
 
           {/* Desktop Navigation - Left menu items */}

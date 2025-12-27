@@ -5,13 +5,14 @@ interface LogoProps {
   width?: number
   height?: number
   onClick?: () => void
+  "data-testid"?: string
 }
 
-export function Logo({ className = "", width = 400, height = 96, onClick }: LogoProps) {
+export function Logo({ className = "", width = 400, height = 96, onClick, "data-testid": dataTestId }: LogoProps) {
   const clickableProps = onClick ? { onClick, style: { cursor: 'pointer' } } : {}
 
   return (
-    <div className={className} {...clickableProps}>
+    <div className={className} {...clickableProps} data-testid={dataTestId}>
       <svg
         width={width}
         height={height}
