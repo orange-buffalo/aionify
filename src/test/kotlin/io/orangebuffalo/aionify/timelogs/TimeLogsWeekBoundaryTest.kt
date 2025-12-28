@@ -14,8 +14,8 @@ class TimeLogsWeekBoundaryTest : TimeLogsPageTestBase() {
         // Current week is Mon 11 Mar - Sun 17 Mar
         // Create an entry that starts on Sunday (last day of current week) and ends on Monday (first day of next week)
         // Sunday 23:30 NZDT to Monday 01:30 NZDT (2 hours, spans week boundary)
-        val sundayEvening = FIXED_TEST_TIME.plusSeconds(72000) // Sunday, March 17 at 23:30 NZDT (20 hours after Saturday 03:30)
-        val mondayMorning = FIXED_TEST_TIME.plusSeconds(79200) // Monday, March 18 at 01:30 NZDT (22 hours after Saturday 03:30)
+        val sundayEvening = FIXED_TEST_TIME.plusSeconds(158400) // Sunday, March 17 at 23:30 NZDT (44 hours after Saturday 03:30)
+        val mondayMorning = FIXED_TEST_TIME.plusSeconds(165600) // Monday, March 18 at 01:30 NZDT (46 hours after Saturday 03:30)
 
         testDatabaseSupport.insert(
             TimeLogEntry(
@@ -58,8 +58,8 @@ class TimeLogsWeekBoundaryTest : TimeLogsPageTestBase() {
     fun `should show Monday portion when viewing next week for entry spanning Sunday to Monday`() {
         // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30:00 NZDT
         // Create an entry that starts on Sunday (last day of current week) and ends on Monday (first day of next week)
-        val sundayEvening = FIXED_TEST_TIME.plusSeconds(72000) // Sunday, March 17 at 23:30 NZDT
-        val mondayMorning = FIXED_TEST_TIME.plusSeconds(79200) // Monday, March 18 at 01:30 NZDT
+        val sundayEvening = FIXED_TEST_TIME.plusSeconds(158400) // Sunday, March 17 at 23:30 NZDT
+        val mondayMorning = FIXED_TEST_TIME.plusSeconds(165600) // Monday, March 18 at 01:30 NZDT
 
         testDatabaseSupport.insert(
             TimeLogEntry(

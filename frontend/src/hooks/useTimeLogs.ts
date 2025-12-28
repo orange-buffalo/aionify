@@ -56,8 +56,12 @@ export function useTimeLogs() {
   }
 
   // Group entries by day and handle entries spanning midnight
-  function groupEntriesByDay(entries: TimeLogEntry[], locale: string): DayGroup[] {
+  function groupEntriesByDay(entries: TimeLogEntry[], locale: string, weekStart: Date): DayGroup[] {
     const groups: { [key: string]: TimeLogEntry[] } = {};
+
+    // Calculate week end (7 days after week start)
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 7);
 
     entries.forEach((entry) => {
       const startDate = new Date(entry.startTime);
@@ -65,6 +69,9 @@ export function useTimeLogs() {
 
       const startDay = formatISODate(startDate);
       const endDay = formatISODate(endDate);
+
+      // Check if endDate is within the current week
+      const endDateWithinWeek = endDate < weekEnd;
 
       if (startDay === endDay) {
         if (!groups[startDay]) groups[startDay] = [];
@@ -80,14 +87,17 @@ export function useTimeLogs() {
           endTime: startDayEnd.toISOString(),
         });
 
-        const endDayStart = new Date(endDate);
-        endDayStart.setHours(0, 0, 0, 0);
+        // Only add the end day portion if it's within the current week
+        if (endDateWithinWeek) {
+          const endDayStart = new Date(endDate);
+          endDayStart.setHours(0, 0, 0, 0);
 
-        if (!groups[endDay]) groups[endDay] = [];
-        groups[endDay].push({
-          ...entry,
-          startTime: endDayStart.toISOString(),
-        });
+          if (!groups[endDay]) groups[endDay] = [];
+          groups[endDay].push({
+            ...entry,
+            startTime: endDayStart.toISOString(),
+          });
+        }
       }
     });
 
@@ -418,18 +428,18 @@ export function useTimeLogs() {
   // Recalculate day groups when entries change or when there's an active entry
   useEffect(() => {
     const locale = userLocale || i18n.language || "en";
-    const groups = groupEntriesByDay(entries, locale);
+    const groups = groupEntriesByDay(entries, locale, weekStart);
     setDayGroups(groups);
 
     if (!activeEntry) return;
 
     const interval = setInterval(() => {
-      const updatedGroups = groupEntriesByDay(entries, locale);
+      const updatedGroups = groupEntriesByDay(entries, locale, weekStart);
       setDayGroups(updatedGroups);
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [entries, activeEntry, i18n.language, userLocale]);
+  }, [entries, activeEntry, i18n.language, userLocale, weekStart]);
 
   return {
     activeEntry,
