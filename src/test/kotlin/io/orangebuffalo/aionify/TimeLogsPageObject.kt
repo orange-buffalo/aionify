@@ -122,6 +122,7 @@ sealed class EditModeState {
  */
 data class WeekNavigationState(
     val weekRange: String,
+    val weeklyTotal: String = "00:00:00",
 )
 
 /**
@@ -312,6 +313,10 @@ class TimeLogsPageObject(
         assertThat(page.locator("[data-testid='next-week-button']")).isVisible()
         assertThat(page.locator("[data-testid='week-range']")).isVisible()
         assertThat(page.locator("[data-testid='week-range']")).hasText(weekNav.weekRange)
+        
+        // Assert weekly total
+        assertThat(page.locator("[data-testid='weekly-total']")).isVisible()
+        assertThat(page.locator("[data-testid='weekly-total']")).containsText(weekNav.weeklyTotal)
     }
 
     private fun assertDayGroups(expectedDayGroups: List<DayGroupState>) {
