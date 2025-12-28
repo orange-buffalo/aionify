@@ -45,14 +45,24 @@ export function EditEntryForm({
         <Label htmlFor={`${testIdPrefix}-title`} className="text-foreground">
           {t("timeLogs.currentEntry.titleLabel")}
         </Label>
-        <Input
-          id={`${testIdPrefix}-title`}
-          value={title}
-          onChange={(e) => onTitleChange(e.target.value)}
-          className="text-foreground mt-2"
-          data-testid={`${testIdPrefix}-title-input`}
-          disabled={isSaving}
-        />
+        <div className="mt-2 flex items-center gap-2">
+          <Input
+            id={`${testIdPrefix}-title`}
+            value={title}
+            onChange={(e) => onTitleChange(e.target.value)}
+            className="flex-1 text-foreground"
+            data-testid={`${testIdPrefix}-title-input`}
+            disabled={isSaving}
+          />
+          {onTagsChange && (
+            <TagSelector
+              selectedTags={tags}
+              onTagsChange={onTagsChange}
+              disabled={isSaving}
+              testIdPrefix={`${testIdPrefix}-tags`}
+            />
+          )}
+        </div>
       </div>
       <div>
         <Label className="text-foreground">{t("timeLogs.currentEntry.startTimeLabel")}</Label>
@@ -90,19 +100,6 @@ export function EditEntryForm({
               disabled={isSaving}
               locale={locale}
               testIdPrefix={`${testIdPrefix}-end-time`}
-            />
-          </div>
-        </div>
-      )}
-      {onTagsChange && (
-        <div>
-          <Label className="text-foreground">{t("timeLogs.tags.label")}</Label>
-          <div className="mt-2">
-            <TagSelector
-              selectedTags={tags}
-              onTagsChange={onTagsChange}
-              disabled={isSaving}
-              testIdPrefix={`${testIdPrefix}-tags`}
             />
           </div>
         </div>
