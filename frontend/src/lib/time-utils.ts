@@ -25,6 +25,15 @@ export function formatISODate(date: Date): string {
 }
 
 /**
+ * Check if two ISO date strings represent different calendar days.
+ */
+export function isDifferentDay(startTime: string, endTime: string): boolean {
+  const startDay = formatISODate(new Date(startTime));
+  const endDay = formatISODate(new Date(endTime));
+  return startDay !== endDay;
+}
+
+/**
  * Calculate duration in milliseconds between start and end times.
  */
 export function calculateDuration(startTime: string, endTime: string | null): number {

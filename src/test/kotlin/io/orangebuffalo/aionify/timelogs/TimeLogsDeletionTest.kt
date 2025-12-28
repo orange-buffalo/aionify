@@ -82,38 +82,23 @@ class TimeLogsDeletionTest : TimeLogsPageTestBase() {
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
-        // Verify initial state with split entry across two days
-        // Entry runs from Friday 22:00 to Saturday 02:00 NZDT
-        // Split at midnight: Friday 22:00 - 23:59:59.999 and Saturday 00:00 - 02:00
+        // Verify initial state - entry shown only on start day (Friday) with full duration
         val initialState =
             TimeLogsPageState(
                 currentEntry = CurrentEntryState.NoActiveEntry(),
                 weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
                 dayGroups =
                     listOf(
-                        // Saturday (today) portion: 00:00 - 02:00 = 2 hours
-                        DayGroupState(
-                            displayTitle = "Today",
-                            totalDuration = "02:00:00",
-                            entries =
-                                listOf(
-                                    EntryState(
-                                        title = "Task to Delete",
-                                        timeRange = "00:00 - 02:00",
-                                        duration = "02:00:00",
-                                    ),
-                                ),
-                        ),
-                        // Friday (yesterday) portion: 22:00 to 23:59:59.999 (displays as 01:59:59)
                         DayGroupState(
                             displayTitle = "Yesterday",
-                            totalDuration = "01:59:59", // Due to midnight split at 23:59:59.999
+                            totalDuration = "04:00:00", // Full duration from Friday 22:00 to Saturday 02:00
                             entries =
                                 listOf(
                                     EntryState(
                                         title = "Task to Delete",
-                                        timeRange = "22:00 - 23:59",
-                                        duration = "01:59:59",
+                                        timeRange = "22:00 - Sat, 02:00", // Shows weekday for end time
+                                        duration = "04:00:00",
+                                        hasDifferentDayWarning = true,
                                     ),
                                 ),
                         ),
@@ -121,15 +106,15 @@ class TimeLogsDeletionTest : TimeLogsPageTestBase() {
             )
         timeLogsPage.assertPageState(initialState)
 
-        // Delete the entry (deleting from first occurrence)
+        // Delete the entry
         timeLogsPage.deleteEntry("Task to Delete")
 
-        // Wait for both parts to be removed
+        // Wait for entry to be removed
         page.waitForCondition {
             page.locator("[data-testid='time-entry']:has-text('Task to Delete')").count() == 0
         }
 
-        // Verify both parts of the entry are deleted
+        // Verify entry is deleted
         val deletedState =
             TimeLogsPageState(
                 currentEntry = CurrentEntryState.NoActiveEntry(),
