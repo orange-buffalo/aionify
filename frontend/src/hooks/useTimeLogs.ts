@@ -55,40 +55,16 @@ export function useTimeLogs() {
     }
   }
 
-  // Group entries by day and handle entries spanning midnight
+  // Group entries by day - always show on start day
   function groupEntriesByDay(entries: TimeLogEntry[], locale: string): DayGroup[] {
     const groups: { [key: string]: TimeLogEntry[] } = {};
 
     entries.forEach((entry) => {
       const startDate = new Date(entry.startTime);
-      const endDate = entry.endTime ? new Date(entry.endTime) : new Date();
-
       const startDay = formatISODate(startDate);
-      const endDay = formatISODate(endDate);
 
-      if (startDay === endDay) {
-        if (!groups[startDay]) groups[startDay] = [];
-        groups[startDay].push(entry);
-      } else {
-        // Entry spans midnight - split it
-        const startDayEnd = new Date(startDate);
-        startDayEnd.setHours(23, 59, 59, 999);
-
-        if (!groups[startDay]) groups[startDay] = [];
-        groups[startDay].push({
-          ...entry,
-          endTime: startDayEnd.toISOString(),
-        });
-
-        const endDayStart = new Date(endDate);
-        endDayStart.setHours(0, 0, 0, 0);
-
-        if (!groups[endDay]) groups[endDay] = [];
-        groups[endDay].push({
-          ...entry,
-          startTime: endDayStart.toISOString(),
-        });
-      }
+      if (!groups[startDay]) groups[startDay] = [];
+      groups[startDay].push(entry);
     });
 
     return Object.entries(groups)

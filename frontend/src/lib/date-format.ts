@@ -37,6 +37,27 @@ export function formatTime(isoString: string, locale: string): string {
 }
 
 /**
+ * Formats time with weekday prefix according to user's locale.
+ *
+ * @param isoString - ISO 8601 timestamp string
+ * @param locale - User's locale
+ * @returns Formatted time string with weekday (e.g., "Mon, 2:30 PM" or "Mon, 14:30")
+ */
+export function formatTimeWithWeekday(isoString: string, locale: string): string {
+  const date = new Date(isoString);
+  const hour12 = uses12HourFormat(locale);
+
+  const weekday = date.toLocaleDateString(locale, { weekday: "short" });
+  const time = date.toLocaleTimeString(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12,
+  });
+
+  return `${weekday}, ${time}`;
+}
+
+/**
  * Formats date according to user's locale.
  *
  * @param isoString - ISO 8601 timestamp string

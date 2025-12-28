@@ -43,7 +43,7 @@ The `check` task automatically verifies formatting and will fail if code is not 
 **CRITICAL: This is an unbreakable rule - Always run tests locally before pushing changes:**
 
 ```bash
-./gradlew build --build-cache --console=plain
+./gradlew build --console=plain
 ```
 
 This ensures:

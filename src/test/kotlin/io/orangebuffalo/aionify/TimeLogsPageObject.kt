@@ -143,6 +143,7 @@ data class EntryState(
     val tags: List<String> = emptyList(),
     val continueButtonVisible: Boolean = true,
     val menuButtonVisible: Boolean = true,
+    val hasDifferentDayWarning: Boolean = false,
 )
 
 /**
@@ -388,6 +389,14 @@ class TimeLogsPageObject(
                 assertThat(entryElement.locator("[data-testid='entry-menu-button']")).isVisible()
             } else {
                 assertThat(entryElement.locator("[data-testid='entry-menu-button']")).not().isVisible()
+            }
+
+            // Assert different day warning icon visibility
+            val warningIcon = entryElement.locator("[data-testid='different-day-warning']")
+            if (entry.hasDifferentDayWarning) {
+                assertThat(warningIcon).isVisible()
+            } else {
+                assertThat(warningIcon).not().isVisible()
             }
         }
     }

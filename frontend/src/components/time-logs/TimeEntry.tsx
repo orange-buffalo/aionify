@@ -8,9 +8,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Play, MoreVertical, Trash2, Pencil } from "lucide-react";
-import { formatTime } from "@/lib/date-format";
-import { calculateDuration, formatDuration } from "@/lib/time-utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Play, MoreVertical, Trash2, Pencil, AlertCircle } from "lucide-react";
+import { formatTime, formatTimeWithWeekday, formatDate } from "@/lib/date-format";
+import { calculateDuration, formatDuration, isDifferentDay } from "@/lib/time-utils";
 import { EditEntryForm } from "./EditEntryForm";
 import type { TimeLogEntry } from "./types";
 
@@ -67,6 +68,14 @@ export function TimeEntry({
     onCancelEdit();
   };
 
+  // Check if entry spans to a different day
+  const spansDifferentDay = entry.endTime && isDifferentDay(entry.startTime, entry.endTime);
+  const endTimeDisplay = entry.endTime
+    ? spansDifferentDay
+      ? formatTimeWithWeekday(entry.endTime, locale)
+      : formatTime(entry.endTime, locale)
+    : t("timeLogs.inProgress");
+
   if (isEditing) {
     return (
       <div className="p-3 border border-border rounded-md" data-testid="time-entry-edit">
@@ -106,9 +115,20 @@ export function TimeEntry({
         )}
       </div>
       <div className="flex items-center gap-4 text-sm">
-        <div className="text-muted-foreground" data-testid="entry-time-range">
-          {formatTime(entry.startTime, locale)} -{" "}
-          {entry.endTime ? formatTime(entry.endTime, locale) : t("timeLogs.inProgress")}
+        <div className="flex items-center gap-2 text-muted-foreground" data-testid="entry-time-range">
+          {spansDifferentDay && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <AlertCircle className="h-4 w-4 text-yellow-500 cursor-pointer" data-testid="different-day-warning" />
+              </PopoverTrigger>
+              <PopoverContent className="dark text-sm" data-testid="different-day-tooltip">
+                {t("timeLogs.differentDayWarning", { date: formatDate(entry.endTime!, locale) })}
+              </PopoverContent>
+            </Popover>
+          )}
+          <span>
+            {formatTime(entry.startTime, locale)} - {endTimeDisplay}
+          </span>
         </div>
         <div className="font-mono font-semibold text-foreground min-w-[70px] text-right" data-testid="entry-duration">
           {formatDuration(duration)}

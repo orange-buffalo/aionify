@@ -138,6 +138,7 @@ const resources = {
         duration: "Duration",
         totalDuration: "Total",
         inProgress: "in progress",
+        differentDayWarning: "This entry finishes on another day - {{date}}",
         noEntries: "No time log entries for this week",
         timezoneHint: "Times shown in {{timezone}}",
         deleteDialog: {
@@ -467,6 +468,7 @@ const resources = {
         duration: "Тривалість",
         totalDuration: "Всього",
         inProgress: "виконується",
+        differentDayWarning: "Цей запис закінчується в інший день - {{date}}",
         noEntries: "Немає записів часу для цього тижня",
         timezoneHint: "Час показано у {{timezone}}",
         deleteDialog: {

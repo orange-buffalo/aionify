@@ -396,10 +396,9 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
         // Save changes
         timeLogsPage.clickSaveEdit()
 
-        // Verify the entry now appears in yesterday's group
+        // Verify the entry now appears only in yesterday's group (start day)
         // Duration should be from Friday 05:00 to Saturday 03:30 NZDT = 22:30:00
-        // This spans midnight, so it's split: Yesterday (05:00-23:59:59.999) + Today (00:00-03:30)
-        // The UI rounds the split to whole seconds: Yesterday: 18:59:59, Today: 03:30:00
+        // The entry shows in progress with weekday indicator
         val updatedState =
             TimeLogsPageState(
                 currentEntry =
@@ -411,28 +410,16 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
                 weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
                 dayGroups =
                     listOf(
-                        // Entry should span across two days after the update
-                        DayGroupState(
-                            displayTitle = "Today",
-                            totalDuration = "03:30:00", // From midnight to 03:30
-                            entries =
-                                listOf(
-                                    EntryState(
-                                        title = "Cross-Day Task",
-                                        timeRange = "00:00 - in progress",
-                                        duration = "03:30:00",
-                                    ),
-                                ),
-                        ),
+                        // Entry shown only on start day (Yesterday) with full duration
                         DayGroupState(
                             displayTitle = "Yesterday",
-                            totalDuration = "18:59:59", // 05:00 to midnight (23:59:59.999 rounds to 18:59:59)
+                            totalDuration = "22:30:00", // Full duration 05:00 to 03:30 next day
                             entries =
                                 listOf(
                                     EntryState(
                                         title = "Cross-Day Task",
-                                        timeRange = "05:00 - 23:59",
-                                        duration = "18:59:59",
+                                        timeRange = "05:00 - in progress", // Active entry, no weekday shown
+                                        duration = "22:30:00",
                                     ),
                                 ),
                         ),
