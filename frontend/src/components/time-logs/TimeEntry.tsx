@@ -17,7 +17,7 @@ interface TimeEntryProps {
   onContinue: (entry: TimeLogEntry) => void
   onDelete: (entry: TimeLogEntry) => void
   onEdit: (entry: TimeLogEntry) => void
-  onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string) => Promise<void>
+  onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string, tags: string[]) => Promise<void>
   onCancelEdit: () => void
 }
 
@@ -37,11 +37,13 @@ export function TimeEntry({
   const [editTitle, setEditTitle] = useState(entry.title)
   const [editStartDateTime, setEditStartDateTime] = useState<Date>(new Date(entry.startTime))
   const [editEndDateTime, setEditEndDateTime] = useState<Date>(new Date(entry.endTime || new Date()))
+  const [editTags, setEditTags] = useState<string[]>(entry.tags || [])
 
   const handleEditClick = () => {
     setEditTitle(entry.title)
     setEditStartDateTime(new Date(entry.startTime))
     setEditEndDateTime(new Date(entry.endTime || new Date()))
+    setEditTags(entry.tags || [])
     onEdit(entry)
   }
 
@@ -49,13 +51,14 @@ export function TimeEntry({
     if (!editTitle.trim()) return
     const startTimeISO = editStartDateTime.toISOString()
     const endTimeISO = editEndDateTime.toISOString()
-    await onSaveEdit(entry, editTitle.trim(), startTimeISO, endTimeISO)
+    await onSaveEdit(entry, editTitle.trim(), startTimeISO, endTimeISO, editTags)
   }
 
   const handleCancelEdit = () => {
     setEditTitle(entry.title)
     setEditStartDateTime(new Date(entry.startTime))
     setEditEndDateTime(new Date(entry.endTime || new Date()))
+    setEditTags(entry.tags || [])
     onCancelEdit()
   }
 
@@ -71,9 +74,11 @@ export function TimeEntry({
           endDateTime={editEndDateTime}
           locale={locale}
           isSaving={isSaving}
+          tags={editTags}
           onTitleChange={setEditTitle}
           onStartDateTimeChange={setEditStartDateTime}
           onEndDateTimeChange={setEditEndDateTime}
+          onTagsChange={setEditTags}
           onSave={handleSaveEdit}
           onCancel={handleCancelEdit}
           testIdPrefix="stopped-entry-edit"

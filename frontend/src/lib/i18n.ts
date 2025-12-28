@@ -116,6 +116,7 @@ const resources = {
           timeLabel: "Time",
         },
         tags: {
+          label: "Tags",
           addNewPlaceholder: "Add new tag...",
           noTags: "No tags yet. Add tags above to create them.",
         },
@@ -438,6 +439,7 @@ const resources = {
           timeLabel: "Час",
         },
         tags: {
+          label: "Теги",
           addNewPlaceholder: "Додати новий тег...",
           noTags: "Тегів ще немає. Додайте теги вище, щоб їх створити.",
         },

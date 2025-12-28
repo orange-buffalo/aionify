@@ -283,7 +283,8 @@ open class TimeLogEntryResource(
             entry.copy(
                 title = request.title,
                 startTime = request.startTime,
-                endTime = endTime
+                endTime = endTime,
+                tags = request.tags.toTypedArray()
             )
         )
 
@@ -380,7 +381,8 @@ data class UpdateTimeLogEntryRequest(
     @field:Size(max = 1000, message = "Title cannot exceed 1000 characters")
     val title: String,
     val startTime: Instant,
-    val endTime: Instant? = null
+    val endTime: Instant? = null,
+    val tags: List<String> = emptyList()
 )
 
 @Serdeable
