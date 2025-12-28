@@ -2,6 +2,7 @@ package io.orangebuffalo.aionify
 
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
+import com.microsoft.playwright.options.AriaRole
 
 /**
  * Page state model representing the complete state of the Time Logs page.
@@ -24,34 +25,28 @@ data class TimeLogsPageState(
     val weekNavigation: WeekNavigationState = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
     val dayGroups: List<DayGroupState> = emptyList(),
     val errorMessageVisible: Boolean = false,
-    val errorMessage: String? = null,
+    val errorMessage: String? = null
 ) {
     /**
      * Registers a new entry in the specified day, creating the day group if it doesn't exist.
      */
-    fun withEntry(
-        dayTitle: String,
-        entry: EntryState,
-    ): TimeLogsPageState {
+    fun withEntry(dayTitle: String, entry: EntryState): TimeLogsPageState {
         val existingDay = dayGroups.find { it.displayTitle == dayTitle }
-        val updatedDayGroups =
-            if (existingDay != null) {
-                dayGroups.map {
-                    if (it.displayTitle == dayTitle) {
-                        it.copy(entries = listOf(entry) + it.entries)
-                    } else {
-                        it
-                    }
+        val updatedDayGroups = if (existingDay != null) {
+            dayGroups.map {
+                if (it.displayTitle == dayTitle) {
+                    it.copy(entries = listOf(entry) + it.entries)
+                } else {
+                    it
                 }
-            } else {
-                listOf(
-                    DayGroupState(
-                        displayTitle = dayTitle,
-                        totalDuration = entry.duration,
-                        entries = listOf(entry),
-                    ),
-                ) + dayGroups
             }
+        } else {
+            listOf(DayGroupState(
+                displayTitle = dayTitle,
+                totalDuration = entry.duration,
+                entries = listOf(entry)
+            )) + dayGroups
+        }
         return copy(dayGroups = updatedDayGroups)
     }
 }
@@ -66,7 +61,7 @@ sealed class CurrentEntryState {
     data class NoActiveEntry(
         val inputVisible: Boolean = true,
         val startButtonVisible: Boolean = true,
-        val startButtonEnabled: Boolean = false,
+        val startButtonEnabled: Boolean = false
     ) : CurrentEntryState()
 
     /**
@@ -80,11 +75,11 @@ sealed class CurrentEntryState {
     data class ActiveEntry(
         val title: String,
         val duration: String,
-        val startedAt: String, // Always present - formatted start time display (e.g., "14:00")
+        val startedAt: String,  // Always present - formatted start time display (e.g., "14:00")
         val stopButtonVisible: Boolean = true,
         val inputVisible: Boolean = false,
         val startButtonVisible: Boolean = false,
-        val editMode: EditModeState = EditModeState.NotEditing,
+        val editMode: EditModeState = EditModeState.NotEditing
     ) : CurrentEntryState()
 }
 
@@ -107,9 +102,9 @@ sealed class EditModeState {
      */
     data class Editing(
         val titleValue: String,
-        val dateValue: String, // Locale-formatted date display value
-        val timeValue: String, // Locale-formatted time display value
-        val saveButtonEnabled: Boolean = true,
+        val dateValue: String,  // Locale-formatted date display value
+        val timeValue: String,  // Locale-formatted time display value
+        val saveButtonEnabled: Boolean = true
     ) : EditModeState()
 }
 
@@ -118,7 +113,7 @@ sealed class EditModeState {
  * Business invariant: weekRange is always present and navigation buttons are always visible.
  */
 data class WeekNavigationState(
-    val weekRange: String,
+    val weekRange: String
 )
 
 /**
@@ -127,7 +122,7 @@ data class WeekNavigationState(
 data class DayGroupState(
     val displayTitle: String,
     val totalDuration: String,
-    val entries: List<EntryState>,
+    val entries: List<EntryState>
 )
 
 /**
@@ -137,17 +132,17 @@ data class EntryState(
     val title: String,
     val timeRange: String,
     val duration: String,
+    val tags: List<String> = emptyList(),
     val continueButtonVisible: Boolean = true,
-    val menuButtonVisible: Boolean = true,
+    val menuButtonVisible: Boolean = true
 )
 
 /**
  * Page Object for the Time Logs page, providing methods to interact with the page
  * and assert its state.
  */
-class TimeLogsPageObject(
-    private val page: Page,
-) {
+class TimeLogsPageObject(private val page: Page) {
+
     /**
      * Asserts that the page is in the expected state.
      * Uses Playwright assertions to verify all elements of the page state.
@@ -333,10 +328,7 @@ class TimeLogsPageObject(
         }
     }
 
-    private fun assertEntriesInDayGroup(
-        dayGroupLocator: com.microsoft.playwright.Locator,
-        expectedEntries: List<EntryState>,
-    ) {
+    private fun assertEntriesInDayGroup(dayGroupLocator: com.microsoft.playwright.Locator, expectedEntries: List<EntryState>) {
         val entryLocator = dayGroupLocator.locator("[data-testid='time-entry']")
 
         // Assert entry titles using content-based assertion
@@ -353,6 +345,21 @@ class TimeLogsPageObject(
         val expectedDurations = expectedEntries.map { it.duration }
         val durationLocators = entryLocator.locator("[data-testid='entry-duration']")
         assertThat(durationLocators).containsText(expectedDurations.toTypedArray())
+
+        // Assert tags for each entry
+        for (i in expectedEntries.indices) {
+            val entry = expectedEntries[i]
+            val entryElement = entryLocator.nth(i)
+
+            val tagLocators = entryElement.locator("[data-testid^='entry-tag-']")
+            if (entry.tags.isNotEmpty()) {
+                // Assert tag text content matches expected tags using array-based assertion
+                assertThat(tagLocators).containsText(entry.tags.toTypedArray())
+            } else {
+                // Tags container should not be visible when there are no tags
+                assertThat(tagLocators).isHidden()
+            }
+        }
 
         // Assert action buttons visibility for each entry
         for (i in expectedEntries.indices) {
@@ -408,8 +415,7 @@ class TimeLogsPageObject(
      * The entry must be uniquely identifiable by title.
      */
     fun clickContinueForEntry(entryTitle: String) {
-        page
-            .locator("[data-testid='time-entry']:has-text('$entryTitle')")
+        page.locator("[data-testid='time-entry']:has-text('$entryTitle')")
             .locator("[data-testid='continue-button']")
             .click()
     }
@@ -481,10 +487,7 @@ class TimeLogsPageObject(
      * @param date in format "YYYY-MM-DD" (e.g., "2024-03-15")
      * @param time in format "HH:mm" (e.g., "14:30")
      */
-    fun fillEditDateTime(
-        date: String,
-        time: String,
-    ) {
+    fun fillEditDateTime(date: String, time: String) {
         // Click the date trigger button to open the date picker popover
         val dateTrigger = page.locator("[data-testid='edit-date-trigger']")
         dateTrigger.click()
@@ -500,28 +503,17 @@ class TimeLogsPageObject(
         // Find button with exact text matching the day number
         // Clicking the day now automatically applies and closes the popover
         val popover = page.locator("[role='dialog']")
-        popover
-            .locator("button")
-            .locator("text=$targetDay")
-            .first()
-            .click()
+        popover.locator("button").locator("text=${targetDay}").first().click()
 
         // Wait for popover to close
-        page
-            .locator(
-                "[role='dialog']",
-            ).waitFor(
-                com.microsoft.playwright.Locator
-                    .WaitForOptions()
-                    .setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN),
-            )
+        page.locator("[role='dialog']").waitFor(com.microsoft.playwright.Locator.WaitForOptions().setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN))
 
         // Fill in the time input
         val (hours, minutes) = time.split(":")
         val timeInput = page.locator("[data-testid='edit-time-input']")
 
         // Use 24-hour format which is now accepted by both locale formats
-        val timeStr = "${hours.padStart(2, '0')}:$minutes"
+        val timeStr = "${hours.padStart(2, '0')}:${minutes}"
 
         // Use fill() to set the value
         timeInput.fill(timeStr)
@@ -662,7 +654,7 @@ class TimeLogsPageObject(
         expectedStartDate: String,
         expectedStartTime: String,
         expectedEndDate: String,
-        expectedEndTime: String,
+        expectedEndTime: String
     ) {
         assertThat(page.locator("[data-testid='stopped-entry-edit-title-input']")).hasValue(expectedTitle)
         assertThat(page.locator("[data-testid='stopped-entry-edit-date-input']")).hasValue(expectedStartDate)
