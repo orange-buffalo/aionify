@@ -300,6 +300,7 @@ open class TimeLogEntryResource(
                     title = request.title,
                     startTime = request.startTime,
                     endTime = endTime,
+                    tags = request.tags.toTypedArray(),
                 ),
             )
 
@@ -401,6 +402,7 @@ data class UpdateTimeLogEntryRequest(
     val title: String,
     val startTime: Instant,
     val endTime: Instant? = null,
+    val tags: List<String> = emptyList(),
 )
 
 @Serdeable

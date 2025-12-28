@@ -262,7 +262,7 @@ export function useTimeLogs() {
   }
 
   // Save edited entry
-  async function handleSaveEdit(title: string, startTimeISO: string) {
+  async function handleSaveEdit(title: string, startTimeISO: string, tags: string[]) {
     if (!activeEntry) return;
 
     try {
@@ -272,6 +272,7 @@ export function useTimeLogs() {
       const updatedEntry = await apiPut<TimeEntry>(`/api/time-log-entries/${activeEntry.id}`, {
         title,
         startTime: startTimeISO,
+        tags,
       });
 
       setActiveEntry(updatedEntry);
@@ -308,7 +309,13 @@ export function useTimeLogs() {
   }
 
   // Save edited stopped entry
-  async function handleSaveStoppedEntry(entry: TimeEntry, title: string, startTimeISO: string, endTimeISO: string) {
+  async function handleSaveStoppedEntry(
+    entry: TimeEntry,
+    title: string,
+    startTimeISO: string,
+    endTimeISO: string,
+    tags: string[]
+  ) {
     try {
       setIsSaving(true);
       setError(null);
@@ -317,6 +324,7 @@ export function useTimeLogs() {
         title,
         startTime: startTimeISO,
         endTime: endTimeISO,
+        tags,
       });
 
       setEditingEntryId(null);

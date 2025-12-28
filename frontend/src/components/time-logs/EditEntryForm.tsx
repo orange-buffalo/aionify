@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DatePicker } from "@/components/ui/date-picker";
 import { TimePicker } from "@/components/ui/time-picker";
+import { TagSelector } from "./TagSelector";
 
 interface EditEntryFormProps {
   title: string;
@@ -11,9 +12,11 @@ interface EditEntryFormProps {
   endDateTime?: Date | null;
   locale: string;
   isSaving: boolean;
+  tags?: string[];
   onTitleChange: (title: string) => void;
   onStartDateTimeChange: (date: Date) => void;
   onEndDateTimeChange?: (date: Date) => void;
+  onTagsChange?: (tags: string[]) => void;
   onSave: () => void;
   onCancel: () => void;
   testIdPrefix?: string;
@@ -25,9 +28,11 @@ export function EditEntryForm({
   endDateTime,
   locale,
   isSaving,
+  tags = [],
   onTitleChange,
   onStartDateTimeChange,
   onEndDateTimeChange,
+  onTagsChange,
   onSave,
   onCancel,
   testIdPrefix = "edit",
@@ -40,14 +45,24 @@ export function EditEntryForm({
         <Label htmlFor={`${testIdPrefix}-title`} className="text-foreground">
           {t("timeLogs.currentEntry.titleLabel")}
         </Label>
-        <Input
-          id={`${testIdPrefix}-title`}
-          value={title}
-          onChange={(e) => onTitleChange(e.target.value)}
-          className="text-foreground mt-2"
-          data-testid={`${testIdPrefix}-title-input`}
-          disabled={isSaving}
-        />
+        <div className="mt-2 flex items-center gap-2">
+          <Input
+            id={`${testIdPrefix}-title`}
+            value={title}
+            onChange={(e) => onTitleChange(e.target.value)}
+            className="flex-1 text-foreground"
+            data-testid={`${testIdPrefix}-title-input`}
+            disabled={isSaving}
+          />
+          {onTagsChange && (
+            <TagSelector
+              selectedTags={tags}
+              onTagsChange={onTagsChange}
+              disabled={isSaving}
+              testIdPrefix={`${testIdPrefix}-tags`}
+            />
+          )}
+        </div>
       </div>
       <div>
         <Label className="text-foreground">{t("timeLogs.currentEntry.startTimeLabel")}</Label>

@@ -3,6 +3,8 @@ package io.orangebuffalo.aionify
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import com.microsoft.playwright.options.AriaRole
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 
 /**
  * Page state model representing the complete state of the Time Logs page.
@@ -686,5 +688,70 @@ class TimeLogsPageObject(
         assertThat(page.locator("[data-testid='stopped-entry-edit-time-input']")).hasValue(expectedStartTime)
         assertThat(page.locator("[data-testid='stopped-entry-edit-end-date-input']")).hasValue(expectedEndDate)
         assertThat(page.locator("[data-testid='stopped-entry-edit-end-time-input']")).hasValue(expectedEndTime)
+    }
+
+    // Tag selector interaction methods
+
+    /**
+     * Clicks the tag selector button for active entry editing.
+     */
+    fun clickEditTagsButton() {
+        page.locator("[data-testid='edit-tags-button']").click()
+    }
+
+    /**
+     * Clicks the tag selector button for stopped entry editing.
+     */
+    fun clickStoppedEntryEditTagsButton() {
+        page.locator("[data-testid='stopped-entry-edit-tags-button']").click()
+    }
+
+    /**
+     * Toggles a specific tag in the tag selector.
+     * @param tag The tag name to toggle
+     * @param testIdPrefix The prefix for test IDs (e.g., "edit-tags" or "stopped-entry-edit-tags")
+     */
+    fun toggleTag(
+        tag: String,
+        testIdPrefix: String = "edit-tags",
+    ) {
+        page.locator("[data-testid='$testIdPrefix-checkbox-$tag']").click()
+    }
+
+    /**
+     * Asserts that specific tags are selected in the tag selector.
+     * @param expectedTags List of tags that should be checked
+     * @param testIdPrefix The prefix for test IDs
+     */
+    fun assertTagsSelected(
+        expectedTags: List<String>,
+        testIdPrefix: String = "edit-tags",
+    ) {
+        // For each tag, verify it's checked
+        expectedTags.forEach { tag ->
+            val checkbox = page.locator("[data-testid='$testIdPrefix-checkbox-$tag']")
+            assertThat(checkbox).isChecked()
+        }
+    }
+
+    /**
+     * Asserts that the tag selector button shows the correct highlight state based on selected tags.
+     * @param hasSelectedTags Whether the button should be highlighted (true) or not (false)
+     * @param testIdPrefix The prefix for test IDs
+     */
+    fun assertTagButtonHighlight(
+        hasSelectedTags: Boolean,
+        testIdPrefix: String = "edit-tags",
+    ) {
+        val button = page.locator("[data-testid='$testIdPrefix-button']")
+        if (hasSelectedTags) {
+            // Button should have the highlighted class (bg-teal-600)
+            val classAttr = button.getAttribute("class") ?: ""
+            assertTrue(classAttr.contains("bg-teal-600"), "Tag button should be highlighted when tags are selected")
+        } else {
+            // Button should not have the highlighted class
+            val classAttr = button.getAttribute("class") ?: ""
+            assertFalse(classAttr.contains("bg-teal-600"), "Tag button should not be highlighted when no tags are selected")
+        }
     }
 }

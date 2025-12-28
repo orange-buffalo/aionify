@@ -20,7 +20,7 @@ interface CurrentEntryPanelProps {
   isEditingStoppedEntry: boolean;
   onStart: (title: string, tags?: string[]) => Promise<void>;
   onStop: () => Promise<void>;
-  onSaveEdit: (title: string, startTime: string) => Promise<void>;
+  onSaveEdit: (title: string, startTime: string, tags: string[]) => Promise<void>;
   onEditStart: () => void;
 }
 
@@ -43,6 +43,7 @@ export function CurrentEntryPanel({
   const [isEditMode, setIsEditMode] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editDateTime, setEditDateTime] = useState<Date>(new Date());
+  const [editTags, setEditTags] = useState<string[]>([]);
 
   // Cancel edit mode when editing a stopped entry
   if (isEditMode && isEditingStoppedEntry) {
@@ -60,6 +61,7 @@ export function CurrentEntryPanel({
     if (!activeEntry) return;
     setEditTitle(activeEntry.title);
     setEditDateTime(new Date(activeEntry.startTime));
+    setEditTags(activeEntry.tags || []);
     setIsEditMode(true);
     onEditStart();
   };
@@ -67,7 +69,7 @@ export function CurrentEntryPanel({
   const handleSaveEdit = async () => {
     if (!activeEntry || !editTitle.trim()) return;
     const startTimeISO = editDateTime.toISOString();
-    await onSaveEdit(editTitle.trim(), startTimeISO);
+    await onSaveEdit(editTitle.trim(), startTimeISO, editTags);
     setIsEditMode(false);
   };
 
@@ -75,6 +77,7 @@ export function CurrentEntryPanel({
     setIsEditMode(false);
     setEditTitle("");
     setEditDateTime(new Date());
+    setEditTags([]);
   };
 
   return (
@@ -93,8 +96,10 @@ export function CurrentEntryPanel({
               startDateTime={editDateTime}
               locale={locale}
               isSaving={isSaving}
+              tags={editTags}
               onTitleChange={setEditTitle}
               onStartDateTimeChange={setEditDateTime}
+              onTagsChange={setEditTags}
               onSave={handleSaveEdit}
               onCancel={handleCancelEdit}
               testIdPrefix="edit"
