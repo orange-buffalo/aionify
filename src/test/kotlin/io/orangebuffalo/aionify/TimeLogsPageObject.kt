@@ -318,10 +318,10 @@ class TimeLogsPageObject(
         assertThat(page.locator("[data-testid='next-week-button']")).isVisible()
         assertThat(page.locator("[data-testid='week-range']")).isVisible()
         assertThat(page.locator("[data-testid='week-range']")).hasText(weekNav.weekRange)
-        
+
         // Assert weekly total
         assertThat(page.locator("[data-testid='weekly-total']")).isVisible()
-        
+
         // Calculate expected weekly total if not provided
         val expectedWeeklyTotal = weekNav.weeklyTotal ?: calculateWeeklyTotal(dayGroups, currentEntry)
         assertThat(page.locator("[data-testid='weekly-total']")).containsText(expectedWeeklyTotal)

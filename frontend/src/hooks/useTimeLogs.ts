@@ -399,10 +399,7 @@ export function useTimeLogs() {
     setDayGroups(groups);
 
     // Calculate weekly total from all entries
-    const total = entries.reduce(
-      (sum, entry) => sum + calculateDuration(entry.startTime, entry.endTime),
-      0
-    );
+    const total = entries.reduce((sum, entry) => sum + calculateDuration(entry.startTime, entry.endTime), 0);
     setWeeklyTotal(total);
 
     if (!activeEntry) return;
@@ -412,10 +409,7 @@ export function useTimeLogs() {
       setDayGroups(updatedGroups);
 
       // Recalculate weekly total with active entry duration
-      const updatedTotal = entries.reduce(
-        (sum, entry) => sum + calculateDuration(entry.startTime, entry.endTime),
-        0
-      );
+      const updatedTotal = entries.reduce((sum, entry) => sum + calculateDuration(entry.startTime, entry.endTime), 0);
       setWeeklyTotal(updatedTotal);
     }, 1000);
 
