@@ -1,16 +1,16 @@
 package io.orangebuffalo.aionify.timelogs
 
+import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.*
 import io.orangebuffalo.aionify.domain.TimeLogEntry
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 
 /**
  * Tests for editing stopped (completed) time entries.
  */
 class TimeLogsEditStoppedEntryTest : TimeLogsPageTestBase() {
-        @Test
+    @Test
     fun `should edit stopped entry title`() {
         // Create a stopped entry
         val createdEntry =
@@ -369,5 +369,4 @@ class TimeLogsEditStoppedEntryTest : TimeLogsPageTestBase() {
         assertEquals(FIXED_TEST_TIME.minusSeconds(1800), unchangedEntry.endTime, "End time should be unchanged")
         assertEquals(testUser.id, unchangedEntry.ownerId, "Owner ID should be unchanged")
     }
-
 }

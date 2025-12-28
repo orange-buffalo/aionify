@@ -1,16 +1,16 @@
 package io.orangebuffalo.aionify.timelogs
 
+import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.*
 import io.orangebuffalo.aionify.domain.TimeLogEntry
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 
 /**
  * Tests for validation and error handling.
  */
 class TimeLogsValidationTest : TimeLogsPageTestBase() {
-        @Test
+    @Test
     fun `should show error when setting start time in future`() {
         // Create an active entry
         testDatabaseSupport.insert(
@@ -91,7 +91,8 @@ class TimeLogsValidationTest : TimeLogsPageTestBase() {
         val noActiveEntryState = TimeLogsPageState()
         timeLogsPage.assertPageState(noActiveEntryState)
     }
-        fun `should show error when end time is before start time`() {
+
+    fun `should show error when end time is before start time`() {
         // Create a stopped entry
         val createdEntry =
             testDatabaseSupport.insert(
@@ -147,5 +148,4 @@ class TimeLogsValidationTest : TimeLogsPageTestBase() {
         assertEquals(FIXED_TEST_TIME.minusSeconds(1800), unchangedEntry.endTime, "End time should be unchanged")
         assertEquals(testUser.id, unchangedEntry.ownerId, "Owner ID should be unchanged")
     }
-
 }

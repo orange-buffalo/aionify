@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
  * Tests for editing active (in-progress) time entries.
  */
 class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
-        @Test
+    @Test
     fun `should edit active entry title`() {
         // Create an active entry
         testDatabaseSupport.insert(

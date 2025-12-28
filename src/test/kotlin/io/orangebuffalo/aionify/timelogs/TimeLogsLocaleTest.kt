@@ -1,17 +1,17 @@
 package io.orangebuffalo.aionify.timelogs
 
+import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.*
 import io.orangebuffalo.aionify.domain.TimeLogEntry
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
-import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 
 /**
  * Tests for locale-specific date/time formatting.
  */
 class TimeLogsLocaleTest : TimeLogsPageTestBase() {
-        @ParameterizedTest
+    @ParameterizedTest
     @MethodSource("localeTestCases")
     fun `should display dates and times according to user locale`(testCase: LocaleTestCase) {
         // Create a user with the specified locale

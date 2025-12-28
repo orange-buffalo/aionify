@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
  * Tests for edge cases and special scenarios.
  */
 class TimeLogsEdgeCasesTest : TimeLogsPageTestBase() {
-        @Test
+    @Test
     fun `should show Sunday entry in current week when viewing on Sunday`() {
         // FIXED_TEST_TIME is Friday, March 15, 2024 at 14:30:00 UTC = Saturday, March 16, 2024 at 03:30:00 NZDT
         // Sunday, March 17, 2024 at 14:30:00 UTC = Monday, March 18, 2024 at 03:30:00 NZDT

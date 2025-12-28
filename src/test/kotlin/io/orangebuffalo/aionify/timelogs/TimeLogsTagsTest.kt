@@ -1,16 +1,16 @@
 package io.orangebuffalo.aionify.timelogs
 
+import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.*
 import io.orangebuffalo.aionify.domain.TimeLogEntry
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 
 /**
  * Tests for tag display and editing on time entries.
  */
 class TimeLogsTagsTest : TimeLogsPageTestBase() {
-        @Test
+    @Test
     fun `should display tags on time entries`() {
         // Create entries with various tag configurations
         testDatabaseSupport.insert(
