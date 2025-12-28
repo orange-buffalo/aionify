@@ -15,9 +15,8 @@ import org.slf4j.LoggerFactory
  */
 @Singleton
 class JwtTokenService(
-    private val tokenGenerator: TokenGenerator
+    private val tokenGenerator: TokenGenerator,
 ) : ApplicationEventListener<ApplicationStartupEvent> {
-
     private val log = LoggerFactory.getLogger(JwtTokenService::class.java)
 
     override fun onApplicationEvent(event: ApplicationStartupEvent) {
@@ -31,15 +30,16 @@ class JwtTokenService(
         userName: String,
         userId: Long,
         isAdmin: Boolean,
-        greeting: String
+        greeting: String,
     ): String {
         val roles = if (isAdmin) listOf("admin", "user") else listOf("user")
 
-        val attributes = mapOf(
-            "userId" to userId,
-            "greeting" to greeting,
-            "isAdmin" to isAdmin
-        )
+        val attributes =
+            mapOf(
+                "userId" to userId,
+                "greeting" to greeting,
+                "isAdmin" to isAdmin,
+            )
 
         val authentication = Authentication.build(userName, roles, attributes)
 
@@ -52,7 +52,7 @@ class JwtTokenService(
     /**
      * Generates a JWT token with a custom expiration time.
      * This is primarily for testing scenarios, including expired tokens.
-     * 
+     *
      * @param expirationSeconds Unix timestamp in seconds when the token should expire.
      *                          Can be in the past for testing expired tokens.
      */
@@ -61,15 +61,16 @@ class JwtTokenService(
         userId: Long,
         isAdmin: Boolean,
         greeting: String,
-        expirationSeconds: Long
+        expirationSeconds: Long,
     ): String {
         val roles = if (isAdmin) listOf("admin", "user") else listOf("user")
 
-        val attributes = mapOf(
-            "userId" to userId,
-            "greeting" to greeting,
-            "isAdmin" to isAdmin
-        )
+        val attributes =
+            mapOf(
+                "userId" to userId,
+                "greeting" to greeting,
+                "isAdmin" to isAdmin,
+            )
 
         val authentication = Authentication.build(userName, roles, attributes)
 

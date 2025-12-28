@@ -1,91 +1,95 @@
-import { useState } from "react"
-import { useTranslation } from "react-i18next"
-import { useNavigate } from "react-router"
-import { PortalLayout } from "@/components/layout/PortalLayout"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { FormMessage } from "@/components/ui/form-message"
-import { apiPost } from "@/lib/api"
-import { ArrowLeft } from "lucide-react"
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router";
+import { PortalLayout } from "@/components/layout/PortalLayout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FormMessage } from "@/components/ui/form-message";
+import { apiPost } from "@/lib/api";
+import { ArrowLeft } from "lucide-react";
 
 interface CreateUserResponse {
-  id: number
-  userName: string
-  greeting: string
-  isAdmin: boolean
+  id: number;
+  userName: string;
+  greeting: string;
+  isAdmin: boolean;
   activationToken: {
-    token: string
-    expiresAt: string
-  }
+    token: string;
+    expiresAt: string;
+  };
 }
 
 export function CreateUserPage() {
-  const { t } = useTranslation()
-  const navigate = useNavigate()
+  const { t } = useTranslation();
+  const navigate = useNavigate();
 
-  const [userName, setUserName] = useState("")
-  const [greeting, setGreeting] = useState("")
-  const [userType, setUserType] = useState("regular")
-  const [creating, setCreating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [userName, setUserName] = useState("");
+  const [greeting, setGreeting] = useState("");
+  const [userType, setUserType] = useState("regular");
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
+    e.preventDefault();
+    setError(null);
 
     // Client-side validation
     if (!userName || userName.trim() === "") {
-      setError(t("validation.usernameBlank"))
-      return
+      setError(t("validation.usernameBlank"));
+      return;
     }
 
     if (userName.length > 255) {
-      setError(t("validation.usernameTooLong"))
-      return
+      setError(t("validation.usernameTooLong"));
+      return;
     }
 
     if (!greeting || greeting.trim() === "") {
-      setError(t("validation.greetingBlank"))
-      return
+      setError(t("validation.greetingBlank"));
+      return;
     }
 
     if (greeting.length > 255) {
-      setError(t("validation.greetingTooLong"))
-      return
+      setError(t("validation.greetingTooLong"));
+      return;
     }
 
-    setCreating(true)
+    setCreating(true);
 
     try {
       const response = await apiPost<CreateUserResponse>("/api/admin/users", {
         userName: userName.trim(),
         greeting: greeting.trim(),
-        isAdmin: userType === "admin"
-      })
+        isAdmin: userType === "admin",
+      });
 
       // Save success message to session storage
-      sessionStorage.setItem("userCreated", "true")
+      sessionStorage.setItem("userCreated", "true");
 
       // Navigate to edit page
-      navigate(`/admin/users/${response.id}`)
+      navigate(`/admin/users/${response.id}`);
     } catch (err) {
-      const errorCode = (err as any).errorCode
+      const errorCode = (err as any).errorCode;
       if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`, { defaultValue: err instanceof Error ? err.message : "An error occurred" }))
+        setError(
+          t(`errorCodes.${errorCode}`, {
+            defaultValue: err instanceof Error ? err.message : "An error occurred",
+          })
+        );
       } else {
-        setError(err instanceof Error ? err.message : "An error occurred")
+        setError(err instanceof Error ? err.message : "An error occurred");
       }
     } finally {
-      setCreating(false)
+      setCreating(false);
     }
-  }
+  };
 
   const handleBack = () => {
-    navigate("/admin/users")
-  }
+    navigate("/admin/users");
+  };
 
   return (
     <PortalLayout testId="create-user-page">
@@ -118,62 +122,68 @@ export function CreateUserPage() {
           <Card className="border-none shadow-md">
             <CardContent className="pt-6">
               <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="userName" className="text-foreground">{t("portal.admin.users.create.username")}</Label>
-                <Input
-                  id="userName"
-                  type="text"
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  placeholder={t("portal.admin.users.create.usernamePlaceholder")}
-                  className="text-foreground"
-                  data-testid="username-input"
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="userName" className="text-foreground">
+                    {t("portal.admin.users.create.username")}
+                  </Label>
+                  <Input
+                    id="userName"
+                    type="text"
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
+                    placeholder={t("portal.admin.users.create.usernamePlaceholder")}
+                    className="text-foreground"
+                    data-testid="username-input"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="greeting" className="text-foreground">{t("portal.admin.users.create.greeting")}</Label>
-                <Input
-                  id="greeting"
-                  type="text"
-                  value={greeting}
-                  onChange={(e) => setGreeting(e.target.value)}
-                  placeholder={t("portal.admin.users.create.greetingPlaceholder")}
-                  className="text-foreground"
-                  data-testid="greeting-input"
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="greeting" className="text-foreground">
+                    {t("portal.admin.users.create.greeting")}
+                  </Label>
+                  <Input
+                    id="greeting"
+                    type="text"
+                    value={greeting}
+                    onChange={(e) => setGreeting(e.target.value)}
+                    placeholder={t("portal.admin.users.create.greetingPlaceholder")}
+                    className="text-foreground"
+                    data-testid="greeting-input"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="userType" className="text-foreground">{t("portal.admin.users.create.userType")}</Label>
-                <Select value={userType} onValueChange={setUserType}>
-                  <SelectTrigger id="userType" className="text-foreground" data-testid="user-type-select">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="regular" data-testid="user-type-regular">
-                      {t("portal.admin.users.create.regularUser")}
-                    </SelectItem>
-                    <SelectItem value="admin" data-testid="user-type-admin">
-                      {t("portal.admin.users.create.admin")}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="userType" className="text-foreground">
+                    {t("portal.admin.users.create.userType")}
+                  </Label>
+                  <Select value={userType} onValueChange={setUserType}>
+                    <SelectTrigger id="userType" className="text-foreground" data-testid="user-type-select">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="regular" data-testid="user-type-regular">
+                        {t("portal.admin.users.create.regularUser")}
+                      </SelectItem>
+                      <SelectItem value="admin" data-testid="user-type-admin">
+                        {t("portal.admin.users.create.admin")}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <Button
-                type="submit"
-                disabled={creating}
-                data-testid="create-button"
-                className="bg-teal-600 hover:bg-teal-700"
-              >
-                {creating ? t("portal.admin.users.create.creating") : t("portal.admin.users.create.create")}
-              </Button>
-            </form>
+                <Button
+                  type="submit"
+                  disabled={creating}
+                  data-testid="create-button"
+                  className="bg-teal-600 hover:bg-teal-700"
+                >
+                  {creating ? t("portal.admin.users.create.creating") : t("portal.admin.users.create.create")}
+                </Button>
+              </form>
             </CardContent>
           </Card>
         </div>
       </div>
     </PortalLayout>
-  )
+  );
 }

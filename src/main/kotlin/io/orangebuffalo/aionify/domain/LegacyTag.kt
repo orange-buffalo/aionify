@@ -10,9 +10,7 @@ data class LegacyTag(
     @field:Id
     @field:GeneratedValue(GeneratedValue.Type.IDENTITY)
     val id: Long? = null,
-    
     @field:MappedProperty("user_id")
     val userId: Long,
-    
-    val name: String
+    val name: String,
 )

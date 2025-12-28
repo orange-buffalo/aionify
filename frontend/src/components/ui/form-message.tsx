@@ -1,29 +1,29 @@
-import { Check, X, AlertCircle } from "lucide-react"
-import { useState } from "react"
+import { Check, X, AlertCircle } from "lucide-react";
+import { useState } from "react";
 
 interface FormMessageProps {
-  type: "error" | "success"
-  message: string
-  testId?: string
-  onClose?: () => void
+  type: "error" | "success";
+  message: string;
+  testId?: string;
+  onClose?: () => void;
 }
 
 export function FormMessage({ type, message, testId, onClose }: FormMessageProps) {
-  const [isVisible, setIsVisible] = useState(true)
+  const [isVisible, setIsVisible] = useState(true);
 
   const handleClose = () => {
-    setIsVisible(false)
-    onClose?.()
-  }
+    setIsVisible(false);
+    onClose?.();
+  };
 
   if (!isVisible) {
-    return null
+    return null;
   }
 
   if (type === "error") {
     return (
-      <div 
-        className="flex items-center gap-2 p-3 text-sm text-destructive bg-destructive/10 rounded-md mb-4" 
+      <div
+        className="flex items-center gap-2 p-3 text-sm text-destructive bg-destructive/10 rounded-md mb-4"
         data-testid={testId}
       >
         <AlertCircle className="h-4 w-4 flex-shrink-0" />
@@ -37,12 +37,12 @@ export function FormMessage({ type, message, testId, onClose }: FormMessageProps
           <X className="h-4 w-4" />
         </button>
       </div>
-    )
+    );
   }
 
   return (
-    <div 
-      className="flex items-center gap-2 p-3 text-sm text-green-600 dark:text-green-400 bg-green-600/10 dark:bg-green-400/10 rounded-md mb-4" 
+    <div
+      className="flex items-center gap-2 p-3 text-sm text-green-600 dark:text-green-400 bg-green-600/10 dark:bg-green-400/10 rounded-md mb-4"
       data-testid={testId}
     >
       <Check className="h-4 w-4 flex-shrink-0" />
@@ -56,5 +56,5 @@ export function FormMessage({ type, message, testId, onClose }: FormMessageProps
         <X className="h-4 w-4" />
       </button>
     </div>
-  )
+  );
 }

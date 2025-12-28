@@ -7,10 +7,15 @@ import java.util.Optional
 
 @JdbcRepository(dialect = Dialect.POSTGRES)
 interface LegacyTagRepository : CrudRepository<LegacyTag, Long> {
-    
-    fun findByUserIdAndName(userId: Long, name: String): Optional<LegacyTag>
-    
-    fun deleteByUserIdAndName(userId: Long, name: String): Long
-    
+    fun findByUserIdAndName(
+        userId: Long,
+        name: String,
+    ): Optional<LegacyTag>
+
+    fun deleteByUserIdAndName(
+        userId: Long,
+        name: String,
+    ): Long
+
     fun findByUserId(userId: Long): List<LegacyTag>
 }

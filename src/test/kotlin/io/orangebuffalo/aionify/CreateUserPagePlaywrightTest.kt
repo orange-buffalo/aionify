@@ -2,9 +2,9 @@ package io.orangebuffalo.aionify
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import io.orangebuffalo.aionify.domain.ActivationTokenRepository
 import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserRepository
-import io.orangebuffalo.aionify.domain.ActivationTokenRepository
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -15,7 +15,6 @@ import org.mindrot.jbcrypt.BCrypt
  */
 @MicronautTest(transactional = false)
 class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
-
     @Inject
     lateinit var userRepository: UserRepository
 
@@ -31,15 +30,16 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
     @BeforeEach
     fun setupTestData() {
         // Create admin user
-        adminUser = testDatabaseSupport.insert(
-            User.create(
-                userName = "admin",
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = "Admin User",
-                isAdmin = true,
-                locale = java.util.Locale.US
+        adminUser =
+            testDatabaseSupport.insert(
+                User.create(
+                    userName = "admin",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "Admin User",
+                    isAdmin = true,
+                    locale = java.util.Locale.US,
+                ),
             )
-        )
     }
 
     @Test
@@ -81,7 +81,7 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
 
         // Verify navigation to users page
         page.waitForURL("**/admin/users")
-        
+
         val usersPage = page.locator("[data-testid='users-page']")
         assertThat(usersPage).isVisible()
     }
@@ -93,15 +93,15 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
         // Fill in the form
         page.locator("[data-testid='username-input']").fill("newuser")
         page.locator("[data-testid='greeting-input']").fill("New User")
-        
+
         // Regular user is already selected by default in the dropdown
-        
+
         // Click create button
         page.locator("[data-testid='create-button']").click()
 
         // Wait for navigation to edit page
         page.waitForURL("**/admin/users/*")
-        
+
         // Verify we're on the edit page
         val editPage = page.locator("[data-testid='edit-user-page']")
         assertThat(editPage).isVisible()
@@ -123,7 +123,7 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
         assert(createdUser.isPresent) { "User should be created in database" }
         assert(createdUser.get().greeting == "New User") { "User greeting should be 'New User'" }
         assert(!createdUser.get().isAdmin) { "User should not be admin" }
-        
+
         // Verify activation token was created
         val token = activationTokenRepository.findByUserId(createdUser.get().id!!).orElse(null)
         assert(token != null) { "Activation token should be created" }
@@ -136,17 +136,17 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
         // Fill in the form
         page.locator("[data-testid='username-input']").fill("newadmin")
         page.locator("[data-testid='greeting-input']").fill("New Admin")
-        
+
         // Select admin user type from dropdown
         page.locator("[data-testid='user-type-select']").click()
         page.locator("[data-testid='user-type-admin']").click()
-        
+
         // Click create button
         page.locator("[data-testid='create-button']").click()
 
         // Wait for navigation to edit page
         page.waitForURL("**/admin/users/*")
-        
+
         // Verify we're on the edit page
         val editPage = page.locator("[data-testid='edit-user-page']")
         assertThat(editPage).isVisible()
@@ -170,8 +170,8 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Existing User",
                 isAdmin = false,
-                locale = java.util.Locale.US
-            )
+                locale = java.util.Locale.US,
+            ),
         )
 
         loginViaToken("/admin/users/create", adminUser, testAuthSupport)
@@ -179,7 +179,7 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
         // Fill in the form with existing username
         page.locator("[data-testid='username-input']").fill("existinguser")
         page.locator("[data-testid='greeting-input']").fill("Another User")
-        
+
         // Click create button
         page.locator("[data-testid='create-button']").click()
 
@@ -199,7 +199,7 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
 
         // Fill in greeting but leave username blank
         page.locator("[data-testid='greeting-input']").fill("Test User")
-        
+
         // Click create button
         page.locator("[data-testid='create-button']").click()
 
@@ -215,7 +215,7 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
 
         // Fill in username but leave greeting blank
         page.locator("[data-testid='username-input']").fill("testuser")
-        
+
         // Click create button
         page.locator("[data-testid='create-button']").click()
 
@@ -239,7 +239,7 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
 
         // Verify navigation to create page
         page.waitForURL("**/admin/users/create")
-        
+
         val createPage = page.locator("[data-testid='create-user-page']")
         assertThat(createPage).isVisible()
     }

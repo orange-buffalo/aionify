@@ -1,0 +1,7 @@
+[*.{kt,kts}]
+# Disable wildcard import check as it's not auto-fixable and the team may prefer them
+ktlint_standard_no-wildcard-imports = disabled
+# Disable file naming check as it requires manual renaming
+ktlint_standard_filename = disabled
+# Disable backing property rule as it conflicts with our patterns
+ktlint_standard_backing-property-naming = disabled

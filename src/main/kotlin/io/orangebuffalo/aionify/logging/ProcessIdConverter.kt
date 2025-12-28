@@ -9,7 +9,5 @@ import ch.qos.logback.classic.spi.ILoggingEvent
  * Then use %pid in the pattern.
  */
 class ProcessIdConverter : ClassicConverter() {
-    override fun convert(event: ILoggingEvent): String {
-        return ProcessHandle.current().pid().toString()
-    }
+    override fun convert(event: ILoggingEvent): String = ProcessHandle.current().pid().toString()
 }

@@ -10,9 +10,8 @@ import jakarta.inject.Singleton
  */
 @Singleton
 class TestAuthSupport(
-    private val jwtTokenService: JwtTokenService
+    private val jwtTokenService: JwtTokenService,
 ) {
-
     companion object {
         private const val ONE_HOUR_SECONDS = 3600L
     }
@@ -20,7 +19,7 @@ class TestAuthSupport(
     /**
      * Generates a valid JWT token for the given user.
      * This token can be used to authenticate without going through the login page.
-     * 
+     *
      * @throws IllegalArgumentException if the user has no ID (i.e., was not persisted to the database)
      */
     fun generateToken(user: User): String {
@@ -29,7 +28,7 @@ class TestAuthSupport(
             userName = user.userName,
             userId = userId,
             isAdmin = user.isAdmin,
-            greeting = user.greeting
+            greeting = user.greeting,
         )
     }
 
@@ -39,19 +38,18 @@ class TestAuthSupport(
     data class AuthStorageData(
         val token: String,
         val userName: String,
-        val greeting: String
+        val greeting: String,
     )
 
     /**
      * Generates the complete authentication data needed for browser storage.
      */
-    fun generateAuthStorageData(user: User): AuthStorageData {
-        return AuthStorageData(
+    fun generateAuthStorageData(user: User): AuthStorageData =
+        AuthStorageData(
             token = generateToken(user),
             userName = user.userName,
-            greeting = user.greeting
+            greeting = user.greeting,
         )
-    }
 
     /**
      * Generates an expired JWT token for testing token expiration scenarios.
@@ -59,17 +57,17 @@ class TestAuthSupport(
      */
     fun generateExpiredToken(user: User): String {
         val userId = requireNotNull(user.id) { "User must be persisted (have an ID) before generating a token" }
-        
+
         // Set expiration to 1 hour ago using consistent time reference
         val currentTime = System.currentTimeMillis() / 1000
         val expiredTime = currentTime - ONE_HOUR_SECONDS
-        
+
         return jwtTokenService.generateTokenWithExpiration(
             userName = user.userName,
             userId = userId,
             isAdmin = user.isAdmin,
             greeting = user.greeting,
-            expirationSeconds = expiredTime
+            expirationSeconds = expiredTime,
         )
     }
 }

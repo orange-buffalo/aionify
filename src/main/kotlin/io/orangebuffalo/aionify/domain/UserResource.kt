@@ -21,9 +21,8 @@ import java.util.Locale
 @Transactional
 open class UserResource(
     private val userRepository: UserRepository,
-    private val userService: UserService
+    private val userService: UserService,
 ) {
-
     private val log = org.slf4j.LoggerFactory.getLogger(UserResource::class.java)
 
     @Get("/profile")
@@ -31,34 +30,40 @@ open class UserResource(
         val userName = principal?.name
         if (userName == null) {
             log.debug("Get profile failed: user not authenticated")
-            return HttpResponse.unauthorized<ProfileErrorResponse>()
+            return HttpResponse
+                .unauthorized<ProfileErrorResponse>()
                 .body(ProfileErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
         }
 
         val user = userRepository.findByUserName(userName).orElse(null)
         if (user == null) {
             log.debug("Get profile failed: user not found: {}", userName)
-            return HttpResponse.notFound<ProfileErrorResponse>()
+            return HttpResponse
+                .notFound<ProfileErrorResponse>()
                 .body(ProfileErrorResponse("User not found", "USER_NOT_FOUND"))
         }
 
         log.trace("Returning profile for user: {}", userName)
-        
+
         return HttpResponse.ok(
             ProfileResponse(
                 userName = user.userName,
                 greeting = user.greeting,
-                locale = user.localeTag
-            )
+                locale = user.localeTag,
+            ),
         )
     }
 
     @Put("/profile")
-    open fun updateProfile(@Valid @Body request: UpdateProfileRequest, principal: Principal?): HttpResponse<*> {
+    open fun updateProfile(
+        @Valid @Body request: UpdateProfileRequest,
+        principal: Principal?,
+    ): HttpResponse<*> {
         val userName = principal?.name
         if (userName == null) {
             log.debug("Update profile failed: user not authenticated")
-            return HttpResponse.unauthorized<ProfileErrorResponse>()
+            return HttpResponse
+                .unauthorized<ProfileErrorResponse>()
                 .body(ProfileErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
         }
 
@@ -66,14 +71,14 @@ open class UserResource(
         if (locale == null) {
             log.debug("Update profile failed: invalid locale: {}", request.locale)
             return HttpResponse.badRequest(
-                ProfileErrorResponse("Invalid locale format", "INVALID_LOCALE")
+                ProfileErrorResponse("Invalid locale format", "INVALID_LOCALE"),
             )
         }
 
         userService.updateProfile(
             userName = userName,
             greeting = request.greeting,
-            locale = locale
+            locale = locale,
         )
 
         return HttpResponse.ok(ProfileSuccessResponse("Profile updated successfully"))
@@ -92,7 +97,7 @@ open class UserResource(
 data class ProfileResponse(
     val userName: String,
     val greeting: String,
-    val locale: String
+    val locale: String,
 )
 
 @Serdeable
@@ -101,20 +106,19 @@ data class UpdateProfileRequest(
     @field:NotBlank(message = "Greeting cannot be blank")
     @field:Size(max = 255, message = "Greeting cannot exceed 255 characters")
     val greeting: String,
-
     @field:NotBlank(message = "Locale is required")
-    val locale: String
+    val locale: String,
 )
 
 @Serdeable
 @Introspected
 data class ProfileSuccessResponse(
-    val message: String
+    val message: String,
 )
 
 @Serdeable
 @Introspected
 data class ProfileErrorResponse(
     val error: String,
-    val errorCode: String
+    val errorCode: String,
 )

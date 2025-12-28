@@ -11,9 +11,8 @@ import java.util.Locale
 
 @Singleton
 class DefaultAdminStartupService(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
 ) : ApplicationEventListener<ApplicationStartupEvent> {
-
     private val log = LoggerFactory.getLogger(DefaultAdminStartupService::class.java)
 
     override fun onApplicationEvent(event: ApplicationStartupEvent) {
@@ -27,28 +26,30 @@ class DefaultAdminStartupService(
         }
 
         val randomPassword = generateRandomPassword()
-        val defaultAdmin = User.create(
-            userName = "sudo",
-            passwordHash = BCrypt.hashpw(randomPassword, BCrypt.gensalt()),
-            greeting = "Administrator",
-            isAdmin = true,
-            locale = Locale.US
-        )
+        val defaultAdmin =
+            User.create(
+                userName = "sudo",
+                passwordHash = BCrypt.hashpw(randomPassword, BCrypt.gensalt()),
+                greeting = "Administrator",
+                isAdmin = true,
+                locale = Locale.US,
+            )
 
         userRepository.save(defaultAdmin)
-        
+
         // Log admin creation with password to console for first-time setup
         // WARNING: This contains sensitive information and should only be logged to console during initial setup
-        val adminCreationMessage = buildString {
-            appendLine("=".repeat(60))
-            appendLine("DEFAULT ADMIN CREATED")
-            appendLine("Username: sudo")
-            appendLine("Password: $randomPassword")
-            appendLine("Please change this password after first login!")
-            appendLine("=".repeat(60))
-        }
+        val adminCreationMessage =
+            buildString {
+                appendLine("=".repeat(60))
+                appendLine("DEFAULT ADMIN CREATED")
+                appendLine("Username: sudo")
+                appendLine("Password: $randomPassword")
+                appendLine("Please change this password after first login!")
+                appendLine("=".repeat(60))
+            }
         log.warn(adminCreationMessage)
-        
+
         return randomPassword
     }
 

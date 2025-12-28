@@ -1,7 +1,5 @@
 package io.orangebuffalo.aionify
 
-import com.microsoft.playwright.Page
-import com.microsoft.playwright.options.AriaRole
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.domain.LegacyTag
@@ -14,7 +12,6 @@ import java.time.Instant
 
 @MicronautTest(transactional = false)
 class TagsPlaywrightTest : PlaywrightTestBase() {
-
     @Inject
     lateinit var testAuthSupport: TestAuthSupport
 
@@ -34,7 +31,6 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should display tags panel on settings page`() {
-
         navigateToSettingsViaToken()
 
         // Verify settings page is visible
@@ -68,8 +64,8 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Task 1",
                 ownerId = requireNotNull(regularUser.id),
-                tags = arrayOf("kotlin", "backend")
-            )
+                tags = arrayOf("kotlin", "backend"),
+            ),
         )
 
         testDatabaseSupport.insert(
@@ -78,8 +74,8 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T13:00:00Z"),
                 title = "Task 2",
                 ownerId = requireNotNull(regularUser.id),
-                tags = arrayOf("react", "frontend")
-            )
+                tags = arrayOf("react", "frontend"),
+            ),
         )
 
         navigateToSettingsViaToken()
@@ -112,8 +108,8 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Task 1",
                 ownerId = requireNotNull(regularUser.id),
-                tags = arrayOf("kotlin", "backend")
-            )
+                tags = arrayOf("kotlin", "backend"),
+            ),
         )
 
         testDatabaseSupport.insert(
@@ -122,8 +118,8 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T13:00:00Z"),
                 title = "Task 2",
                 ownerId = requireNotNull(regularUser.id),
-                tags = arrayOf("kotlin", "testing")
-            )
+                tags = arrayOf("kotlin", "testing"),
+            ),
         )
 
         testDatabaseSupport.insert(
@@ -132,8 +128,8 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = null,
                 title = "Task 3",
                 ownerId = requireNotNull(regularUser.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         navigateToSettingsViaToken()
@@ -157,8 +153,8 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "My Task",
                 ownerId = requireNotNull(regularUser.id),
-                tags = arrayOf("my-tag")
-            )
+                tags = arrayOf("my-tag"),
+            ),
         )
 
         // Create entries with different tags for other user
@@ -168,8 +164,8 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = null,
                 title = "Other Task",
                 ownerId = requireNotNull(otherUser.id),
-                tags = arrayOf("other-tag")
-            )
+                tags = arrayOf("other-tag"),
+            ),
         )
 
         navigateToSettingsViaToken()
@@ -188,8 +184,8 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Task",
                 ownerId = requireNotNull(regularUser.id),
-                tags = arrayOf("zebra", "apple", "mango", "banana")
-            )
+                tags = arrayOf("zebra", "apple", "mango", "banana"),
+            ),
         )
 
         navigateToSettingsViaToken()
@@ -208,8 +204,8 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Tagged Task",
                 ownerId = requireNotNull(regularUser.id),
-                tags = arrayOf("important")
-            )
+                tags = arrayOf("important"),
+            ),
         )
 
         testDatabaseSupport.insert(
@@ -218,8 +214,8 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T13:00:00Z"),
                 title = "Untagged Task",
                 ownerId = requireNotNull(regularUser.id),
-                tags = emptyArray()
-            )
+                tags = emptyArray(),
+            ),
         )
 
         navigateToSettingsViaToken()
@@ -241,8 +237,8 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Task",
                 ownerId = requireNotNull(regularUser.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         navigateToSettingsViaToken()
@@ -263,16 +259,16 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Task 1",
                 ownerId = requireNotNull(regularUser.id),
-                tags = arrayOf("kotlin", "java")
-            )
+                tags = arrayOf("kotlin", "java"),
+            ),
         )
 
         // Mark "kotlin" as legacy
         testDatabaseSupport.insert(
             LegacyTag(
                 userId = requireNotNull(regularUser.id),
-                name = "kotlin"
-            )
+                name = "kotlin",
+            ),
         )
 
         navigateToSettingsViaToken()
@@ -295,8 +291,8 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Task",
                 ownerId = requireNotNull(regularUser.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         navigateToSettingsViaToken()
@@ -320,16 +316,16 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Task",
                 ownerId = requireNotNull(regularUser.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         // Mark as legacy
         testDatabaseSupport.insert(
             LegacyTag(
                 userId = requireNotNull(regularUser.id),
-                name = "kotlin"
-            )
+                name = "kotlin",
+            ),
         )
 
         navigateToSettingsViaToken()
@@ -353,8 +349,8 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Task",
                 ownerId = requireNotNull(regularUser.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         navigateToSettingsViaToken()
@@ -385,16 +381,16 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Task",
                 ownerId = requireNotNull(regularUser.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         // Mark as legacy
         testDatabaseSupport.insert(
             LegacyTag(
                 userId = requireNotNull(regularUser.id),
-                name = "kotlin"
-            )
+                name = "kotlin",
+            ),
         )
 
         navigateToSettingsViaToken()
@@ -425,8 +421,8 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Regular User Task",
                 ownerId = requireNotNull(regularUser.id),
-                tags = arrayOf("shared-tag")
-            )
+                tags = arrayOf("shared-tag"),
+            ),
         )
 
         testDatabaseSupport.insert(
@@ -435,16 +431,16 @@ class TagsPlaywrightTest : PlaywrightTestBase() {
                 endTime = Instant.parse("2024-01-15T13:00:00Z"),
                 title = "Other User Task",
                 ownerId = requireNotNull(otherUser.id),
-                tags = arrayOf("shared-tag")
-            )
+                tags = arrayOf("shared-tag"),
+            ),
         )
 
         // Other user marks the tag as legacy
         testDatabaseSupport.insert(
             LegacyTag(
                 userId = requireNotNull(otherUser.id),
-                name = "shared-tag"
-            )
+                name = "shared-tag",
+            ),
         )
 
         navigateToSettingsViaToken()

@@ -9,7 +9,6 @@ import java.time.Instant
  */
 @Singleton
 open class TimeService {
-    
     /**
      * Returns the current instant in time.
      * In tests, this can be mocked to return a fixed time for deterministic behavior.
