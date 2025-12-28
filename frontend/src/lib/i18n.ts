@@ -142,8 +142,7 @@ const resources = {
         timezoneHint: "Times shown in {{timezone}}",
         deleteDialog: {
           title: "Delete Time Log Entry",
-          message:
-            "Are you sure you want to delete this time log entry? This action cannot be undone.",
+          message: "Are you sure you want to delete this time log entry? This action cannot be undone.",
           confirm: "Delete",
           cancel: "Cancel",
         },
@@ -178,8 +177,7 @@ const resources = {
             },
             deleteConfirm: {
               title: "Delete User",
-              message:
-                "Are you sure you want to delete user {{userName}}? This action cannot be undone.",
+              message: "Are you sure you want to delete user {{userName}}? This action cannot be undone.",
               confirm: "Delete",
               cancel: "Cancel",
             },
@@ -365,8 +363,7 @@ const resources = {
         validating: "Перевірка посилання...",
         noToken: "Токен активації не надано",
         invalidToken: "Це посилання недійсне або закінчилося",
-        contactAdmin:
-          "Будь ласка, зверніться до системного адміністратора для отримання нового посилання.",
+        contactAdmin: "Будь ласка, зверніться до системного адміністратора для отримання нового посилання.",
         welcome: "Ласкаво просимо, {{greeting}}!",
         password: "Пароль",
         passwordPlaceholder: "Введіть пароль",
@@ -509,8 +506,7 @@ const resources = {
             },
             deleteConfirm: {
               title: "Видалити користувача",
-              message:
-                "Ви впевнені, що хочете видалити користувача {{userName}}? Цю дію неможливо скасувати.",
+              message: "Ви впевнені, що хочете видалити користувача {{userName}}? Цю дію неможливо скасувати.",
               confirm: "Видалити",
               cancel: "Скасувати",
             },

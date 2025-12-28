@@ -139,17 +139,11 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
               >
                 {(userName || greeting) && (
                   <>
-                    <DropdownMenuLabel data-testid="profile-greeting">
-                      {greeting || userName}
-                    </DropdownMenuLabel>
+                    <DropdownMenuLabel data-testid="profile-greeting">{greeting || userName}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                   </>
                 )}
-                <DropdownMenuItem
-                  onClick={handleProfile}
-                  className="cursor-pointer"
-                  data-testid="profile-menu-item"
-                >
+                <DropdownMenuItem onClick={handleProfile} className="cursor-pointer" data-testid="profile-menu-item">
                   <User className="mr-2 h-4 w-4" />
                   <span>{t("nav.profile")}</span>
                 </DropdownMenuItem>

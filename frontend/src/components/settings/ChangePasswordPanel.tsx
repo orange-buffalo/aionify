@@ -166,9 +166,7 @@ export function ChangePasswordPanel() {
           {error && <FormMessage type="error" message={error} testId="change-password-error" />}
 
           {/* Success Message */}
-          {success && (
-            <FormMessage type="success" message={success} testId="change-password-success" />
-          )}
+          {success && <FormMessage type="success" message={success} testId="change-password-success" />}
 
           {/* Submit Button */}
           <Button

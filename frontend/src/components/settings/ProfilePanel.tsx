@@ -4,13 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormMessage } from "@/components/ui/form-message";
 import { User, Loader2 } from "lucide-react";
 import { apiGet, apiPut } from "@/lib/api";
@@ -156,10 +150,7 @@ export function ProfilePanel() {
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div
-            className="flex items-center gap-2 text-muted-foreground"
-            data-testid="profile-loading"
-          >
+          <div className="flex items-center gap-2 text-muted-foreground" data-testid="profile-loading">
             <Loader2 className="h-4 w-4 animate-spin" />
             {t("profile.profile.loading")}
           </div>
@@ -188,20 +179,12 @@ export function ProfilePanel() {
                 {t("profile.profile.language")}
               </Label>
               <Select value={locale} onValueChange={setLocale}>
-                <SelectTrigger
-                  id="locale"
-                  className="bg-background/50"
-                  data-testid="profile-locale-select"
-                >
+                <SelectTrigger id="locale" className="bg-background/50" data-testid="profile-locale-select">
                   <SelectValue placeholder={t("profile.profile.languagePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent data-testid="profile-locale-dropdown" className="dark">
                   {LOCALES.map((localeCode) => (
-                    <SelectItem
-                      key={localeCode}
-                      value={localeCode}
-                      data-testid={`locale-option-${localeCode}`}
-                    >
+                    <SelectItem key={localeCode} value={localeCode} data-testid={`locale-option-${localeCode}`}>
                       {t(`locales.${localeCode}`)}
                     </SelectItem>
                   ))}
@@ -219,11 +202,7 @@ export function ProfilePanel() {
 
             {/* Success Message */}
             {success && (
-              <FormMessage
-                type="success"
-                message={t("profile.profile.updateSuccess")}
-                testId="profile-success"
-              />
+              <FormMessage type="success" message={t("profile.profile.updateSuccess")} testId="profile-success" />
             )}
 
             {/* Submit Button */}

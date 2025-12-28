@@ -101,9 +101,7 @@ export function useTimeLogs() {
         return {
           date,
           displayTitle: getDayTitle(date, locale),
-          entries: entries.sort(
-            (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
-          ),
+          entries: entries.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()),
           totalDuration,
         };
       })
@@ -310,12 +308,7 @@ export function useTimeLogs() {
   }
 
   // Save edited stopped entry
-  async function handleSaveStoppedEntry(
-    entry: TimeEntry,
-    title: string,
-    startTimeISO: string,
-    endTimeISO: string
-  ) {
+  async function handleSaveStoppedEntry(entry: TimeEntry, title: string, startTimeISO: string, endTimeISO: string) {
     try {
       setIsSaving(true);
       setError(null);

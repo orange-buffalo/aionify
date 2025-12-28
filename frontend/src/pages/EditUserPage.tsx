@@ -124,10 +124,7 @@ export function EditUserPage() {
     setRegenerating(true);
 
     try {
-      const response = await apiPost<ActivationTokenResponse>(
-        `/api/admin/users/${id}/regenerate-activation-token`,
-        {}
-      );
+      const response = await apiPost<ActivationTokenResponse>(`/api/admin/users/${id}/regenerate-activation-token`, {});
 
       setSuccessMessage(t("portal.admin.users.edit.tokenRegenerated"));
       // Reload user to get updated activation token
@@ -227,9 +224,7 @@ export function EditUserPage() {
                       data-testid="save-button"
                       className="bg-teal-600 hover:bg-teal-700"
                     >
-                      {saving
-                        ? t("portal.admin.users.edit.saving")
-                        : t("portal.admin.users.edit.save")}
+                      {saving ? t("portal.admin.users.edit.saving") : t("portal.admin.users.edit.save")}
                     </Button>
                   </form>
                 </CardContent>
@@ -245,29 +240,21 @@ export function EditUserPage() {
                 <CardContent>
                   <div className="space-y-3 text-sm">
                     <div>
-                      <span className="text-muted-foreground">
-                        {t("portal.admin.users.edit.greeting")}:
-                      </span>
+                      <span className="text-muted-foreground">{t("portal.admin.users.edit.greeting")}:</span>
                       <span className="ml-2 text-foreground" data-testid="user-greeting">
                         {user.greeting}
                       </span>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">
-                        {t("portal.admin.users.edit.userType")}:
-                      </span>
+                      <span className="text-muted-foreground">{t("portal.admin.users.edit.userType")}:</span>
                       <span className="ml-2 text-foreground" data-testid="user-type">
-                        {user.isAdmin
-                          ? t("portal.admin.users.table.admin")
-                          : t("portal.admin.users.table.regularUser")}
+                        {user.isAdmin ? t("portal.admin.users.table.admin") : t("portal.admin.users.table.regularUser")}
                       </span>
                     </div>
                   </div>
 
                   <div className="mt-4 p-3 bg-muted rounded text-sm" data-testid="user-info-note">
-                    <p className="text-muted-foreground">
-                      {t("portal.admin.users.edit.profileNote")}
-                    </p>
+                    <p className="text-muted-foreground">{t("portal.admin.users.edit.profileNote")}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -275,10 +262,7 @@ export function EditUserPage() {
               {/* Activation Token */}
               <Card className="border-none shadow-md">
                 <CardHeader>
-                  <CardTitle
-                    className="text-xl font-semibold"
-                    data-testid="activation-section-title"
-                  >
+                  <CardTitle className="text-xl font-semibold" data-testid="activation-section-title">
                     {t("portal.admin.users.edit.activationSection")}
                   </CardTitle>
                 </CardHeader>
@@ -297,10 +281,7 @@ export function EditUserPage() {
                           className="font-mono text-xs text-foreground"
                           data-testid="activation-url"
                         />
-                        <p
-                          className="text-xs text-muted-foreground mt-1"
-                          data-testid="activation-note"
-                        >
+                        <p className="text-xs text-muted-foreground mt-1" data-testid="activation-note">
                           {t("portal.admin.users.edit.activationNote")}
                         </p>
                       </div>
@@ -345,10 +326,7 @@ export function EditUserPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div
-                    className="space-y-2 text-sm text-muted-foreground"
-                    data-testid="limitations-list"
-                  >
+                  <div className="space-y-2 text-sm text-muted-foreground" data-testid="limitations-list">
                     <p>• {t("portal.admin.users.edit.noTypeChange")}</p>
                     <p>• {t("portal.admin.users.edit.noPasswordChange")}</p>
                   </div>

@@ -115,18 +115,12 @@ export function CurrentEntryPanel({
                     <Pencil className="h-4 w-4" />
                   </Button>
                 </div>
-                <div
-                  className="text-sm text-muted-foreground"
-                  data-testid="active-entry-started-at"
-                >
+                <div className="text-sm text-muted-foreground" data-testid="active-entry-started-at">
                   {t("timeLogs.startedAt")}: {formatDateTime(activeEntry.startTime, locale)}
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div
-                  className="text-2xl font-mono font-bold text-foreground"
-                  data-testid="active-timer"
-                >
+                <div className="text-2xl font-mono font-bold text-foreground" data-testid="active-timer">
                   {formatDuration(activeDuration)}
                 </div>
                 <Button

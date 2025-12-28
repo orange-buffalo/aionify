@@ -6,7 +6,7 @@ plugins {
     id("com.google.devtools.ksp") version "2.1.0-1.0.29"
     id("io.micronaut.application") version "4.6.1"
     id("io.micronaut.docker") version "4.6.1"
-    id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
+    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
 }
 
 val micronautVersion: String by project
@@ -161,7 +161,7 @@ kotlin {
 
 // Ktlint configuration
 ktlint {
-    version.set("1.4.1")
+    version.set("1.8.0")
     android.set(false)
     ignoreFailures.set(false)
     reporters {

@@ -13,13 +13,7 @@ interface DateTimePickerProps {
   testIdPrefix: string;
 }
 
-export function DateTimePicker({
-  value,
-  onChange,
-  disabled,
-  locale,
-  testIdPrefix,
-}: DateTimePickerProps) {
+export function DateTimePicker({ value, onChange, disabled, locale, testIdPrefix }: DateTimePickerProps) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(value);
@@ -114,15 +108,11 @@ export function DateTimePicker({
   };
 
   const prevMonth = () => {
-    setSelectedDate(
-      new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, selectedDate.getDate())
-    );
+    setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, selectedDate.getDate()));
   };
 
   const nextMonth = () => {
-    setSelectedDate(
-      new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, selectedDate.getDate())
-    );
+    setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, selectedDate.getDate()));
   };
 
   return (
@@ -142,23 +132,13 @@ export function DateTimePicker({
         <div className="p-4 space-y-4">
           {/* Month/Year Header */}
           <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={prevMonth}
-              className="h-7 w-7 p-0 text-foreground"
-            >
+            <Button variant="ghost" size="sm" onClick={prevMonth} className="h-7 w-7 p-0 text-foreground">
               ‹
             </Button>
             <div className="text-sm font-medium text-foreground">
               {monthName} {year}
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={nextMonth}
-              className="h-7 w-7 p-0 text-foreground"
-            >
+            <Button variant="ghost" size="sm" onClick={nextMonth} className="h-7 w-7 p-0 text-foreground">
               ›
             </Button>
           </div>
@@ -202,9 +182,7 @@ export function DateTimePicker({
               min="0"
               max="23"
               value={selectedDate.getHours()}
-              onChange={(e) =>
-                handleTimeChange(parseInt(e.target.value) || 0, selectedDate.getMinutes())
-              }
+              onChange={(e) => handleTimeChange(parseInt(e.target.value) || 0, selectedDate.getMinutes())}
               className="w-16 text-foreground"
               data-testid={`${testIdPrefix}-hours`}
             />
@@ -214,9 +192,7 @@ export function DateTimePicker({
               min="0"
               max="59"
               value={selectedDate.getMinutes()}
-              onChange={(e) =>
-                handleTimeChange(selectedDate.getHours(), parseInt(e.target.value) || 0)
-              }
+              onChange={(e) => handleTimeChange(selectedDate.getHours(), parseInt(e.target.value) || 0)}
               className="w-16 text-foreground"
               data-testid={`${testIdPrefix}-minutes`}
             />
@@ -224,12 +200,7 @@ export function DateTimePicker({
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-2 pt-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsOpen(false)}
-              className="text-foreground"
-            >
+            <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)} className="text-foreground">
               {t("timeLogs.datePicker.cancel")}
             </Button>
             <Button size="sm" onClick={handleApply} data-testid={`${testIdPrefix}-apply`}>

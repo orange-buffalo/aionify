@@ -65,21 +65,10 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
             const day = parseInt(parts[format.day], 10);
 
             // Basic validation
-            if (
-              year >= 1900 &&
-              year <= 2100 &&
-              month >= 1 &&
-              month <= 12 &&
-              day >= 1 &&
-              day <= 31
-            ) {
+            if (year >= 1900 && year <= 2100 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
               const date = new Date(year, month - 1, day);
               // Verify the date is valid (e.g., not Feb 31)
-              if (
-                date.getFullYear() === year &&
-                date.getMonth() === month - 1 &&
-                date.getDate() === day
-              ) {
+              if (date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day) {
                 return date;
               }
             }
@@ -184,15 +173,11 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
   };
 
   const prevMonth = () => {
-    setSelectedDate(
-      new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, selectedDate.getDate())
-    );
+    setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, selectedDate.getDate()));
   };
 
   const nextMonth = () => {
-    setSelectedDate(
-      new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, selectedDate.getDate())
-    );
+    setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, selectedDate.getDate()));
   };
 
   return (
@@ -230,23 +215,13 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
         <div className="p-4 space-y-4">
           {/* Month/Year Header */}
           <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={prevMonth}
-              className="h-7 w-7 p-0 text-foreground"
-            >
+            <Button variant="ghost" size="sm" onClick={prevMonth} className="h-7 w-7 p-0 text-foreground">
               ‹
             </Button>
             <div className="text-sm font-medium text-foreground">
               {monthName} {year}
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={nextMonth}
-              className="h-7 w-7 p-0 text-foreground"
-            >
+            <Button variant="ghost" size="sm" onClick={nextMonth} className="h-7 w-7 p-0 text-foreground">
               ›
             </Button>
           </div>

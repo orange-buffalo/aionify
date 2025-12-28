@@ -43,14 +43,11 @@ if (!buildResult.success) {
 const cssInput = join(import.meta.dir, "src/styles.css");
 const cssOutput = join(outDir, "styles.css");
 
-const cssProcess = Bun.spawn(
-  ["bunx", "@tailwindcss/cli", "-i", cssInput, "-o", cssOutput, "--minify"],
-  {
-    cwd: import.meta.dir,
-    stdout: "inherit",
-    stderr: "inherit",
-  }
-);
+const cssProcess = Bun.spawn(["bunx", "@tailwindcss/cli", "-i", cssInput, "-o", cssOutput, "--minify"], {
+  cwd: import.meta.dir,
+  stdout: "inherit",
+  stderr: "inherit",
+});
 
 await cssProcess.exited;
 

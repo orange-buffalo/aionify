@@ -6,13 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormMessage } from "@/components/ui/form-message";
 import { apiPost } from "@/lib/api";
 import { ArrowLeft } from "lucide-react";
@@ -163,11 +157,7 @@ export function CreateUserPage() {
                     {t("portal.admin.users.create.userType")}
                   </Label>
                   <Select value={userType} onValueChange={setUserType}>
-                    <SelectTrigger
-                      id="userType"
-                      className="text-foreground"
-                      data-testid="user-type-select"
-                    >
+                    <SelectTrigger id="userType" className="text-foreground" data-testid="user-type-select">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -187,9 +177,7 @@ export function CreateUserPage() {
                   data-testid="create-button"
                   className="bg-teal-600 hover:bg-teal-700"
                 >
-                  {creating
-                    ? t("portal.admin.users.create.creating")
-                    : t("portal.admin.users.create.create")}
+                  {creating ? t("portal.admin.users.create.creating") : t("portal.admin.users.create.create")}
                 </Button>
               </form>
             </CardContent>

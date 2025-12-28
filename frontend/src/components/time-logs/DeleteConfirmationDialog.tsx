@@ -36,9 +36,7 @@ export function DeleteConfirmationDialog({
       <DialogContent className="dark">
         <DialogHeader>
           <DialogTitle className="text-foreground">{t("timeLogs.deleteDialog.title")}</DialogTitle>
-          <DialogDescription className="text-foreground">
-            {t("timeLogs.deleteDialog.message")}
-          </DialogDescription>
+          <DialogDescription className="text-foreground">{t("timeLogs.deleteDialog.message")}</DialogDescription>
         </DialogHeader>
         {entry && (
           <div className="mt-2 p-2 bg-muted rounded text-foreground">
@@ -48,26 +46,15 @@ export function DeleteConfirmationDialog({
               {entry.endTime ? formatTime(entry.endTime, locale) : t("timeLogs.inProgress")}
             </div>
             <div className="text-sm">
-              {t("timeLogs.duration")}:{" "}
-              {formatDuration(calculateDuration(entry.startTime, entry.endTime))}
+              {t("timeLogs.duration")}: {formatDuration(calculateDuration(entry.startTime, entry.endTime))}
             </div>
           </div>
         )}
         <DialogFooter>
-          <Button
-            variant="ghost"
-            onClick={() => onOpenChange(false)}
-            disabled={isDeleting}
-            className="text-foreground"
-          >
+          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isDeleting} className="text-foreground">
             {t("timeLogs.deleteDialog.cancel")}
           </Button>
-          <Button
-            variant="destructive"
-            onClick={onConfirm}
-            disabled={isDeleting}
-            data-testid="confirm-delete-button"
-          >
+          <Button variant="destructive" onClick={onConfirm} disabled={isDeleting} data-testid="confirm-delete-button">
             {isDeleting ? t("timeLogs.deleting") : t("timeLogs.deleteDialog.confirm")}
           </Button>
         </DialogFooter>

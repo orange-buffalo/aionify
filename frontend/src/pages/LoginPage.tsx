@@ -10,13 +10,7 @@ import { FormMessage } from "@/components/ui/form-message";
 import { Logo } from "@/components/ui/logo";
 import { LAST_USERNAME_KEY, TOKEN_KEY } from "@/lib/constants";
 import { initializeLanguage, translateErrorCode } from "@/lib/i18n";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -110,10 +104,7 @@ export function LoginPage() {
   };
 
   return (
-    <div
-      className="dark min-h-screen flex items-center justify-center p-4 login-gradient-bg"
-      data-testid="login-page"
-    >
+    <div className="dark min-h-screen flex items-center justify-center p-4 login-gradient-bg" data-testid="login-page">
       {/* Centered Login form */}
       <Card className="w-full max-w-md border-none shadow-md">
         <CardHeader className="space-y-1">
@@ -125,9 +116,7 @@ export function LoginPage() {
           </CardTitle>
           <CardDescription>
             {lastUserGreeting ? (
-              <span data-testid="welcome-back-message">
-                {t("login.welcomeBack", { greeting: lastUserGreeting })}
-              </span>
+              <span data-testid="welcome-back-message">{t("login.welcomeBack", { greeting: lastUserGreeting })}</span>
             ) : (
               t("login.signInPrompt")
             )}
@@ -220,12 +209,8 @@ export function LoginPage() {
       <Dialog open={showForgotPasswordDialog} onOpenChange={setShowForgotPasswordDialog}>
         <DialogContent data-testid="forgot-password-dialog">
           <DialogHeader>
-            <DialogTitle className="text-foreground">
-              {t("login.lostPasswordDialog.title")}
-            </DialogTitle>
-            <DialogDescription className="text-foreground">
-              {t("login.lostPasswordDialog.message")}
-            </DialogDescription>
+            <DialogTitle className="text-foreground">{t("login.lostPasswordDialog.title")}</DialogTitle>
+            <DialogDescription className="text-foreground">{t("login.lostPasswordDialog.message")}</DialogDescription>
           </DialogHeader>
           <div className="flex justify-end">
             <Button

@@ -48,9 +48,7 @@ export function ActivateAccountPage() {
     // Validate the token on page load
     const validateToken = async () => {
       try {
-        const data = await apiGet<ValidateTokenResponse>(
-          `/api/activation/validate?token=${encodeURIComponent(token)}`
-        );
+        const data = await apiGet<ValidateTokenResponse>(`/api/activation/validate?token=${encodeURIComponent(token)}`);
 
         if (data.valid) {
           setIsValid(true);
@@ -115,9 +113,7 @@ export function ActivateAccountPage() {
           <CardTitle className="text-2xl font-bold" data-testid="activate-title">
             {t("activation.title")}
           </CardTitle>
-          <CardDescription>
-            {isValidating ? t("activation.validating") : t("activation.subtitle")}
-          </CardDescription>
+          <CardDescription>{isValidating ? t("activation.validating") : t("activation.subtitle")}</CardDescription>
         </CardHeader>
         <CardContent>
           {isValidating ? (
@@ -190,11 +186,7 @@ export function ActivateAccountPage() {
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     data-testid="toggle-confirm-password-visibility"
                   >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>

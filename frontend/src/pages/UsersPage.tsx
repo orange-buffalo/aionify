@@ -2,14 +2,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { PortalLayout } from "@/components/layout/PortalLayout";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -163,9 +156,7 @@ export function UsersPage() {
                         <TableHead>{t("portal.admin.users.table.username")}</TableHead>
                         <TableHead>{t("portal.admin.users.table.greeting")}</TableHead>
                         <TableHead>{t("portal.admin.users.table.type")}</TableHead>
-                        <TableHead className="w-[50px]">
-                          {t("portal.admin.users.table.actions")}
-                        </TableHead>
+                        <TableHead className="w-[50px]">{t("portal.admin.users.table.actions")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -178,12 +169,8 @@ export function UsersPage() {
                       ) : (
                         users.map((user) => (
                           <TableRow key={user.id} data-testid={`user-row-${user.userName}`}>
-                            <TableCell data-testid={`user-username-${user.userName}`}>
-                              {user.userName}
-                            </TableCell>
-                            <TableCell data-testid={`user-greeting-${user.userName}`}>
-                              {user.greeting}
-                            </TableCell>
+                            <TableCell data-testid={`user-username-${user.userName}`}>{user.userName}</TableCell>
+                            <TableCell data-testid={`user-greeting-${user.userName}`}>{user.greeting}</TableCell>
                             <TableCell data-testid={`user-type-${user.userName}`}>
                               {user.isAdmin
                                 ? t("portal.admin.users.table.admin")
@@ -194,11 +181,7 @@ export function UsersPage() {
                                 <>
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        data-testid={`user-actions-${user.userName}`}
-                                      >
+                                      <Button variant="ghost" size="sm" data-testid={`user-actions-${user.userName}`}>
                                         <MoreVertical className="h-4 w-4" />
                                       </Button>
                                     </DropdownMenuTrigger>
@@ -223,14 +206,9 @@ export function UsersPage() {
 
                                   <Dialog
                                     open={deletePopoverOpen === user.id}
-                                    onOpenChange={(open) =>
-                                      setDeletePopoverOpen(open ? user.id : null)
-                                    }
+                                    onOpenChange={(open) => setDeletePopoverOpen(open ? user.id : null)}
                                   >
-                                    <DialogContent
-                                      data-testid={`delete-confirm-${user.userName}`}
-                                      className="dark"
-                                    >
+                                    <DialogContent data-testid={`delete-confirm-${user.userName}`} className="dark">
                                       <DialogHeader>
                                         <DialogTitle className="text-foreground">
                                           {t("portal.admin.users.deleteConfirm.title")}
@@ -274,10 +252,7 @@ export function UsersPage() {
               </Card>
 
               {totalPages > 1 && (
-                <div
-                  className="flex items-center justify-between mt-4"
-                  data-testid="users-pagination"
-                >
+                <div className="flex items-center justify-between mt-4" data-testid="users-pagination">
                   <div className="text-sm text-muted-foreground">
                     {t("portal.admin.users.pagination.showing", {
                       start: page * size + 1,

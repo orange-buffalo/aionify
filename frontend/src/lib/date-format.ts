@@ -15,12 +15,7 @@ export function uses12HourFormat(locale: string): boolean {
     hour: "numeric",
     hour12: undefined, // Let locale decide
   }).format(testDate);
-  return (
-    formatted.includes("PM") ||
-    formatted.includes("AM") ||
-    formatted.includes("pm") ||
-    formatted.includes("am")
-  );
+  return formatted.includes("PM") || formatted.includes("AM") || formatted.includes("pm") || formatted.includes("am");
 }
 
 /**

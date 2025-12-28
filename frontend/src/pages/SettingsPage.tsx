@@ -2,14 +2,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { PortalLayout } from "@/components/layout/PortalLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FormMessage } from "@/components/ui/form-message";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -130,9 +123,7 @@ export function SettingsPage() {
                 <Table data-testid="tags-table">
                   <TableHeader>
                     <TableRow>
-                      <TableHead data-testid="tags-header-tag">
-                        {t("settings.tags.table.tag")}
-                      </TableHead>
+                      <TableHead data-testid="tags-header-tag">{t("settings.tags.table.tag")}</TableHead>
                       <TableHead className="w-[100px]" data-testid="tags-header-count">
                         {t("settings.tags.table.count")}
                       </TableHead>
@@ -159,10 +150,7 @@ export function SettingsPage() {
                                 </svg>
                               </button>
                             </PopoverTrigger>
-                            <PopoverContent
-                              className="dark text-sm"
-                              data-testid="tags-legacy-tooltip"
-                            >
+                            <PopoverContent className="dark text-sm" data-testid="tags-legacy-tooltip">
                               {t("settings.tags.table.isLegacyTooltip")}
                             </PopoverContent>
                           </Popover>
@@ -177,13 +165,9 @@ export function SettingsPage() {
                     {tags.map((tagStat) => (
                       <TableRow key={tagStat.tag} data-testid={`tag-row-${tagStat.tag}`}>
                         <TableCell data-testid={`tag-name-${tagStat.tag}`}>{tagStat.tag}</TableCell>
-                        <TableCell data-testid={`tag-count-${tagStat.tag}`}>
-                          {tagStat.count}
-                        </TableCell>
+                        <TableCell data-testid={`tag-count-${tagStat.tag}`}>{tagStat.count}</TableCell>
                         <TableCell data-testid={`tag-legacy-${tagStat.tag}`}>
-                          {tagStat.isLegacy && (
-                            <span className="text-foreground">{t("settings.tags.yes")}</span>
-                          )}
+                          {tagStat.isLegacy && <span className="text-foreground">{t("settings.tags.yes")}</span>}
                         </TableCell>
                         <TableCell data-testid={`tag-actions-${tagStat.tag}`}>
                           <DropdownMenu>

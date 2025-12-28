@@ -12,12 +12,7 @@ interface DayGroupProps {
   onContinue: (entry: TimeLogEntry) => void;
   onDelete: (entry: TimeLogEntry) => void;
   onEdit: (entry: TimeLogEntry) => void;
-  onSaveEdit: (
-    entry: TimeLogEntry,
-    title: string,
-    startTime: string,
-    endTime: string
-  ) => Promise<void>;
+  onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string) => Promise<void>;
   onCancelEdit: () => void;
 }
 
