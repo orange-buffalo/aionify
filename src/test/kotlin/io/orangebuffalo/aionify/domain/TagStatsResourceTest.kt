@@ -17,9 +17,9 @@ import java.time.Instant
 
 /**
  * API endpoint security tests for tag stats resource.
- * 
+ *
  * Per project guidelines, this test validates SECURITY ONLY, not business logic.
- * 
+ *
  * Tests verify:
  * 1. Authentication is required to access tag stats endpoints
  * 2. Users can only access their own tag statistics
@@ -28,7 +28,6 @@ import java.time.Instant
  */
 @MicronautTest(transactional = false)
 class TagStatsResourceTest {
-
     @Inject
     @field:Client("/")
     lateinit var client: HttpClient
@@ -63,12 +62,13 @@ class TagStatsResourceTest {
     @Test
     fun `should require authentication to access tag stats`() {
         // When: Trying to access endpoint without authentication
-        val exception = assertThrows(HttpClientResponseException::class.java) {
-            client.toBlocking().exchange(
-                HttpRequest.GET<Any>("/api/tags/stats"),
-                String::class.java
-            )
-        }
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest.GET<Any>("/api/tags/stats"),
+                    String::class.java,
+                )
+            }
 
         // Then: Access should be unauthorized
         assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
@@ -83,8 +83,8 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "User 1 Task",
                 ownerId = requireNotNull(user1.id),
-                tags = arrayOf("kotlin", "backend")
-            )
+                tags = arrayOf("kotlin", "backend"),
+            ),
         )
 
         testDatabaseSupport.insert(
@@ -93,29 +93,31 @@ class TagStatsResourceTest {
                 endTime = null,
                 title = "User 2 Task",
                 ownerId = requireNotNull(user2.id),
-                tags = arrayOf("react", "frontend")
-            )
+                tags = arrayOf("react", "frontend"),
+            ),
         )
 
         // When: User 1 requests tag stats
         val user1Token = testAuthSupport.generateToken(user1)
-        val response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/api/tags/stats")
-                .bearerAuth(user1Token),
-            TagStatsResponse::class.java
-        )
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .GET<Any>("/api/tags/stats")
+                    .bearerAuth(user1Token),
+                TagStatsResponse::class.java,
+            )
 
         // Then: Should only see own tags
         assertEquals(HttpStatus.OK, response.status)
         val stats = response.body()?.tags ?: emptyList()
         assertEquals(2, stats.size)
-        
+
         // Verify tags are sorted alphabetically
         assertEquals("backend", stats[0].tag)
         assertEquals(1L, stats[0].count)
         assertEquals("kotlin", stats[1].tag)
         assertEquals(1L, stats[1].count)
-        
+
         // Verify User 2's tags are not included
         assertFalse(stats.any { it.tag == "react" })
         assertFalse(stats.any { it.tag == "frontend" })
@@ -127,11 +129,13 @@ class TagStatsResourceTest {
         val user1Token = testAuthSupport.generateToken(user1)
 
         // When: User 1 requests tag stats
-        val response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/api/tags/stats")
-                .bearerAuth(user1Token),
-            TagStatsResponse::class.java
-        )
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .GET<Any>("/api/tags/stats")
+                    .bearerAuth(user1Token),
+                TagStatsResponse::class.java,
+            )
 
         // Then: Should return empty list
         assertEquals(HttpStatus.OK, response.status)
@@ -148,18 +152,20 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "User 1 Task",
                 ownerId = requireNotNull(user1.id),
-                tags = emptyArray()
-            )
+                tags = emptyArray(),
+            ),
         )
 
         val user1Token = testAuthSupport.generateToken(user1)
 
         // When: User 1 requests tag stats
-        val response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/api/tags/stats")
-                .bearerAuth(user1Token),
-            TagStatsResponse::class.java
-        )
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .GET<Any>("/api/tags/stats")
+                    .bearerAuth(user1Token),
+                TagStatsResponse::class.java,
+            )
 
         // Then: Should return empty list
         assertEquals(HttpStatus.OK, response.status)
@@ -176,8 +182,8 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Task 1",
                 ownerId = requireNotNull(user1.id),
-                tags = arrayOf("kotlin", "backend")
-            )
+                tags = arrayOf("kotlin", "backend"),
+            ),
         )
 
         testDatabaseSupport.insert(
@@ -186,8 +192,8 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T13:00:00Z"),
                 title = "Task 2",
                 ownerId = requireNotNull(user1.id),
-                tags = arrayOf("kotlin", "testing")
-            )
+                tags = arrayOf("kotlin", "testing"),
+            ),
         )
 
         testDatabaseSupport.insert(
@@ -196,24 +202,26 @@ class TagStatsResourceTest {
                 endTime = null,
                 title = "Task 3",
                 ownerId = requireNotNull(user1.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         val user1Token = testAuthSupport.generateToken(user1)
 
         // When: User 1 requests tag stats
-        val response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/api/tags/stats")
-                .bearerAuth(user1Token),
-            TagStatsResponse::class.java
-        )
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .GET<Any>("/api/tags/stats")
+                    .bearerAuth(user1Token),
+                TagStatsResponse::class.java,
+            )
 
         // Then: Should show correct counts
         assertEquals(HttpStatus.OK, response.status)
         val stats = response.body()?.tags ?: emptyList()
         assertEquals(3, stats.size)
-        
+
         // Verify counts (sorted alphabetically)
         assertEquals("backend", stats[0].tag)
         assertEquals(1L, stats[0].count)
@@ -232,8 +240,8 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "User 1 Task 1",
                 ownerId = requireNotNull(user1.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         testDatabaseSupport.insert(
@@ -242,8 +250,8 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T13:00:00Z"),
                 title = "User 1 Task 2",
                 ownerId = requireNotNull(user1.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         // And: User 2 also has entries with "kotlin" tag
@@ -253,8 +261,8 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T15:00:00Z"),
                 title = "User 2 Task 1",
                 ownerId = requireNotNull(user2.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         testDatabaseSupport.insert(
@@ -263,8 +271,8 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T17:00:00Z"),
                 title = "User 2 Task 2",
                 ownerId = requireNotNull(user2.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         testDatabaseSupport.insert(
@@ -273,18 +281,20 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T19:00:00Z"),
                 title = "User 2 Task 3",
                 ownerId = requireNotNull(user2.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         val user1Token = testAuthSupport.generateToken(user1)
 
         // When: User 1 requests tag stats
-        val response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/api/tags/stats")
-                .bearerAuth(user1Token),
-            TagStatsResponse::class.java
-        )
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .GET<Any>("/api/tags/stats")
+                    .bearerAuth(user1Token),
+                TagStatsResponse::class.java,
+            )
 
         // Then: Should show count only from User 1's entries (2), not User 2's entries (3)
         assertEquals(HttpStatus.OK, response.status)
@@ -303,8 +313,8 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Tagged Task",
                 ownerId = requireNotNull(user1.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         testDatabaseSupport.insert(
@@ -313,18 +323,20 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T13:00:00Z"),
                 title = "Untagged Task",
                 ownerId = requireNotNull(user1.id),
-                tags = emptyArray()
-            )
+                tags = emptyArray(),
+            ),
         )
 
         val user1Token = testAuthSupport.generateToken(user1)
 
         // When: User 1 requests tag stats
-        val response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/api/tags/stats")
-                .bearerAuth(user1Token),
-            TagStatsResponse::class.java
-        )
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .GET<Any>("/api/tags/stats")
+                    .bearerAuth(user1Token),
+                TagStatsResponse::class.java,
+            )
 
         // Then: Should only include tags from tagged entries
         assertEquals(HttpStatus.OK, response.status)
@@ -343,18 +355,20 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Task",
                 ownerId = requireNotNull(user1.id),
-                tags = arrayOf("zebra", "apple", "mango", "banana")
-            )
+                tags = arrayOf("zebra", "apple", "mango", "banana"),
+            ),
         )
 
         val user1Token = testAuthSupport.generateToken(user1)
 
         // When: User 1 requests tag stats
-        val response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/api/tags/stats")
-                .bearerAuth(user1Token),
-            TagStatsResponse::class.java
-        )
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .GET<Any>("/api/tags/stats")
+                    .bearerAuth(user1Token),
+                TagStatsResponse::class.java,
+            )
 
         // Then: Tags should be sorted alphabetically
         assertEquals(HttpStatus.OK, response.status)
@@ -375,18 +389,20 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Single Tag Task",
                 ownerId = requireNotNull(user1.id),
-                tags = arrayOf("solo")
-            )
+                tags = arrayOf("solo"),
+            ),
         )
 
         val user1Token = testAuthSupport.generateToken(user1)
 
         // When: User 1 requests tag stats
-        val response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/api/tags/stats")
-                .bearerAuth(user1Token),
-            TagStatsResponse::class.java
-        )
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .GET<Any>("/api/tags/stats")
+                    .bearerAuth(user1Token),
+                TagStatsResponse::class.java,
+            )
 
         // Then: Should return single tag with count 1
         assertEquals(HttpStatus.OK, response.status)
@@ -399,12 +415,13 @@ class TagStatsResourceTest {
     @Test
     fun `should require authentication to mark tag as legacy`() {
         // When: Trying to mark tag as legacy without authentication
-        val exception = assertThrows(HttpClientResponseException::class.java) {
-            client.toBlocking().exchange(
-                HttpRequest.POST("/api/tags/legacy", LegacyTagRequest("kotlin")),
-                String::class.java
-            )
-        }
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest.POST("/api/tags/legacy", LegacyTagRequest("kotlin")),
+                    String::class.java,
+                )
+            }
 
         // Then: Access should be unauthorized
         assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
@@ -413,12 +430,13 @@ class TagStatsResourceTest {
     @Test
     fun `should require authentication to unmark tag as legacy`() {
         // When: Trying to unmark tag as legacy without authentication
-        val exception = assertThrows(HttpClientResponseException::class.java) {
-            client.toBlocking().exchange(
-                HttpRequest.DELETE("/api/tags/legacy", LegacyTagRequest("kotlin")),
-                String::class.java
-            )
-        }
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest.DELETE("/api/tags/legacy", LegacyTagRequest("kotlin")),
+                    String::class.java,
+                )
+            }
 
         // Then: Access should be unauthorized
         assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
@@ -433,8 +451,8 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "User 1 Task",
                 ownerId = requireNotNull(user1.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         testDatabaseSupport.insert(
@@ -443,26 +461,28 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T13:00:00Z"),
                 title = "User 2 Task",
                 ownerId = requireNotNull(user2.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         // User 2 marks "kotlin" as legacy
         testDatabaseSupport.insert(
             LegacyTag(
                 userId = requireNotNull(user2.id),
-                name = "kotlin"
-            )
+                name = "kotlin",
+            ),
         )
 
         val user1Token = testAuthSupport.generateToken(user1)
 
         // When: User 1 requests tag stats
-        val response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/api/tags/stats")
-                .bearerAuth(user1Token),
-            TagStatsResponse::class.java
-        )
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .GET<Any>("/api/tags/stats")
+                    .bearerAuth(user1Token),
+                TagStatsResponse::class.java,
+            )
 
         // Then: User 1 should see "kotlin" as NOT legacy (only User 2 marked it)
         assertEquals(HttpStatus.OK, response.status)
@@ -481,8 +501,8 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "User 1 Task",
                 ownerId = requireNotNull(user1.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         testDatabaseSupport.insert(
@@ -491,28 +511,32 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T13:00:00Z"),
                 title = "User 2 Task",
                 ownerId = requireNotNull(user2.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         val user1Token = testAuthSupport.generateToken(user1)
         val user2Token = testAuthSupport.generateToken(user2)
 
         // When: User 1 marks "kotlin" as legacy
-        val markResponse = client.toBlocking().exchange(
-            HttpRequest.POST("/api/tags/legacy", LegacyTagRequest("kotlin"))
-                .bearerAuth(user1Token),
-            LegacyTagResponse::class.java
-        )
+        val markResponse =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .POST("/api/tags/legacy", LegacyTagRequest("kotlin"))
+                    .bearerAuth(user1Token),
+                LegacyTagResponse::class.java,
+            )
 
         assertEquals(HttpStatus.OK, markResponse.status)
 
         // Then: User 1 should see "kotlin" as legacy
-        val user1Response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/api/tags/stats")
-                .bearerAuth(user1Token),
-            TagStatsResponse::class.java
-        )
+        val user1Response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .GET<Any>("/api/tags/stats")
+                    .bearerAuth(user1Token),
+                TagStatsResponse::class.java,
+            )
 
         assertEquals(HttpStatus.OK, user1Response.status)
         val user1Stats = user1Response.body()?.tags ?: emptyList()
@@ -520,11 +544,13 @@ class TagStatsResourceTest {
         assertTrue(user1Stats[0].isLegacy)
 
         // And: User 2 should see "kotlin" as NOT legacy
-        val user2Response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/api/tags/stats")
-                .bearerAuth(user2Token),
-            TagStatsResponse::class.java
-        )
+        val user2Response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .GET<Any>("/api/tags/stats")
+                    .bearerAuth(user2Token),
+                TagStatsResponse::class.java,
+            )
 
         assertEquals(HttpStatus.OK, user2Response.status)
         val user2Stats = user2Response.body()?.tags ?: emptyList()
@@ -541,8 +567,8 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "User 1 Task",
                 ownerId = requireNotNull(user1.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         testDatabaseSupport.insert(
@@ -551,42 +577,46 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T13:00:00Z"),
                 title = "User 2 Task",
                 ownerId = requireNotNull(user2.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         testDatabaseSupport.insert(
             LegacyTag(
                 userId = requireNotNull(user1.id),
-                name = "kotlin"
-            )
+                name = "kotlin",
+            ),
         )
 
         testDatabaseSupport.insert(
             LegacyTag(
                 userId = requireNotNull(user2.id),
-                name = "kotlin"
-            )
+                name = "kotlin",
+            ),
         )
 
         val user1Token = testAuthSupport.generateToken(user1)
         val user2Token = testAuthSupport.generateToken(user2)
 
         // When: User 1 unmarks "kotlin" as legacy
-        val unmarkResponse = client.toBlocking().exchange(
-            HttpRequest.DELETE("/api/tags/legacy", LegacyTagRequest("kotlin"))
-                .bearerAuth(user1Token),
-            LegacyTagResponse::class.java
-        )
+        val unmarkResponse =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .DELETE("/api/tags/legacy", LegacyTagRequest("kotlin"))
+                    .bearerAuth(user1Token),
+                LegacyTagResponse::class.java,
+            )
 
         assertEquals(HttpStatus.OK, unmarkResponse.status)
 
         // Then: User 1 should see "kotlin" as NOT legacy
-        val user1Response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/api/tags/stats")
-                .bearerAuth(user1Token),
-            TagStatsResponse::class.java
-        )
+        val user1Response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .GET<Any>("/api/tags/stats")
+                    .bearerAuth(user1Token),
+                TagStatsResponse::class.java,
+            )
 
         assertEquals(HttpStatus.OK, user1Response.status)
         val user1Stats = user1Response.body()?.tags ?: emptyList()
@@ -594,11 +624,13 @@ class TagStatsResourceTest {
         assertFalse(user1Stats[0].isLegacy)
 
         // And: User 2 should still see "kotlin" as legacy
-        val user2Response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/api/tags/stats")
-                .bearerAuth(user2Token),
-            TagStatsResponse::class.java
-        )
+        val user2Response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .GET<Any>("/api/tags/stats")
+                    .bearerAuth(user2Token),
+                TagStatsResponse::class.java,
+            )
 
         assertEquals(HttpStatus.OK, user2Response.status)
         val user2Stats = user2Response.body()?.tags ?: emptyList()
@@ -615,25 +647,27 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "User 1 Task",
                 ownerId = requireNotNull(user1.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         testDatabaseSupport.insert(
             LegacyTag(
                 userId = requireNotNull(user1.id),
-                name = "kotlin"
-            )
+                name = "kotlin",
+            ),
         )
 
         val user1Token = testAuthSupport.generateToken(user1)
 
         // When: User 1 tries to mark "kotlin" as legacy again
-        val markResponse = client.toBlocking().exchange(
-            HttpRequest.POST("/api/tags/legacy", LegacyTagRequest("kotlin"))
-                .bearerAuth(user1Token),
-            LegacyTagResponse::class.java
-        )
+        val markResponse =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .POST("/api/tags/legacy", LegacyTagRequest("kotlin"))
+                    .bearerAuth(user1Token),
+                LegacyTagResponse::class.java,
+            )
 
         // Then: Should succeed with appropriate message
         assertEquals(HttpStatus.OK, markResponse.status)
@@ -652,18 +686,20 @@ class TagStatsResourceTest {
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "User 1 Task",
                 ownerId = requireNotNull(user1.id),
-                tags = arrayOf("kotlin")
-            )
+                tags = arrayOf("kotlin"),
+            ),
         )
 
         val user1Token = testAuthSupport.generateToken(user1)
 
         // When: User 1 tries to unmark "kotlin" as legacy
-        val unmarkResponse = client.toBlocking().exchange(
-            HttpRequest.DELETE("/api/tags/legacy", LegacyTagRequest("kotlin"))
-                .bearerAuth(user1Token),
-            LegacyTagResponse::class.java
-        )
+        val unmarkResponse =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .DELETE("/api/tags/legacy", LegacyTagRequest("kotlin"))
+                    .bearerAuth(user1Token),
+                LegacyTagResponse::class.java,
+            )
 
         // Then: Should succeed (idempotent operation)
         assertEquals(HttpStatus.OK, unmarkResponse.status)

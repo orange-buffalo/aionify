@@ -1,6 +1,6 @@
-import { useNavigate, useLocation } from "react-router"
-import { useTranslation } from "react-i18next"
-import { Button } from "@/components/ui/button"
+import { useNavigate, useLocation } from "react-router";
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,53 +8,53 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { User, LogOut, Menu, Settings } from "lucide-react"
-import { useState } from "react"
-import { TOKEN_KEY } from "@/lib/constants"
-import { Logo } from "@/components/ui/logo"
+} from "@/components/ui/dropdown-menu";
+import { User, LogOut, Menu, Settings } from "lucide-react";
+import { useState } from "react";
+import { TOKEN_KEY } from "@/lib/constants";
+import { Logo } from "@/components/ui/logo";
 
 export interface NavItem {
-  label: string
-  href?: string
-  icon?: React.ReactNode
-  onClick?: () => void
+  label: string;
+  href?: string;
+  icon?: React.ReactNode;
+  onClick?: () => void;
 }
 
 export interface TopNavProps {
-  menuItems: NavItem[]
-  userName?: string
-  greeting?: string
+  menuItems: NavItem[];
+  userName?: string;
+  greeting?: string;
 }
 
 export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const { t } = useTranslation()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { t } = useTranslation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
-    localStorage.removeItem(TOKEN_KEY)
-    navigate("/login")
-  }
+    localStorage.removeItem(TOKEN_KEY);
+    navigate("/login");
+  };
 
   const handleProfile = () => {
     // Navigate to profile based on current portal (admin or user)
     if (location.pathname.startsWith("/admin")) {
-      navigate("/admin/profile")
+      navigate("/admin/profile");
     } else {
-      navigate("/portal/profile")
+      navigate("/portal/profile");
     }
-  }
+  };
 
   const handleNavClick = (item: NavItem) => {
     if (item.onClick) {
-      item.onClick()
+      item.onClick();
     } else if (item.href) {
-      navigate(item.href)
+      navigate(item.href);
     }
-    setMobileMenuOpen(false)
-  }
+    setMobileMenuOpen(false);
+  };
 
   return (
     <nav className="w-full bg-card border-b border-border shadow-md" data-testid="top-nav">
@@ -73,7 +73,7 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
                 variant="ghost"
                 className="text-foreground/80 hover:text-foreground"
                 onClick={() => handleNavClick(item)}
-                data-testid={`nav-item-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                data-testid={`nav-item-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
               >
                 {item.icon}
                 {item.label}
@@ -109,7 +109,7 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
                       key={index}
                       onClick={() => handleNavClick(item)}
                       className="cursor-pointer"
-                      data-testid={`mobile-nav-item-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                      data-testid={`mobile-nav-item-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
                     >
                       {item.icon}
                       <span className="ml-2">{item.label}</span>
@@ -139,17 +139,11 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
               >
                 {(userName || greeting) && (
                   <>
-                    <DropdownMenuLabel data-testid="profile-greeting">
-                      {greeting || userName}
-                    </DropdownMenuLabel>
+                    <DropdownMenuLabel data-testid="profile-greeting">{greeting || userName}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                   </>
                 )}
-                <DropdownMenuItem
-                  onClick={handleProfile}
-                  className="cursor-pointer"
-                  data-testid="profile-menu-item"
-                >
+                <DropdownMenuItem onClick={handleProfile} className="cursor-pointer" data-testid="profile-menu-item">
                   <User className="mr-2 h-4 w-4" />
                   <span>{t("nav.profile")}</span>
                 </DropdownMenuItem>
@@ -167,5 +161,5 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
         </div>
       </div>
     </nav>
-  )
+  );
 }

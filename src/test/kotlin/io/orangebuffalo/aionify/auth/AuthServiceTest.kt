@@ -3,7 +3,6 @@ package io.orangebuffalo.aionify.auth
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.TestDatabaseSupport
 import io.orangebuffalo.aionify.domain.User
-import io.orangebuffalo.aionify.domain.UserRepository
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -12,12 +11,11 @@ import org.mindrot.jbcrypt.BCrypt
 
 /**
  * Test for AuthService to verify JWT token generation and authentication.
- * 
+ *
  * The application uses Micronaut Security JWT to generate tokens with configured signing keys.
  */
 @MicronautTest(transactional = false)
 class AuthServiceTest {
-
     @Inject
     lateinit var authService: AuthService
 
@@ -36,15 +34,16 @@ class AuthServiceTest {
     @Test
     fun `should authenticate and return valid JWT token`() {
         // Given: A user exists in the database
-        val user = testDatabaseSupport.insert(
-            User.create(
-                userName = testUserName,
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = testGreeting,
-                isAdmin = false,
-                locale = java.util.Locale.US
+        val user =
+            testDatabaseSupport.insert(
+                User.create(
+                    userName = testUserName,
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = testGreeting,
+                    isAdmin = false,
+                    locale = java.util.Locale.US,
+                ),
             )
-        )
 
         // When: Authenticating with correct credentials
         val response = authService.authenticate(testUserName, testPassword)
@@ -55,7 +54,7 @@ class AuthServiceTest {
         assertEquals(testUserName, response.userName)
         assertEquals(testGreeting, response.greeting)
         assertFalse(response.admin)
-        
+
         // Verify token contains expected parts (header.payload.signature)
         val tokenParts = response.token.split(".")
         assertEquals(3, tokenParts.size, "JWT token should have 3 parts separated by dots")
@@ -64,7 +63,7 @@ class AuthServiceTest {
     @Test
     fun `should throw exception for invalid username`() {
         // Given: User does not exist
-        
+
         // When/Then: Authentication should fail
         assertThrows(AuthenticationException::class.java) {
             authService.authenticate("nonexistent", "password")
@@ -80,8 +79,8 @@ class AuthServiceTest {
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = testGreeting,
                 isAdmin = false,
-                locale = java.util.Locale.US
-            )
+                locale = java.util.Locale.US,
+            ),
         )
 
         // When/Then: Authentication with wrong password should fail
@@ -93,15 +92,16 @@ class AuthServiceTest {
     @Test
     fun `should generate token for admin user`() {
         // Given: An admin user exists
-        val adminUser = testDatabaseSupport.insert(
-            User.create(
-                userName = "admin",
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = "Admin User",
-                isAdmin = true,
-                locale = java.util.Locale.US
+        val adminUser =
+            testDatabaseSupport.insert(
+                User.create(
+                    userName = "admin",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "Admin User",
+                    isAdmin = true,
+                    locale = java.util.Locale.US,
+                ),
             )
-        )
 
         // When: Authenticating as admin
         val response = authService.authenticate("admin", testPassword)

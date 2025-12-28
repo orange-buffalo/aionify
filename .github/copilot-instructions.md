@@ -24,6 +24,20 @@ Project documentation is organized as follows:
 
 ## Development Workflow
 
+### Code Formatting
+
+**CRITICAL: Always format code before committing:**
+
+```bash
+./gradlew format
+```
+
+This runs:
+- `ktlintFormat` for Kotlin code
+- `prettierFormat` for frontend code (TypeScript, React, etc.)
+
+The `check` task automatically verifies formatting and will fail if code is not properly formatted.
+
 ### Before Pushing Changes
 
 **CRITICAL: This is an unbreakable rule - Always run tests locally before pushing changes:**
@@ -35,6 +49,7 @@ Project documentation is organized as follows:
 This ensures:
 - Code compiles correctly
 - All tests pass
+- Code is properly formatted
 - No regressions are introduced
 
 **You MUST verify that all tests pass locally before marking any task as complete or ready for review. Never hide failing test results. If tests fail locally, you must fix them before proceeding.**

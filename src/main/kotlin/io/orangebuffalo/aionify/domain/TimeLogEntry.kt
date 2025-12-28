@@ -12,18 +12,13 @@ data class TimeLogEntry(
     @field:Id
     @field:GeneratedValue(GeneratedValue.Type.IDENTITY)
     val id: Long? = null,
-    
     @field:MappedProperty("start_time")
     val startTime: Instant,
-    
     @field:MappedProperty("end_time")
     val endTime: Instant? = null,
-    
     val title: String,
-    
     @field:MappedProperty("owner_id")
     val ownerId: Long,
-    
     @field:MappedProperty(type = DataType.STRING_ARRAY)
-    val tags: Array<String> = emptyArray()
+    val tags: Array<String> = emptyArray(),
 )

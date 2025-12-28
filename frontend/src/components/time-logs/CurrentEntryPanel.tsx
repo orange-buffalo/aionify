@@ -1,27 +1,27 @@
-import { useState } from "react"
-import { useTranslation } from "react-i18next"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Play, Square, Pencil } from "lucide-react"
-import { formatDateTime } from "@/lib/date-format"
-import { formatDuration } from "@/lib/time-utils"
-import { EditEntryForm } from "./EditEntryForm"
-import { TagSelector } from "./TagSelector"
-import type { TimeEntry } from "./types"
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Play, Square, Pencil } from "lucide-react";
+import { formatDateTime } from "@/lib/date-format";
+import { formatDuration } from "@/lib/time-utils";
+import { EditEntryForm } from "./EditEntryForm";
+import { TagSelector } from "./TagSelector";
+import type { TimeEntry } from "./types";
 
 interface CurrentEntryPanelProps {
-  activeEntry: TimeEntry | null
-  activeDuration: number
-  locale: string
-  isStarting: boolean
-  isStopping: boolean
-  isSaving: boolean
-  isEditingStoppedEntry: boolean
-  onStart: (title: string, tags?: string[]) => Promise<void>
-  onStop: () => Promise<void>
-  onSaveEdit: (title: string, startTime: string) => Promise<void>
-  onEditStart: () => void
+  activeEntry: TimeEntry | null;
+  activeDuration: number;
+  locale: string;
+  isStarting: boolean;
+  isStopping: boolean;
+  isSaving: boolean;
+  isEditingStoppedEntry: boolean;
+  onStart: (title: string, tags?: string[]) => Promise<void>;
+  onStop: () => Promise<void>;
+  onSaveEdit: (title: string, startTime: string) => Promise<void>;
+  onEditStart: () => void;
 }
 
 export function CurrentEntryPanel({
@@ -37,51 +37,51 @@ export function CurrentEntryPanel({
   onSaveEdit,
   onEditStart,
 }: CurrentEntryPanelProps) {
-  const { t } = useTranslation()
-  const [newEntryTitle, setNewEntryTitle] = useState("")
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [isEditMode, setIsEditMode] = useState(false)
-  const [editTitle, setEditTitle] = useState("")
-  const [editDateTime, setEditDateTime] = useState<Date>(new Date())
+  const { t } = useTranslation();
+  const [newEntryTitle, setNewEntryTitle] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDateTime, setEditDateTime] = useState<Date>(new Date());
 
   // Cancel edit mode when editing a stopped entry
   if (isEditMode && isEditingStoppedEntry) {
-    setIsEditMode(false)
+    setIsEditMode(false);
   }
 
   const handleStart = async () => {
-    if (!newEntryTitle.trim()) return
-    await onStart(newEntryTitle.trim(), selectedTags)
-    setNewEntryTitle("")
-    setSelectedTags([])
-  }
+    if (!newEntryTitle.trim()) return;
+    await onStart(newEntryTitle.trim(), selectedTags);
+    setNewEntryTitle("");
+    setSelectedTags([]);
+  };
 
   const handleEditClick = () => {
-    if (!activeEntry) return
-    setEditTitle(activeEntry.title)
-    setEditDateTime(new Date(activeEntry.startTime))
-    setIsEditMode(true)
-    onEditStart()
-  }
+    if (!activeEntry) return;
+    setEditTitle(activeEntry.title);
+    setEditDateTime(new Date(activeEntry.startTime));
+    setIsEditMode(true);
+    onEditStart();
+  };
 
   const handleSaveEdit = async () => {
-    if (!activeEntry || !editTitle.trim()) return
-    const startTimeISO = editDateTime.toISOString()
-    await onSaveEdit(editTitle.trim(), startTimeISO)
-    setIsEditMode(false)
-  }
+    if (!activeEntry || !editTitle.trim()) return;
+    const startTimeISO = editDateTime.toISOString();
+    await onSaveEdit(editTitle.trim(), startTimeISO);
+    setIsEditMode(false);
+  };
 
   const handleCancelEdit = () => {
-    setIsEditMode(false)
-    setEditTitle("")
-    setEditDateTime(new Date())
-  }
+    setIsEditMode(false);
+    setEditTitle("");
+    setEditDateTime(new Date());
+  };
 
   return (
     <Card className="mb-6 border-none shadow-md" data-testid="current-entry-panel">
       <CardHeader>
         <CardTitle className="text-foreground">
-          {isEditMode ? t('timeLogs.currentEntry.editTitle') : t('timeLogs.currentEntry.title')}
+          {isEditMode ? t("timeLogs.currentEntry.editTitle") : t("timeLogs.currentEntry.title")}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -116,7 +116,7 @@ export function CurrentEntryPanel({
                   </Button>
                 </div>
                 <div className="text-sm text-muted-foreground" data-testid="active-entry-started-at">
-                  {t('timeLogs.startedAt')}: {formatDateTime(activeEntry.startTime, locale)}
+                  {t("timeLogs.startedAt")}: {formatDateTime(activeEntry.startTime, locale)}
                 </div>
               </div>
               <div className="flex items-center gap-4">
@@ -141,10 +141,10 @@ export function CurrentEntryPanel({
               onChange={(e) => setNewEntryTitle(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && newEntryTitle.trim()) {
-                  handleStart()
+                  handleStart();
                 }
               }}
-              placeholder={t('timeLogs.currentEntry.placeholder')}
+              placeholder={t("timeLogs.currentEntry.placeholder")}
               className="flex-1 text-foreground"
               data-testid="new-entry-input"
               disabled={isStarting}
@@ -167,5 +167,5 @@ export function CurrentEntryPanel({
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -1,9 +1,9 @@
 package io.orangebuffalo.aionify
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserRepository
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -15,7 +15,6 @@ import org.mindrot.jbcrypt.BCrypt
  */
 @MicronautTest(transactional = false)
 class UsersPagePlaywrightTest : PlaywrightTestBase() {
-
     @Inject
     lateinit var userRepository: UserRepository
 
@@ -30,27 +29,29 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
     fun setupTestData() {
         // Create admin user
         // Wrap in transaction to commit immediately and make visible to browser HTTP requests
-        adminUser = testDatabaseSupport.insert(
-            User.create(
-                userName = "admin",
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = "Admin User",
-                isAdmin = true,
-                locale = java.util.Locale.US
+        adminUser =
+            testDatabaseSupport.insert(
+                User.create(
+                    userName = "admin",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "Admin User",
+                    isAdmin = true,
+                    locale = java.util.Locale.US,
+                ),
             )
-        )
 
         // Create regular user
         // Wrap in transaction to commit immediately and make visible to browser HTTP requests
-        regularUser = testDatabaseSupport.insert(
-            User.create(
-                userName = "regularuser",
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = "Regular User",
-                isAdmin = false,
-                locale = java.util.Locale.US
+        regularUser =
+            testDatabaseSupport.insert(
+                User.create(
+                    userName = "regularuser",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "Regular User",
+                    isAdmin = false,
+                    locale = java.util.Locale.US,
+                ),
             )
-        )
     }
 
     @Test
@@ -182,7 +183,7 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
 
         // Verify user is deleted from database
         val deletedUser = userRepository.findByUserName("regularuser")
-        assert(deletedUser.isEmpty ) { "User should be deleted from database" }
+        assert(deletedUser.isEmpty) { "User should be deleted from database" }
     }
 
     @Test
@@ -196,8 +197,8 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
                     passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                     greeting = "User $i",
                     isAdmin = false,
-                    locale = java.util.Locale.US
-                )
+                    locale = java.util.Locale.US,
+                ),
             )
         }
 
@@ -227,8 +228,8 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
                     passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                     greeting = "User $i",
                     isAdmin = false,
-                    locale = java.util.Locale.US
-                )
+                    locale = java.util.Locale.US,
+                ),
             )
         }
 
@@ -284,8 +285,8 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
                     passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                     greeting = "User $i",
                     isAdmin = false,
-                    locale = java.util.Locale.US
-                )
+                    locale = java.util.Locale.US,
+                ),
             )
         }
 
@@ -321,8 +322,8 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Zebra User",
                 isAdmin = false,
-                locale = java.util.Locale.US
-            )
+                locale = java.util.Locale.US,
+            ),
         )
         testDatabaseSupport.insert(
             User.create(
@@ -330,8 +331,8 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
                 passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
                 greeting = "Apple User",
                 isAdmin = false,
-                locale = java.util.Locale.US
-            )
+                locale = java.util.Locale.US,
+            ),
         )
 
         loginViaToken("/admin/users", adminUser, testAuthSupport)

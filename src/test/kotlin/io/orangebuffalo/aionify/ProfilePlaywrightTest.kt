@@ -1,9 +1,8 @@
 package io.orangebuffalo.aionify
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
-import io.orangebuffalo.aionify.domain.User
-import io.orangebuffalo.aionify.domain.UserRepository
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import io.orangebuffalo.aionify.domain.User
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -11,7 +10,6 @@ import org.mindrot.jbcrypt.BCrypt
 
 @MicronautTest(transactional = false)
 class ProfilePlaywrightTest : PlaywrightTestBase() {
-
     @Inject
     lateinit var testAuthSupport: TestAuthSupport
 
@@ -25,15 +23,16 @@ class ProfilePlaywrightTest : PlaywrightTestBase() {
     fun setupTestData() {
         // Create test user with known credentials
         // Wrap in transaction to commit immediately and make visible to browser HTTP requests
-        regularUser = testDatabaseSupport.insert(
-            User.create(
-                userName = regularUserName,
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = regularUserGreeting,
-                isAdmin = false,
-                locale = java.util.Locale.US
+        regularUser =
+            testDatabaseSupport.insert(
+                User.create(
+                    userName = regularUserName,
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = regularUserGreeting,
+                    isAdmin = false,
+                    locale = java.util.Locale.US,
+                ),
             )
-        )
     }
 
     private fun navigateToProfileViaToken() {
@@ -105,15 +104,16 @@ class ProfilePlaywrightTest : PlaywrightTestBase() {
     fun `should display profile with Ukrainian language and locale`() {
         // Create user with Ukrainian settings
         // Wrap in transaction to commit immediately and make visible to browser HTTP requests
-        val ukUser = testDatabaseSupport.insert(
-            User.create(
-                userName = "ukrainianUser",
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = "Привіт",
-                isAdmin = false,
-                locale = java.util.Locale.forLanguageTag("uk-UA")
+        val ukUser =
+            testDatabaseSupport.insert(
+                User.create(
+                    userName = "ukrainianUser",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "Привіт",
+                    isAdmin = false,
+                    locale = java.util.Locale.forLanguageTag("uk-UA"),
+                ),
             )
-        )
 
         loginViaToken("/portal/profile", ukUser, testAuthSupport)
 
@@ -130,15 +130,16 @@ class ProfilePlaywrightTest : PlaywrightTestBase() {
     fun `should display profile with German locale`() {
         // Create user with German locale
         // Wrap in transaction to commit immediately and make visible to browser HTTP requests
-        val deUser = testDatabaseSupport.insert(
-            User.create(
-                userName = "germanUser",
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = "Hallo",
-                isAdmin = false,
-                locale = java.util.Locale.forLanguageTag("de-DE")
+        val deUser =
+            testDatabaseSupport.insert(
+                User.create(
+                    userName = "germanUser",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "Hallo",
+                    isAdmin = false,
+                    locale = java.util.Locale.forLanguageTag("de-DE"),
+                ),
             )
-        )
 
         loginViaToken("/portal/profile", deUser, testAuthSupport)
 
@@ -558,15 +559,16 @@ class ProfilePlaywrightTest : PlaywrightTestBase() {
         // Create a test admin user
         val testAdminPassword = "adminPassword123"
         // Wrap in transaction to commit immediately and make visible to browser HTTP requests
-        val adminUser = testDatabaseSupport.insert(
-            User.create(
-                userName = "settingsTestAdmin",
-                passwordHash = BCrypt.hashpw(testAdminPassword, BCrypt.gensalt()),
-                greeting = "Settings Test Admin",
-                isAdmin = true,
-                locale = java.util.Locale.US
+        val adminUser =
+            testDatabaseSupport.insert(
+                User.create(
+                    userName = "settingsTestAdmin",
+                    passwordHash = BCrypt.hashpw(testAdminPassword, BCrypt.gensalt()),
+                    greeting = "Settings Test Admin",
+                    isAdmin = true,
+                    locale = java.util.Locale.US,
+                ),
             )
-        )
 
         // Use token-based auth for admin
         loginViaToken("/admin/profile", adminUser, testAuthSupport)
@@ -599,17 +601,18 @@ class ProfilePlaywrightTest : PlaywrightTestBase() {
         // which converts to "en" (language only), but the frontend expects full locale
         // tags like "en-US", causing the locale dropdown to show as empty.
         // The fix is to use Locale.US which converts to "en-US".
-        
+
         // Create a user with Locale.US to verify the fix
-        val userWithProperLocale = testDatabaseSupport.insert(
-            User.create(
-                userName = "properLocaleUser",
-                passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
-                greeting = "Proper Locale User",
-                isAdmin = false,
-                locale = java.util.Locale.US
+        val userWithProperLocale =
+            testDatabaseSupport.insert(
+                User.create(
+                    userName = "properLocaleUser",
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = "Proper Locale User",
+                    isAdmin = false,
+                    locale = java.util.Locale.US,
+                ),
             )
-        )
 
         loginViaToken("/portal/profile", userWithProperLocale, testAuthSupport)
 

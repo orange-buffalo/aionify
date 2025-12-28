@@ -1,22 +1,22 @@
-import { useTranslation } from "react-i18next"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { DatePicker } from "@/components/ui/date-picker"
-import { TimePicker } from "@/components/ui/time-picker"
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
+import { TimePicker } from "@/components/ui/time-picker";
 
 interface EditEntryFormProps {
-  title: string
-  startDateTime: Date
-  endDateTime?: Date | null
-  locale: string
-  isSaving: boolean
-  onTitleChange: (title: string) => void
-  onStartDateTimeChange: (date: Date) => void
-  onEndDateTimeChange?: (date: Date) => void
-  onSave: () => void
-  onCancel: () => void
-  testIdPrefix?: string
+  title: string;
+  startDateTime: Date;
+  endDateTime?: Date | null;
+  locale: string;
+  isSaving: boolean;
+  onTitleChange: (title: string) => void;
+  onStartDateTimeChange: (date: Date) => void;
+  onEndDateTimeChange?: (date: Date) => void;
+  onSave: () => void;
+  onCancel: () => void;
+  testIdPrefix?: string;
 }
 
 export function EditEntryForm({
@@ -30,15 +30,15 @@ export function EditEntryForm({
   onEndDateTimeChange,
   onSave,
   onCancel,
-  testIdPrefix = "edit"
+  testIdPrefix = "edit",
 }: EditEntryFormProps) {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
 
   return (
     <div className="space-y-4">
       <div>
         <Label htmlFor={`${testIdPrefix}-title`} className="text-foreground">
-          {t('timeLogs.currentEntry.titleLabel')}
+          {t("timeLogs.currentEntry.titleLabel")}
         </Label>
         <Input
           id={`${testIdPrefix}-title`}
@@ -50,9 +50,7 @@ export function EditEntryForm({
         />
       </div>
       <div>
-        <Label className="text-foreground">
-          {t('timeLogs.currentEntry.startTimeLabel')}
-        </Label>
+        <Label className="text-foreground">{t("timeLogs.currentEntry.startTimeLabel")}</Label>
         <div className="mt-2 flex items-center gap-2">
           <DatePicker
             value={startDateTime}
@@ -72,9 +70,7 @@ export function EditEntryForm({
       </div>
       {endDateTime !== undefined && onEndDateTimeChange && (
         <div>
-          <Label className="text-foreground">
-            {t('timeLogs.currentEntry.endTimeLabel')}
-          </Label>
+          <Label className="text-foreground">{t("timeLogs.currentEntry.endTimeLabel")}</Label>
           <div className="mt-2 flex items-center gap-2">
             <DatePicker
               value={endDateTime || new Date()}
@@ -100,7 +96,7 @@ export function EditEntryForm({
           data-testid={`save-${testIdPrefix}-button`}
           className="bg-teal-600 hover:bg-teal-700"
         >
-          {t('timeLogs.currentEntry.save')}
+          {t("timeLogs.currentEntry.save")}
         </Button>
         <Button
           variant="ghost"
@@ -109,9 +105,9 @@ export function EditEntryForm({
           data-testid={`cancel-${testIdPrefix}-button`}
           className="text-foreground"
         >
-          {t('timeLogs.currentEntry.cancel')}
+          {t("timeLogs.currentEntry.cancel")}
         </Button>
       </div>
     </div>
-  )
+  );
 }

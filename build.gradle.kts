@@ -6,6 +6,7 @@ plugins {
     id("com.google.devtools.ksp") version "2.1.0-1.0.29"
     id("io.micronaut.application") version "4.6.1"
     id("io.micronaut.docker") version "4.6.1"
+    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
 }
 
 val micronautVersion: String by project
@@ -19,7 +20,7 @@ dependencies {
     implementation("io.micronaut:micronaut-http-server-netty")
     implementation("io.micronaut.kotlin:micronaut-kotlin-runtime")
     implementation("io.micronaut:micronaut-jackson-databind")
-    implementation("io.micronaut.serde:micronaut-serde-jackson")  // Required for native image serialization
+    implementation("io.micronaut.serde:micronaut-serde-jackson") // Required for native image serialization
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
@@ -31,7 +32,7 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql")
 
     // Micronaut annotation processors
-    ksp("io.micronaut:micronaut-inject-kotlin")  // CRITICAL: For @Controller, @Singleton, etc.
+    ksp("io.micronaut:micronaut-inject-kotlin") // CRITICAL: For @Controller, @Singleton, etc.
     ksp("io.micronaut.data:micronaut-data-processor")
     ksp("io.micronaut:micronaut-http-validation")
     ksp("io.micronaut.serde:micronaut-serde-processor")
@@ -123,22 +124,23 @@ tasks.withType<Test> {
     testLogging {
         events("passed", "skipped", "failed", "standardOut", "standardError")
     }
-    
+
     // Global test timeout: 15 minutes
     timeout.set(Duration.ofMinutes(15))
-    
+
     // Enable parallel test execution based on available CPUs, capped at 4 forks
     val availableProcessors = Runtime.getRuntime().availableProcessors()
     maxParallelForks = minOf(availableProcessors, 4)
-    
+
     // Log the fork configuration
     doFirst {
         logger.lifecycle("Running tests with maxParallelForks = $maxParallelForks (available processors: $availableProcessors)")
     }
-    
+
     // Configure inputs to invalidate cache when test files change
     // This ensures new test classes are detected and cache is invalidated
-    inputs.files(sourceSets["test"].allSource)
+    inputs
+        .files(sourceSets["test"].allSource)
         .withPropertyName("testSourceFiles")
         .withPathSensitivity(PathSensitivity.RELATIVE)
 }
@@ -157,6 +159,22 @@ kotlin {
     }
 }
 
+// Ktlint configuration
+ktlint {
+    version.set("1.8.0")
+    android.set(false)
+    ignoreFailures.set(false)
+    reporters {
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
+    }
+}
+
+// Make check task depend on ktlint check
+tasks.named("check") {
+    dependsOn("ktlintCheck")
+}
+
 // Frontend build tasks using Bun
 tasks.register<Exec>("bunInstall") {
     workingDir = file("frontend")
@@ -167,6 +185,35 @@ tasks.register<Exec>("bunBuild") {
     workingDir = file("frontend")
     commandLine("bun", "run", "build")
     dependsOn("bunInstall")
+}
+
+// Prettier tasks for frontend code formatting
+tasks.register<Exec>("prettierCheck") {
+    description = "Check frontend code formatting with Prettier"
+    group = "verification"
+    workingDir = file("frontend")
+    commandLine("bun", "run", "format:check")
+    dependsOn("bunInstall")
+}
+
+tasks.register<Exec>("prettierFormat") {
+    description = "Format frontend code with Prettier"
+    group = "formatting"
+    workingDir = file("frontend")
+    commandLine("bun", "run", "format")
+    dependsOn("bunInstall")
+}
+
+// Make check task depend on prettier check
+tasks.named("check") {
+    dependsOn("prettierCheck")
+}
+
+// Combined formatting task
+tasks.register("format") {
+    description = "Format all code (Kotlin and frontend)"
+    group = "formatting"
+    dependsOn("ktlintFormat", "prettierFormat")
 }
 
 tasks.named("processResources") {

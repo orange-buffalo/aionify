@@ -1,9 +1,7 @@
 package io.orangebuffalo.aionify
 
 import com.github.dockerjava.api.model.ExposedPort
-import com.microsoft.playwright.Browser
 import com.microsoft.playwright.BrowserType
-import com.microsoft.playwright.Page
 import com.microsoft.playwright.Playwright
 import com.microsoft.playwright.Tracing
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
@@ -28,7 +26,6 @@ import java.time.Duration
  * 5. Validates that login is successful by checking the admin portal loads
  */
 class DockerLoginE2ETest {
-
     private val log = LoggerFactory.getLogger(DockerLoginE2ETest::class.java)
 
     companion object {
@@ -40,8 +37,9 @@ class DockerLoginE2ETest {
 
     @Test
     fun `should successfully login with auto-generated admin credentials`() {
-        val dockerImage = System.getProperty("aionify.docker.image")
-            ?: throw IllegalStateException("aionify.docker.image system property must be set")
+        val dockerImage =
+            System.getProperty("aionify.docker.image")
+                ?: throw IllegalStateException("aionify.docker.image system property must be set")
 
         log.info("Using Docker image: {}", dockerImage)
 
@@ -50,12 +48,15 @@ class DockerLoginE2ETest {
 
         try {
             // Start Docker Compose
-            val composeContainer = ComposeContainer(tempComposeFile)
-                .withExposedService(APP_SERVICE, APP_PORT,
-                    Wait.forLogMessage(".*?Startup completed in.*", 1))
-                        .withStartupTimeout(Duration.ofMinutes(2))
-                .withLocalCompose(true)
-                .withLogConsumer(APP_SERVICE, Slf4jLogConsumer(log))
+            val composeContainer =
+                ComposeContainer(tempComposeFile)
+                    .withExposedService(
+                        APP_SERVICE,
+                        APP_PORT,
+                        Wait.forLogMessage(".*?Startup completed in.*", 1),
+                    ).withStartupTimeout(Duration.ofMinutes(2))
+                    .withLocalCompose(true)
+                    .withLogConsumer(APP_SERVICE, Slf4jLogConsumer(log))
 
             try {
                 log.info("Starting Docker Compose...")
@@ -67,9 +68,12 @@ class DockerLoginE2ETest {
                 val containerName = "${APP_SERVICE}-1"
                 val container = composeContainer.getContainerByServiceName(containerName).orElseThrow()
                 val bindings = container.currentContainerInfo.networkSettings.ports.bindings
-                val actualPort = bindings.get(ExposedPort.tcp(APP_PORT))
-                    ?.get(0)?.hostPortSpec
-                    ?: throw IllegalStateException("Could not find port binding for $APP_PORT")
+                val actualPort =
+                    bindings
+                        .get(ExposedPort.tcp(APP_PORT))
+                        ?.get(0)
+                        ?.hostPortSpec
+                        ?: throw IllegalStateException("Could not find port binding for $APP_PORT")
 
                 val host = composeContainer.getServiceHost(APP_SERVICE, APP_PORT)
                 val appUrl = "http://$host:$actualPort"
@@ -118,11 +122,15 @@ class DockerLoginE2ETest {
         return tempFile
     }
 
-    private fun testLoginWithPlaywright(appUrl: String, adminPassword: String) {
+    private fun testLoginWithPlaywright(
+        appUrl: String,
+        adminPassword: String,
+    ) {
         Playwright.create().use { playwright ->
-            val browser = playwright.chromium().launch(
-                BrowserType.LaunchOptions().setHeadless(true)
-            )
+            val browser =
+                playwright.chromium().launch(
+                    BrowserType.LaunchOptions().setHeadless(true),
+                )
 
             browser.use {
                 val context = browser.newContext()
@@ -130,10 +138,11 @@ class DockerLoginE2ETest {
                 context.use {
                     // Start tracing
                     context.tracing().start(
-                        Tracing.StartOptions()
+                        Tracing
+                            .StartOptions()
                             .setScreenshots(true)
                             .setSnapshots(true)
-                            .setSources(true)
+                            .setSources(true),
                     )
 
                     try {
@@ -182,14 +191,16 @@ class DockerLoginE2ETest {
     private fun extractAdminPasswordFromLogs(composeContainer: ComposeContainer): String {
         // Testcontainers appends '_1' to the service name for the first instance
         val containerName = "${APP_SERVICE}-1"
-        val container = composeContainer.getContainerByServiceName(containerName)
-            .orElseThrow {
-                IllegalStateException(
-                    "Could not find container for service $APP_SERVICE. " +
-                    "Expected container name: $containerName. " +
-                    "This might happen if Testcontainers changes its naming convention."
-                )
-            }
+        val container =
+            composeContainer
+                .getContainerByServiceName(containerName)
+                .orElseThrow {
+                    IllegalStateException(
+                        "Could not find container for service $APP_SERVICE. " +
+                            "Expected container name: $containerName. " +
+                            "This might happen if Testcontainers changes its naming convention.",
+                    )
+                }
 
         val logs = container.logs
 
@@ -203,10 +214,11 @@ class DockerLoginE2ETest {
         // ============================================================
 
         val passwordPattern = Regex(""".*?Password:\s*([^\s]+)""")
-        val match = passwordPattern.find(logs)
-            ?: throw IllegalStateException(
-                "Could not find admin password in logs. Logs:\n${logs.take(MAX_LOG_OUTPUT_LENGTH)}"
-            )
+        val match =
+            passwordPattern.find(logs)
+                ?: throw IllegalStateException(
+                    "Could not find admin password in logs. Logs:\n${logs.take(MAX_LOG_OUTPUT_LENGTH)}",
+                )
 
         return match.groupValues[1]
     }

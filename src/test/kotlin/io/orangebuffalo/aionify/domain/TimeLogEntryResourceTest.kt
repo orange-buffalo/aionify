@@ -17,9 +17,9 @@ import java.time.Instant
 
 /**
  * API endpoint security tests for time log entry resource.
- * 
+ *
  * Per project guidelines, this test validates SECURITY ONLY, not business logic.
- * 
+ *
  * Tests verify:
  * 1. Authentication is required to access time log entry endpoints
  * 2. Users can only access their own time log entries
@@ -27,7 +27,6 @@ import java.time.Instant
  */
 @MicronautTest(transactional = false)
 class TimeLogEntryResourceTest {
-
     @Inject
     @field:Client("/")
     lateinit var client: HttpClient
@@ -58,34 +57,37 @@ class TimeLogEntryResourceTest {
         user2 = testUsers.createRegularUser("user2", "User Two")
 
         // Create time entries for both users
-        user1Entry = testDatabaseSupport.insert(
-            TimeLogEntry(
-                startTime = Instant.parse("2024-01-15T10:00:00Z"),
-                endTime = Instant.parse("2024-01-15T11:00:00Z"),
-                title = "User 1 Task",
-                ownerId = requireNotNull(user1.id)
+        user1Entry =
+            testDatabaseSupport.insert(
+                TimeLogEntry(
+                    startTime = Instant.parse("2024-01-15T10:00:00Z"),
+                    endTime = Instant.parse("2024-01-15T11:00:00Z"),
+                    title = "User 1 Task",
+                    ownerId = requireNotNull(user1.id),
+                ),
             )
-        )
 
-        user2Entry = testDatabaseSupport.insert(
-            TimeLogEntry(
-                startTime = Instant.parse("2024-01-15T14:00:00Z"),
-                endTime = null,
-                title = "User 2 Task",
-                ownerId = requireNotNull(user2.id)
+        user2Entry =
+            testDatabaseSupport.insert(
+                TimeLogEntry(
+                    startTime = Instant.parse("2024-01-15T14:00:00Z"),
+                    endTime = null,
+                    title = "User 2 Task",
+                    ownerId = requireNotNull(user2.id),
+                ),
             )
-        )
     }
 
     @Test
     fun `should require authentication to list time entries`() {
         // When: Trying to access endpoint without authentication
-        val exception = assertThrows(HttpClientResponseException::class.java) {
-            client.toBlocking().exchange(
-                HttpRequest.GET<Any>("/api/time-log-entries?startTime=2024-01-15T00:00:00Z&endTime=2024-01-22T00:00:00Z"),
-                String::class.java
-            )
-        }
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest.GET<Any>("/api/time-log-entries?startTime=2024-01-15T00:00:00Z&endTime=2024-01-22T00:00:00Z"),
+                    String::class.java,
+                )
+            }
 
         // Then: Access should be unauthorized
         assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
@@ -94,12 +96,13 @@ class TimeLogEntryResourceTest {
     @Test
     fun `should require authentication to get active entry`() {
         // When: Trying to access endpoint without authentication
-        val exception = assertThrows(HttpClientResponseException::class.java) {
-            client.toBlocking().exchange(
-                HttpRequest.GET<Any>("/api/time-log-entries/active"),
-                String::class.java
-            )
-        }
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest.GET<Any>("/api/time-log-entries/active"),
+                    String::class.java,
+                )
+            }
 
         // Then: Access should be unauthorized
         assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
@@ -108,12 +111,13 @@ class TimeLogEntryResourceTest {
     @Test
     fun `should require authentication to create time entry`() {
         // When: Trying to create without authentication
-        val exception = assertThrows(HttpClientResponseException::class.java) {
-            client.toBlocking().exchange(
-                HttpRequest.POST("/api/time-log-entries", mapOf("title" to "Test Task")),
-                String::class.java
-            )
-        }
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest.POST("/api/time-log-entries", mapOf("title" to "Test Task")),
+                    String::class.java,
+                )
+            }
 
         // Then: Access should be unauthorized
         assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
@@ -125,11 +129,13 @@ class TimeLogEntryResourceTest {
         val user1Token = testAuthSupport.generateToken(user1)
 
         // When: User 1 lists time entries
-        val response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/api/time-log-entries?startTime=2024-01-15T00:00:00Z&endTime=2024-01-22T00:00:00Z")
-                .bearerAuth(user1Token),
-            TimeLogEntriesResponse::class.java
-        )
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries?startTime=2024-01-15T00:00:00Z&endTime=2024-01-22T00:00:00Z")
+                    .bearerAuth(user1Token),
+                TimeLogEntriesResponse::class.java,
+            )
 
         // Then: Should only see own entries
         assertEquals(HttpStatus.OK, response.status)
@@ -145,13 +151,15 @@ class TimeLogEntryResourceTest {
         val user1Token = testAuthSupport.generateToken(user1)
 
         // When: User 1 tries to stop User 2's entry
-        val exception = assertThrows(HttpClientResponseException::class.java) {
-            client.toBlocking().exchange(
-                HttpRequest.PUT("/api/time-log-entries/${user2Entry.id}/stop", emptyMap<String, Any>())
-                    .bearerAuth(user1Token),
-                String::class.java
-            )
-        }
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest
+                        .PUT("/api/time-log-entries/${user2Entry.id}/stop", emptyMap<String, Any>())
+                        .bearerAuth(user1Token),
+                    String::class.java,
+                )
+            }
 
         // Then: Should be not found (entry belongs to different user)
         assertEquals(HttpStatus.NOT_FOUND, exception.status)
@@ -163,13 +171,15 @@ class TimeLogEntryResourceTest {
         val user1Token = testAuthSupport.generateToken(user1)
 
         // When: User 1 tries to delete User 2's entry
-        val exception = assertThrows(HttpClientResponseException::class.java) {
-            client.toBlocking().exchange(
-                HttpRequest.DELETE<Any>("/api/time-log-entries/${user2Entry.id}")
-                    .bearerAuth(user1Token),
-                String::class.java
-            )
-        }
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest
+                        .DELETE<Any>("/api/time-log-entries/${user2Entry.id}")
+                        .bearerAuth(user1Token),
+                    String::class.java,
+                )
+            }
 
         // Then: Should be not found (entry belongs to different user)
         assertEquals(HttpStatus.NOT_FOUND, exception.status)
@@ -185,11 +195,13 @@ class TimeLogEntryResourceTest {
         val user2Token = testAuthSupport.generateToken(user2)
 
         // When: User 2 stops their own entry
-        val response = client.toBlocking().exchange(
-            HttpRequest.PUT("/api/time-log-entries/${user2Entry.id}/stop", emptyMap<String, Any>())
-                .bearerAuth(user2Token),
-            TimeLogEntryDto::class.java
-        )
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .PUT("/api/time-log-entries/${user2Entry.id}/stop", emptyMap<String, Any>())
+                    .bearerAuth(user2Token),
+                TimeLogEntryDto::class.java,
+            )
 
         // Then: Should succeed
         assertEquals(HttpStatus.OK, response.status)
@@ -204,11 +216,13 @@ class TimeLogEntryResourceTest {
         val user1Token = testAuthSupport.generateToken(user1)
 
         // When: User 1 deletes their own entry
-        val response = client.toBlocking().exchange(
-            HttpRequest.DELETE<Any>("/api/time-log-entries/${user1Entry.id}")
-                .bearerAuth(user1Token),
-            String::class.java
-        )
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .DELETE<Any>("/api/time-log-entries/${user1Entry.id}")
+                    .bearerAuth(user1Token),
+                String::class.java,
+            )
 
         // Then: Should succeed
         assertEquals(HttpStatus.OK, response.status)
@@ -224,11 +238,13 @@ class TimeLogEntryResourceTest {
         val user2Token = testAuthSupport.generateToken(user2)
 
         // When: User 2 gets active entry
-        val response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/api/time-log-entries/active")
-                .bearerAuth(user2Token),
-            ActiveLogEntryResponse::class.java
-        )
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries/active")
+                    .bearerAuth(user2Token),
+                ActiveLogEntryResponse::class.java,
+            )
 
         // Then: Should see own active entry
         assertEquals(HttpStatus.OK, response.status)
@@ -244,11 +260,13 @@ class TimeLogEntryResourceTest {
         val user1Token = testAuthSupport.generateToken(user1)
 
         // When: User 1 gets active entry
-        val response = client.toBlocking().exchange(
-            HttpRequest.GET<Any>("/api/time-log-entries/active")
-                .bearerAuth(user1Token),
-            ActiveLogEntryResponse::class.java
-        )
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries/active")
+                    .bearerAuth(user1Token),
+                ActiveLogEntryResponse::class.java,
+            )
 
         // Then: Should return null entry
         assertEquals(HttpStatus.OK, response.status)

@@ -14,7 +14,6 @@ import java.time.Instant
 
 @MicronautTest(transactional = false)
 class TimeLogEntryRepositoryTest {
-
     @Inject
     lateinit var repository: TimeLogEntryRepository
 
@@ -41,22 +40,24 @@ class TimeLogEntryRepositoryTest {
         val startTime2 = Instant.parse("2024-01-15T14:30:00Z")
         val userId = requireNotNull(testUser.id)
 
-        val entry1 = repository.save(
-            TimeLogEntry(
-                startTime = startTime1,
-                endTime = Instant.parse("2024-01-15T11:00:00Z"),
-                title = "Task 1",
-                ownerId = userId
+        val entry1 =
+            repository.save(
+                TimeLogEntry(
+                    startTime = startTime1,
+                    endTime = Instant.parse("2024-01-15T11:00:00Z"),
+                    title = "Task 1",
+                    ownerId = userId,
+                ),
             )
-        )
-        val entry2 = repository.save(
-            TimeLogEntry(
-                startTime = startTime2,
-                endTime = null,
-                title = "Task 2",
-                ownerId = userId
+        val entry2 =
+            repository.save(
+                TimeLogEntry(
+                    startTime = startTime2,
+                    endTime = null,
+                    title = "Task 2",
+                    ownerId = userId,
+                ),
             )
-        )
 
         assertNotNull(entry1.id)
         assertNotNull(entry2.id)
@@ -79,34 +80,35 @@ class TimeLogEntryRepositoryTest {
                 startTime = startTime1,
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Task 1",
-                ownerId = userId
-            )
+                ownerId = userId,
+            ),
         )
         repository.save(
             TimeLogEntry(
                 startTime = startTime2,
                 endTime = Instant.parse("2024-01-16T15:30:00Z"),
                 title = "Task 2",
-                ownerId = userId
-            )
+                ownerId = userId,
+            ),
         )
         repository.save(
             TimeLogEntry(
                 startTime = startTime3,
                 endTime = null,
                 title = "Task 3",
-                ownerId = userId
-            )
+                ownerId = userId,
+            ),
         )
 
         val fromTime = Instant.parse("2024-01-15T00:00:00Z")
         val toTime = Instant.parse("2024-01-17T00:00:00Z")
 
-        val entries = repository.findByOwnerIdAndStartTimeGreaterThanEqualsAndStartTimeLessThanOrderByStartTimeDesc(
-            userId,
-            fromTime,
-            toTime
-        )
+        val entries =
+            repository.findByOwnerIdAndStartTimeGreaterThanEqualsAndStartTimeLessThanOrderByStartTimeDesc(
+                userId,
+                fromTime,
+                toTime,
+            )
 
         assertEquals(2, entries.size)
         assertEquals("Task 2", entries[0].title)
@@ -122,17 +124,18 @@ class TimeLogEntryRepositoryTest {
                 startTime = Instant.parse("2024-01-15T10:00:00Z"),
                 endTime = Instant.parse("2024-01-15T11:00:00Z"),
                 title = "Completed Task",
-                ownerId = userId
-            )
+                ownerId = userId,
+            ),
         )
-        val activeEntry = repository.save(
-            TimeLogEntry(
-                startTime = Instant.parse("2024-01-15T14:30:00Z"),
-                endTime = null,
-                title = "Active Task",
-                ownerId = userId
+        val activeEntry =
+            repository.save(
+                TimeLogEntry(
+                    startTime = Instant.parse("2024-01-15T14:30:00Z"),
+                    endTime = null,
+                    title = "Active Task",
+                    ownerId = userId,
+                ),
             )
-        )
 
         val found = repository.findByOwnerIdAndEndTimeIsNull(userId)
         assertTrue(found.isPresent)
@@ -145,14 +148,15 @@ class TimeLogEntryRepositoryTest {
     fun `should find entry by id and owner`() {
         val userId = requireNotNull(testUser.id)
 
-        val entry = repository.save(
-            TimeLogEntry(
-                startTime = Instant.parse("2024-01-15T10:00:00Z"),
-                endTime = null,
-                title = "My Task",
-                ownerId = userId
+        val entry =
+            repository.save(
+                TimeLogEntry(
+                    startTime = Instant.parse("2024-01-15T10:00:00Z"),
+                    endTime = null,
+                    title = "My Task",
+                    ownerId = userId,
+                ),
             )
-        )
 
         val found = repository.findByIdAndOwnerId(requireNotNull(entry.id), userId)
         assertTrue(found.isPresent)

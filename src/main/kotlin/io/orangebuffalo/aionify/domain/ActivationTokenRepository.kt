@@ -9,14 +9,13 @@ import java.util.Optional
 
 @JdbcRepository(dialect = Dialect.POSTGRES)
 interface ActivationTokenRepository : CrudRepository<ActivationToken, Long> {
-    
     fun findByToken(token: String): Optional<ActivationToken>
-    
+
     fun findByUserId(userId: Long): Optional<ActivationToken>
-    
+
     @Query("DELETE FROM activation_token WHERE expires_at < :now")
     fun deleteExpiredTokens(now: Instant): Int
-    
+
     @Query("DELETE FROM activation_token WHERE user_id = :userId")
     fun deleteByUserId(userId: Long): Int
 }

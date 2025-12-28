@@ -1,5 +1,5 @@
-import i18n from "i18next"
-import { initReactI18next } from "react-i18next"
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
 
 // Translation resources
 const resources = {
@@ -17,7 +17,8 @@ const resources = {
         lostPassword: "Lost password?",
         lostPasswordDialog: {
           title: "Password Reset",
-          message: "To reset your password, please contact your system administrator. They will provide you with a secure password reset link.",
+          message:
+            "To reset your password, please contact your system administrator. They will provide you with a secure password reset link.",
           close: "Close",
         },
         signIn: "Sign in",
@@ -85,7 +86,8 @@ const resources = {
             tag: "Tag",
             count: "Entries",
             isLegacy: "Is legacy?",
-            isLegacyTooltip: "Legacy tags are still visible on historical entries, but not available for selection when editing.",
+            isLegacyTooltip:
+              "Legacy tags are still visible on historical entries, but not available for selection when editing.",
           },
           actions: {
             markAsLegacy: "Mark as legacy",
@@ -198,7 +200,8 @@ const resources = {
               admin: "Administrator",
               create: "Create User",
               creating: "Creating...",
-              createSuccess: "User created successfully! Share the activation link below with the user to allow them to set their password.",
+              createSuccess:
+                "User created successfully! Share the activation link below with the user to allow them to set their password.",
             },
             edit: {
               title: "Edit User",
@@ -213,10 +216,12 @@ const resources = {
               userInfo: "User Information",
               greeting: "Greeting",
               userType: "User Type",
-              profileNote: "Note: User profile settings (greeting, language, locale) are managed by the user in their personal settings page.",
+              profileNote:
+                "Note: User profile settings (greeting, language, locale) are managed by the user in their personal settings page.",
               activationSection: "Account Activation",
               activationUrl: "Activation URL",
-              activationNote: "Share this URL with the user to allow them to set their password or reset their account.",
+              activationNote:
+                "Share this URL with the user to allow them to set their password or reset their account.",
               regenerateToken: "Regenerate Activation Token",
               regenerating: "Regenerating...",
               generating: "Generating...",
@@ -224,8 +229,10 @@ const resources = {
               noActivationToken: "No valid activation token exists for this user.",
               generateToken: "Generate Activation Token",
               limitations: "Limitations",
-              noTypeChange: "User type (admin/regular user) cannot be changed. To change user type, delete the user and create a new account.",
-              noPasswordChange: "Passwords for other users cannot be changed. Use the activation token to allow users to set their own password.",
+              noTypeChange:
+                "User type (admin/regular user) cannot be changed. To change user type, delete the user and create a new account.",
+              noPasswordChange:
+                "Passwords for other users cannot be changed. Use the activation token to allow users to set their own password.",
             },
           },
         },
@@ -339,7 +346,8 @@ const resources = {
         lostPassword: "Забули пароль?",
         lostPasswordDialog: {
           title: "Скидання пароля",
-          message: "Щоб скинути пароль, зверніться до системного адміністратора. Він надасть вам безпечне посилання для скидання пароля.",
+          message:
+            "Щоб скинути пароль, зверніться до системного адміністратора. Він надасть вам безпечне посилання для скидання пароля.",
           close: "Закрити",
         },
         signIn: "Увійти",
@@ -407,7 +415,8 @@ const resources = {
             tag: "Тег",
             count: "Записи",
             isLegacy: "Застарілий?",
-            isLegacyTooltip: "Застарілі теги все ще видимі в історичних записах, але недоступні для вибору під час редагування.",
+            isLegacyTooltip:
+              "Застарілі теги все ще видимі в історичних записах, але недоступні для вибору під час редагування.",
           },
           actions: {
             markAsLegacy: "Позначити як застарілий",
@@ -520,7 +529,8 @@ const resources = {
               admin: "Адміністратор",
               create: "Створити користувача",
               creating: "Створення...",
-              createSuccess: "Користувача успішно створено! Поділіться посиланням для активації нижче з користувачем, щоб дозволити йому встановити пароль.",
+              createSuccess:
+                "Користувача успішно створено! Поділіться посиланням для активації нижче з користувачем, щоб дозволити йому встановити пароль.",
             },
             edit: {
               title: "Редагувати користувача",
@@ -535,10 +545,12 @@ const resources = {
               userInfo: "Інформація користувача",
               greeting: "Привітання",
               userType: "Тип користувача",
-              profileNote: "Примітка: Налаштування профілю (привітання, мова, локаль) керуються користувачем на сторінці особистих налаштувань.",
+              profileNote:
+                "Примітка: Налаштування профілю (привітання, мова, локаль) керуються користувачем на сторінці особистих налаштувань.",
               activationSection: "Активація облікового запису",
               activationUrl: "URL активації",
-              activationNote: "Поділіться цим URL з користувачем, щоб дозволити йому встановити пароль або скинути обліковий запис.",
+              activationNote:
+                "Поділіться цим URL з користувачем, щоб дозволити йому встановити пароль або скинути обліковий запис.",
               regenerateToken: "Згенерувати токен активації знову",
               regenerating: "Генерація...",
               generating: "Генерація...",
@@ -546,8 +558,10 @@ const resources = {
               noActivationToken: "Для цього користувача не існує дійсного токена активації.",
               generateToken: "Згенерувати токен активації",
               limitations: "Обмеження",
-              noTypeChange: "Тип користувача (адміністратор/звичайний користувач) не може бути змінений. Щоб змінити тип користувача, видаліть користувача та створіть новий обліковий запис.",
-              noPasswordChange: "Паролі інших користувачів не можуть бути змінені. Використовуйте токен активації, щоб дозволити користувачам встановити власний пароль.",
+              noTypeChange:
+                "Тип користувача (адміністратор/звичайний користувач) не може бути змінений. Щоб змінити тип користувача, видаліть користувача та створіть новий обліковий запис.",
+              noPasswordChange:
+                "Паролі інших користувачів не можуть бути змінені. Використовуйте токен активації, щоб дозволити користувачам встановити власний пароль.",
             },
           },
         },
@@ -647,61 +661,59 @@ const resources = {
       },
     },
   },
-}
+};
 
 // Get saved language or detect browser language
 const getSavedLanguage = (): string | null => {
   try {
-    return localStorage.getItem("aionify_language")
+    return localStorage.getItem("aionify_language");
   } catch {
-    return null
+    return null;
   }
-}
+};
 
 const detectBrowserLanguage = (): string => {
-  const browserLang = navigator.language.split("-")[0] // Get language code without region
-  const supportedLanguages = Object.keys(resources)
-  return supportedLanguages.includes(browserLang) ? browserLang : "en"
-}
+  const browserLang = navigator.language.split("-")[0]; // Get language code without region
+  const supportedLanguages = Object.keys(resources);
+  return supportedLanguages.includes(browserLang) ? browserLang : "en";
+};
 
-const initialLanguage = getSavedLanguage() || detectBrowserLanguage()
+const initialLanguage = getSavedLanguage() || detectBrowserLanguage();
 
-i18n
-  .use(initReactI18next)
-  .init({
-    resources,
-    lng: initialLanguage,
-    fallbackLng: "en",
-    interpolation: {
-      escapeValue: false, // React already escapes values
-    },
-  })
+i18n.use(initReactI18next).init({
+  resources,
+  lng: initialLanguage,
+  fallbackLng: "en",
+  interpolation: {
+    escapeValue: false, // React already escapes values
+  },
+});
 
 // Helper functions for language management
 export const saveLanguagePreference = (languageCode: string) => {
   try {
-    localStorage.setItem("aionify_language", languageCode)
+    localStorage.setItem("aionify_language", languageCode);
   } catch (error) {
-    console.error("Failed to save language preference:", error)
+    console.error("Failed to save language preference:", error);
   }
-}
+};
 
 export const initializeLanguage = async (languageCode: string) => {
-  saveLanguagePreference(languageCode)
-  await i18n.changeLanguage(languageCode)
-}
+  saveLanguagePreference(languageCode);
+  await i18n.changeLanguage(languageCode);
+};
 
 // Helper function to translate error codes
 export const translateErrorCode = (errorCode: string | undefined): string => {
   if (!errorCode) {
-    return i18n.t("common.error")
+    return i18n.t("common.error");
   }
 
-  const translationKey = `errorCodes.${errorCode}`
-  const translated = i18n.t(translationKey)
+  const translationKey = `errorCodes.${errorCode}`;
+  const translated = i18n.t(translationKey);
 
   // If translation key not found, return the fallback
-  return translated === translationKey ? i18n.t("common.error") : translated
-}
+  return translated === translationKey ? i18n.t("common.error") : translated;
+};
 
-export default i18n
+export default i18n;

@@ -1,71 +1,71 @@
-import { useState } from "react"
-import { useTranslation } from "react-i18next"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { FormMessage } from "@/components/ui/form-message"
-import { KeyRound, Eye, EyeOff } from "lucide-react"
-import { apiPost } from "@/lib/api"
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { FormMessage } from "@/components/ui/form-message";
+import { KeyRound, Eye, EyeOff } from "lucide-react";
+import { apiPost } from "@/lib/api";
 
 interface ChangePasswordResponse {
-  message: string
+  message: string;
 }
 
 export function ChangePasswordPanel() {
-  const { t } = useTranslation()
-  const [currentPassword, setCurrentPassword] = useState("")
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
-  const [showNewPassword, setShowNewPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+  const { t } = useTranslation();
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setSuccess(null)
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
 
     // Client-side validation
     if (!currentPassword) {
-      setError(t("validation.currentPasswordRequired"))
-      return
+      setError(t("validation.currentPasswordRequired"));
+      return;
     }
     if (!newPassword) {
-      setError(t("validation.newPasswordRequired"))
-      return
+      setError(t("validation.newPasswordRequired"));
+      return;
     }
     if (newPassword.length > 50) {
-      setError(t("validation.passwordTooLong"))
-      return
+      setError(t("validation.passwordTooLong"));
+      return;
     }
     if (newPassword !== confirmPassword) {
-      setError(t("validation.passwordsDoNotMatch"))
-      return
+      setError(t("validation.passwordsDoNotMatch"));
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
     try {
       const data = await apiPost<ChangePasswordResponse>("/api/auth/change-password", {
         currentPassword,
         newPassword,
-      })
-      setSuccess(t("profile.changePassword.changeSuccess"))
+      });
+      setSuccess(t("profile.changePassword.changeSuccess"));
 
       // Reset form on success
-      setCurrentPassword("")
-      setNewPassword("")
-      setConfirmPassword("")
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("common.error"))
+      setError(err instanceof Error ? err.message : t("common.error"));
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <Card className="border-none shadow-md">
@@ -163,14 +163,10 @@ export function ChangePasswordPanel() {
           </div>
 
           {/* Error Message */}
-          {error && (
-            <FormMessage type="error" message={error} testId="change-password-error" />
-          )}
+          {error && <FormMessage type="error" message={error} testId="change-password-error" />}
 
           {/* Success Message */}
-          {success && (
-            <FormMessage type="success" message={success} testId="change-password-success" />
-          )}
+          {success && <FormMessage type="success" message={success} testId="change-password-success" />}
 
           {/* Submit Button */}
           <Button
@@ -184,5 +180,5 @@ export function ChangePasswordPanel() {
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

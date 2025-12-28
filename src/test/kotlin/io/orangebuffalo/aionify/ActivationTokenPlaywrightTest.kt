@@ -1,16 +1,12 @@
 package io.orangebuffalo.aionify
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
-import io.orangebuffalo.aionify.domain.ActivationToken
-import io.orangebuffalo.aionify.domain.ActivationTokenRepository
-import io.orangebuffalo.aionify.domain.User
-import io.orangebuffalo.aionify.domain.UserRepository
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import jakarta.inject.Inject
+import io.orangebuffalo.aionify.domain.ActivationToken
+import io.orangebuffalo.aionify.domain.User
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mindrot.jbcrypt.BCrypt
-import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 /**
@@ -18,32 +14,33 @@ import java.time.temporal.ChronoUnit
  */
 @MicronautTest(transactional = false)
 class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
-
     private lateinit var testUser: User
     private lateinit var validToken: ActivationToken
 
     @BeforeEach
     fun setupTestData() {
         // Create a user without a valid password (will be set via activation)
-        testUser = testDatabaseSupport.insert(
-            User.create(
-                userName = "newuser",
-                passwordHash = BCrypt.hashpw("temporary", BCrypt.gensalt()),
-                greeting = "New User",
-                isAdmin = false,
-                locale = java.util.Locale.ENGLISH,
+        testUser =
+            testDatabaseSupport.insert(
+                User.create(
+                    userName = "newuser",
+                    passwordHash = BCrypt.hashpw("temporary", BCrypt.gensalt()),
+                    greeting = "New User",
+                    isAdmin = false,
+                    locale = java.util.Locale.ENGLISH,
+                ),
             )
-        )
-        
+
         // Create a valid activation token
-        validToken = testDatabaseSupport.insert(
-            ActivationToken(
-                userId = requireNotNull(testUser.id),
-                token = "valid-test-token-123",
-                expiresAt = TestTimeService.FIXED_TEST_TIME.plus(24, ChronoUnit.HOURS),
-                createdAt = TestTimeService.FIXED_TEST_TIME
+        validToken =
+            testDatabaseSupport.insert(
+                ActivationToken(
+                    userId = requireNotNull(testUser.id),
+                    token = "valid-test-token-123",
+                    expiresAt = TestTimeService.FIXED_TEST_TIME.plus(24, ChronoUnit.HOURS),
+                    createdAt = TestTimeService.FIXED_TEST_TIME,
+                ),
             )
-        )
     }
 
     @Test
@@ -137,8 +134,8 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
                 userId = requireNotNull(testUser.id),
                 token = "expired-token-456",
                 expiresAt = TestTimeService.FIXED_TEST_TIME.minus(1, ChronoUnit.HOURS),
-                createdAt = TestTimeService.FIXED_TEST_TIME.minus(2, ChronoUnit.HOURS)
-            )
+                createdAt = TestTimeService.FIXED_TEST_TIME.minus(2, ChronoUnit.HOURS),
+            ),
         )
 
         page.navigate("/activate?token=expired-token-456")
@@ -180,10 +177,10 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
         val maxPassword = "a".repeat(50)
         page.locator("[data-testid='password-input']").fill(maxPassword)
         page.locator("[data-testid='confirm-password-input']").fill(maxPassword)
-        
+
         // Verify that the inputs accept 50 characters
         assertThat(page.locator("[data-testid='password-input']")).hasValue(maxPassword)
-        
+
         // Note: HTML maxLength=50 prevents entering more than 50 characters via UI
         // This test verifies that the UI enforces the constraint
         // Server-side validation is tested via the API tests
@@ -268,24 +265,32 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
                 userId = requireNotNull(testUser.id),
                 token = "rate-limit-token",
                 expiresAt = TestTimeService.FIXED_TEST_TIME.plus(24, ChronoUnit.HOURS),
-                createdAt = TestTimeService.FIXED_TEST_TIME
-            )
+                createdAt = TestTimeService.FIXED_TEST_TIME,
+            ),
         )
 
         // Make multiple validation requests to trigger rate limiting
         // The rate limiter allows 5 attempts per 15 minutes
         for (i in 1..6) {
             page.navigate("/activate?token=rate-limit-token")
-            
+
             if (i < 6) {
                 // Should still work for first 5 attempts
-                page.waitForSelector("[data-testid='greeting-message']", 
-                    com.microsoft.playwright.Page.WaitForSelectorOptions().setTimeout(5000.0))
+                page.waitForSelector(
+                    "[data-testid='greeting-message']",
+                    com.microsoft.playwright.Page
+                        .WaitForSelectorOptions()
+                        .setTimeout(5000.0),
+                )
             } else {
                 // 6th attempt should be rate limited
-                page.waitForSelector("[data-testid='token-error']",
-                    com.microsoft.playwright.Page.WaitForSelectorOptions().setTimeout(5000.0))
-                
+                page.waitForSelector(
+                    "[data-testid='token-error']",
+                    com.microsoft.playwright.Page
+                        .WaitForSelectorOptions()
+                        .setTimeout(5000.0),
+                )
+
                 val errorMessage = page.locator("[data-testid='token-error']")
                 assertThat(errorMessage).isVisible()
                 assertThat(errorMessage).containsText("Too many")
@@ -298,7 +303,7 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
         // This test verifies that multiple attempts with an invalid token eventually show errors
         // The rate limiting mechanism is in place (tested separately), but hard to test end-to-end
         // because once the token is used successfully, it's invalidated
-        
+
         // Create a token
         val rateLimitTestToken = "rate-limit-set-test"
         testDatabaseSupport.insert(
@@ -306,10 +311,10 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
                 userId = requireNotNull(testUser.id),
                 token = rateLimitTestToken,
                 expiresAt = TestTimeService.FIXED_TEST_TIME.plus(24, ChronoUnit.HOURS),
-                createdAt = TestTimeService.FIXED_TEST_TIME
-            )
+                createdAt = TestTimeService.FIXED_TEST_TIME,
+            ),
         )
-        
+
         // First attempt should succeed
         page.navigate("/activate?token=$rateLimitTestToken")
         page.waitForSelector("[data-testid='greeting-message']")
@@ -317,7 +322,7 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='confirm-password-input']").fill("testpass123")
         page.locator("[data-testid='set-password-button']").click()
         page.waitForURL("**/login")
-        
+
         // Second attempt with same (now invalid) token should show error
         page.navigate("/activate?token=$rateLimitTestToken")
         page.waitForSelector("[data-testid='token-error']")
