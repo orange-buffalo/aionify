@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Play, MoreVertical, Trash2, Pencil, AlertCircle } from "lucide-react";
 import { formatTime, formatTimeWithWeekday, formatDate } from "@/lib/date-format";
 import { calculateDuration, formatDuration, isDifferentDay } from "@/lib/time-utils";
@@ -116,11 +117,14 @@ export function TimeEntry({
       <div className="flex items-center gap-4 text-sm">
         <div className="flex items-center gap-2 text-muted-foreground" data-testid="entry-time-range">
           {spansDifferentDay && (
-            <AlertCircle
-              className="h-4 w-4 text-yellow-500"
-              title={`This entry finishes on another day - ${formatDate(entry.endTime!, locale)}`}
-              data-testid="different-day-warning"
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <AlertCircle className="h-4 w-4 text-yellow-500 cursor-pointer" data-testid="different-day-warning" />
+              </PopoverTrigger>
+              <PopoverContent className="dark text-sm" data-testid="different-day-tooltip">
+                {t("timeLogs.differentDayWarning", { date: formatDate(entry.endTime!, locale) })}
+              </PopoverContent>
+            </Popover>
           )}
           <span>
             {formatTime(entry.startTime, locale)} - {endTimeDisplay}

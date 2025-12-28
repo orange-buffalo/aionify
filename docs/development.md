@@ -22,7 +22,7 @@ cd aionify
 ### 2. Build the project
 
 ```bash
-./gradlew build --build-cache --console=plain
+./gradlew build --console=plain
 ```
 
 This will:
