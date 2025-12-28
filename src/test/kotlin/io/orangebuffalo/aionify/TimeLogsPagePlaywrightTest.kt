@@ -2312,16 +2312,18 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // Verify existing tags are checked
         timeLogsPage.assertTagsSelected(listOf("backend"), testIdPrefix = "stopped-entry-edit-tags")
 
-        // Add a new tag by toggling
-        // First, create the tag in the list by adding it
+        // Add a new tag
         page.locator("[data-testid='stopped-entry-edit-tags-new-tag-input']").fill("urgent")
         page.locator("[data-testid='stopped-entry-edit-tags-add-tag-button']").click()
 
-        // Wait for tag to appear in list and be checked
-        page.waitForSelector("[data-testid='stopped-entry-edit-tags-checkbox-urgent']")
+        // Verify the tag was added by checking it's in the list and selected
+        assertThat(page.locator("[data-testid='stopped-entry-edit-tags-item-urgent']")).isVisible()
+        
+        // Close popover by pressing Escape
+        page.keyboard().press("Escape")
 
-        // Close popover
-        page.locator("[data-testid='stopped-entry-edit-title-input']").click()
+        // Verify popover is closed
+        assertThat(page.locator("[data-testid='stopped-entry-edit-tags-popover']")).not().isVisible()
 
         // Save the changes
         timeLogsPage.clickSaveStoppedEntryEdit()
