@@ -289,7 +289,7 @@ export function EditUserPage() {
                       <Button
                         onClick={handleRegenerateToken}
                         disabled={regenerating}
-                        variant="outline"
+                        className="bg-teal-600 hover:bg-teal-700"
                         data-testid="regenerate-token-button"
                       >
                         {regenerating
@@ -306,7 +306,7 @@ export function EditUserPage() {
                       <Button
                         onClick={handleRegenerateToken}
                         disabled={regenerating}
-                        variant="outline"
+                        className="bg-teal-600 hover:bg-teal-700"
                         data-testid="generate-token-button"
                       >
                         {regenerating
