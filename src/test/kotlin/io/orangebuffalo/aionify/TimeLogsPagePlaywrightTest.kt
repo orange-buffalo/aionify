@@ -2318,7 +2318,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         // Verify the tag was added by checking it's in the list and selected
         assertThat(page.locator("[data-testid='stopped-entry-edit-tags-item-urgent']")).isVisible()
-        
+
         // Close popover by pressing Escape
         page.keyboard().press("Escape")
 
