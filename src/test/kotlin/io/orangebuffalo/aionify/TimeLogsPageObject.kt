@@ -3,8 +3,8 @@ package io.orangebuffalo.aionify
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import com.microsoft.playwright.options.AriaRole
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 
 /**
  * Page state model representing the complete state of the Time Logs page.
@@ -711,8 +711,11 @@ class TimeLogsPageObject(
      * @param tag The tag name to toggle
      * @param testIdPrefix The prefix for test IDs (e.g., "edit-tags" or "stopped-entry-edit-tags")
      */
-    fun toggleTag(tag: String, testIdPrefix: String = "edit-tags") {
-        page.locator("[data-testid='${testIdPrefix}-checkbox-${tag}']").click()
+    fun toggleTag(
+        tag: String,
+        testIdPrefix: String = "edit-tags",
+    ) {
+        page.locator("[data-testid='$testIdPrefix-checkbox-$tag']").click()
     }
 
     /**
@@ -720,10 +723,13 @@ class TimeLogsPageObject(
      * @param expectedTags List of tags that should be checked
      * @param testIdPrefix The prefix for test IDs
      */
-    fun assertTagsSelected(expectedTags: List<String>, testIdPrefix: String = "edit-tags") {
+    fun assertTagsSelected(
+        expectedTags: List<String>,
+        testIdPrefix: String = "edit-tags",
+    ) {
         // For each tag, verify it's checked
         expectedTags.forEach { tag ->
-            val checkbox = page.locator("[data-testid='${testIdPrefix}-checkbox-${tag}']")
+            val checkbox = page.locator("[data-testid='$testIdPrefix-checkbox-$tag']")
             assertThat(checkbox).isChecked()
         }
     }
@@ -733,8 +739,11 @@ class TimeLogsPageObject(
      * @param hasSelectedTags Whether the button should be highlighted (true) or not (false)
      * @param testIdPrefix The prefix for test IDs
      */
-    fun assertTagButtonHighlight(hasSelectedTags: Boolean, testIdPrefix: String = "edit-tags") {
-        val button = page.locator("[data-testid='${testIdPrefix}-button']")
+    fun assertTagButtonHighlight(
+        hasSelectedTags: Boolean,
+        testIdPrefix: String = "edit-tags",
+    ) {
+        val button = page.locator("[data-testid='$testIdPrefix-button']")
         if (hasSelectedTags) {
             // Button should have the highlighted class (bg-teal-600)
             val classAttr = button.getAttribute("class") ?: ""

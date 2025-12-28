@@ -2356,15 +2356,16 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should support editing tags on active entry`() {
         // Create an active entry with initial tags
-        val entry = testDatabaseSupport.insert(
-            TimeLogEntry(
-                startTime = FIXED_TEST_TIME,
-                endTime = null,
-                title = "Active Task with Tags",
-                ownerId = requireNotNull(testUser.id),
-                tags = arrayOf("backend", "urgent")
+        val entry =
+            testDatabaseSupport.insert(
+                TimeLogEntry(
+                    startTime = FIXED_TEST_TIME,
+                    endTime = null,
+                    title = "Active Task with Tags",
+                    ownerId = requireNotNull(testUser.id),
+                    tags = arrayOf("backend", "urgent"),
+                ),
             )
-        )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
@@ -2413,8 +2414,8 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 endTime = FIXED_TEST_TIME.minusSeconds(3600),
                 title = "Previous Task",
                 ownerId = requireNotNull(testUser.id),
-                tags = arrayOf("frontend", "testing", "ui")
-            )
+                tags = arrayOf("frontend", "testing", "ui"),
+            ),
         )
 
         // Create an active entry with some tags
@@ -2424,8 +2425,8 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 endTime = null,
                 title = "Current Task",
                 ownerId = requireNotNull(testUser.id),
-                tags = arrayOf("frontend", "ui")
-            )
+                tags = arrayOf("frontend", "ui"),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
@@ -2453,15 +2454,16 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     @Test
     fun `should support editing tags on stopped entry`() {
         // Create a stopped entry with initial tags
-        val entry = testDatabaseSupport.insert(
-            TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
-                title = "Completed Task",
-                ownerId = requireNotNull(testUser.id),
-                tags = arrayOf("backend")
+        val entry =
+            testDatabaseSupport.insert(
+                TimeLogEntry(
+                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
+                    endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                    title = "Completed Task",
+                    ownerId = requireNotNull(testUser.id),
+                    tags = arrayOf("backend"),
+                ),
             )
-        )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
@@ -2522,8 +2524,8 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 endTime = FIXED_TEST_TIME.minusSeconds(3600),
                 title = "Previous Task",
                 ownerId = requireNotNull(testUser.id),
-                tags = arrayOf("meeting", "planning")
-            )
+                tags = arrayOf("meeting", "planning"),
+            ),
         )
 
         // Create the entry to edit
@@ -2533,8 +2535,8 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 endTime = FIXED_TEST_TIME.minusSeconds(1800),
                 title = "Task to Edit",
                 ownerId = requireNotNull(testUser.id),
-                tags = arrayOf("meeting")
-            )
+                tags = arrayOf("meeting"),
+            ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
