@@ -392,6 +392,11 @@ export function useTimeLogs() {
     return () => clearInterval(interval);
   }, [activeEntry?.id, activeEntry?.startTime]);
 
+  // Calculate weekly total from entries
+  function calculateWeeklyTotal(entries: TimeLogEntry[]): number {
+    return entries.reduce((sum, entry) => sum + calculateDuration(entry.startTime, entry.endTime), 0);
+  }
+
   // Recalculate day groups when entries change or when there's an active entry
   useEffect(() => {
     const locale = userLocale || i18n.language || "en";
@@ -399,8 +404,7 @@ export function useTimeLogs() {
     setDayGroups(groups);
 
     // Calculate weekly total from all entries
-    const total = entries.reduce((sum, entry) => sum + calculateDuration(entry.startTime, entry.endTime), 0);
-    setWeeklyTotal(total);
+    setWeeklyTotal(calculateWeeklyTotal(entries));
 
     if (!activeEntry) return;
 
@@ -409,8 +413,7 @@ export function useTimeLogs() {
       setDayGroups(updatedGroups);
 
       // Recalculate weekly total with active entry duration
-      const updatedTotal = entries.reduce((sum, entry) => sum + calculateDuration(entry.startTime, entry.endTime), 0);
-      setWeeklyTotal(updatedTotal);
+      setWeeklyTotal(calculateWeeklyTotal(entries));
     }, 1000);
 
     return () => clearInterval(interval);
