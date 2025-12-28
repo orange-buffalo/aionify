@@ -31,6 +31,7 @@ class TimeLogsClockTest : TimeLogsPageTestBase() {
                         duration = "00:30:00",
                         startedAt = "16 Mar, 03:00",
                     ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:30:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
@@ -61,6 +62,7 @@ class TimeLogsClockTest : TimeLogsPageTestBase() {
                         duration = "00:35:00",
                         startedAt = "16 Mar, 03:00",
                     ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:35:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
@@ -91,6 +93,7 @@ class TimeLogsClockTest : TimeLogsPageTestBase() {
                         duration = "01:00:00",
                         startedAt = "16 Mar, 03:00",
                     ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "01:00:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
