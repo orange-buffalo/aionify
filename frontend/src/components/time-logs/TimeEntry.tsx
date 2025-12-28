@@ -21,12 +21,12 @@ interface TimeEntryProps {
   onCancelEdit: () => void
 }
 
-export function TimeEntry({ 
-  entry, 
-  locale, 
+export function TimeEntry({
+  entry,
+  locale,
   isEditing,
   isSaving,
-  onContinue, 
+  onContinue,
   onDelete,
   onEdit,
   onSaveEdit,
@@ -91,7 +91,7 @@ export function TimeEntry({
         <p className="font-medium text-foreground" data-testid="entry-title">{entry.title}</p>
         {entry.tags && entry.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-1.5" data-testid="entry-tags">
-            {entry.tags.map((tag, index) => (
+            {entry.tags.sort().map((tag, index) => (
               <Badge key={index} variant="outline" className="text-[0.7rem]" data-testid={`entry-tag-${index}`}>
                 {tag}
               </Badge>

@@ -16,7 +16,7 @@ import org.junit.jupiter.params.provider.MethodSource
 
 /**
  * Playwright tests for the Time Logs page functionality.
- * 
+ *
  * These tests use a page object model with comprehensive state assertions
  * to ensure reliable and clear test feedback.
  */
@@ -25,7 +25,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
     @Inject
     lateinit var testAuthSupport: TestAuthSupport
-    
+
     @Inject
     lateinit var timeLogEntryRepository: TimeLogEntryRepository
 
@@ -108,7 +108,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
         timeLogsPage.assertPageState(activeState)
-        
+
         // Verify database state after starting
         val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(activeEntry, "Active entry should exist in database")
@@ -138,11 +138,11 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
         timeLogsPage.assertPageState(stoppedState)
-        
+
         // Verify database state after stopping
         val noActiveEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNull(noActiveEntry, "Should not have active entry after stopping")
-        
+
         // Verify the stopped entry has correct timestamps
         val stoppedEntry = timeLogEntryRepository.findById(activeEntry.id!!).orElse(null)
         assertNotNull(stoppedEntry, "Stopped entry should still exist in database")
@@ -220,7 +220,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             ),
         )
         timeLogsPage.assertPageState(activeState)
-        
+
         // Verify database state - new entry created with backend timestamp
         val newActiveEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(newActiveEntry, "New active entry should exist in database")
@@ -286,7 +286,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
     fun `should navigate between weeks`() {
         // Create entries for different weeks
         val lastWeek = FIXED_TEST_TIME.minusSeconds(7 * 24 * 3600)
-        
+
         // Current week entry
         testDatabaseSupport.insert(
             TimeLogEntry(
@@ -296,7 +296,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 ownerId = requireNotNull(testUser.id)
             )
         )
-        
+
         // Last week entry
         testDatabaseSupport.insert(
             TimeLogEntry(
@@ -351,10 +351,10 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             ),
         )
         timeLogsPage.assertPageState(lastWeekState)
-        
+
         // Navigate back to current week
         timeLogsPage.goToNextWeek()
-        
+
         // Verify we're back to current week
         timeLogsPage.assertPageState(currentWeekState)
     }
@@ -367,7 +367,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // Friday 20:00 NZDT to Saturday 02:30 NZDT (6.5 hours, spans midnight)
         val yesterdayEvening = FIXED_TEST_TIME.minusSeconds(27000) // Friday 20:00 NZDT (7.5 hours = 27000 seconds before Saturday 03:30)
         val todayMorning = FIXED_TEST_TIME.minusSeconds(3600) // Saturday 02:30 NZDT (1 hour before Saturday 03:30)
-        
+
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = yesterdayEvening, // Started on Friday evening NZDT
@@ -517,7 +517,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             ),
         )
         timeLogsPage.assertPageState(activeState)
-        
+
         // Verify database state - entry should be created with backend timestamp
         val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(activeEntry, "Active entry should exist in database")
@@ -603,10 +603,10 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
         timeLogsPage.assertPageState(initialState)
-        
+
         // Advance the clock by 5 minutes
         timeLogsPage.advanceClock(5 * 60 * 1000)
-        
+
         // Timer and day group totals should now show 35 minutes
         val state35min = initialState.copy(
             currentEntry = CurrentEntryState.ActiveEntry(
@@ -629,10 +629,10 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
         timeLogsPage.assertPageState(state35min)
-        
+
         // Advance another 25 minutes to reach 1 hour
         timeLogsPage.advanceClock(25 * 60 * 1000)
-        
+
         // Timer and day group totals should now show 1 hour
         val state1hour = state35min.copy(
             currentEntry = CurrentEntryState.ActiveEntry(
@@ -656,12 +656,12 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         )
         timeLogsPage.assertPageState(state1hour)
     }
-    
+
     @Test
     fun `should render entries from multiple days with varying entry counts`() {
         // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30 NZDT
         // Let's create entries for different days in the current week (Mon Mar 11 - Sun Mar 17)
-        
+
         // Monday (Mar 11) - 2 entries (5 days before Saturday)
         val monday = FIXED_TEST_TIME.minusSeconds(5 * 24 * 3600) // 5 days before Saturday
         testDatabaseSupport.insert(
@@ -680,7 +680,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 ownerId = requireNotNull(testUser.id)
             )
         )
-        
+
         // Tuesday (Mar 12) - 1 entry (4 days before Saturday)
         val tuesday = FIXED_TEST_TIME.minusSeconds(4 * 24 * 3600)
         testDatabaseSupport.insert(
@@ -691,7 +691,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 ownerId = requireNotNull(testUser.id)
             )
         )
-        
+
         // Wednesday (Mar 13) - 3 entries (3 days before Saturday)
         val wednesday = FIXED_TEST_TIME.minusSeconds(3 * 24 * 3600)
         testDatabaseSupport.insert(
@@ -718,7 +718,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 ownerId = requireNotNull(testUser.id)
             )
         )
-        
+
         // Saturday (Mar 16) - today - 1 entry
         testDatabaseSupport.insert(
             TimeLogEntry(
@@ -803,7 +803,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         )
         timeLogsPage.assertPageState(expectedState)
     }
-    
+
     @Test
     fun `should handle midnight split scenario correctly`() {
         // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30:00 NZDT
@@ -811,7 +811,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // Friday 22:00 NZDT to Saturday 02:00 NZDT (4 hours, spans midnight)
         val fridayEvening = FIXED_TEST_TIME.minusSeconds(19800) // Friday 22:00 NZDT (5.5 hours = 19800 seconds before Saturday 03:30)
         val saturdayMorning = FIXED_TEST_TIME.minusSeconds(5400) // Saturday 02:00 NZDT (1.5 hours = 5400 seconds before Saturday 03:30)
-        
+
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = fridayEvening,
@@ -858,14 +858,14 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         )
         timeLogsPage.assertPageState(expectedState)
     }
-    
+
     @Test
     fun `should delete midnight-split entry correctly`() {
         // Create an entry that spans midnight
         // Friday 22:00 NZDT to Saturday 02:00 NZDT (4 hours, spans midnight)
         val fridayEvening = FIXED_TEST_TIME.minusSeconds(19800) // Friday 22:00 NZDT (5.5 hours = 19800 seconds before Saturday 03:30)
         val saturdayMorning = FIXED_TEST_TIME.minusSeconds(5400) // Saturday 02:00 NZDT (1.5 hours = 5400 seconds before Saturday 03:30)
-        
+
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = fridayEvening,
@@ -970,7 +970,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         // Click edit button - transition to edit mode
         timeLogsPage.clickEditEntry()
-        
+
         val editModeState = initialState.copy(
             currentEntry = CurrentEntryState.ActiveEntry(
                 title = "Original Title",
@@ -1013,7 +1013,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
         timeLogsPage.assertPageState(updatedState)
-        
+
         // Verify database state - title should be updated
         val editedEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(editedEntry, "Active entry should still exist in database")
@@ -1092,7 +1092,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
         timeLogsPage.assertPageState(updatedState)
-        
+
         // Verify database state - startTime should be updated to user-provided time
         val editedEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(editedEntry, "Active entry should still exist in database")
@@ -1174,7 +1174,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
         timeLogsPage.assertPageState(updatedState)
-        
+
         // Verify database state - both title and startTime should be updated
         val editedEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(editedEntry, "Active entry should still exist in database")
@@ -1481,15 +1481,15 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             greeting = testCase.greeting,
             locale = java.util.Locale.forLanguageTag(testCase.localeTag)
         )
-        
+
         // Create an entry that started at 14:30 (2:30 PM) - afternoon time to clearly show 12/24-hour format difference
         // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30:00 NZDT
         // We want 14:30 NZDT, which is 11 hours later
         val afternoonTime = FIXED_TEST_TIME.plusSeconds(11 * 3600) // 14:30 NZDT
-        
+
         // Set the browser clock to the afternoon time for this test
         page.clock().pauseAt(afternoonTime.toEpochMilli())
-        
+
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = afternoonTime.minusSeconds(1800), // Started 30 minutes ago at 14:00 (2:00 PM)
@@ -1498,7 +1498,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 ownerId = requireNotNull(testUser.id)
             )
         )
-        
+
         // Also create a completed entry to test time ranges in the day groups
         testDatabaseSupport.insert(
             TimeLogEntry(
@@ -1515,29 +1515,29 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         val startedAtLocator = page.locator("[data-testid='active-entry-started-at']")
         assertThat(startedAtLocator).isVisible()
         assertThat(startedAtLocator).containsText(testCase.expectedStartedAtText)
-        
+
         // Verify the active entry time range in day groups uses locale format
         val activeEntryTimeRange = page.locator("[data-testid='time-entry']:has-text('${testCase.taskTitle}')")
             .locator("[data-testid='entry-time-range']")
         assertThat(activeEntryTimeRange).isVisible()
         assertThat(activeEntryTimeRange).hasText(testCase.expectedActiveTimeRangeText)
-        
+
         // Verify the completed entry time range in day groups uses locale format
         val completedEntryTimeRange = page.locator("[data-testid='time-entry']:has-text('${testCase.completedTaskTitle}')")
             .locator("[data-testid='entry-time-range']")
         assertThat(completedEntryTimeRange).isVisible()
         assertThat(completedEntryTimeRange).hasText(testCase.expectedCompletedTimeRangeText)
-        
+
         // Verify week range uses locale format
         val weekRangeLocator = page.locator("[data-testid='week-range']")
         assertThat(weekRangeLocator).isVisible()
         assertThat(weekRangeLocator).hasText(testCase.expectedWeekRangeText)
-        
+
         // Verify day title uses locale format
         val dayTitleLocator = page.locator("[data-testid='day-title']").first()
         assertThat(dayTitleLocator).isVisible()
         assertThat(dayTitleLocator).hasText(testCase.expectedDayTitle)
-        
+
         // Click edit button to test datetime picker with the locale
         timeLogsPage.clickEditEntry()
 
@@ -1545,13 +1545,13 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         val dateInput = page.locator("[data-testid='edit-date-input']")
         assertThat(dateInput).isVisible()
         assertThat(dateInput).hasValue(testCase.expectedEditDateValue)
-        
+
         // Verify edit mode time input uses locale format
         val timeInput = page.locator("[data-testid='edit-time-input']")
         assertThat(timeInput).isVisible()
         assertThat(timeInput).hasValue(testCase.expectedEditTimeValue)
     }
-    
+
     companion object {
         @JvmStatic
         fun localeTestCases() = listOf(
@@ -1602,7 +1602,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
     }
-    
+
     data class LocaleTestCase(
         val localeTag: String,
         val username: String,
@@ -1715,7 +1715,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             ),
         )
         timeLogsPage.assertPageState(newState)
-        
+
         // Verify database state:
         // 1. The previously active entry should be stopped with endTime from backend
         val stoppedPreviousEntry = timeLogEntryRepository.findById(previouslyActiveEntry.id!!).orElse(null)
@@ -1723,7 +1723,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         assertEquals(FIXED_TEST_TIME.minusSeconds(1800), stoppedPreviousEntry!!.startTime)
         // Verify endTime is set by backend to FIXED_TEST_TIME
         assertEquals(FIXED_TEST_TIME, stoppedPreviousEntry.endTime, "End time should be set by backend when stopping")
-        
+
         // 2. A new active entry should be created with startTime from backend
         val newActiveEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(newActiveEntry, "New active entry should exist in database")
@@ -1739,10 +1739,10 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
         // Sunday, March 17, 2024 at 14:30:00 UTC = Monday, March 18, 2024 at 03:30:00 NZDT
         // To test Sunday in Auckland, we need Sunday at 03:30 NZDT = Saturday at 14:30 UTC
         val sundayTime = FIXED_TEST_TIME.plusSeconds(24 * 3600) // Saturday 14:30 UTC = Sunday 03:30 NZDT
-        
+
         // Override the test time to Sunday
         page.clock().pauseAt(sundayTime.toEpochMilli())
-        
+
         // Create an entry for Sunday in Auckland timezone
         testDatabaseSupport.insert(
             TimeLogEntry(
@@ -1850,7 +1850,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
         timeLogsPage.assertPageState(updatedState)
-        
+
         // Verify database state - only title changed, rest unchanged
         val updatedEntry = timeLogEntryRepository.findByIdAndOwnerId(
             requireNotNull(createdEntry.id),
@@ -1921,7 +1921,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
             )
         )
         timeLogsPage.assertPageState(updatedState)
-        
+
         // Verify database state - times updated, title and owner unchanged
         val updatedEntry = timeLogEntryRepository.findByIdAndOwnerId(
             requireNotNull(createdEntry.id),
@@ -1993,7 +1993,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         // Verify original state is preserved
         timeLogsPage.assertPageState(initialState)
-        
+
         // Verify database state is unchanged
         val unchangedEntry = timeLogEntryRepository.findByIdAndOwnerId(
             requireNotNull(createdEntry.id),
@@ -2100,7 +2100,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
 
         // Verify we're still in edit mode with all controls visible
         timeLogsPage.assertStoppedEntryEditVisible()
-        
+
         // Verify database state is unchanged (validation prevented the update)
         val unchangedEntry = timeLogEntryRepository.findByIdAndOwnerId(
             requireNotNull(createdEntry.id),
@@ -2125,7 +2125,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 tags = arrayOf("work", "urgent", "frontend")
             )
         )
-        
+
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(5400), // 1.5 hours ago
@@ -2135,7 +2135,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                 tags = arrayOf("backend")
             )
         )
-        
+
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(3600), // 1 hour ago
@@ -2173,7 +2173,7 @@ class TimeLogsPagePlaywrightTest : PlaywrightTestBase() {
                             title = "Entry with Multiple Tags",
                             timeRange = "01:30 - 02:00",
                             duration = "00:30:00",
-                            tags = listOf("work", "urgent", "frontend")
+                            tags = listOf("frontend", "urgent", "work")
                         )
                     )
                 )
