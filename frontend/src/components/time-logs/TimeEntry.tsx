@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Play, MoreVertical, Trash2, Pencil } from "lucide-react"
 import { formatTime } from "@/lib/date-format"
@@ -20,12 +21,12 @@ interface TimeEntryProps {
   onCancelEdit: () => void
 }
 
-export function TimeEntry({ 
-  entry, 
-  locale, 
+export function TimeEntry({
+  entry,
+  locale,
   isEditing,
   isSaving,
-  onContinue, 
+  onContinue,
   onDelete,
   onEdit,
   onSaveEdit,
@@ -88,6 +89,15 @@ export function TimeEntry({
     >
       <div className="flex-1">
         <p className="font-medium text-foreground" data-testid="entry-title">{entry.title}</p>
+        {entry.tags && entry.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1.5" data-testid="entry-tags">
+            {entry.tags.sort().map((tag, index) => (
+              <Badge key={index} variant="default" className="text-[0.7rem]" data-testid={`entry-tag-${index}`}>
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
       </div>
       <div className="flex items-center gap-4 text-sm">
         <div className="text-muted-foreground" data-testid="entry-time-range">
