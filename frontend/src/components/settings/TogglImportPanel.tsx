@@ -44,16 +44,22 @@ export function TogglImportPanel() {
     try {
       const fileContent = await selectedFile.text();
 
-      // Use fetch directly to avoid apiRequest's default Content-Type handling
+      // Create multipart form data
+      const formData = new FormData();
+      formData.append("file", new Blob([fileContent], { type: "text/csv" }), selectedFile.name);
+      formData.append(
+        "metadata",
+        new Blob([JSON.stringify({ timezone: userTimezone || "UTC" })], { type: "application/json" })
+      );
+
+      // Use fetch directly for multipart
       const token = localStorage.getItem("aionify_token");
       const response = await fetch("/api/import/toggl", {
         method: "POST",
         headers: {
-          "Content-Type": "text/plain",
-          "X-Timezone": userTimezone || "UTC",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: fileContent,
+        body: formData,
       });
 
       if (!response.ok) {

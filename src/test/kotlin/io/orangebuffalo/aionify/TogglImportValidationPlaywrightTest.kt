@@ -334,11 +334,292 @@ class TogglImportValidationPlaywrightTest : PlaywrightTestBase() {
         assertThat(successMessage).isVisible()
         assertThat(successMessage).containsText("Successfully imported 1 record(s)")
 
-        // Verify entry has no tags
+        // Verify entry has no tags and correct data
         testDatabaseSupport.inTransaction {
             val entries = timeLogEntryRepository.findAllOrderById()
             assertEquals(1, entries.size)
-            assertEquals(0, entries[0].tags.size)
+
+            val entry = entries[0]
+            assertEquals("Entry without tags", entry.title)
+            assertEquals(0, entry.tags.size)
+
+            // Verify timestamps are correct (in Pacific/Auckland timezone)
+            val expectedStart =
+                LocalDate
+                    .parse("2025-12-19")
+                    .atTime(LocalTime.parse("21:01:03"))
+                    .atZone(ZoneId.of("Pacific/Auckland"))
+                    .toInstant()
+            val expectedEnd =
+                LocalDate
+                    .parse("2025-12-19")
+                    .atTime(LocalTime.parse("22:02:12"))
+                    .atZone(ZoneId.of("Pacific/Auckland"))
+                    .toInstant()
+
+            assertEquals(expectedStart, entry.startTime)
+            assertEquals(expectedEnd, entry.endTime)
+        }
+    }
+
+    @Test
+    fun `should import entry with single tag and verify data`() {
+        navigateToSettingsViaToken()
+
+        page.locator("[data-testid='import-source-select']").click()
+        page.locator("[data-testid='import-source-toggl']").click()
+
+        val csvContent =
+            createValidTogglCsv(
+                listOf(
+                    TogglTestEntry(
+                        description = "Single tag entry",
+                        tags = listOf("Development"),
+                        startDate = "2025-12-20",
+                        startTime = "09:00:00",
+                        endDate = "2025-12-20",
+                        endTime = "10:30:00",
+                    ),
+                ),
+            )
+
+        page.locator("[data-testid='import-file-input']").setInputFiles(
+            com.microsoft.playwright.options.FilePayload(
+                "test.csv",
+                "text/csv",
+                csvContent.toByteArray(),
+            ),
+        )
+
+        page.locator("[data-testid='start-import-button']").click()
+
+        val successMessage = page.locator("[data-testid='import-success']")
+        assertThat(successMessage).isVisible()
+
+        // Verify entry with single tag and all fields
+        testDatabaseSupport.inTransaction {
+            val entries = timeLogEntryRepository.findAllOrderById()
+            assertEquals(1, entries.size)
+
+            val entry = entries[0]
+            assertEquals("Single tag entry", entry.title)
+            assertEquals(1, entry.tags.size)
+            assertEquals("Development", entry.tags[0])
+            assertEquals(requireNotNull(regularUser.id), entry.ownerId)
+
+            // Verify the duration is correct
+            val expectedStart =
+                LocalDate
+                    .parse("2025-12-20")
+                    .atTime(LocalTime.parse("09:00:00"))
+                    .atZone(ZoneId.of("Pacific/Auckland"))
+                    .toInstant()
+            val expectedEnd =
+                LocalDate
+                    .parse("2025-12-20")
+                    .atTime(LocalTime.parse("10:30:00"))
+                    .atZone(ZoneId.of("Pacific/Auckland"))
+                    .toInstant()
+
+            assertEquals(expectedStart, entry.startTime)
+            assertEquals(expectedEnd, entry.endTime)
+        }
+    }
+
+    @Test
+    fun `should import entry with multiple tags and verify all data`() {
+        navigateToSettingsViaToken()
+
+        page.locator("[data-testid='import-source-select']").click()
+        page.locator("[data-testid='import-source-toggl']").click()
+
+        val csvContent =
+            createValidTogglCsv(
+                listOf(
+                    TogglTestEntry(
+                        description = "Multi-tag entry",
+                        tags = listOf("Frontend", "React", "UI"),
+                        startDate = "2025-12-21",
+                        startTime = "14:15:00",
+                        endDate = "2025-12-21",
+                        endTime = "16:45:30",
+                    ),
+                ),
+            )
+
+        page.locator("[data-testid='import-file-input']").setInputFiles(
+            com.microsoft.playwright.options.FilePayload(
+                "test.csv",
+                "text/csv",
+                csvContent.toByteArray(),
+            ),
+        )
+
+        page.locator("[data-testid='start-import-button']").click()
+
+        val successMessage = page.locator("[data-testid='import-success']")
+        assertThat(successMessage).isVisible()
+
+        // Verify entry with multiple tags preserves order and all data
+        testDatabaseSupport.inTransaction {
+            val entries = timeLogEntryRepository.findAllOrderById()
+            assertEquals(1, entries.size)
+
+            val entry = entries[0]
+            assertEquals("Multi-tag entry", entry.title)
+            assertEquals(3, entry.tags.size)
+            assertEquals("Frontend", entry.tags[0])
+            assertEquals("React", entry.tags[1])
+            assertEquals("UI", entry.tags[2])
+
+            // Verify timestamps
+            val expectedStart =
+                LocalDate
+                    .parse("2025-12-21")
+                    .atTime(LocalTime.parse("14:15:00"))
+                    .atZone(ZoneId.of("Pacific/Auckland"))
+                    .toInstant()
+            val expectedEnd =
+                LocalDate
+                    .parse("2025-12-21")
+                    .atTime(LocalTime.parse("16:45:30"))
+                    .atZone(ZoneId.of("Pacific/Auckland"))
+                    .toInstant()
+
+            assertEquals(expectedStart, entry.startTime)
+            assertEquals(expectedEnd, entry.endTime)
+            assertEquals(requireNotNull(regularUser.id), entry.ownerId)
+        }
+    }
+
+    @Test
+    fun `should import entry spanning across days`() {
+        navigateToSettingsViaToken()
+
+        page.locator("[data-testid='import-source-select']").click()
+        page.locator("[data-testid='import-source-toggl']").click()
+
+        val csvContent =
+            createValidTogglCsv(
+                listOf(
+                    TogglTestEntry(
+                        description = "Late night work",
+                        tags = listOf("Overtime"),
+                        startDate = "2025-12-22",
+                        startTime = "23:30:00",
+                        endDate = "2025-12-23",
+                        endTime = "01:15:00",
+                    ),
+                ),
+            )
+
+        page.locator("[data-testid='import-file-input']").setInputFiles(
+            com.microsoft.playwright.options.FilePayload(
+                "test.csv",
+                "text/csv",
+                csvContent.toByteArray(),
+            ),
+        )
+
+        page.locator("[data-testid='start-import-button']").click()
+
+        val successMessage = page.locator("[data-testid='import-success']")
+        assertThat(successMessage).isVisible()
+
+        // Verify entry spanning multiple days
+        testDatabaseSupport.inTransaction {
+            val entries = timeLogEntryRepository.findAllOrderById()
+            assertEquals(1, entries.size)
+
+            val entry = entries[0]
+            assertEquals("Late night work", entry.title)
+
+            val expectedStart =
+                LocalDate
+                    .parse("2025-12-22")
+                    .atTime(LocalTime.parse("23:30:00"))
+                    .atZone(ZoneId.of("Pacific/Auckland"))
+                    .toInstant()
+            val expectedEnd =
+                LocalDate
+                    .parse("2025-12-23")
+                    .atTime(LocalTime.parse("01:15:00"))
+                    .atZone(ZoneId.of("Pacific/Auckland"))
+                    .toInstant()
+
+            assertEquals(expectedStart, entry.startTime)
+            assertEquals(expectedEnd, entry.endTime)
+            // Verify end time is after start time
+            assert(requireNotNull(entry.endTime).isAfter(entry.startTime))
+        }
+    }
+
+    @Test
+    fun `should verify exact timestamps and user ownership for imported entries`() {
+        navigateToSettingsViaToken()
+
+        page.locator("[data-testid='import-source-select']").click()
+        page.locator("[data-testid='import-source-toggl']").click()
+
+        val csvContent =
+            createValidTogglCsv(
+                listOf(
+                    TogglTestEntry(
+                        description = "Precise timing test",
+                        tags = listOf("Testing"),
+                        startDate = "2025-12-19",
+                        startTime = "13:07:42",
+                        endDate = "2025-12-19",
+                        endTime = "15:22:18",
+                    ),
+                ),
+            )
+
+        page.locator("[data-testid='import-file-input']").setInputFiles(
+            com.microsoft.playwright.options.FilePayload(
+                "test.csv",
+                "text/csv",
+                csvContent.toByteArray(),
+            ),
+        )
+
+        page.locator("[data-testid='start-import-button']").click()
+
+        val successMessage = page.locator("[data-testid='import-success']")
+        assertThat(successMessage).isVisible()
+
+        // Verify precise timestamps and ownership
+        testDatabaseSupport.inTransaction {
+            val entries = timeLogEntryRepository.findAllOrderById()
+            assertEquals(1, entries.size)
+
+            val entry = entries[0]
+            assertEquals("Precise timing test", entry.title)
+            assertEquals(requireNotNull(regularUser.id), entry.ownerId)
+
+            // Verify exact timestamps including seconds
+            val expectedStart =
+                LocalDate
+                    .parse("2025-12-19")
+                    .atTime(LocalTime.parse("13:07:42"))
+                    .atZone(ZoneId.of("Pacific/Auckland"))
+                    .toInstant()
+            val expectedEnd =
+                LocalDate
+                    .parse("2025-12-19")
+                    .atTime(LocalTime.parse("15:22:18"))
+                    .atZone(ZoneId.of("Pacific/Auckland"))
+                    .toInstant()
+
+            assertEquals(expectedStart, entry.startTime)
+            assertEquals(expectedEnd, entry.endTime)
+
+            // Verify duration calculation
+            val durationSeconds =
+                java.time.Duration
+                    .between(entry.startTime, entry.endTime)
+                    .seconds
+            assertEquals(8076L, durationSeconds) // 2 hours 14 minutes 36 seconds
         }
     }
 }

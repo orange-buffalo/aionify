@@ -28,10 +28,10 @@ open class ImportResource(
     private val log = org.slf4j.LoggerFactory.getLogger(ImportResource::class.java)
 
     @Post("/toggl")
-    @Consumes(MediaType.TEXT_PLAIN)
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
     open fun importTogglCsv(
-        @Body csvContent: String,
-        @io.micronaut.http.annotation.Header("X-Timezone") timezone: String?,
+        @io.micronaut.http.annotation.Part("file") csvContent: String,
+        @io.micronaut.http.annotation.Part("metadata") metadata: ImportMetadata,
         principal: Principal?,
     ): HttpResponse<*> {
         val userName = principal?.name
@@ -61,9 +61,9 @@ open class ImportResource(
             // Use browser timezone if provided, otherwise fallback to UTC
             val userZoneId =
                 try {
-                    ZoneId.of(timezone ?: "UTC")
+                    ZoneId.of(metadata.timezone ?: "UTC")
                 } catch (e: Exception) {
-                    log.warn("Invalid timezone provided: {}, using UTC", timezone)
+                    log.warn("Invalid timezone provided: {}, using UTC", metadata.timezone)
                     ZoneId.of("UTC")
                 }
 
@@ -236,6 +236,12 @@ class InvalidCsvFormatException(
     message: String,
     cause: Throwable? = null,
 ) : Exception(message, cause)
+
+@Serdeable
+@Introspected
+data class ImportMetadata(
+    val timezone: String?,
+)
 
 @Serdeable
 @Introspected
