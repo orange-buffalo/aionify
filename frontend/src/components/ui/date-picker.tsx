@@ -10,10 +10,11 @@ interface DatePickerProps {
   onChange: (date: Date) => void;
   disabled?: boolean;
   locale: string;
+  startOfWeek: number;
   testIdPrefix: string;
 }
 
-export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: DatePickerProps) {
+export function DatePicker({ value, onChange, disabled, locale, startOfWeek, testIdPrefix }: DatePickerProps) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(value);
@@ -112,7 +113,10 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const startDate = new Date(firstDay);
-    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    // Adjust to start from the configured start of week
+    const dayOfWeek = firstDay.getDay();
+    const diff = (dayOfWeek - startOfWeek + 7) % 7;
+    startDate.setDate(startDate.getDate() - diff);
 
     const days: Date[] = [];
     const current = new Date(startDate);
@@ -132,13 +136,13 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
     return new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(year, monthIndex, 1));
   };
 
-  // Get localized day names using Intl API
+  // Get localized day names using Intl API starting from the configured start of week
   const getDayNames = () => {
-    // Use Sunday, Jan 2, 2000 as base date (arbitrary past date, day of week is what matters)
-    const baseDate = new Date(2000, 0, 2);
+    // Use a known date and offset by startOfWeek
+    const baseDate = new Date(2000, 0, 2); // Jan 2, 2000 is a Sunday (day 0)
     return Array.from({ length: 7 }, (_, i) => {
       const date = new Date(baseDate);
-      date.setDate(baseDate.getDate() + i);
+      date.setDate(baseDate.getDate() + ((startOfWeek + i) % 7));
       return new Intl.DateTimeFormat(locale, { weekday: "short" }).format(date).toUpperCase();
     });
   };
@@ -207,7 +211,7 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
           </button>
         </PopoverTrigger>
       </div>
-      <PopoverContent className="w-auto p-0 dark" align="start">
+      <PopoverContent className="w-auto p-0 dark" align="start" data-testid="calendar">
         <div className="p-4 space-y-4">
           {/* Month/Year Header */}
           <div className="flex items-center justify-between">
@@ -223,35 +227,46 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
           </div>
 
           {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-1">
-            {dayNames.map((day, idx) => (
-              <div key={idx} className="text-center text-xs text-muted-foreground p-2">
-                {day}
-              </div>
-            ))}
-            {days.map((day, idx) => {
-              const isCurrentMonth = day.getMonth() === month;
-              const todayDate = isToday(day);
-              const selected = isSelected(day);
+          <table data-testid="calendar-grid">
+            <thead>
+              <tr>
+                {dayNames.map((day, idx) => (
+                  <th key={idx} className="text-center text-xs text-muted-foreground p-2">
+                    {day}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: 6 }, (_, weekIdx) => (
+                <tr key={weekIdx}>
+                  {days.slice(weekIdx * 7, weekIdx * 7 + 7).map((day, dayIdx) => {
+                    const isCurrentMonth = day.getMonth() === month;
+                    const todayDate = isToday(day);
+                    const selected = isSelected(day);
 
-              return (
-                <Button
-                  key={idx}
-                  variant="ghost"
-                  size="sm"
-                  className={`
-                    h-9 w-9 p-0 font-normal text-foreground
-                    ${!isCurrentMonth && "text-muted-foreground opacity-50"}
-                    ${selected && "bg-primary text-primary-foreground hover:bg-primary"}
-                    ${todayDate && !selected && "bg-accent"}
-                  `}
-                  onClick={() => handleDateClick(day)}
-                >
-                  {day.getDate()}
-                </Button>
-              );
-            })}
-          </div>
+                    return (
+                      <td key={weekIdx * 7 + dayIdx}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={`
+                            h-9 w-9 p-0 font-normal text-foreground
+                            ${!isCurrentMonth && "text-muted-foreground opacity-50"}
+                            ${selected && "bg-primary text-primary-foreground hover:bg-primary"}
+                            ${todayDate && !selected && "bg-accent"}
+                          `}
+                          onClick={() => handleDateClick(day)}
+                        >
+                          {day.getDate()}
+                        </Button>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </PopoverContent>
     </Popover>

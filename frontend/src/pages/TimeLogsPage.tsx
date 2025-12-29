@@ -23,6 +23,7 @@ export function TimeLogsPage() {
     isDeleting,
     isSaving,
     userLocale,
+    startOfWeek,
     editingEntryId,
     isEditingActive,
     handleStart,
@@ -77,6 +78,7 @@ export function TimeLogsPage() {
             activeEntry={activeEntry}
             activeDuration={activeDuration}
             locale={locale}
+            startOfWeek={startOfWeek}
             isStarting={isStarting}
             isStopping={isStopping}
             isSaving={isSaving}
@@ -110,6 +112,7 @@ export function TimeLogsPage() {
                   key={group.date}
                   group={group}
                   locale={locale}
+                  startOfWeek={startOfWeek}
                   editingEntryId={editingEntryId}
                   isSaving={isSaving}
                   onContinue={handleContinue}

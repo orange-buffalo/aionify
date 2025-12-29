@@ -11,6 +11,7 @@ interface EditEntryFormProps {
   startDateTime: Date;
   endDateTime?: Date | null;
   locale: string;
+  startOfWeek: number;
   isSaving: boolean;
   tags?: string[];
   onTitleChange: (title: string) => void;
@@ -27,6 +28,7 @@ export function EditEntryForm({
   startDateTime,
   endDateTime,
   locale,
+  startOfWeek,
   isSaving,
   tags = [],
   onTitleChange,
@@ -72,6 +74,7 @@ export function EditEntryForm({
             onChange={onStartDateTimeChange}
             disabled={isSaving}
             locale={locale}
+            startOfWeek={startOfWeek}
             testIdPrefix={`${testIdPrefix}-date`}
           />
           <TimePicker
@@ -92,6 +95,7 @@ export function EditEntryForm({
               onChange={onEndDateTimeChange}
               disabled={isSaving}
               locale={locale}
+              startOfWeek={startOfWeek}
               testIdPrefix={`${testIdPrefix}-end-date`}
             />
             <TimePicker

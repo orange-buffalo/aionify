@@ -18,6 +18,7 @@ import type { TimeLogEntry } from "./types";
 interface TimeEntryProps {
   entry: TimeLogEntry;
   locale: string;
+  startOfWeek: number;
   isEditing: boolean;
   isSaving: boolean;
   onContinue: (entry: TimeLogEntry) => void;
@@ -30,6 +31,7 @@ interface TimeEntryProps {
 export function TimeEntry({
   entry,
   locale,
+  startOfWeek,
   isEditing,
   isSaving,
   onContinue,
@@ -84,6 +86,7 @@ export function TimeEntry({
           startDateTime={editStartDateTime}
           endDateTime={editEndDateTime}
           locale={locale}
+          startOfWeek={startOfWeek}
           isSaving={isSaving}
           tags={editTags}
           onTitleChange={setEditTitle}

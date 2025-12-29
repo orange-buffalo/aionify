@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
-import { getWeekStart, formatISODate, calculateDuration } from "@/lib/time-utils";
+import { getWeekStart, formatISODate, calculateDuration, weekDayToNumber } from "@/lib/time-utils";
 import { formatDate } from "@/lib/date-format";
 import { useDocumentTitle } from "./useDocumentTitle";
 import type { TimeEntry, TimeLogEntry, DayGroup } from "../components/time-logs/types";
@@ -26,6 +26,7 @@ export function useTimeLogs() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [userLocale, setUserLocale] = useState<string | null>(null);
+  const [startOfWeek, setStartOfWeek] = useState<number>(1); // Default to Monday
   const [editingEntryId, setEditingEntryId] = useState<number | null>(null);
   const [isEditingActive, setIsEditingActive] = useState(false);
   const [weeklyTotal, setWeeklyTotal] = useState<number>(0);
@@ -352,30 +353,30 @@ export function useTimeLogs() {
     loadActiveEntry();
   }, [weekStart]);
 
-  // Load user's locale preference on mount
+  // Load user's locale and settings on mount
   useEffect(() => {
-    async function loadUserLocale() {
-      try {
-        const profile = await apiGet<{ locale: string }>("/api/users/profile");
-        setUserLocale(profile.locale);
-      } catch (err) {
-        console.error("Failed to load user locale:", err);
-      }
+    async function loadUserProfile() {
+      const profile = await apiGet<{ locale: string; startOfWeek: string }>("/api/users/profile");
+      setUserLocale(profile.locale);
+      const startOfWeekNum = weekDayToNumber(profile.startOfWeek);
+      setStartOfWeek(startOfWeekNum);
+      // Update week start with the user's preference
+      setWeekStart(getWeekStart(new Date(), startOfWeekNum));
     }
-    loadUserLocale();
+    loadUserProfile();
   }, []);
 
   // Check for date changes periodically (every minute) to auto-update week
   useEffect(() => {
     const interval = setInterval(() => {
-      const currentWeekStart = getWeekStart(new Date());
+      const currentWeekStart = getWeekStart(new Date(), startOfWeek);
       if (currentWeekStart.getTime() !== weekStart.getTime()) {
         setWeekStart(currentWeekStart);
       }
     }, 60000);
 
     return () => clearInterval(interval);
-  }, [weekStart]);
+  }, [weekStart, startOfWeek]);
 
   // Auto-refresh active entry timer every second
   useEffect(() => {
@@ -436,6 +437,7 @@ export function useTimeLogs() {
     isDeleting,
     isSaving,
     userLocale,
+    startOfWeek,
     editingEntryId,
     isEditingActive,
     handleStart,

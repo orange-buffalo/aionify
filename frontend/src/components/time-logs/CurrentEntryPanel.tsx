@@ -14,6 +14,7 @@ interface CurrentEntryPanelProps {
   activeEntry: TimeEntry | null;
   activeDuration: number;
   locale: string;
+  startOfWeek: number;
   isStarting: boolean;
   isStopping: boolean;
   isSaving: boolean;
@@ -28,6 +29,7 @@ export function CurrentEntryPanel({
   activeEntry,
   activeDuration,
   locale,
+  startOfWeek,
   isStarting,
   isStopping,
   isSaving,
@@ -95,6 +97,7 @@ export function CurrentEntryPanel({
               title={editTitle}
               startDateTime={editDateTime}
               locale={locale}
+              startOfWeek={startOfWeek}
               isSaving={isSaving}
               tags={editTags}
               onTitleChange={setEditTitle}
