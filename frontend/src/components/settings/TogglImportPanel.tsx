@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -20,10 +20,10 @@ export function TogglImportPanel() {
   const [userTimezone, setUserTimezone] = useState<string>("");
 
   // Get user's timezone on mount
-  useState(() => {
+  useEffect(() => {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     setUserTimezone(tz);
-  });
+  }, []);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null;
@@ -44,16 +44,13 @@ export function TogglImportPanel() {
     try {
       const fileContent = await selectedFile.text();
 
-      // Get user's timezone
-      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
       // Use fetch directly to avoid apiRequest's default Content-Type handling
       const token = localStorage.getItem("aionify_token");
       const response = await fetch("/api/import/toggl", {
         method: "POST",
         headers: {
           "Content-Type": "text/plain",
-          "X-Timezone": timezone,
+          "X-Timezone": userTimezone || "UTC",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: fileContent,
