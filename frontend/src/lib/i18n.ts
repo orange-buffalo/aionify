@@ -126,7 +126,8 @@ const resources = {
           selectFile: "Select CSV File",
           startImport: "Start Import",
           importing: "Importing...",
-          importSuccess: "Successfully imported {{imported}} record(s). {{duplicates}} duplicate(s) detected and skipped.",
+          importSuccess:
+            "Successfully imported {{imported}} record(s). {{duplicates}} duplicate(s) detected and skipped.",
           invalidFormat:
             "Invalid CSV format. Please check the instructions and ensure the CSV has the correct columns and format.",
         },
@@ -495,7 +496,8 @@ const resources = {
           selectFile: "Виберіть CSV файл",
           startImport: "Почати імпорт",
           importing: "Імпорт...",
-          importSuccess: "Успішно імпортовано {{imported}} запис(ів). {{duplicates}} дублікат(ів) виявлено та пропущено.",
+          importSuccess:
+            "Успішно імпортовано {{imported}} запис(ів). {{duplicates}} дублікат(ів) виявлено та пропущено.",
           invalidFormat:
             "Невірний формат CSV. Будь ласка, перевірте інструкції та переконайтеся, що CSV має правильні колонки та формат.",
         },

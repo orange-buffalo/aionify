@@ -58,12 +58,15 @@ open class ImportResource(
             val entries = parseTogglCsv(csvContent)
 
             // Get user's timezone from locale
-            val userZoneId = ZoneId.of(java.util.Locale.forLanguageTag(user.localeTag).toString().let {
-                // Extract timezone from locale or default to UTC
-                // Since we don't store timezone separately, we'll use UTC for now
-                // as mentioned in the requirements - user should be aware times are in their timezone
-                "UTC"
-            })
+            val userZoneId =
+                ZoneId.of(
+                    java.util.Locale.forLanguageTag(user.localeTag).toString().let {
+                        // Extract timezone from locale or default to UTC
+                        // Since we don't store timezone separately, we'll use UTC for now
+                        // as mentioned in the requirements - user should be aware times are in their timezone
+                        "UTC"
+                    },
+                )
 
             var importedCount = 0
             var duplicateCount = 0
@@ -75,11 +78,12 @@ open class ImportResource(
                 val endInstant = togglEntry.endDateTime.atZone(userZoneId).toInstant()
 
                 // Check for duplicates by description and start time (epoch millis comparison)
-                val existing = timeLogEntryRepository.findByOwnerIdAndTitleAndStartTime(
-                    userId,
-                    togglEntry.description,
-                    startInstant,
-                )
+                val existing =
+                    timeLogEntryRepository.findByOwnerIdAndTitleAndStartTime(
+                        userId,
+                        togglEntry.description,
+                        startInstant,
+                    )
 
                 if (existing.isEmpty) {
                     // Create new entry
@@ -130,13 +134,14 @@ open class ImportResource(
 
         // Parse header
         val header = parseCsvLine(lines[0])
-        if (header.size != 6 || 
-            header[0] != "Description" || 
-            header[1] != "Tags" || 
-            header[2] != "Start date" || 
-            header[3] != "Start time" || 
-            header[4] != "Stop date" || 
-            header[5] != "Stop time") {
+        if (header.size != 6 ||
+            header[0] != "Description" ||
+            header[1] != "Tags" ||
+            header[2] != "Start date" ||
+            header[3] != "Start time" ||
+            header[4] != "Stop date" ||
+            header[5] != "Stop time"
+        ) {
             throw InvalidCsvFormatException("Invalid CSV header. Expected: Description,Tags,Start date,Start time,Stop date,Stop time")
         }
 
@@ -157,11 +162,12 @@ open class ImportResource(
                 }
 
                 val description = columns[0]
-                val tags = if (columns[1].isBlank()) {
-                    emptyList()
-                } else {
-                    columns[1].split(",").map { it.trim() }
-                }
+                val tags =
+                    if (columns[1].isBlank()) {
+                        emptyList()
+                    } else {
+                        columns[1].split(",").map { it.trim() }
+                    }
                 val startDate = LocalDate.parse(columns[2], dateFormatter)
                 val startTime = LocalTime.parse(columns[3], timeFormatter)
                 val endDate = LocalDate.parse(columns[4], dateFormatter)
@@ -200,11 +206,13 @@ open class ImportResource(
                     // Toggle quote state
                     inQuotes = !inQuotes
                 }
+
                 char == ',' && !inQuotes -> {
                     // End of column
                     columns.add(currentColumn.toString())
                     currentColumn = StringBuilder()
                 }
+
                 else -> {
                     currentColumn.append(char)
                 }
@@ -225,7 +233,10 @@ data class TogglEntry(
     val endDateTime: java.time.LocalDateTime,
 )
 
-class InvalidCsvFormatException(message: String, cause: Throwable? = null) : Exception(message, cause)
+class InvalidCsvFormatException(
+    message: String,
+    cause: Throwable? = null,
+) : Exception(message, cause)
 
 @Serdeable
 @Introspected

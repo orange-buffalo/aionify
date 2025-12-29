@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
-import { apiRequest } from "@/lib/api";
 import { Upload } from "lucide-react";
 
 type ImportSource = "aionify" | "toggl" | "";
@@ -42,10 +41,13 @@ export function ImportDataPanel() {
     try {
       const fileContent = await selectedFile.text();
 
-      const response = await apiRequest("/api/import/toggl", {
+      // Use fetch directly to avoid apiRequest's default Content-Type handling
+      const token = localStorage.getItem("aionify_token");
+      const response = await fetch("/api/import/toggl", {
         method: "POST",
         headers: {
           "Content-Type": "text/plain",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: fileContent,
       });
@@ -117,9 +119,7 @@ export function ImportDataPanel() {
                 data-testid="file-input-label"
               >
                 <Upload className="h-4 w-4" />
-                <span className="text-sm truncate">
-                  {selectedFile ? selectedFile.name : "Choose a CSV file..."}
-                </span>
+                <span className="text-sm truncate">{selectedFile ? selectedFile.name : "Choose a CSV file..."}</span>
               </label>
               <input
                 id="import-file-input"
