@@ -252,14 +252,6 @@ open class TimeLogEntryResource(
                 .body(TimeLogEntryErrorResponse("Time log entry not found", "ENTRY_NOT_FOUND"))
         }
 
-        // Validate that start time is not in the future
-        if (request.startTime.isAfter(timeService.now())) {
-            log.debug("Update entry failed: start time in future for entry: {}", id)
-            return HttpResponse.badRequest(
-                TimeLogEntryErrorResponse("Start time cannot be in the future", "START_TIME_IN_FUTURE"),
-            )
-        }
-
         // For stopped entries, validate end time if provided
         val endTime =
             if (entry.endTime != null) {
@@ -269,14 +261,6 @@ open class TimeLogEntryResource(
                     log.debug("Update entry failed: end time required for stopped entry: {}", id)
                     return HttpResponse.badRequest(
                         TimeLogEntryErrorResponse("End time is required for stopped entries", "END_TIME_REQUIRED"),
-                    )
-                }
-
-                // Validate end time is not in the future
-                if (newEndTime.isAfter(timeService.now())) {
-                    log.debug("Update entry failed: end time in future for entry: {}", id)
-                    return HttpResponse.badRequest(
-                        TimeLogEntryErrorResponse("End time cannot be in the future", "END_TIME_IN_FUTURE"),
                     )
                 }
 
