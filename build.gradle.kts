@@ -179,12 +179,53 @@ tasks.named("check") {
 tasks.register<Exec>("bunInstall") {
     workingDir = file("frontend")
     commandLine("bun", "install")
+
+    // Define inputs and outputs for incremental build support
+    inputs
+        .files("frontend/package.json", "frontend/bun.lock")
+        .withPropertyName("packageFiles")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+
+    outputs
+        .dir("frontend/node_modules")
+        .withPropertyName("nodeModules")
 }
 
 tasks.register<Exec>("bunBuild") {
     workingDir = file("frontend")
     commandLine("bun", "run", "build")
     dependsOn("bunInstall")
+
+    // Define inputs and outputs for incremental build support
+    inputs
+        .files("frontend/package.json", "frontend/bun.lock")
+        .withPropertyName("packageFiles")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+
+    inputs
+        .file("frontend/build.ts")
+        .withPropertyName("buildScript")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+
+    inputs
+        .file("frontend/tsconfig.json")
+        .withPropertyName("tsconfig")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+
+    inputs
+        .dir("frontend/src")
+        .withPropertyName("sourceFiles")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+
+    inputs
+        .dir("frontend/public")
+        .withPropertyName("publicFiles")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+        .optional()
+
+    outputs
+        .dir("frontend/dist")
+        .withPropertyName("distDirectory")
 }
 
 // Prettier tasks for frontend code formatting
