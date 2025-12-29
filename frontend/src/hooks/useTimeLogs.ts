@@ -28,6 +28,7 @@ export function useTimeLogs() {
   const [userLocale, setUserLocale] = useState<string | null>(null);
   const [editingEntryId, setEditingEntryId] = useState<number | null>(null);
   const [isEditingActive, setIsEditingActive] = useState(false);
+  const [weeklyTotal, setWeeklyTotal] = useState<number>(0);
 
   // Update browser tab title based on active entry
   useDocumentTitle(activeEntry?.title || null);
@@ -391,17 +392,28 @@ export function useTimeLogs() {
     return () => clearInterval(interval);
   }, [activeEntry?.id, activeEntry?.startTime]);
 
+  // Calculate weekly total from entries
+  function calculateWeeklyTotal(entries: TimeLogEntry[]): number {
+    return entries.reduce((sum, entry) => sum + calculateDuration(entry.startTime, entry.endTime), 0);
+  }
+
   // Recalculate day groups when entries change or when there's an active entry
   useEffect(() => {
     const locale = userLocale || i18n.language || "en";
     const groups = groupEntriesByDay(entries, locale);
     setDayGroups(groups);
 
+    // Calculate weekly total from all entries
+    setWeeklyTotal(calculateWeeklyTotal(entries));
+
     if (!activeEntry) return;
 
     const interval = setInterval(() => {
       const updatedGroups = groupEntriesByDay(entries, locale);
       setDayGroups(updatedGroups);
+
+      // Recalculate weekly total with active entry duration
+      setWeeklyTotal(calculateWeeklyTotal(entries));
     }, 1000);
 
     return () => clearInterval(interval);
@@ -412,6 +424,7 @@ export function useTimeLogs() {
     activeDuration,
     weekStart,
     dayGroups,
+    weeklyTotal,
     loading,
     isStarting,
     isStopping,

@@ -32,7 +32,7 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
                         duration = "00:30:00",
                         startedAt = "16 Mar, 03:00",
                     ),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:30:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
@@ -135,6 +135,7 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
                         duration = "00:30:00",
                         startedAt = "16 Mar, 03:00",
                     ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:30:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
@@ -173,6 +174,7 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
                         duration = "01:00:00",
                         startedAt = "16 Mar, 02:30",
                     ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "01:00:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
@@ -224,6 +226,7 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
                         duration = "00:30:00",
                         startedAt = "16 Mar, 03:00",
                     ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:30:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
@@ -263,6 +266,7 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
                         duration = "02:30:00",
                         startedAt = "16 Mar, 01:00",
                     ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "02:30:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
@@ -313,6 +317,7 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
                         duration = "00:30:00",
                         startedAt = "16 Mar, 03:00",
                     ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:30:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
@@ -368,6 +373,7 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
                         duration = "00:30:00",
                         startedAt = "16 Mar, 03:00",
                     ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:30:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
@@ -407,7 +413,7 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
                         duration = "22:30:00", // Total duration from Friday 05:00 to Saturday 03:30
                         startedAt = "15 Mar, 05:00", // Start time from yesterday
                     ),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "22:30:00"),
                 dayGroups =
                     listOf(
                         // Entry shown only on start day (Yesterday) with full duration
@@ -451,6 +457,7 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
                         duration = "00:30:00",
                         startedAt = "16 Mar, 03:00",
                     ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:30:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
