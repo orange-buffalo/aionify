@@ -49,7 +49,7 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
         val expectedState =
             TimeLogsPageState(
                 currentEntry = CurrentEntryState.NoActiveEntry(),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "01:30:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(

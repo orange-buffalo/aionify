@@ -33,7 +33,7 @@ class TimeLogsCrossDayTest : TimeLogsPageTestBase() {
         val expectedState =
             TimeLogsPageState(
                 currentEntry = CurrentEntryState.NoActiveEntry(),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "06:30:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
@@ -77,7 +77,7 @@ class TimeLogsCrossDayTest : TimeLogsPageTestBase() {
         val expectedState =
             TimeLogsPageState(
                 currentEntry = CurrentEntryState.NoActiveEntry(),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "02:00:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
@@ -120,7 +120,7 @@ class TimeLogsCrossDayTest : TimeLogsPageTestBase() {
         val expectedState =
             TimeLogsPageState(
                 currentEntry = CurrentEntryState.NoActiveEntry(),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "02:00:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(

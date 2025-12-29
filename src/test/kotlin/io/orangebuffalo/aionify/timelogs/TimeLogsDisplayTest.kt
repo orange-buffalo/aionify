@@ -28,7 +28,7 @@ class TimeLogsDisplayTest : TimeLogsPageTestBase() {
         val emptyState =
             TimeLogsPageState(
                 currentEntry = CurrentEntryState.NoActiveEntry(),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:00:00"),
                 dayGroups = emptyList(),
             )
         timeLogsPage.assertPageState(emptyState)
@@ -109,10 +109,11 @@ class TimeLogsDisplayTest : TimeLogsPageTestBase() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify all days and entries are displayed correctly
+        // Weekly total: 1:00:00 (Monday) + 0:30:00 (Tuesday) + 1:30:00 (Wednesday) + 0:30:00 (Saturday) = 3:30:00
         val expectedState =
             TimeLogsPageState(
                 currentEntry = CurrentEntryState.NoActiveEntry(),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "03:30:00"),
                 dayGroups =
                     listOf(
                         // Saturday (today) - 1 entry

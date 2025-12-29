@@ -195,17 +195,13 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
             <input
               type="text"
               value={inputValue}
-              onChange={(e) => {
-                e.stopPropagation();
-                handleInputChange(e.target.value);
-              }}
-              onBlur={handleBlur}
+              readOnly
               onClick={(e) => {
                 e.stopPropagation();
                 setIsOpen(true);
               }}
               disabled={disabled}
-              className="w-full bg-transparent border-none outline-none p-0 m-0 text-foreground"
+              className="w-full bg-transparent border-none outline-none p-0 m-0 text-foreground cursor-pointer"
               data-testid={`${testIdPrefix}-input`}
             />
           </button>
