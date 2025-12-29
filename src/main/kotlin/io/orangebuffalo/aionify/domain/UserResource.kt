@@ -110,14 +110,15 @@ open class UserResource(
                 .body(SettingsErrorResponse("User not found", "USER_NOT_FOUND"))
         }
 
-        val weekDay = try {
-            WeekDay.valueOf(request.startOfWeek)
-        } catch (e: IllegalArgumentException) {
-            log.debug("Update settings failed: invalid start of week: {}", request.startOfWeek)
-            return HttpResponse.badRequest(
-                SettingsErrorResponse("Invalid start of week", "INVALID_START_OF_WEEK"),
-            )
-        }
+        val weekDay =
+            try {
+                WeekDay.valueOf(request.startOfWeek)
+            } catch (e: IllegalArgumentException) {
+                log.debug("Update settings failed: invalid start of week: {}", request.startOfWeek)
+                return HttpResponse.badRequest(
+                    SettingsErrorResponse("Invalid start of week", "INVALID_START_OF_WEEK"),
+                )
+            }
 
         val settings = userSettingsRepository.findByUserId(requireNotNull(user.id)).orElse(null)
         if (settings == null) {

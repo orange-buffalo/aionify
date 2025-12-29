@@ -364,7 +364,8 @@ export function useTimeLogs() {
         // Update week start with the user's preference
         setWeekStart(getWeekStart(new Date(), startOfWeekNum));
       } catch (err) {
-        console.error("Failed to load user profile:", err);
+        // Silently ignore errors loading profile (e.g., session expired)
+        // The user will be redirected to login by the API error handler
       }
     }
     loadUserProfile();
