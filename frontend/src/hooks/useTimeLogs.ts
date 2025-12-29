@@ -184,6 +184,7 @@ export function useTimeLogs() {
 
       const newEntry = await apiPost<TimeEntry>("/api/time-log-entries", {
         title: entry.title,
+        tags: entry.tags,
         stopActiveEntry: true,
       });
 
