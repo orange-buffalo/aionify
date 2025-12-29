@@ -610,8 +610,34 @@ class TimeLogsPageObject(
 
     fun fillStoppedEntryEditStartDate(date: String) {
         // Format: YYYY-MM-DD
-        val input = page.locator("[data-testid='stopped-entry-edit-date-input']")
-        input.fill(date)
+        // Click the date trigger button to open the date picker popover
+        val dateTrigger = page.locator("[data-testid='stopped-entry-edit-date-trigger']")
+        dateTrigger.click()
+
+        // Wait for popover to appear
+        page.locator("[role='dialog']").waitFor()
+
+        // Parse the date to get the day we need to click
+        val dateParts = date.split("-")
+        val targetDay = dateParts[2].toInt()
+
+        // Click on the day button in the calendar grid
+        val popover = page.locator("[role='dialog']")
+        popover
+            .locator("button")
+            .locator("text=$targetDay")
+            .first()
+            .click()
+
+        // Wait for popover to close
+        page
+            .locator(
+                "[role='dialog']",
+            ).waitFor(
+                com.microsoft.playwright.Locator
+                    .WaitForOptions()
+                    .setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN),
+            )
     }
 
     fun fillStoppedEntryEditStartTime(time: String) {
@@ -622,8 +648,34 @@ class TimeLogsPageObject(
 
     fun fillStoppedEntryEditEndDate(date: String) {
         // Format: YYYY-MM-DD
-        val input = page.locator("[data-testid='stopped-entry-edit-end-date-input']")
-        input.fill(date)
+        // Click the date trigger button to open the date picker popover
+        val dateTrigger = page.locator("[data-testid='stopped-entry-edit-end-date-trigger']")
+        dateTrigger.click()
+
+        // Wait for popover to appear
+        page.locator("[role='dialog']").waitFor()
+
+        // Parse the date to get the day we need to click
+        val dateParts = date.split("-")
+        val targetDay = dateParts[2].toInt()
+
+        // Click on the day button in the calendar grid
+        val popover = page.locator("[role='dialog']")
+        popover
+            .locator("button")
+            .locator("text=$targetDay")
+            .first()
+            .click()
+
+        // Wait for popover to close
+        page
+            .locator(
+                "[role='dialog']",
+            ).waitFor(
+                com.microsoft.playwright.Locator
+                    .WaitForOptions()
+                    .setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN),
+            )
     }
 
     fun fillStoppedEntryEditEndTime(time: String) {
