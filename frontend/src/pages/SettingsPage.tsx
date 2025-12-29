@@ -95,8 +95,8 @@ export function SettingsPage() {
       const profile = await apiGet<{ startOfWeek: string }>("/api/users/profile");
       setStartOfWeek(profile.startOfWeek);
     } catch (err) {
-      console.error("Failed to load preferences:", err);
-      // API error handler will redirect to login if session expired
+      // Don't log error - API handler will redirect to login if session expired
+      // Logging would create false error messages in browser console for expected conditions
     }
   };
 
