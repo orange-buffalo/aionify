@@ -95,8 +95,8 @@ export function SettingsPage() {
       const profile = await apiGet<{ startOfWeek: string }>("/api/users/profile");
       setStartOfWeek(profile.startOfWeek);
     } catch (err) {
-      // Silently ignore errors loading preferences (e.g., session expired)
-      // The user will be redirected to login by the API error handler
+      console.error("Failed to load preferences:", err);
+      // API error handler will redirect to login if session expired
     }
   };
 
@@ -108,10 +108,6 @@ export function SettingsPage() {
     try {
       await apiPut("/api/users/settings", { startOfWeek });
       setPreferencesSuccess(t("settings.preferences.updateSuccess"));
-      // Reload the page to apply the new start of week setting to the calendar
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
     } catch (err: any) {
       const errorCode = err.errorCode;
       if (errorCode) {

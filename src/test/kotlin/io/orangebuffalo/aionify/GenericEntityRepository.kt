@@ -7,6 +7,7 @@ import io.orangebuffalo.aionify.domain.ActivationToken
 import io.orangebuffalo.aionify.domain.LegacyTag
 import io.orangebuffalo.aionify.domain.TimeLogEntry
 import io.orangebuffalo.aionify.domain.User
+import io.orangebuffalo.aionify.domain.UserSettings
 
 /**
  * Generic repository for test purposes that can insert/update any entity.
@@ -39,6 +40,11 @@ interface GenericEntityRepository {
     fun save(entity: LegacyTag): LegacyTag
 
     /**
+     * Inserts/updates a UserSettings entity.
+     */
+    fun save(entity: UserSettings): UserSettings
+
+    /**
      * Updates a User entity.
      */
     fun update(entity: User): User
@@ -57,4 +63,9 @@ interface GenericEntityRepository {
      * Updates a LegacyTag entity.
      */
     fun update(entity: LegacyTag): LegacyTag
+
+    /**
+     * Updates a UserSettings entity.
+     */
+    fun update(entity: UserSettings): UserSettings
 }
