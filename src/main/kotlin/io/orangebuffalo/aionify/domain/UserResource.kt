@@ -46,7 +46,8 @@ open class UserResource(
 
         log.trace("Returning profile for user: {}", userName)
 
-        val settings = userSettingsRepository.findByUserId(requireNotNull(user.id)).orElse(null)
+        val userId = requireNotNull(user.id)
+        val settings = userSettingsRepository.findByUserId(userId).orElse(null)
         val startOfWeek = settings?.startOfWeek?.name ?: "MONDAY"
 
         return HttpResponse.ok(
@@ -120,10 +121,11 @@ open class UserResource(
                 )
             }
 
-        val settings = userSettingsRepository.findByUserId(requireNotNull(user.id)).orElse(null)
+        val userId = requireNotNull(user.id)
+        val settings = userSettingsRepository.findByUserId(userId).orElse(null)
         if (settings == null) {
             // Create new settings if they don't exist
-            userSettingsRepository.save(UserSettings.create(userId = requireNotNull(user.id), startOfWeek = weekDay))
+            userSettingsRepository.save(UserSettings.create(userId = userId, startOfWeek = weekDay))
         } else {
             // Update existing settings
             userSettingsRepository.update(settings.copy(startOfWeek = weekDay))
