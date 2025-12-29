@@ -211,7 +211,7 @@ export function DatePicker({ value, onChange, disabled, locale, startOfWeek, tes
           </button>
         </PopoverTrigger>
       </div>
-      <PopoverContent className="w-auto p-0 dark" align="start">
+      <PopoverContent className="w-auto p-0 dark" align="start" data-testid="calendar">
         <div className="p-4 space-y-4">
           {/* Month/Year Header */}
           <div className="flex items-center justify-between">
@@ -227,35 +227,46 @@ export function DatePicker({ value, onChange, disabled, locale, startOfWeek, tes
           </div>
 
           {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-1">
-            {dayNames.map((day, idx) => (
-              <div key={idx} className="text-center text-xs text-muted-foreground p-2">
-                {day}
-              </div>
-            ))}
-            {days.map((day, idx) => {
-              const isCurrentMonth = day.getMonth() === month;
-              const todayDate = isToday(day);
-              const selected = isSelected(day);
+          <table data-testid="calendar-grid">
+            <thead>
+              <tr>
+                {dayNames.map((day, idx) => (
+                  <th key={idx} className="text-center text-xs text-muted-foreground p-2">
+                    {day}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: 6 }, (_, weekIdx) => (
+                <tr key={weekIdx}>
+                  {days.slice(weekIdx * 7, weekIdx * 7 + 7).map((day, dayIdx) => {
+                    const isCurrentMonth = day.getMonth() === month;
+                    const todayDate = isToday(day);
+                    const selected = isSelected(day);
 
-              return (
-                <Button
-                  key={idx}
-                  variant="ghost"
-                  size="sm"
-                  className={`
-                    h-9 w-9 p-0 font-normal text-foreground
-                    ${!isCurrentMonth && "text-muted-foreground opacity-50"}
-                    ${selected && "bg-primary text-primary-foreground hover:bg-primary"}
-                    ${todayDate && !selected && "bg-accent"}
-                  `}
-                  onClick={() => handleDateClick(day)}
-                >
-                  {day.getDate()}
-                </Button>
-              );
-            })}
-          </div>
+                    return (
+                      <td key={weekIdx * 7 + dayIdx}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={`
+                            h-9 w-9 p-0 font-normal text-foreground
+                            ${!isCurrentMonth && "text-muted-foreground opacity-50"}
+                            ${selected && "bg-primary text-primary-foreground hover:bg-primary"}
+                            ${todayDate && !selected && "bg-accent"}
+                          `}
+                          onClick={() => handleDateClick(day)}
+                        >
+                          {day.getDate()}
+                        </Button>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </PopoverContent>
     </Popover>
