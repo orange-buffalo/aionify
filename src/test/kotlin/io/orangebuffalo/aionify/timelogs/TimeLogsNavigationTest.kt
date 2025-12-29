@@ -39,7 +39,7 @@ class TimeLogsNavigationTest : TimeLogsPageTestBase() {
         val currentWeekState =
             TimeLogsPageState(
                 currentEntry = CurrentEntryState.NoActiveEntry(),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:30:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
@@ -65,7 +65,7 @@ class TimeLogsNavigationTest : TimeLogsPageTestBase() {
         val lastWeekState =
             TimeLogsPageState(
                 currentEntry = CurrentEntryState.NoActiveEntry(),
-                weekNavigation = WeekNavigationState(weekRange = "4 Mar - 10 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "4 Mar - 10 Mar", weeklyTotal = "00:30:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(

@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
  */
 data class TimeLogsPageState(
     val currentEntry: CurrentEntryState = CurrentEntryState.NoActiveEntry(),
-    val weekNavigation: WeekNavigationState = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+    val weekNavigation: WeekNavigationState = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:00:00"),
     val dayGroups: List<DayGroupState> = emptyList(),
     val errorMessageVisible: Boolean = false,
     val errorMessage: String? = null,
@@ -122,6 +122,7 @@ sealed class EditModeState {
  */
 data class WeekNavigationState(
     val weekRange: String,
+    val weeklyTotal: String,
 )
 
 /**
@@ -170,7 +171,7 @@ class TimeLogsPageObject(
         assertCurrentEntryState(expectedState.currentEntry)
 
         // Assert week navigation state (always present)
-        assertWeekNavigationState(expectedState.weekNavigation)
+        assertWeekNavigationState(expectedState.weekNavigation, expectedState.dayGroups, expectedState.currentEntry)
 
         // Assert error message visibility
         if (expectedState.errorMessageVisible) {
@@ -306,12 +307,20 @@ class TimeLogsPageObject(
         }
     }
 
-    private fun assertWeekNavigationState(weekNav: WeekNavigationState) {
+    private fun assertWeekNavigationState(
+        weekNav: WeekNavigationState,
+        dayGroups: List<DayGroupState>,
+        currentEntry: CurrentEntryState,
+    ) {
         // Business invariant: Week navigation is always visible
         assertThat(page.locator("[data-testid='previous-week-button']")).isVisible()
         assertThat(page.locator("[data-testid='next-week-button']")).isVisible()
         assertThat(page.locator("[data-testid='week-range']")).isVisible()
         assertThat(page.locator("[data-testid='week-range']")).hasText(weekNav.weekRange)
+
+        // Assert weekly total
+        assertThat(page.locator("[data-testid='weekly-total']")).isVisible()
+        assertThat(page.locator("[data-testid='weekly-total']")).containsText(weekNav.weeklyTotal)
     }
 
     private fun assertDayGroups(expectedDayGroups: List<DayGroupState>) {

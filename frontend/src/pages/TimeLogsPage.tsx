@@ -13,6 +13,7 @@ export function TimeLogsPage() {
     activeEntry,
     activeDuration,
     dayGroups,
+    weeklyTotal,
     loading,
     isStarting,
     isStopping,
@@ -89,6 +90,8 @@ export function TimeLogsPage() {
           {/* Week Navigation */}
           <WeekNavigation
             weekRange={getWeekRangeDisplay()}
+            weeklyTotal={weeklyTotal}
+            locale={locale}
             onPreviousWeek={handlePreviousWeek}
             onNextWeek={handleNextWeek}
           />
