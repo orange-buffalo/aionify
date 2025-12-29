@@ -213,6 +213,11 @@ tasks.register<Exec>("bunBuild") {
         .withPathSensitivity(PathSensitivity.RELATIVE)
 
     inputs
+        .file("frontend/components.json")
+        .withPropertyName("componentsConfig")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+
+    inputs
         .dir("frontend/src")
         .withPropertyName("sourceFiles")
         .withPathSensitivity(PathSensitivity.RELATIVE)
