@@ -550,7 +550,7 @@ class TogglImportValidationPlaywrightTest : PlaywrightTestBase() {
             assertEquals(expectedStart, entry.startTime)
             assertEquals(expectedEnd, entry.endTime)
             // Verify end time is after start time
-            assert(requireNotNull(entry.endTime).isAfter(entry.startTime))
+            assert(requireNotNull(entry.endTime).isAfter(requireNotNull(entry.startTime)))
         }
     }
 
@@ -614,12 +614,13 @@ class TogglImportValidationPlaywrightTest : PlaywrightTestBase() {
             assertEquals(expectedStart, entry.startTime)
             assertEquals(expectedEnd, entry.endTime)
 
-            // Verify duration calculation
+            // Verify duration calculation: 2 hours (7200s) + 14 minutes (840s) + 36 seconds = 8076s
             val durationSeconds =
                 java.time.Duration
                     .between(entry.startTime, entry.endTime)
                     .seconds
-            assertEquals(8076L, durationSeconds) // 2 hours 14 minutes 36 seconds
+            val expectedDuration = (2 * 3600) + (14 * 60) + 36 // 2h 14m 36s
+            assertEquals(expectedDuration.toLong(), durationSeconds)
         }
     }
 }
