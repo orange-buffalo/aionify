@@ -26,7 +26,7 @@ class TimeLogsDeletionTest : TimeLogsPageTestBase() {
         val initialState =
             TimeLogsPageState(
                 currentEntry = CurrentEntryState.NoActiveEntry(),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:30:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
@@ -57,7 +57,7 @@ class TimeLogsDeletionTest : TimeLogsPageTestBase() {
         val deletedState =
             TimeLogsPageState(
                 currentEntry = CurrentEntryState.NoActiveEntry(),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:00:00"),
                 dayGroups = emptyList(),
                 errorMessageVisible = false,
             )
@@ -86,7 +86,7 @@ class TimeLogsDeletionTest : TimeLogsPageTestBase() {
         val initialState =
             TimeLogsPageState(
                 currentEntry = CurrentEntryState.NoActiveEntry(),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "04:00:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
@@ -118,7 +118,7 @@ class TimeLogsDeletionTest : TimeLogsPageTestBase() {
         val deletedState =
             TimeLogsPageState(
                 currentEntry = CurrentEntryState.NoActiveEntry(),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:00:00"),
                 dayGroups = emptyList(),
                 errorMessageVisible = false,
             )

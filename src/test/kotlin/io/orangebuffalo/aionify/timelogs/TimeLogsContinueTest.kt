@@ -27,7 +27,7 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
         val initialState =
             TimeLogsPageState(
                 currentEntry = CurrentEntryState.NoActiveEntry(),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:30:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
@@ -59,7 +59,7 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
                         duration = "00:00:00",
                         startedAt = "16 Mar, 03:30", // Started at FIXED_TEST_TIME (backend time)
                     ),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:30:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
@@ -128,7 +128,7 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
                         duration = "00:30:00",
                         startedAt = "16 Mar, 03:00",
                     ),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "01:00:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
@@ -169,7 +169,7 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
                         duration = "00:00:00",
                         startedAt = "16 Mar, 03:30", // Started at FIXED_TEST_TIME (backend time)
                     ),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "01:00:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(

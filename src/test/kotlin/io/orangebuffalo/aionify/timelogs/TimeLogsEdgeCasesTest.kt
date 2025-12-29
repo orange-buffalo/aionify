@@ -35,7 +35,7 @@ class TimeLogsEdgeCasesTest : TimeLogsPageTestBase() {
         val expectedState =
             TimeLogsPageState(
                 currentEntry = CurrentEntryState.NoActiveEntry(),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:15:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(

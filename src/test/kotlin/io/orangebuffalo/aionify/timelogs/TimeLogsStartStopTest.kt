@@ -119,7 +119,7 @@ class TimeLogsStartStopTest : TimeLogsPageTestBase() {
                         duration = "00:30:00",
                         startedAt = "16 Mar, 03:00",
                     ),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:30:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
@@ -152,7 +152,7 @@ class TimeLogsStartStopTest : TimeLogsPageTestBase() {
                         startButtonVisible = true,
                         startButtonEnabled = false,
                     ),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:00:00"),
                 dayGroups = emptyList(),
             )
         timeLogsPage.assertPageState(initialState)
@@ -176,7 +176,7 @@ class TimeLogsStartStopTest : TimeLogsPageTestBase() {
                         duration = "00:00:00",
                         startedAt = "16 Mar, 03:30", // Started at FIXED_TEST_TIME (backend time)
                     ),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:00:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(
@@ -228,7 +228,7 @@ class TimeLogsStartStopTest : TimeLogsPageTestBase() {
                         duration = "00:30:00",
                         startedAt = "16 Mar, 03:00",
                     ),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:30:00"),
                 dayGroups =
                     listOf(
                         DayGroupState(

@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
  */
 data class TimeLogsPageState(
     val currentEntry: CurrentEntryState = CurrentEntryState.NoActiveEntry(),
-    val weekNavigation: WeekNavigationState = WeekNavigationState(weekRange = "11 Mar - 17 Mar"),
+    val weekNavigation: WeekNavigationState = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:00:00"),
     val dayGroups: List<DayGroupState> = emptyList(),
     val errorMessageVisible: Boolean = false,
     val errorMessage: String? = null,
@@ -119,11 +119,10 @@ sealed class EditModeState {
 /**
  * State of the week navigation section.
  * Business invariant: weekRange is always present and navigation buttons are always visible.
- * If weeklyTotal is null, it will be calculated from dayGroups during assertion.
  */
 data class WeekNavigationState(
     val weekRange: String,
-    val weeklyTotal: String? = null,
+    val weeklyTotal: String,
 )
 
 /**
@@ -321,48 +320,7 @@ class TimeLogsPageObject(
 
         // Assert weekly total
         assertThat(page.locator("[data-testid='weekly-total']")).isVisible()
-
-        // Calculate expected weekly total if not provided
-        val expectedWeeklyTotal = weekNav.weeklyTotal ?: calculateWeeklyTotal(dayGroups, currentEntry)
-        assertThat(page.locator("[data-testid='weekly-total']")).containsText(expectedWeeklyTotal)
-    }
-
-    /**
-     * Calculates the expected weekly total from day groups and current entry.
-     * This is used when weeklyTotal is not explicitly provided in the test state.
-     */
-    private fun calculateWeeklyTotal(
-        dayGroups: List<DayGroupState>,
-        currentEntry: CurrentEntryState,
-    ): String {
-        // Sum up all day totals
-        val totalMillis =
-            dayGroups.sumOf { dayGroup ->
-                parseDuration(dayGroup.totalDuration)
-            }
-        return formatMillisAsDuration(totalMillis)
-    }
-
-    /**
-     * Parses a duration string (HH:MM:SS) into milliseconds.
-     */
-    private fun parseDuration(duration: String): Long {
-        val parts = duration.split(":")
-        val hours = parts[0].toLong()
-        val minutes = parts[1].toLong()
-        val seconds = parts[2].toLong()
-        return (hours * 3600 + minutes * 60 + seconds) * 1000
-    }
-
-    /**
-     * Formats milliseconds as a duration string (HH:MM:SS).
-     */
-    private fun formatMillisAsDuration(millis: Long): String {
-        val seconds = millis / 1000
-        val hours = seconds / 3600
-        val minutes = (seconds % 3600) / 60
-        val secs = seconds % 60
-        return String.format("%02d:%02d:%02d", hours, minutes, secs)
+        assertThat(page.locator("[data-testid='weekly-total']")).containsText(weekNav.weeklyTotal)
     }
 
     private fun assertDayGroups(expectedDayGroups: List<DayGroupState>) {
