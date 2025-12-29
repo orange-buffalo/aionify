@@ -356,17 +356,12 @@ export function useTimeLogs() {
   // Load user's locale and settings on mount
   useEffect(() => {
     async function loadUserProfile() {
-      try {
-        const profile = await apiGet<{ locale: string; startOfWeek: string }>("/api/users/profile");
-        setUserLocale(profile.locale);
-        const startOfWeekNum = weekDayToNumber(profile.startOfWeek);
-        setStartOfWeek(startOfWeekNum);
-        // Update week start with the user's preference
-        setWeekStart(getWeekStart(new Date(), startOfWeekNum));
-      } catch (err) {
-        // Don't log error - API handler will redirect to login if session expired
-        // Logging would create false error messages in browser console for expected conditions
-      }
+      const profile = await apiGet<{ locale: string; startOfWeek: string }>("/api/users/profile");
+      setUserLocale(profile.locale);
+      const startOfWeekNum = weekDayToNumber(profile.startOfWeek);
+      setStartOfWeek(startOfWeekNum);
+      // Update week start with the user's preference
+      setWeekStart(getWeekStart(new Date(), startOfWeekNum));
     }
     loadUserProfile();
   }, []);

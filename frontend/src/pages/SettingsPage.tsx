@@ -91,13 +91,8 @@ export function SettingsPage() {
   };
 
   const loadPreferences = async () => {
-    try {
-      const profile = await apiGet<{ startOfWeek: string }>("/api/users/profile");
-      setStartOfWeek(profile.startOfWeek);
-    } catch (err) {
-      // Don't log error - API handler will redirect to login if session expired
-      // Logging would create false error messages in browser console for expected conditions
-    }
+    const profile = await apiGet<{ startOfWeek: string }>("/api/users/profile");
+    setStartOfWeek(profile.startOfWeek);
   };
 
   const handleSavePreferences = async () => {
