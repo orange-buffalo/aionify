@@ -198,9 +198,6 @@ export function SettingsPage() {
               </CardContent>
             </Card>
 
-            {/* Import Data Card */}
-            <ImportDataPanel />
-
             {/* Tags Card */}
             <Card className="border-none shadow-md">
               <CardHeader>
@@ -312,6 +309,9 @@ export function SettingsPage() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Import Data Card */}
+            <ImportDataPanel />
           </div>
         </div>
       </div>

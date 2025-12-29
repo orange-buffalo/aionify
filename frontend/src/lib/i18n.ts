@@ -121,11 +121,17 @@ const resources = {
           aionifyExport: "Aionify Export",
           togglTimer: "Toggl Timer",
           notImplemented: "Not yet implemented, will come later",
-          togglInstructions:
-            "Login to your Toggl account, go to Reports / Detailed, select Description, Tags and Time | Date columns, select the timeframe, click export.",
+          togglInstructions: [
+            "Login to your Toggl account",
+            "Go to Reports / Detailed",
+            "Select Description, Tags and Time | Date columns",
+            "Select the timeframe",
+            "Click export",
+          ],
           selectFile: "Select CSV File",
           startImport: "Start Import",
           importing: "Importing...",
+          timezoneNote: "Note: Date and time will be interpreted in your current timezone ({{timezone}}).",
           importSuccess:
             "Successfully imported {{imported}} record(s). {{duplicates}} duplicate(s) detected and skipped.",
           invalidFormat:
@@ -491,11 +497,17 @@ const resources = {
           aionifyExport: "Експорт Aionify",
           togglTimer: "Toggl Timer",
           notImplemented: "Ще не реалізовано, з'явиться пізніше",
-          togglInstructions:
-            "Увійдіть до вашого облікового запису Toggl, перейдіть до Звіти / Детальні, виберіть колонки Опис, Теги та Час | Дата, виберіть часовий діапазон, натисніть експорт.",
+          togglInstructions: [
+            "Увійдіть до вашого облікового запису Toggl",
+            "Перейдіть до Звіти / Детальні",
+            "Виберіть колонки Опис, Теги та Час | Дата",
+            "Виберіть часовий діапазон",
+            "Натисніть експорт",
+          ],
           selectFile: "Виберіть CSV файл",
           startImport: "Почати імпорт",
           importing: "Імпорт...",
+          timezoneNote: "Примітка: Дата та час будуть інтерпретовані у вашому поточному часовому поясі ({{timezone}}).",
           importSuccess:
             "Успішно імпортовано {{imported}} запис(ів). {{duplicates}} дублікат(ів) виявлено та пропущено.",
           invalidFormat:

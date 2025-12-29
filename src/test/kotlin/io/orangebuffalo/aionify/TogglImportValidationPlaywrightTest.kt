@@ -10,13 +10,12 @@ import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 
 @MicronautTest(transactional = false)
-class ImportDataPlaywrightTest : PlaywrightTestBase() {
+class TogglImportValidationPlaywrightTest : PlaywrightTestBase() {
     @Inject
     lateinit var testAuthSupport: TestAuthSupport
 
@@ -43,52 +42,6 @@ class ImportDataPlaywrightTest : PlaywrightTestBase() {
                 """"${entry.description}","$tags","${entry.startDate}","${entry.startTime}","${entry.endDate}","${entry.endTime}""""
             }
         return (listOf(header) + rows).joinToString("\n")
-    }
-
-    @Test
-    fun `should display import data card on settings page`() {
-        navigateToSettingsViaToken()
-
-        // Verify Import Data title is present
-        assertThat(page.locator("[data-testid='import-title']")).isVisible()
-        assertThat(page.locator("[data-testid='import-title']")).containsText("Import Data")
-    }
-
-    @Test
-    fun `should show not implemented message for Aionify Export source`() {
-        navigateToSettingsViaToken()
-
-        // Select Aionify Export source
-        val sourceSelect = page.locator("[data-testid='import-source-select']")
-        sourceSelect.click()
-        page.locator("[data-testid='import-source-aionify']").click()
-
-        // Verify not implemented message is shown
-        assertThat(page.locator("[data-testid='aionify-not-implemented']")).isVisible()
-        assertThat(page.locator("[data-testid='aionify-not-implemented']"))
-            .containsText("Not yet implemented")
-    }
-
-    @Test
-    fun `should show instructions and file input for Toggl Timer source`() {
-        navigateToSettingsViaToken()
-
-        // Select Toggl Timer source
-        val sourceSelect = page.locator("[data-testid='import-source-select']")
-        sourceSelect.click()
-        page.locator("[data-testid='import-source-toggl']").click()
-
-        // Verify instructions are shown
-        assertThat(page.locator("[data-testid='toggl-instructions']")).isVisible()
-        assertThat(page.locator("[data-testid='toggl-instructions']")).containsText("Reports / Detailed")
-
-        // Verify file input is shown
-        assertThat(page.locator("[data-testid='file-input-label']")).isVisible()
-
-        // Verify import button is shown but disabled (no file selected)
-        val importButton = page.locator("[data-testid='start-import-button']")
-        assertThat(importButton).isVisible()
-        assertThat(importButton).isDisabled()
     }
 
     @Test
@@ -165,7 +118,7 @@ class ImportDataPlaywrightTest : PlaywrightTestBase() {
             LocalDate
                 .parse("2025-12-19")
                 .atTime(LocalTime.parse("21:01:03"))
-                .atZone(ZoneId.of("UTC"))
+                .atZone(ZoneId.of("Pacific/Auckland"))
                 .toInstant()
 
         testDatabaseSupport.insert(
@@ -247,7 +200,8 @@ class ImportDataPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='import-source-toggl']").click()
 
         // Create CSV with wrong number of columns
-        val csvContent = """"Description","Tags","Start date"
+        val csvContent =
+            """"Description","Tags","Start date"
 "Test Entry","Tag1","2025-12-19""""
 
         page.locator("[data-testid='import-file-input']").setInputFiles(
@@ -274,7 +228,8 @@ class ImportDataPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='import-source-toggl']").click()
 
         // Create CSV with wrong header
-        val csvContent = """"Title","Labels","Begin date","Begin time","End date","End time"
+        val csvContent =
+            """"Title","Labels","Begin date","Begin time","End date","End time"
 "Test Entry","Tag1","2025-12-19","21:01:03","2025-12-19","22:02:12""""
 
         page.locator("[data-testid='import-file-input']").setInputFiles(

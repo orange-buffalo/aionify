@@ -31,6 +31,7 @@ open class ImportResource(
     @Consumes(MediaType.TEXT_PLAIN)
     open fun importTogglCsv(
         @Body csvContent: String,
+        @io.micronaut.http.annotation.Header("X-Timezone") timezone: String?,
         principal: Principal?,
     ): HttpResponse<*> {
         val userName = principal?.name
@@ -57,9 +58,14 @@ open class ImportResource(
             // Parse CSV and validate format
             val entries = parseTogglCsv(csvContent)
 
-            // Use UTC for timezone as mentioned in requirements - user should be aware times are in their timezone
-            // In the future, we could store user timezone separately and use it here
-            val userZoneId = ZoneId.of("UTC")
+            // Use browser timezone if provided, otherwise fallback to UTC
+            val userZoneId =
+                try {
+                    ZoneId.of(timezone ?: "UTC")
+                } catch (e: Exception) {
+                    log.warn("Invalid timezone provided: {}, using UTC", timezone)
+                    ZoneId.of("UTC")
+                }
 
             var importedCount = 0
             var duplicateCount = 0
