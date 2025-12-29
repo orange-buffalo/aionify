@@ -122,7 +122,7 @@ const resources = {
           togglTimer: "Toggl Timer",
           notImplemented: "Not yet implemented, will come later",
           togglInstructions:
-            "Login to your Toggl account, go to **Reports / Detailed**, select **Description**, **Tags** and **Time | Date** columns, select the timeframe, click export.",
+            "Login to your Toggl account, go to Reports / Detailed, select Description, Tags and Time | Date columns, select the timeframe, click export.",
           selectFile: "Select CSV File",
           startImport: "Start Import",
           importing: "Importing...",
@@ -492,7 +492,7 @@ const resources = {
           togglTimer: "Toggl Timer",
           notImplemented: "Ще не реалізовано, з'явиться пізніше",
           togglInstructions:
-            "Увійдіть до вашого облікового запису Toggl, перейдіть до **Звіти / Детальні**, виберіть колонки **Опис**, **Теги** та **Час | Дата**, виберіть часовий діапазон, натисніть експорт.",
+            "Увійдіть до вашого облікового запису Toggl, перейдіть до Звіти / Детальні, виберіть колонки Опис, Теги та Час | Дата, виберіть часовий діапазон, натисніть експорт.",
           selectFile: "Виберіть CSV файл",
           startImport: "Почати імпорт",
           importing: "Імпорт...",

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,7 @@ export function ImportDataPanel() {
   const [isImporting, setIsImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null;
@@ -66,10 +67,9 @@ export function ImportDataPanel() {
       const data: ImportSuccessResponse = await response.json();
       setSuccess(t("settings.import.importSuccess", { imported: data.imported, duplicates: data.duplicates }));
       setSelectedFile(null);
-      // Reset file input
-      const fileInput = document.getElementById("import-file-input") as HTMLInputElement;
-      if (fileInput) {
-        fileInput.value = "";
+      // Reset file input using ref
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
       }
     } catch (err: any) {
       const errorCode = err.errorCode;
@@ -99,7 +99,8 @@ export function ImportDataPanel() {
           <div className="space-y-2">
             <div className="text-sm text-foreground prose prose-sm dark:prose-invert max-w-none">
               <p className="whitespace-pre-line" data-testid="toggl-instructions">
-                {t("settings.import.togglInstructions").replace(/\*\*/g, "")}
+                Login to your Toggl account, go to Reports / Detailed, select Description, Tags and Time | Date columns,
+                select the timeframe, click export.
               </p>
               <p className="text-muted-foreground text-xs mt-2">
                 Note: Date and time will be interpreted in your current timezone (UTC).
@@ -123,6 +124,7 @@ export function ImportDataPanel() {
               </label>
               <input
                 id="import-file-input"
+                ref={fileInputRef}
                 type="file"
                 accept=".csv,text/csv"
                 onChange={handleFileChange}

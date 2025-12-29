@@ -57,16 +57,9 @@ open class ImportResource(
             // Parse CSV and validate format
             val entries = parseTogglCsv(csvContent)
 
-            // Get user's timezone from locale
-            val userZoneId =
-                ZoneId.of(
-                    java.util.Locale.forLanguageTag(user.localeTag).toString().let {
-                        // Extract timezone from locale or default to UTC
-                        // Since we don't store timezone separately, we'll use UTC for now
-                        // as mentioned in the requirements - user should be aware times are in their timezone
-                        "UTC"
-                    },
-                )
+            // Use UTC for timezone as mentioned in requirements - user should be aware times are in their timezone
+            // In the future, we could store user timezone separately and use it here
+            val userZoneId = ZoneId.of("UTC")
 
             var importedCount = 0
             var duplicateCount = 0
