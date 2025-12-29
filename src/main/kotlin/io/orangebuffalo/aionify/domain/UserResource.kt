@@ -22,6 +22,7 @@ import java.util.Locale
 open class UserResource(
     private val userRepository: UserRepository,
     private val userService: UserService,
+    private val userSettingsRepository: UserSettingsRepository,
 ) {
     private val log = org.slf4j.LoggerFactory.getLogger(UserResource::class.java)
 
@@ -45,11 +46,15 @@ open class UserResource(
 
         log.trace("Returning profile for user: {}", userName)
 
+        val settings = userSettingsRepository.findByUserId(requireNotNull(user.id)).orElse(null)
+        val startOfWeek = settings?.startOfWeek?.name ?: "MONDAY"
+
         return HttpResponse.ok(
             ProfileResponse(
                 userName = user.userName,
                 greeting = user.greeting,
                 locale = user.localeTag,
+                startOfWeek = startOfWeek,
             ),
         )
     }
@@ -84,6 +89,48 @@ open class UserResource(
         return HttpResponse.ok(ProfileSuccessResponse("Profile updated successfully"))
     }
 
+    @Put("/settings")
+    open fun updateSettings(
+        @Valid @Body request: UpdateSettingsRequest,
+        principal: Principal?,
+    ): HttpResponse<*> {
+        val userName = principal?.name
+        if (userName == null) {
+            log.debug("Update settings failed: user not authenticated")
+            return HttpResponse
+                .unauthorized<SettingsErrorResponse>()
+                .body(SettingsErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
+        }
+
+        val user = userRepository.findByUserName(userName).orElse(null)
+        if (user == null) {
+            log.debug("Update settings failed: user not found: {}", userName)
+            return HttpResponse
+                .notFound<SettingsErrorResponse>()
+                .body(SettingsErrorResponse("User not found", "USER_NOT_FOUND"))
+        }
+
+        val weekDay = try {
+            WeekDay.valueOf(request.startOfWeek)
+        } catch (e: IllegalArgumentException) {
+            log.debug("Update settings failed: invalid start of week: {}", request.startOfWeek)
+            return HttpResponse.badRequest(
+                SettingsErrorResponse("Invalid start of week", "INVALID_START_OF_WEEK"),
+            )
+        }
+
+        val settings = userSettingsRepository.findByUserId(requireNotNull(user.id)).orElse(null)
+        if (settings == null) {
+            // Create new settings if they don't exist
+            userSettingsRepository.save(UserSettings.create(userId = requireNotNull(user.id), startOfWeek = weekDay))
+        } else {
+            // Update existing settings
+            userSettingsRepository.update(settings.copy(startOfWeek = weekDay))
+        }
+
+        return HttpResponse.ok(SettingsSuccessResponse("Settings updated successfully"))
+    }
+
     private fun parseLocale(localeTag: String): Locale? {
         if (localeTag.isBlank()) return null
         val locale = Locale.forLanguageTag(localeTag)
@@ -98,6 +145,7 @@ data class ProfileResponse(
     val userName: String,
     val greeting: String,
     val locale: String,
+    val startOfWeek: String,
 )
 
 @Serdeable
@@ -119,6 +167,26 @@ data class ProfileSuccessResponse(
 @Serdeable
 @Introspected
 data class ProfileErrorResponse(
+    val error: String,
+    val errorCode: String,
+)
+
+@Serdeable
+@Introspected
+data class UpdateSettingsRequest(
+    @field:NotBlank(message = "Start of week is required")
+    val startOfWeek: String,
+)
+
+@Serdeable
+@Introspected
+data class SettingsSuccessResponse(
+    val message: String,
+)
+
+@Serdeable
+@Introspected
+data class SettingsErrorResponse(
     val error: String,
     val errorCode: String,
 )

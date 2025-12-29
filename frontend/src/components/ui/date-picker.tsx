@@ -10,10 +10,11 @@ interface DatePickerProps {
   onChange: (date: Date) => void;
   disabled?: boolean;
   locale: string;
+  startOfWeek: number;
   testIdPrefix: string;
 }
 
-export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: DatePickerProps) {
+export function DatePicker({ value, onChange, disabled, locale, startOfWeek, testIdPrefix }: DatePickerProps) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(value);
@@ -112,7 +113,10 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const startDate = new Date(firstDay);
-    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    // Adjust to start from the configured start of week
+    const dayOfWeek = firstDay.getDay();
+    const diff = (dayOfWeek - startOfWeek + 7) % 7;
+    startDate.setDate(startDate.getDate() - diff);
 
     const days: Date[] = [];
     const current = new Date(startDate);
@@ -132,13 +136,13 @@ export function DatePicker({ value, onChange, disabled, locale, testIdPrefix }: 
     return new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(year, monthIndex, 1));
   };
 
-  // Get localized day names using Intl API
+  // Get localized day names using Intl API starting from the configured start of week
   const getDayNames = () => {
-    // Use Sunday, Jan 2, 2000 as base date (arbitrary past date, day of week is what matters)
-    const baseDate = new Date(2000, 0, 2);
+    // Use a known date and offset by startOfWeek
+    const baseDate = new Date(2000, 0, 2); // Jan 2, 2000 is a Sunday (day 0)
     return Array.from({ length: 7 }, (_, i) => {
       const date = new Date(baseDate);
-      date.setDate(baseDate.getDate() + i);
+      date.setDate(baseDate.getDate() + ((startOfWeek + i) % 7));
       return new Intl.DateTimeFormat(locale, { weekday: "short" }).format(date).toUpperCase();
     });
   };

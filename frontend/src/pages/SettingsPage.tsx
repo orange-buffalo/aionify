@@ -5,6 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FormMessage } from "@/components/ui/form-message";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   DropdownMenu,
@@ -12,7 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { apiGet, apiPost, apiRequest } from "@/lib/api";
+import { apiGet, apiPost, apiRequest, apiPut } from "@/lib/api";
 import { MoreVertical, Archive, ArchiveRestore } from "lucide-react";
 
 interface TagStat {
@@ -31,6 +39,10 @@ export function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
+  const [startOfWeek, setStartOfWeek] = useState<string>("MONDAY");
+  const [isSavingPreferences, setIsSavingPreferences] = useState(false);
+  const [preferencesSuccess, setPreferencesSuccess] = useState<string | null>(null);
+  const [preferencesError, setPreferencesError] = useState<string | null>(null);
 
   const loadTags = async () => {
     setLoading(true);
@@ -84,8 +96,42 @@ export function SettingsPage() {
     }
   };
 
+  const loadPreferences = async () => {
+    try {
+      const profile = await apiGet<{ startOfWeek: string }>("/api/users/profile");
+      setStartOfWeek(profile.startOfWeek);
+    } catch (err) {
+      console.error("Failed to load preferences:", err);
+    }
+  };
+
+  const handleSavePreferences = async () => {
+    setIsSavingPreferences(true);
+    setPreferencesError(null);
+    setPreferencesSuccess(null);
+
+    try {
+      await apiPut("/api/users/settings", { startOfWeek });
+      setPreferencesSuccess(t("settings.preferences.updateSuccess"));
+      // Reload the page to apply the new start of week setting to the calendar
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (err: any) {
+      const errorCode = err.errorCode;
+      if (errorCode) {
+        setPreferencesError(t(`errorCodes.${errorCode}`));
+      } else {
+        setPreferencesError(err.message || "An error occurred");
+      }
+    } finally {
+      setIsSavingPreferences(false);
+    }
+  };
+
   useEffect(() => {
     loadTags();
+    loadPreferences();
   }, []);
 
   return (
@@ -99,7 +145,86 @@ export function SettingsPage() {
             <p className="text-muted-foreground">{t("settings.subtitle")}</p>
           </div>
 
-          <Card className="border-none shadow-md">
+          <div className="space-y-6">
+            {/* Preferences Card */}
+            <Card className="border-none shadow-md">
+              <CardHeader>
+                <CardTitle data-testid="preferences-title">{t("settings.preferences.title")}</CardTitle>
+                <CardDescription>{t("settings.preferences.subtitle")}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {preferencesError && (
+                  <div className="mb-4">
+                    <FormMessage type="error" message={preferencesError} testId="preferences-error" />
+                  </div>
+                )}
+                {preferencesSuccess && (
+                  <div className="mb-4">
+                    <FormMessage type="success" message={preferencesSuccess} testId="preferences-success" />
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="start-of-week" className="text-foreground">
+                      {t("settings.preferences.startOfWeek")}
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      {t("settings.preferences.startOfWeekDescription")}
+                    </p>
+                    <Select
+                      value={startOfWeek}
+                      onValueChange={setStartOfWeek}
+                      disabled={isSavingPreferences}
+                    >
+                      <SelectTrigger
+                        id="start-of-week"
+                        data-testid="start-of-week-select"
+                        className="text-foreground"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="dark">
+                        <SelectItem value="MONDAY" data-testid="start-of-week-option-monday">
+                          {t("settings.preferences.weekDays.MONDAY")}
+                        </SelectItem>
+                        <SelectItem value="TUESDAY" data-testid="start-of-week-option-tuesday">
+                          {t("settings.preferences.weekDays.TUESDAY")}
+                        </SelectItem>
+                        <SelectItem value="WEDNESDAY" data-testid="start-of-week-option-wednesday">
+                          {t("settings.preferences.weekDays.WEDNESDAY")}
+                        </SelectItem>
+                        <SelectItem value="THURSDAY" data-testid="start-of-week-option-thursday">
+                          {t("settings.preferences.weekDays.THURSDAY")}
+                        </SelectItem>
+                        <SelectItem value="FRIDAY" data-testid="start-of-week-option-friday">
+                          {t("settings.preferences.weekDays.FRIDAY")}
+                        </SelectItem>
+                        <SelectItem value="SATURDAY" data-testid="start-of-week-option-saturday">
+                          {t("settings.preferences.weekDays.SATURDAY")}
+                        </SelectItem>
+                        <SelectItem value="SUNDAY" data-testid="start-of-week-option-sunday">
+                          {t("settings.preferences.weekDays.SUNDAY")}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    onClick={handleSavePreferences}
+                    disabled={isSavingPreferences}
+                    data-testid="save-preferences-button"
+                    className="bg-teal-600 hover:bg-teal-700"
+                  >
+                    {isSavingPreferences
+                      ? t("settings.preferences.saving")
+                      : t("settings.preferences.save")}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Tags Card */}
+            <Card className="border-none shadow-md">
             <CardHeader>
               <CardTitle data-testid="tags-title">{t("settings.tags.title")}</CardTitle>
               <CardDescription>{t("settings.tags.subtitle")}</CardDescription>
@@ -209,6 +334,7 @@ export function SettingsPage() {
               )}
             </CardContent>
           </Card>
+          </div>
         </div>
       </div>
     </PortalLayout>

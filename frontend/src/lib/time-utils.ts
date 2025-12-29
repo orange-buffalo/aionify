@@ -3,15 +3,33 @@
  */
 
 /**
- * Get the start of the week (Monday) for a given date.
+ * Get the start of the week for a given date.
+ * @param date The date to get the week start for
+ * @param startOfWeek The day of the week that should be considered the first day (0 = Sunday, 1 = Monday, etc.)
  */
-export function getWeekStart(date: Date): Date {
+export function getWeekStart(date: Date, startOfWeek: number = 1): Date {
   const d = new Date(date);
   const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-  d.setDate(diff);
+  const diff = (day - startOfWeek + 7) % 7;
+  d.setDate(d.getDate() - diff);
   d.setHours(0, 0, 0, 0);
   return d;
+}
+
+/**
+ * Convert WeekDay string from API to JavaScript day number (0 = Sunday, 1 = Monday, etc.)
+ */
+export function weekDayToNumber(weekDay: string): number {
+  const mapping: { [key: string]: number } = {
+    SUNDAY: 0,
+    MONDAY: 1,
+    TUESDAY: 2,
+    WEDNESDAY: 3,
+    THURSDAY: 4,
+    FRIDAY: 5,
+    SATURDAY: 6,
+  };
+  return mapping[weekDay] ?? 1; // Default to Monday if invalid
 }
 
 /**
