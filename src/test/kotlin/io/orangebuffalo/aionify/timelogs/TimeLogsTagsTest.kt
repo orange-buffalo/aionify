@@ -289,4 +289,76 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
         assertThat(page.locator("[data-testid='stopped-entry-edit-tags-checkbox-planning']")).isVisible()
         assertThat(page.locator("[data-testid='stopped-entry-edit-tags-checkbox-planning']")).not().isChecked()
     }
+
+    @Test
+    fun `should copy tags when starting from existing entry`() {
+        // Create a stopped entry with tags
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(3600), // 1 hour ago
+                endTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago
+                title = "Task with Tags",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("backend", "urgent", "database"),
+            ),
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Verify the stopped entry is displayed with tags
+        val stoppedEntryState =
+            TimeLogsPageState(
+                currentEntry = CurrentEntryState.NoActiveEntry(),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:30:00"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Task with Tags",
+                                        timeRange = "02:30 - 03:00",
+                                        duration = "00:30:00",
+                                        tags = listOf("backend", "database", "urgent"),
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
+        timeLogsPage.assertPageState(stoppedEntryState)
+
+        // Click continue button to start a new entry from this one
+        timeLogsPage.clickContinueForEntry("Task with Tags")
+
+        // Wait for the new entry to be created
+        page.waitForSelector("[data-testid='active-timer']")
+
+        // Verify the new active entry was created with the same title and tags
+        // The active entry should not display tags directly in view mode, but we can verify
+        // them by checking the database or by editing the entry
+
+        // Get the active entry from the database
+        val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
+        assertNotNull(activeEntry)
+        assertEquals("Task with Tags", activeEntry!!.title)
+        // Verify tags were copied
+        assertEquals(setOf("backend", "urgent", "database"), activeEntry.tags.toSet())
+
+        // Additionally verify in the UI by editing the entry
+        timeLogsPage.clickEditEntry()
+
+        // Wait for edit mode
+        page.waitForSelector("[data-testid='edit-title-input']")
+
+        // Open tag selector
+        timeLogsPage.clickEditTagsButton()
+
+        // Wait for popover
+        page.waitForSelector("[data-testid='edit-tags-popover']")
+
+        // Verify all tags from the original entry are pre-selected
+        timeLogsPage.assertTagsSelected(listOf("backend", "urgent", "database"), testIdPrefix = "edit-tags")
+    }
 }
