@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { apiGet, apiPost, apiRequest, apiPut } from "@/lib/api";
 import { MoreVertical, Archive, ArchiveRestore } from "lucide-react";
+import { ImportDataPanel } from "@/components/settings/ImportDataPanel";
 
 interface TagStat {
   tag: string;
@@ -196,6 +197,9 @@ export function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Import Data Card */}
+            <ImportDataPanel />
 
             {/* Tags Card */}
             <Card className="border-none shadow-md">

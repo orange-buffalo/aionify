@@ -113,6 +113,23 @@ const resources = {
             SUNDAY: "Sunday",
           },
         },
+        import: {
+          title: "Import Data",
+          subtitle: "Import data from other applications or previous export",
+          source: "Source",
+          sourcePlaceholder: "Select import source",
+          aionifyExport: "Aionify Export",
+          togglTimer: "Toggl Timer",
+          notImplemented: "Not yet implemented, will come later",
+          togglInstructions:
+            "Login to your Toggl account, go to **Reports / Detailed**, select **Description**, **Tags** and **Time | Date** columns, select the timeframe, click export.",
+          selectFile: "Select CSV File",
+          startImport: "Start Import",
+          importing: "Importing...",
+          importSuccess: "Successfully imported {{imported}} record(s). {{duplicates}} duplicate(s) detected and skipped.",
+          invalidFormat:
+            "Invalid CSV format. Please check the instructions and ensure the CSV has the correct columns and format.",
+        },
       },
       // Time Logs Page
       timeLogs: {
@@ -350,6 +367,8 @@ const resources = {
         END_TIME_BEFORE_START_TIME: "End time must be after start time",
         INVALID_TIMESTAMP_FORMAT: "Invalid timestamp format",
         INVALID_START_OF_WEEK: "Invalid start of week",
+        INVALID_CSV_FORMAT: "Invalid CSV format. Please check the instructions.",
+        IMPORT_FAILED: "Import failed. Please try again.",
       },
     },
   },
@@ -462,6 +481,23 @@ const resources = {
             SATURDAY: "Субота",
             SUNDAY: "Неділя",
           },
+        },
+        import: {
+          title: "Імпорт даних",
+          subtitle: "Імпорт даних з інших додатків або попереднього експорту",
+          source: "Джерело",
+          sourcePlaceholder: "Оберіть джерело імпорту",
+          aionifyExport: "Експорт Aionify",
+          togglTimer: "Toggl Timer",
+          notImplemented: "Ще не реалізовано, з'явиться пізніше",
+          togglInstructions:
+            "Увійдіть до вашого облікового запису Toggl, перейдіть до **Звіти / Детальні**, виберіть колонки **Опис**, **Теги** та **Час | Дата**, виберіть часовий діапазон, натисніть експорт.",
+          selectFile: "Виберіть CSV файл",
+          startImport: "Почати імпорт",
+          importing: "Імпорт...",
+          importSuccess: "Успішно імпортовано {{imported}} запис(ів). {{duplicates}} дублікат(ів) виявлено та пропущено.",
+          invalidFormat:
+            "Невірний формат CSV. Будь ласка, перевірте інструкції та переконайтеся, що CSV має правильні колонки та формат.",
         },
       },
       // Time Logs Page
@@ -700,6 +736,8 @@ const resources = {
         END_TIME_BEFORE_START_TIME: "Час закінчення має бути після часу початку",
         INVALID_TIMESTAMP_FORMAT: "Невірний формат часової мітки",
         INVALID_START_OF_WEEK: "Невірний початок тижня",
+        INVALID_CSV_FORMAT: "Невірний формат CSV. Будь ласка, перевірте інструкції.",
+        IMPORT_FAILED: "Імпорт не вдався. Будь ласка, спробуйте ще раз.",
       },
     },
   },
