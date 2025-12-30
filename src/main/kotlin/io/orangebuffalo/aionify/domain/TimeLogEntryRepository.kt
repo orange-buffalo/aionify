@@ -31,4 +31,13 @@ interface TimeLogEntryRepository : CrudRepository<TimeLogEntry, Long> {
         id: Long,
         ownerId: Long,
     ): Optional<TimeLogEntry>
+
+    /**
+     * Find log entry by owner, title, and start time for duplicate detection.
+     */
+    fun findByOwnerIdAndTitleAndStartTime(
+        ownerId: Long,
+        title: String,
+        startTime: Instant,
+    ): Optional<TimeLogEntry>
 }
