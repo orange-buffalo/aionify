@@ -179,11 +179,23 @@ export function DatePicker({ value, onChange, disabled, locale, startOfWeek, tes
   };
 
   const prevMonth = () => {
-    setViewingDate(new Date(viewingDate.getFullYear(), viewingDate.getMonth() - 1, viewingDate.getDate()));
+    const targetMonth = viewingDate.getMonth() - 1;
+    const targetYear = viewingDate.getFullYear();
+    // Get the last day of the target month
+    const lastDayOfTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+    // Use the smaller of current day or last day of target month
+    const day = Math.min(viewingDate.getDate(), lastDayOfTargetMonth);
+    setViewingDate(new Date(targetYear, targetMonth, day));
   };
 
   const nextMonth = () => {
-    setViewingDate(new Date(viewingDate.getFullYear(), viewingDate.getMonth() + 1, viewingDate.getDate()));
+    const targetMonth = viewingDate.getMonth() + 1;
+    const targetYear = viewingDate.getFullYear();
+    // Get the last day of the target month
+    const lastDayOfTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+    // Use the smaller of current day or last day of target month
+    const day = Math.min(viewingDate.getDate(), lastDayOfTargetMonth);
+    setViewingDate(new Date(targetYear, targetMonth, day));
   };
 
   const handleOpenChange = (open: boolean) => {
