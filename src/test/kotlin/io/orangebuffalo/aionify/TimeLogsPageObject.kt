@@ -530,10 +530,16 @@ class TimeLogsPageObject(
             val durationLocators = expandedEntryLocators.locator("[data-testid='entry-duration']")
             assertThat(durationLocators).containsText(expectedDurations.toTypedArray())
 
-            // For each expanded entry, verify title and tags are NOT visible
+            // For each expanded entry, verify title IS visible but tags are NOT
             for (i in expandedEntries.indices) {
+                val entry = expandedEntries[i]
                 val entryElement = expandedEntryLocators.nth(i)
-                assertThat(entryElement.locator("[data-testid='entry-title']")).not().isVisible()
+
+                // Title SHOULD be visible
+                assertThat(entryElement.locator("[data-testid='entry-title']")).isVisible()
+                assertThat(entryElement.locator("[data-testid='entry-title']")).containsText(entry.title)
+
+                // Tags should NOT be visible
                 assertThat(entryElement.locator("[data-testid='entry-tags']")).not().isVisible()
 
                 // Continue button should NOT be visible

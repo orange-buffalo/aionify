@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Play } from "lucide-react";
 import { formatTime } from "@/lib/date-format";
-import { formatDuration } from "@/lib/time-utils";
+import { calculateDuration, formatDuration } from "@/lib/time-utils";
 import type { GroupedTimeLogEntry, TimeLogEntry } from "@/components/time-logs/types";
 import { TimeEntry } from "./TimeEntry";
 
@@ -35,11 +35,34 @@ export function GroupedTimeEntry({
 }: GroupedTimeEntryProps) {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [, forceUpdate] = useState(0);
 
   const endTimeDisplay = groupedEntry.endTime ? formatTime(groupedEntry.endTime, locale) : t("timeLogs.inProgress");
 
   // Use the first entry for the continue action
   const firstEntry = groupedEntry.entries[0];
+
+  // Check if group contains an active entry
+  const hasActiveEntry = groupedEntry.entries.some((e) => e.endTime == null);
+
+  // Update current time every second if there's an active entry
+  useEffect(() => {
+    if (!hasActiveEntry) return;
+
+    const interval = setInterval(() => {
+      forceUpdate((n) => n + 1); // Force re-render
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [hasActiveEntry]);
+
+  // Calculate total duration dynamically for groups with active entries
+  const totalDuration = hasActiveEntry
+    ? groupedEntry.entries.reduce((sum, entry) => {
+        const duration = calculateDuration(entry.startTime, entry.endTime);
+        return sum + duration;
+      }, 0)
+    : groupedEntry.totalDuration;
 
   return (
     <div data-testid="grouped-time-entry">
@@ -92,7 +115,7 @@ export function GroupedTimeEntry({
             </span>
           </div>
           <div className="font-mono font-semibold text-foreground min-w-[70px] text-right" data-testid="entry-duration">
-            {formatDuration(groupedEntry.totalDuration)}
+            {formatDuration(totalDuration)}
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -125,7 +148,7 @@ export function GroupedTimeEntry({
               onEdit={onEdit}
               onSaveEdit={onSaveEdit}
               onCancelEdit={onCancelEdit}
-              hideTitle={true}
+              hideTitle={false}
               hideTags={true}
               hideContinue={true}
             />

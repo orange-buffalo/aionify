@@ -55,39 +55,63 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
-        // Verify that the page shows a grouped entry for the three matching entries
-        // and a separate entry for the one with different tags
-        val groupedEntry = page.locator("[data-testid='grouped-time-entry']")
-        assertThat(groupedEntry).hasCount(1)
-
-        // Verify the count badge shows 3 entries
-        val countBadge = groupedEntry.locator("[data-testid='entry-count-badge']")
-        assertThat(countBadge).containsText("3")
-
-        // Verify title and tags on the grouped entry
-        assertThat(groupedEntry.locator("[data-testid='entry-title']")).containsText("Development Task")
-
-        // Tags should be displayed and sorted
-        val tags = groupedEntry.locator("[data-testid^='entry-tag-']")
-        assertThat(tags).containsText(arrayOf("backend", "urgent"))
-
-        // Verify time range shows earliest start (12:30) to latest end (15:00)
-        assertThat(groupedEntry.locator("[data-testid='entry-time-range']")).containsText("00:30 - 03:00")
-
-        // Verify total duration is sum of all three entries (1:30:00)
-        assertThat(groupedEntry.locator("[data-testid='entry-duration']")).containsText("01:30:00")
-
-        // Verify continue button is visible on grouped entry
-        assertThat(groupedEntry.locator("[data-testid='continue-button']")).isVisible()
-
-        // Verify burger menu is NOT visible on grouped entry
-        assertThat(groupedEntry.locator("[data-testid='entry-menu-button']")).not().isVisible()
-
-        // Verify the ungrouped entry is displayed separately
-        val regularEntry = page.locator("[data-testid='time-entry']")
-        assertThat(regularEntry).hasCount(1)
-        assertThat(regularEntry.locator("[data-testid='entry-title']")).containsText("Development Task")
-        assertThat(regularEntry.locator("[data-testid^='entry-tag-']")).containsText(arrayOf("frontend"))
+        // Verify the page state with grouped and ungrouped entries
+        val expectedState =
+            TimeLogsPageState(
+                currentEntry = CurrentEntryState.NoActiveEntry(),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "01:40:00"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "01:40:00",
+                            entries =
+                                listOf(
+                                    // Ungrouped entry with different tags (most recent)
+                                    EntryState(
+                                        title = "Development Task",
+                                        timeRange = "03:15 - 03:25",
+                                        duration = "00:10:00",
+                                        tags = listOf("frontend"),
+                                    ),
+                                    // Grouped entries with backend+urgent tags
+                                    EntryState(
+                                        title = "Development Task",
+                                        timeRange = "00:30 - 03:00",
+                                        duration = "01:30:00",
+                                        tags = listOf("backend", "urgent"),
+                                        isGrouped = true,
+                                        groupCount = 3,
+                                        groupedEntries =
+                                            listOf(
+                                                // Entry 3 (most recent): 14:30-15:00
+                                                EntryState(
+                                                    title = "Development Task",
+                                                    timeRange = "02:30 - 03:00",
+                                                    duration = "00:30:00",
+                                                    tags = listOf("backend", "urgent"),
+                                                ),
+                                                // Entry 2: 13:30-14:00
+                                                EntryState(
+                                                    title = "Development Task",
+                                                    timeRange = "01:30 - 02:00",
+                                                    duration = "00:30:00",
+                                                    tags = listOf("backend", "urgent"),
+                                                ),
+                                                // Entry 1 (earliest): 12:30-13:00
+                                                EntryState(
+                                                    title = "Development Task",
+                                                    timeRange = "00:30 - 01:00",
+                                                    duration = "00:30:00",
+                                                    tags = listOf("backend", "urgent"),
+                                                ),
+                                            ),
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
+        timeLogsPage.assertPageState(expectedState)
     }
 
     @Test
@@ -141,8 +165,11 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         val durations = expandedEntries.locator("[data-testid='entry-duration']")
         assertThat(durations).containsText(arrayOf("00:30:00", "00:30:00"))
 
-        // Verify title and tags are NOT shown for detailed entries
-        assertThat(expandedEntries.first().locator("[data-testid='entry-title']")).not().isVisible()
+        // Verify title IS shown for detailed entries (changed from hideTitle=true to false)
+        assertThat(expandedEntries.first().locator("[data-testid='entry-title']")).isVisible()
+        assertThat(expandedEntries.first().locator("[data-testid='entry-title']")).containsText("Code Review")
+        
+        // Verify tags are NOT shown for detailed entries
         assertThat(expandedEntries.first().locator("[data-testid='entry-tags']")).not().isVisible()
 
         // Verify continue button is NOT visible on detailed entries
@@ -198,9 +225,10 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         // Verify time range shows earliest start to "in progress"
         assertThat(groupedEntry.locator("[data-testid='entry-time-range']")).containsText("01:30 - in progress")
 
-        // Verify total duration only includes the completed entry (30 minutes)
-        // Active entry duration is not included in the total
-        assertThat(groupedEntry.locator("[data-testid='entry-duration']")).containsText("00:30:00")
+        // Verify total duration includes both completed and active entry
+        // The duration should be 30:00 (completed) + 30:00 (active) = 01:00:00
+        // Note: This updates continuously as the active entry duration increases
+        assertThat(groupedEntry.locator("[data-testid='entry-duration']")).containsText("01:00:00")
 
         // Expand to verify both entries are shown
         groupedEntry.locator("[data-testid='entry-count-badge']").click()
