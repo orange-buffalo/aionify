@@ -17,6 +17,7 @@ import {
 import { apiGet, apiPost, apiRequest, apiPut } from "@/lib/api";
 import { MoreVertical, Archive, ArchiveRestore } from "lucide-react";
 import { ImportDataPanel } from "@/components/settings/ImportDataPanel";
+import { ApiAccessTokenPanel } from "@/components/settings/ApiAccessTokenPanel";
 
 interface TagStat {
   tag: string;
@@ -312,6 +313,9 @@ export function SettingsPage() {
 
             {/* Import Data Card */}
             <ImportDataPanel />
+
+            {/* API Access Token Card */}
+            <ApiAccessTokenPanel />
           </div>
         </div>
       </div>

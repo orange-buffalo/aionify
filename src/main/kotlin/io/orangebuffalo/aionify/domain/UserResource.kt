@@ -5,6 +5,7 @@ import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
+import io.micronaut.http.annotation.Post
 import io.micronaut.http.annotation.Put
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule
@@ -23,6 +24,7 @@ open class UserResource(
     private val userRepository: UserRepository,
     private val userService: UserService,
     private val userSettingsRepository: UserSettingsRepository,
+    private val userApiAccessTokenRepository: UserApiAccessTokenRepository,
 ) {
     private val log = org.slf4j.LoggerFactory.getLogger(UserResource::class.java)
 
@@ -134,6 +136,135 @@ open class UserResource(
         return HttpResponse.ok(SettingsSuccessResponse("Settings updated successfully"))
     }
 
+    @Get("/api-token/status")
+    open fun getApiTokenStatus(principal: Principal?): HttpResponse<*> {
+        val userName = principal?.name
+        if (userName == null) {
+            log.debug("Get API token status failed: user not authenticated")
+            return HttpResponse
+                .unauthorized<ApiTokenErrorResponse>()
+                .body(ApiTokenErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
+        }
+
+        val user = userRepository.findByUserName(userName).orElse(null)
+        if (user == null) {
+            log.debug("Get API token status failed: user not found: {}", userName)
+            return HttpResponse
+                .notFound<ApiTokenErrorResponse>()
+                .body(ApiTokenErrorResponse("User not found", "USER_NOT_FOUND"))
+        }
+
+        val userId = requireNotNull(user.id)
+        val token = userApiAccessTokenRepository.findByUserId(userId).orElse(null)
+
+        return HttpResponse.ok(ApiTokenStatusResponse(exists = token != null))
+    }
+
+    @Get("/api-token")
+    open fun getApiToken(principal: Principal?): HttpResponse<*> {
+        val userName = principal?.name
+        if (userName == null) {
+            log.debug("Get API token failed: user not authenticated")
+            return HttpResponse
+                .unauthorized<ApiTokenErrorResponse>()
+                .body(ApiTokenErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
+        }
+
+        val user = userRepository.findByUserName(userName).orElse(null)
+        if (user == null) {
+            log.debug("Get API token failed: user not found: {}", userName)
+            return HttpResponse
+                .notFound<ApiTokenErrorResponse>()
+                .body(ApiTokenErrorResponse("User not found", "USER_NOT_FOUND"))
+        }
+
+        val userId = requireNotNull(user.id)
+        val token = userApiAccessTokenRepository.findByUserId(userId).orElse(null)
+        if (token == null) {
+            log.debug("Get API token failed: token not found for user: {}", userName)
+            return HttpResponse
+                .notFound<ApiTokenErrorResponse>()
+                .body(ApiTokenErrorResponse("API token not found", "API_TOKEN_NOT_FOUND"))
+        }
+
+        return HttpResponse.ok(ApiTokenResponse(token = token.token))
+    }
+
+    @Post("/api-token")
+    open fun generateApiToken(principal: Principal?): HttpResponse<*> {
+        val userName = principal?.name
+        if (userName == null) {
+            log.debug("Generate API token failed: user not authenticated")
+            return HttpResponse
+                .unauthorized<ApiTokenErrorResponse>()
+                .body(ApiTokenErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
+        }
+
+        val user = userRepository.findByUserName(userName).orElse(null)
+        if (user == null) {
+            log.debug("Generate API token failed: user not found: {}", userName)
+            return HttpResponse
+                .notFound<ApiTokenErrorResponse>()
+                .body(ApiTokenErrorResponse("User not found", "USER_NOT_FOUND"))
+        }
+
+        val userId = requireNotNull(user.id)
+        val existingToken = userApiAccessTokenRepository.findByUserId(userId).orElse(null)
+        if (existingToken != null) {
+            log.debug("Generate API token failed: token already exists for user: {}", userName)
+            return HttpResponse.badRequest(
+                ApiTokenErrorResponse("API token already exists", "API_TOKEN_ALREADY_EXISTS"),
+            )
+        }
+
+        val newToken = generateRandomToken()
+        userApiAccessTokenRepository.save(UserApiAccessToken(userId = userId, token = newToken))
+        log.info("API token generated for user: {}", userName)
+
+        return HttpResponse.ok(ApiTokenSuccessResponse("API token generated successfully"))
+    }
+
+    @Put("/api-token")
+    open fun regenerateApiToken(principal: Principal?): HttpResponse<*> {
+        val userName = principal?.name
+        if (userName == null) {
+            log.debug("Regenerate API token failed: user not authenticated")
+            return HttpResponse
+                .unauthorized<ApiTokenErrorResponse>()
+                .body(ApiTokenErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
+        }
+
+        val user = userRepository.findByUserName(userName).orElse(null)
+        if (user == null) {
+            log.debug("Regenerate API token failed: user not found: {}", userName)
+            return HttpResponse
+                .notFound<ApiTokenErrorResponse>()
+                .body(ApiTokenErrorResponse("User not found", "USER_NOT_FOUND"))
+        }
+
+        val userId = requireNotNull(user.id)
+        val existingToken = userApiAccessTokenRepository.findByUserId(userId).orElse(null)
+        if (existingToken == null) {
+            log.debug("Regenerate API token failed: token not found for user: {}", userName)
+            return HttpResponse
+                .notFound<ApiTokenErrorResponse>()
+                .body(ApiTokenErrorResponse("API token not found", "API_TOKEN_NOT_FOUND"))
+        }
+
+        val newToken = generateRandomToken()
+        userApiAccessTokenRepository.update(existingToken.copy(token = newToken))
+        log.info("API token regenerated for user: {}", userName)
+
+        return HttpResponse.ok(ApiTokenSuccessResponse("API token regenerated successfully"))
+    }
+
+    private fun generateRandomToken(): String {
+        val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+        return (1..50)
+            .map { chars.random() }
+            .joinToString("")
+    }
+
     private fun parseLocale(localeTag: String): Locale? {
         if (localeTag.isBlank()) return null
         val locale = Locale.forLanguageTag(localeTag)
@@ -190,6 +321,31 @@ data class SettingsSuccessResponse(
 @Serdeable
 @Introspected
 data class SettingsErrorResponse(
+    val error: String,
+    val errorCode: String,
+)
+
+@Serdeable
+@Introspected
+data class ApiTokenStatusResponse(
+    val exists: Boolean,
+)
+
+@Serdeable
+@Introspected
+data class ApiTokenResponse(
+    val token: String,
+)
+
+@Serdeable
+@Introspected
+data class ApiTokenSuccessResponse(
+    val message: String,
+)
+
+@Serdeable
+@Introspected
+data class ApiTokenErrorResponse(
     val error: String,
     val errorCode: String,
 )
