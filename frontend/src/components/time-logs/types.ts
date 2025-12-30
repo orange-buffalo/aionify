@@ -36,6 +36,6 @@ export interface GroupedTimeLogEntry {
   startTime: string;
   /** Latest end time among all entries (null if any entry is active) */
   endTime: string | null;
-  /** Sum of durations of all entries in seconds */
+  /** Sum of durations of all entries in milliseconds */
   totalDuration: number;
 }

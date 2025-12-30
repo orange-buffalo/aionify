@@ -1,0 +1,410 @@
+package io.orangebuffalo.aionify.timelogs
+
+import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
+import io.orangebuffalo.aionify.*
+import io.orangebuffalo.aionify.domain.TimeLogEntry
+import org.junit.jupiter.api.Test
+
+/**
+ * Tests for grouping time log entries by title and tags within a day.
+ */
+class TimeLogsGroupingTest : TimeLogsPageTestBase() {
+    @Test
+    fun `should group completed entries with same title and tags`() {
+        // Create three entries with the same title and tags
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(10800), // 3 hours ago (12:30)
+                endTime = FIXED_TEST_TIME.minusSeconds(9000), // 2.5 hours ago (13:00)
+                title = "Development Task",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("backend", "urgent"),
+            ),
+        )
+
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(7200), // 2 hours ago (13:30)
+                endTime = FIXED_TEST_TIME.minusSeconds(5400), // 1.5 hours ago (14:00)
+                title = "Development Task",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("urgent", "backend"), // Same tags, different order
+            ),
+        )
+
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(3600), // 1 hour ago (14:30)
+                endTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago (15:00)
+                title = "Development Task",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("backend", "urgent"),
+            ),
+        )
+
+        // Create one entry with different tags that should not be grouped
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(900), // 15 minutes ago (15:15)
+                endTime = FIXED_TEST_TIME.minusSeconds(300), // 5 minutes ago (15:25)
+                title = "Development Task",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("frontend"), // Different tags
+            ),
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Verify that the page shows a grouped entry for the three matching entries
+        // and a separate entry for the one with different tags
+        val groupedEntry = page.locator("[data-testid='grouped-time-entry']")
+        assertThat(groupedEntry).hasCount(1)
+
+        // Verify the count badge shows 3 entries
+        val countBadge = groupedEntry.locator("[data-testid='entry-count-badge']")
+        assertThat(countBadge).containsText("3")
+
+        // Verify title and tags on the grouped entry
+        assertThat(groupedEntry.locator("[data-testid='entry-title']")).containsText("Development Task")
+
+        // Tags should be displayed and sorted
+        val tags = groupedEntry.locator("[data-testid^='entry-tag-']")
+        assertThat(tags).containsText(arrayOf("backend", "urgent"))
+
+        // Verify time range shows earliest start (12:30) to latest end (15:00)
+        assertThat(groupedEntry.locator("[data-testid='entry-time-range']")).containsText("00:30 - 03:00")
+
+        // Verify total duration is sum of all three entries (1:30:00)
+        assertThat(groupedEntry.locator("[data-testid='entry-duration']")).containsText("01:30:00")
+
+        // Verify continue button is visible on grouped entry
+        assertThat(groupedEntry.locator("[data-testid='continue-button']")).isVisible()
+
+        // Verify burger menu is NOT visible on grouped entry
+        assertThat(groupedEntry.locator("[data-testid='entry-menu-button']")).not().isVisible()
+
+        // Verify the ungrouped entry is displayed separately
+        val regularEntry = page.locator("[data-testid='time-entry']")
+        assertThat(regularEntry).hasCount(1)
+        assertThat(regularEntry.locator("[data-testid='entry-title']")).containsText("Development Task")
+        assertThat(regularEntry.locator("[data-testid^='entry-tag-']")).containsText(arrayOf("frontend"))
+    }
+
+    @Test
+    fun `should expand grouped entry to show individual entries`() {
+        // Create two entries with the same title and tags
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(7200), // 2 hours ago (13:30)
+                endTime = FIXED_TEST_TIME.minusSeconds(5400), // 1.5 hours ago (14:00)
+                title = "Code Review",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("review"),
+            ),
+        )
+
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(3600), // 1 hour ago (14:30)
+                endTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago (15:00)
+                title = "Code Review",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("review"),
+            ),
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Verify grouped entry is present
+        val groupedEntry = page.locator("[data-testid='grouped-time-entry']")
+        assertThat(groupedEntry).isVisible()
+
+        // Verify expanded entries are not visible initially
+        assertThat(page.locator("[data-testid='grouped-entries-expanded']")).not().isVisible()
+
+        // Click the count badge to expand
+        groupedEntry.locator("[data-testid='entry-count-badge']").click()
+
+        // Verify expanded entries are now visible
+        val expandedContainer = page.locator("[data-testid='grouped-entries-expanded']")
+        assertThat(expandedContainer).isVisible()
+
+        // Verify there are 2 individual entries in the expanded view
+        val expandedEntries = expandedContainer.locator("[data-testid='time-entry']")
+        assertThat(expandedEntries).hasCount(2)
+
+        // Verify entries are in reverse chronological order (most recent first)
+        val timeRanges = expandedEntries.locator("[data-testid='entry-time-range']")
+        assertThat(timeRanges).containsText(arrayOf("02:30 - 03:00", "01:30 - 02:00"))
+
+        // Verify durations for each entry
+        val durations = expandedEntries.locator("[data-testid='entry-duration']")
+        assertThat(durations).containsText(arrayOf("00:30:00", "00:30:00"))
+
+        // Verify title and tags are NOT shown for detailed entries
+        assertThat(expandedEntries.first().locator("[data-testid='entry-title']")).not().isVisible()
+        assertThat(expandedEntries.first().locator("[data-testid='entry-tags']")).not().isVisible()
+
+        // Verify continue button is NOT visible on detailed entries
+        assertThat(expandedEntries.first().locator("[data-testid='continue-button']")).not().isVisible()
+
+        // Verify burger menu IS visible on detailed entries
+        assertThat(expandedEntries.first().locator("[data-testid='entry-menu-button']")).isVisible()
+        assertThat(expandedEntries.nth(1).locator("[data-testid='entry-menu-button']")).isVisible()
+
+        // Click the count badge again to collapse
+        groupedEntry.locator("[data-testid='entry-count-badge']").click()
+
+        // Verify expanded entries are hidden again
+        assertThat(page.locator("[data-testid='grouped-entries-expanded']")).not().isVisible()
+    }
+
+    @Test
+    fun `should group entries including active entry`() {
+        // Create one completed entry
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(7200), // 2 hours ago (13:30)
+                endTime = FIXED_TEST_TIME.minusSeconds(5400), // 1.5 hours ago (14:00)
+                title = "Meeting Notes",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("meeting"),
+            ),
+        )
+
+        // Create an active entry with same title and tags
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago (15:00)
+                endTime = null, // Active entry
+                title = "Meeting Notes",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("meeting"),
+            ),
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Verify active entry panel shows the active entry
+        assertThat(page.locator("[data-testid='active-timer']")).isVisible()
+
+        // Verify grouped entry is shown in the day entries
+        val groupedEntry = page.locator("[data-testid='grouped-time-entry']")
+        assertThat(groupedEntry).isVisible()
+
+        // Verify count badge shows 2 entries
+        assertThat(groupedEntry.locator("[data-testid='entry-count-badge']")).containsText("2")
+
+        // Verify time range shows earliest start to "in progress"
+        assertThat(groupedEntry.locator("[data-testid='entry-time-range']")).containsText("01:30 - in progress")
+
+        // Verify total duration only includes the completed entry (30 minutes)
+        // Active entry duration is not included in the total
+        assertThat(groupedEntry.locator("[data-testid='entry-duration']")).containsText("00:30:00")
+
+        // Expand to verify both entries are shown
+        groupedEntry.locator("[data-testid='entry-count-badge']").click()
+        val expandedEntries = page.locator("[data-testid='grouped-entries-expanded']").locator("[data-testid='time-entry']")
+        assertThat(expandedEntries).hasCount(2)
+
+        // Verify the active entry shows "in progress"
+        val timeRanges = expandedEntries.locator("[data-testid='entry-time-range']")
+        assertThat(timeRanges.first()).containsText("in progress")
+    }
+
+    @Test
+    fun `should allow clicking continue on grouped entry`() {
+        // Create two completed entries with same title and tags
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(7200), // 2 hours ago
+                endTime = FIXED_TEST_TIME.minusSeconds(5400), // 1.5 hours ago
+                title = "Documentation",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("docs"),
+            ),
+        )
+
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(3600), // 1 hour ago
+                endTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago
+                title = "Documentation",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("docs"),
+            ),
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Verify no active entry initially
+        assertThat(page.locator("[data-testid='active-timer']")).not().isVisible()
+
+        // Find and click continue button on the grouped entry
+        val groupedEntry = page.locator("[data-testid='grouped-time-entry']")
+        groupedEntry.locator("[data-testid='continue-button']").click()
+
+        // Verify a new active entry is started with the same title
+        assertThat(page.locator("[data-testid='active-timer']")).isVisible()
+        assertThat(page.locator("[data-testid='current-entry-panel']")).containsText("Documentation")
+
+        // Verify the active entry appears in the day group
+        // Now there should be a grouped entry with 3 entries (2 completed + 1 active)
+        assertThat(groupedEntry.locator("[data-testid='entry-count-badge']")).containsText("3")
+    }
+
+    @Test
+    fun `should not group entries with different titles`() {
+        // Create entries with same tags but different titles
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(7200),
+                endTime = FIXED_TEST_TIME.minusSeconds(5400),
+                title = "Task A",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("backend"),
+            ),
+        )
+
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(3600),
+                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                title = "Task B",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("backend"),
+            ),
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Verify no grouped entries
+        assertThat(page.locator("[data-testid='grouped-time-entry']")).hasCount(0)
+
+        // Verify two separate regular entries
+        val regularEntries = page.locator("[data-testid='time-entry']")
+        assertThat(regularEntries).hasCount(2)
+
+        // Verify titles
+        val titles = regularEntries.locator("[data-testid='entry-title']")
+        assertThat(titles).containsText(arrayOf("Task B", "Task A"))
+    }
+
+    @Test
+    fun `should not group entries with different tags`() {
+        // Create entries with same title but different tags
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(7200),
+                endTime = FIXED_TEST_TIME.minusSeconds(5400),
+                title = "Development",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("backend", "urgent"),
+            ),
+        )
+
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(3600),
+                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                title = "Development",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("backend"), // Missing "urgent" tag
+            ),
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Verify no grouped entries
+        assertThat(page.locator("[data-testid='grouped-time-entry']")).hasCount(0)
+
+        // Verify two separate regular entries
+        assertThat(page.locator("[data-testid='time-entry']")).hasCount(2)
+    }
+
+    @Test
+    fun `should group entries with no tags`() {
+        // Create entries with same title and no tags
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(7200),
+                endTime = FIXED_TEST_TIME.minusSeconds(5400),
+                title = "Planning",
+                ownerId = requireNotNull(testUser.id),
+                tags = emptyArray(),
+            ),
+        )
+
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(3600),
+                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                title = "Planning",
+                ownerId = requireNotNull(testUser.id),
+                tags = emptyArray(),
+            ),
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Verify grouped entry is created
+        val groupedEntry = page.locator("[data-testid='grouped-time-entry']")
+        assertThat(groupedEntry).isVisible()
+        assertThat(groupedEntry.locator("[data-testid='entry-count-badge']")).containsText("2")
+
+        // Verify no tags are displayed
+        assertThat(groupedEntry.locator("[data-testid='entry-tags']")).not().isVisible()
+    }
+
+    @Test
+    fun `should allow editing and deleting individual entries in expanded grouped view`() {
+        // Create two entries with same title and tags
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(7200),
+                endTime = FIXED_TEST_TIME.minusSeconds(5400),
+                title = "Testing",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("qa"),
+            ),
+        )
+
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(3600),
+                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                title = "Testing",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("qa"),
+            ),
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Expand the grouped entry
+        val groupedEntry = page.locator("[data-testid='grouped-time-entry']")
+        groupedEntry.locator("[data-testid='entry-count-badge']").click()
+
+        // Find the first expanded entry and open its menu
+        val expandedEntries = page.locator("[data-testid='grouped-entries-expanded']").locator("[data-testid='time-entry']")
+        expandedEntries.first().locator("[data-testid='entry-menu-button']").click()
+
+        // Verify edit and delete options are available
+        assertThat(page.locator("[data-testid='edit-menu-item']")).isVisible()
+        assertThat(page.locator("[data-testid='delete-menu-item']")).isVisible()
+
+        // Click delete
+        page.locator("[data-testid='delete-menu-item']").click()
+
+        // Confirm deletion
+        assertThat(page.locator("[data-testid='confirm-delete-button']")).isVisible()
+        page.locator("[data-testid='confirm-delete-button']").click()
+
+        // Wait for dialog to close
+        assertThat(page.locator("[data-testid='confirm-delete-button']")).not().isVisible()
+
+        // Verify only one entry remains and it's now a regular entry (not grouped)
+        assertThat(page.locator("[data-testid='grouped-time-entry']")).not().isVisible()
+        assertThat(page.locator("[data-testid='time-entry']")).hasCount(1)
+    }
+}

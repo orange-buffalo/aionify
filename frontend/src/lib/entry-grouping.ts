@@ -16,7 +16,7 @@ export interface GroupedTimeLogEntry {
   startTime: string;
   /** Latest end time among all entries (null if any entry is active) */
   endTime: string | null;
-  /** Sum of durations of all entries in seconds */
+  /** Sum of durations of all entries in milliseconds */
   totalDuration: number;
 }
 
@@ -69,22 +69,26 @@ export function groupEntriesByTitleAndTags(entries: TimeLogEntry[]): (TimeLogEnt
       }, sortedEntries[0].startTime);
 
       // Find latest end time (null if any entry is active)
-      const hasActiveEntry = sortedEntries.some((e) => e.endTime === null);
+      const hasActiveEntry = sortedEntries.some((e) => e.endTime == null); // Using == to match both null and undefined
       const endTime = hasActiveEntry
         ? null
         : sortedEntries.reduce(
             (latest, entry) => {
-              if (!entry.endTime) return latest;
+              if (entry.endTime == null) return latest; // Using == to match both null and undefined
               if (!latest) return entry.endTime;
               return new Date(entry.endTime) > new Date(latest) ? entry.endTime : latest;
             },
             null as string | null
           );
 
-      // Calculate total duration
+      // Calculate total duration in milliseconds - ONLY for completed entries
+      // Active entries are excluded from the total as their duration is still growing
       const totalDuration = sortedEntries.reduce((sum, entry) => {
-        if (!entry.endTime) return sum;
-        const duration = (new Date(entry.endTime).getTime() - new Date(entry.startTime).getTime()) / 1000;
+        if (entry.endTime == null) {
+          // Skip active entries
+          return sum;
+        }
+        const duration = new Date(entry.endTime).getTime() - new Date(entry.startTime).getTime();
         return sum + duration;
       }, 0);
 
