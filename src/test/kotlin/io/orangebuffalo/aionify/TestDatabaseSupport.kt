@@ -7,6 +7,7 @@ import io.orangebuffalo.aionify.domain.ActivationToken
 import io.orangebuffalo.aionify.domain.LegacyTag
 import io.orangebuffalo.aionify.domain.TimeLogEntry
 import io.orangebuffalo.aionify.domain.User
+import io.orangebuffalo.aionify.domain.UserApiAccessToken
 import io.orangebuffalo.aionify.domain.UserSettings
 import jakarta.inject.Singleton
 import javax.sql.DataSource
@@ -94,6 +95,7 @@ open class TestDatabaseSupport(
             is ActivationToken -> genericRepository.save(entity) as T
             is LegacyTag -> genericRepository.save(entity) as T
             is UserSettings -> genericRepository.save(entity) as T
+            is UserApiAccessToken -> genericRepository.save(entity) as T
             else -> throw IllegalArgumentException("Unsupported entity type: ${entity::class.java.name}")
         }
     }
@@ -116,6 +118,7 @@ open class TestDatabaseSupport(
             is ActivationToken -> genericRepository.update(entity) as T
             is LegacyTag -> genericRepository.update(entity) as T
             is UserSettings -> genericRepository.update(entity) as T
+            is UserApiAccessToken -> genericRepository.update(entity) as T
             else -> throw IllegalArgumentException("Unsupported entity type: ${entity::class.java.name}")
         }
     }

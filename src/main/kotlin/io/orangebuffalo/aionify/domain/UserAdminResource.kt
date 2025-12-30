@@ -169,7 +169,6 @@ open class UserAdminResource(
     open fun updateUser(
         @PathVariable id: Long,
         @Valid @Body request: UpdateUserRequest,
-        principal: Principal?,
     ): HttpResponse<*> {
         log.debug("Updating user: {}", id)
 
@@ -240,27 +239,11 @@ open class UserAdminResource(
     @Delete("/{id}")
     open fun deleteUser(
         @PathVariable id: Long,
-        principal: Principal?,
+        currentUser: UserWithId,
     ): HttpResponse<*> {
-        val currentUserName = principal?.name
-        if (currentUserName == null) {
-            log.debug("User deletion failed: user not authenticated")
-            return HttpResponse
-                .unauthorized<ErrorResponse>()
-                .body(ErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
-        }
-
-        val currentUser = userRepository.findByUserName(currentUserName).orElse(null)
-        if (currentUser == null) {
-            log.debug("User deletion failed: current user not found: {}", currentUserName)
-            return HttpResponse
-                .unauthorized<ErrorResponse>()
-                .body(ErrorResponse("User not found", "USER_NOT_FOUND"))
-        }
-
         // Prevent self-deletion
         if (currentUser.id == id) {
-            log.debug("User deletion failed: attempt to delete self by user: {}", currentUserName)
+            log.debug("User deletion failed: attempt to delete self by user: {}", currentUser.user.userName)
             return HttpResponse.badRequest(ErrorResponse("Cannot delete your own user account", "CANNOT_DELETE_SELF"))
         }
 

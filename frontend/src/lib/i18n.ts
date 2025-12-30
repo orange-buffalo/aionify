@@ -137,6 +137,19 @@ const resources = {
           invalidFormat:
             "Invalid CSV format. Please check the instructions and ensure the CSV has the correct columns and format.",
         },
+        apiToken: {
+          title: "API Access Token",
+          subtitle: "Manage your API access token for programmatic access",
+          noToken: "You have not yet set up the API token, click the button below to enable API access.",
+          generate: "Generate API Token",
+          regenerate: "Re-generate",
+          generating: "Generating...",
+          regenerating: "Re-generating...",
+          tokenLabel: "API Token",
+          tokenCopied: "API token copied to clipboard",
+          generateSuccess: "API token generated successfully",
+          regenerateSuccess: "API token regenerated successfully",
+        },
       },
       // Time Logs Page
       timeLogs: {
@@ -381,6 +394,8 @@ const resources = {
         INVALID_START_OF_WEEK: "Invalid start of week",
         INVALID_CSV_FORMAT: "Invalid CSV format. Please check the instructions.",
         IMPORT_FAILED: "Import failed. Please try again.",
+        API_TOKEN_NOT_FOUND: "API token not found",
+        API_TOKEN_ALREADY_EXISTS: "API token already exists",
       },
     },
   },
@@ -517,6 +532,19 @@ const resources = {
             "Успішно імпортовано {{imported}} запис(ів). {{duplicates}} дублікат(ів) виявлено та пропущено.",
           invalidFormat:
             "Невірний формат CSV. Будь ласка, перевірте інструкції та переконайтеся, що CSV має правильні колонки та формат.",
+        },
+        apiToken: {
+          title: "API токен доступу",
+          subtitle: "Керування вашим API токеном для програмного доступу",
+          noToken: "Ви ще не налаштували API токен, натисніть кнопку нижче, щоб увімкнути доступ до API.",
+          generate: "Згенерувати API токен",
+          regenerate: "Перегенерувати",
+          generating: "Генерація...",
+          regenerating: "Перегенерація...",
+          tokenLabel: "API токен",
+          tokenCopied: "API токен скопійовано до буфера обміну",
+          generateSuccess: "API токен успішно згенеровано",
+          regenerateSuccess: "API токен успішно перегенеровано",
         },
       },
       // Time Logs Page
@@ -762,6 +790,8 @@ const resources = {
         INVALID_START_OF_WEEK: "Невірний початок тижня",
         INVALID_CSV_FORMAT: "Невірний формат CSV. Будь ласка, перевірте інструкції.",
         IMPORT_FAILED: "Імпорт не вдався. Будь ласка, спробуйте ще раз.",
+        API_TOKEN_NOT_FOUND: "API токен не знайдено",
+        API_TOKEN_ALREADY_EXISTS: "API токен вже існує",
       },
     },
   },
