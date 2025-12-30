@@ -2,6 +2,8 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDuration } from "@/lib/time-utils";
 import { TimeEntry } from "./TimeEntry";
+import { GroupedTimeEntry } from "./GroupedTimeEntry";
+import { groupEntriesByTitleAndTags, isGroupedEntry } from "@/lib/entry-grouping";
 import type { DayGroup as DayGroupType, TimeLogEntry } from "./types";
 
 interface DayGroupProps {
@@ -31,6 +33,9 @@ export function DayGroup({
 }: DayGroupProps) {
   const { t } = useTranslation();
 
+  // Group entries by title and tags
+  const groupedEntries = groupEntriesByTitleAndTags(group.entries);
+
   return (
     <Card className="border-none shadow-md" data-testid="day-group">
       <CardHeader className="pb-3">
@@ -45,21 +50,41 @@ export function DayGroup({
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {group.entries.map((entry) => (
-            <TimeEntry
-              key={`${entry.id}-${entry.startTime}`}
-              entry={entry}
-              locale={locale}
-              startOfWeek={startOfWeek}
-              isEditing={editingEntryId === entry.id}
-              isSaving={isSaving}
-              onContinue={onContinue}
-              onDelete={onDelete}
-              onEdit={onEdit}
-              onSaveEdit={onSaveEdit}
-              onCancelEdit={onCancelEdit}
-            />
-          ))}
+          {groupedEntries.map((item) => {
+            if (isGroupedEntry(item)) {
+              return (
+                <GroupedTimeEntry
+                  key={item.groupId}
+                  groupedEntry={item}
+                  locale={locale}
+                  startOfWeek={startOfWeek}
+                  editingEntryId={editingEntryId}
+                  isSaving={isSaving}
+                  onContinue={onContinue}
+                  onDelete={onDelete}
+                  onEdit={onEdit}
+                  onSaveEdit={onSaveEdit}
+                  onCancelEdit={onCancelEdit}
+                />
+              );
+            } else {
+              return (
+                <TimeEntry
+                  key={`${item.id}-${item.startTime}`}
+                  entry={item}
+                  locale={locale}
+                  startOfWeek={startOfWeek}
+                  isEditing={editingEntryId === item.id}
+                  isSaving={isSaving}
+                  onContinue={onContinue}
+                  onDelete={onDelete}
+                  onEdit={onEdit}
+                  onSaveEdit={onSaveEdit}
+                  onCancelEdit={onCancelEdit}
+                />
+              );
+            }
+          })}
         </div>
       </CardContent>
     </Card>

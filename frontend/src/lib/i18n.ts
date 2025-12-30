@@ -198,6 +198,11 @@ const resources = {
         errors: {
           titleRequired: "Please enter a log entry description",
         },
+        groupedEntry: {
+          count: "{{count}} entries",
+          expand: "Expand to see all entries",
+          collapse: "Collapse",
+        },
       },
       // Portal Pages
       portal: {
@@ -573,6 +578,11 @@ const resources = {
         },
         errors: {
           titleRequired: "Будь ласка, введіть опис запису",
+        },
+        groupedEntry: {
+          count: "{{count}} записів",
+          expand: "Розгорнути для перегляду всіх записів",
+          collapse: "Згорнути",
         },
       },
       // Portal Pages

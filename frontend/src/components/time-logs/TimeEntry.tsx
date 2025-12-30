@@ -26,6 +26,9 @@ interface TimeEntryProps {
   onEdit: (entry: TimeLogEntry) => void;
   onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string, tags: string[]) => Promise<void>;
   onCancelEdit: () => void;
+  hideTitle?: boolean;
+  hideTags?: boolean;
+  hideContinue?: boolean;
 }
 
 export function TimeEntry({
@@ -39,6 +42,9 @@ export function TimeEntry({
   onEdit,
   onSaveEdit,
   onCancelEdit,
+  hideTitle = false,
+  hideTags = false,
+  hideContinue = false,
 }: TimeEntryProps) {
   const { t } = useTranslation();
   const duration = calculateDuration(entry.startTime, entry.endTime);
@@ -104,10 +110,12 @@ export function TimeEntry({
   return (
     <div className="flex items-center justify-between p-3 border border-border rounded-md" data-testid="time-entry">
       <div className="flex-1">
-        <p className="font-medium text-foreground" data-testid="entry-title">
-          {entry.title}
-        </p>
-        {entry.tags && entry.tags.length > 0 && (
+        {!hideTitle && (
+          <p className="font-medium text-foreground" data-testid="entry-title">
+            {entry.title}
+          </p>
+        )}
+        {!hideTags && entry.tags && entry.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-1.5" data-testid="entry-tags">
             {entry.tags.sort().map((tag, index) => (
               <Badge key={index} variant="default" className="text-[0.7rem]" data-testid={`entry-tag-${index}`}>
@@ -137,16 +145,18 @@ export function TimeEntry({
           {formatDuration(duration)}
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onContinue(entry)}
-            data-testid="continue-button"
-            className="text-foreground"
-            title={t("timeLogs.startFromEntry")}
-          >
-            <Play className="h-4 w-4" />
-          </Button>
+          {!hideContinue && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onContinue(entry)}
+              data-testid="continue-button"
+              className="text-foreground"
+              title={t("timeLogs.startFromEntry")}
+            >
+              <Play className="h-4 w-4" />
+            </Button>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" data-testid="entry-menu-button" className="text-foreground">
