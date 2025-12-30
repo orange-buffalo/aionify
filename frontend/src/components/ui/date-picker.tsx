@@ -17,7 +17,8 @@ interface DatePickerProps {
 export function DatePicker({ value, onChange, disabled, locale, startOfWeek, testIdPrefix }: DatePickerProps) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(value);
+  // Separate state for which month/year is being viewed in the calendar (for navigation)
+  const [viewingDate, setViewingDate] = useState(value);
 
   // Format display value using Intl API for proper localization (date only)
   const formatDisplayValue = (date: Date) => {
@@ -30,10 +31,10 @@ export function DatePicker({ value, onChange, disabled, locale, startOfWeek, tes
 
   const [inputValue, setInputValue] = useState(formatDisplayValue(value));
 
-  // Update input value when value prop changes
+  // Update input value and reset viewing date when value prop changes
   useEffect(() => {
     setInputValue(formatDisplayValue(value));
-    setSelectedDate(value);
+    setViewingDate(value);
   }, [value]);
 
   // Parse date string - try multiple formats
@@ -88,7 +89,7 @@ export function DatePicker({ value, onChange, disabled, locale, startOfWeek, tes
 
     const parsed = parseDate(inputStr);
     if (parsed !== null) {
-      setSelectedDate(parsed);
+      setViewingDate(parsed);
       onChange(parsed);
     }
   };
@@ -98,11 +99,11 @@ export function DatePicker({ value, onChange, disabled, locale, startOfWeek, tes
     const parsed = parseDate(inputValue);
     if (parsed !== null) {
       setInputValue(formatDisplayValue(parsed));
-      setSelectedDate(parsed);
+      setViewingDate(parsed);
     } else {
       // Reset to current value if invalid
       setInputValue(formatDisplayValue(value));
-      setSelectedDate(value);
+      setViewingDate(value);
     }
   };
 
@@ -129,7 +130,7 @@ export function DatePicker({ value, onChange, disabled, locale, startOfWeek, tes
     return { days, month, year };
   };
 
-  const { days, month, year } = generateCalendar(selectedDate);
+  const { days, month, year } = generateCalendar(viewingDate);
 
   // Get localized month name using Intl API
   const getMonthName = (monthIndex: number) => {
@@ -151,9 +152,9 @@ export function DatePicker({ value, onChange, disabled, locale, startOfWeek, tes
   const monthName = getMonthName(month);
 
   const handleDateClick = (day: Date) => {
-    const newDate = new Date(selectedDate);
+    const newDate = new Date(value);
     newDate.setFullYear(day.getFullYear(), day.getMonth(), day.getDate());
-    setSelectedDate(newDate);
+    setViewingDate(newDate);
     setInputValue(formatDisplayValue(newDate));
     onChange(newDate);
     setIsOpen(false);
@@ -169,23 +170,44 @@ export function DatePicker({ value, onChange, disabled, locale, startOfWeek, tes
   };
 
   const isSelected = (date: Date) => {
-    return (
-      date.getDate() === selectedDate.getDate() &&
-      date.getMonth() === selectedDate.getMonth() &&
-      date.getFullYear() === selectedDate.getFullYear()
-    );
+    // Normalize both dates to midnight local time for comparison
+    // This ensures we're comparing just the date part, not the time
+    const dateNormalized = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const valueNormalized = new Date(value.getFullYear(), value.getMonth(), value.getDate());
+
+    return dateNormalized.getTime() === valueNormalized.getTime();
   };
 
   const prevMonth = () => {
-    setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, selectedDate.getDate()));
+    const targetMonth = viewingDate.getMonth() - 1;
+    const targetYear = viewingDate.getFullYear();
+    // Get the last day of the target month
+    const lastDayOfTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+    // Use the smaller of current day or last day of target month
+    const day = Math.min(viewingDate.getDate(), lastDayOfTargetMonth);
+    setViewingDate(new Date(targetYear, targetMonth, day));
   };
 
   const nextMonth = () => {
-    setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, selectedDate.getDate()));
+    const targetMonth = viewingDate.getMonth() + 1;
+    const targetYear = viewingDate.getFullYear();
+    // Get the last day of the target month
+    const lastDayOfTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+    // Use the smaller of current day or last day of target month
+    const day = Math.min(viewingDate.getDate(), lastDayOfTargetMonth);
+    setViewingDate(new Date(targetYear, targetMonth, day));
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      // Reset viewing date to the current value when opening the calendar
+      setViewingDate(value);
+    }
+    setIsOpen(open);
   };
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover open={isOpen} onOpenChange={handleOpenChange}>
       <div className="relative">
         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
         <PopoverTrigger asChild>
@@ -252,9 +274,9 @@ export function DatePicker({ value, onChange, disabled, locale, startOfWeek, tes
                           size="sm"
                           className={`
                             h-9 w-9 p-0 font-normal text-foreground
-                            ${!isCurrentMonth && "text-muted-foreground opacity-50"}
-                            ${selected && "bg-primary text-primary-foreground hover:bg-primary"}
-                            ${todayDate && !selected && "bg-accent"}
+                            ${!isCurrentMonth ? "text-muted-foreground opacity-50" : ""}
+                            ${selected ? "bg-primary text-primary-foreground hover:bg-primary" : ""}
+                            ${todayDate && !selected ? "bg-accent" : ""}
                           `}
                           onClick={() => handleDateClick(day)}
                         >
