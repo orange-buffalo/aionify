@@ -623,6 +623,105 @@ class TogglImportValidationPlaywrightTest : PlaywrightTestBase() {
             assertEquals(expectedDuration.toLong(), durationSeconds)
         }
     }
+
+    @Test
+    fun `should handle multiple entries with one duplicate and two new`() {
+        // Create an existing entry
+        val existingStartTime =
+            LocalDate
+                .parse("2025-12-19")
+                .atTime(LocalTime.parse("21:01:03"))
+                .atZone(ZoneId.of("Pacific/Auckland"))
+                .toInstant()
+
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = existingStartTime,
+                endTime = existingStartTime.plusSeconds(3669), // 1 hour 1 min 9 sec later
+                title = "Existing Entry",
+                ownerId = requireNotNull(regularUser.id),
+                tags = arrayOf("OldTag"),
+            ),
+        )
+
+        navigateToSettingsViaToken()
+
+        // Select Toggl Timer source
+        page.locator("[data-testid='import-source-select']").click()
+        page.locator("[data-testid='import-source-toggl']").click()
+
+        // Create CSV with one duplicate and two new entries
+        val csvContent =
+            createValidTogglCsv(
+                listOf(
+                    TogglTestEntry(
+                        description = "Existing Entry",
+                        tags = listOf("NewTag"),
+                        startDate = "2025-12-19",
+                        startTime = "21:01:03",
+                        endDate = "2025-12-19",
+                        endTime = "22:02:12",
+                    ),
+                    TogglTestEntry(
+                        description = "New Entry 1",
+                        tags = listOf("Tag1"),
+                        startDate = "2025-12-20",
+                        startTime = "10:30:00",
+                        endDate = "2025-12-20",
+                        endTime = "11:45:00",
+                    ),
+                    TogglTestEntry(
+                        description = "New Entry 2",
+                        tags = listOf("Tag2", "Tag3"),
+                        startDate = "2025-12-21",
+                        startTime = "14:00:00",
+                        endDate = "2025-12-21",
+                        endTime = "15:30:00",
+                    ),
+                ),
+            )
+
+        page.locator("[data-testid='import-file-input']").setInputFiles(
+            com.microsoft.playwright.options.FilePayload(
+                "test.csv",
+                "text/csv",
+                csvContent.toByteArray(),
+            ),
+        )
+
+        page.locator("[data-testid='start-import-button']").click()
+
+        // Wait for success message with import and duplicate counts
+        val successMessage = page.locator("[data-testid='import-success']")
+        assertThat(successMessage).isVisible()
+        assertThat(successMessage).containsText("Successfully imported 2 record(s)")
+        assertThat(successMessage).containsText("1 duplicate(s)")
+
+        // Verify database state
+        testDatabaseSupport.inTransaction {
+            val entries = timeLogEntryRepository.findAllOrderById()
+            assertEquals(3, entries.size) // 1 existing + 2 new
+
+            // Verify existing entry was not modified
+            val existingEntry = entries.find { it.title == "Existing Entry" }
+            assertEquals("Existing Entry", existingEntry?.title)
+            assertEquals(1, existingEntry?.tags?.size)
+            assertEquals("OldTag", existingEntry?.tags?.get(0))
+
+            // Verify first new entry was created
+            val newEntry1 = entries.find { it.title == "New Entry 1" }
+            assertEquals("New Entry 1", newEntry1?.title)
+            assertEquals(1, newEntry1?.tags?.size)
+            assertEquals("Tag1", newEntry1?.tags?.get(0))
+
+            // Verify second new entry was created
+            val newEntry2 = entries.find { it.title == "New Entry 2" }
+            assertEquals("New Entry 2", newEntry2?.title)
+            assertEquals(2, newEntry2?.tags?.size)
+            assertEquals("Tag2", newEntry2?.tags?.get(0))
+            assertEquals("Tag3", newEntry2?.tags?.get(1))
+        }
+    }
 }
 
 data class TogglTestEntry(
