@@ -145,6 +145,10 @@ data class EntryState(
     val continueButtonVisible: Boolean = true,
     val menuButtonVisible: Boolean = true,
     val hasDifferentDayWarning: Boolean = false,
+    val isGrouped: Boolean = false,
+    val groupCount: Int? = null,
+    val isGroupExpanded: Boolean = false,
+    val groupedEntries: List<EntryState> = emptyList(),
 )
 
 /**
@@ -351,62 +355,160 @@ class TimeLogsPageObject(
         dayGroupLocator: com.microsoft.playwright.Locator,
         expectedEntries: List<EntryState>,
     ) {
-        val entryLocator = dayGroupLocator.locator("[data-testid='time-entry']")
+        // Separate regular and grouped entries
+        val regularEntries = expectedEntries.filter { !it.isGrouped }
+        val groupedEntries = expectedEntries.filter { it.isGrouped }
 
-        // Assert entry titles using content-based assertion
-        val expectedTitles = expectedEntries.map { it.title }
-        val titleLocators = entryLocator.locator("[data-testid='entry-title']")
-        assertThat(titleLocators).containsText(expectedTitles.toTypedArray())
+        // Assert regular entries
+        if (regularEntries.isNotEmpty()) {
+            val entryLocator = dayGroupLocator.locator("[data-testid='time-entry']")
 
-        // Assert entry time ranges using content-based assertion
-        val expectedTimeRanges = expectedEntries.map { it.timeRange }
-        val timeRangeLocators = entryLocator.locator("[data-testid='entry-time-range']")
-        assertThat(timeRangeLocators).containsText(expectedTimeRanges.toTypedArray())
+            // Assert entry titles using content-based assertion
+            val expectedTitles = regularEntries.map { it.title }
+            val titleLocators = entryLocator.locator("[data-testid='entry-title']")
+            assertThat(titleLocators).containsText(expectedTitles.toTypedArray())
 
-        // Assert entry durations using content-based assertion
-        val expectedDurations = expectedEntries.map { it.duration }
-        val durationLocators = entryLocator.locator("[data-testid='entry-duration']")
-        assertThat(durationLocators).containsText(expectedDurations.toTypedArray())
+            // Assert entry time ranges using content-based assertion
+            val expectedTimeRanges = regularEntries.map { it.timeRange }
+            val timeRangeLocators = entryLocator.locator("[data-testid='entry-time-range']")
+            assertThat(timeRangeLocators).containsText(expectedTimeRanges.toTypedArray())
 
-        // Assert tags for each entry
-        for (i in expectedEntries.indices) {
-            val entry = expectedEntries[i]
-            val entryElement = entryLocator.nth(i)
+            // Assert entry durations using content-based assertion
+            val expectedDurations = regularEntries.map { it.duration }
+            val durationLocators = entryLocator.locator("[data-testid='entry-duration']")
+            assertThat(durationLocators).containsText(expectedDurations.toTypedArray())
 
-            val tagLocators = entryElement.locator("[data-testid^='entry-tag-']")
-            if (entry.tags.isNotEmpty()) {
-                // Assert tag text content matches expected tags using array-based assertion
-                assertThat(tagLocators).containsText(entry.tags.toTypedArray())
-            } else {
-                // Tags container should not be visible when there are no tags
-                assertThat(tagLocators).isHidden()
+            // Assert tags for each entry
+            for (i in regularEntries.indices) {
+                val entry = regularEntries[i]
+                val entryElement = entryLocator.nth(i)
+
+                val tagLocators = entryElement.locator("[data-testid^='entry-tag-']")
+                if (entry.tags.isNotEmpty()) {
+                    // Assert tag text content matches expected tags using array-based assertion
+                    assertThat(tagLocators).containsText(entry.tags.toTypedArray())
+                } else {
+                    // Tags container should not be visible when there are no tags
+                    assertThat(tagLocators).isHidden()
+                }
+            }
+
+            // Assert action buttons visibility for each entry
+            for (i in regularEntries.indices) {
+                val entry = regularEntries[i]
+                val entryElement = entryLocator.nth(i)
+
+                if (entry.continueButtonVisible) {
+                    assertThat(entryElement.locator("[data-testid='continue-button']")).isVisible()
+                } else {
+                    assertThat(entryElement.locator("[data-testid='continue-button']")).not().isVisible()
+                }
+
+                if (entry.menuButtonVisible) {
+                    assertThat(entryElement.locator("[data-testid='entry-menu-button']")).isVisible()
+                } else {
+                    assertThat(entryElement.locator("[data-testid='entry-menu-button']")).not().isVisible()
+                }
+
+                // Assert different day warning icon visibility
+                val warningIcon = entryElement.locator("[data-testid='different-day-warning']")
+                if (entry.hasDifferentDayWarning) {
+                    assertThat(warningIcon).isVisible()
+                } else {
+                    assertThat(warningIcon).not().isVisible()
+                }
             }
         }
 
-        // Assert action buttons visibility for each entry
-        for (i in expectedEntries.indices) {
-            val entry = expectedEntries[i]
-            val entryElement = entryLocator.nth(i)
+        // Assert grouped entries
+        for (groupedEntry in groupedEntries) {
+            assertGroupedEntry(dayGroupLocator, groupedEntry)
+        }
+    }
 
-            if (entry.continueButtonVisible) {
-                assertThat(entryElement.locator("[data-testid='continue-button']")).isVisible()
-            } else {
+    private fun assertGroupedEntry(
+        dayGroupLocator: com.microsoft.playwright.Locator,
+        expectedGroupedEntry: EntryState,
+    ) {
+        require(expectedGroupedEntry.isGrouped) { "Entry must be marked as grouped" }
+        require(expectedGroupedEntry.groupCount != null) { "Grouped entry must have a count" }
+
+        // Find the grouped entry by title
+        val groupedEntryLocator =
+            dayGroupLocator
+                .locator("[data-testid='grouped-time-entry']")
+                .filter(
+                    com.microsoft.playwright.Locator
+                        .FilterOptions()
+                        .setHasText(expectedGroupedEntry.title),
+                )
+
+        // Assert count badge
+        assertThat(groupedEntryLocator.locator("[data-testid='entry-count-badge']"))
+            .containsText(expectedGroupedEntry.groupCount.toString())
+
+        // Assert title
+        assertThat(groupedEntryLocator.locator("[data-testid='entry-title']"))
+            .containsText(expectedGroupedEntry.title)
+
+        // Assert tags
+        val tagLocators = groupedEntryLocator.locator("[data-testid^='entry-tag-']")
+        if (expectedGroupedEntry.tags.isNotEmpty()) {
+            assertThat(tagLocators).containsText(expectedGroupedEntry.tags.toTypedArray())
+        } else {
+            assertThat(tagLocators).isHidden()
+        }
+
+        // Assert time range
+        assertThat(groupedEntryLocator.locator("[data-testid='entry-time-range']"))
+            .containsText(expectedGroupedEntry.timeRange)
+
+        // Assert duration
+        assertThat(groupedEntryLocator.locator("[data-testid='entry-duration']"))
+            .containsText(expectedGroupedEntry.duration)
+
+        // Assert continue button
+        if (expectedGroupedEntry.continueButtonVisible) {
+            assertThat(groupedEntryLocator.locator("[data-testid='continue-button']")).isVisible()
+        } else {
+            assertThat(groupedEntryLocator.locator("[data-testid='continue-button']")).not().isVisible()
+        }
+
+        // Assert burger menu is NOT visible on grouped entry
+        assertThat(groupedEntryLocator.locator("[data-testid='entry-menu-button']")).not().isVisible()
+
+        // If expanded, assert the expanded entries
+        if (expectedGroupedEntry.isGroupExpanded) {
+            val expandedContainer = groupedEntryLocator.locator("[data-testid='grouped-entries-expanded']")
+            assertThat(expandedContainer).isVisible()
+
+            val expandedEntries = expectedGroupedEntry.groupedEntries
+            val expandedEntryLocators = expandedContainer.locator("[data-testid='time-entry']")
+
+            // Assert time ranges for expanded entries
+            val expectedTimeRanges = expandedEntries.map { it.timeRange }
+            val timeRangeLocators = expandedEntryLocators.locator("[data-testid='entry-time-range']")
+            assertThat(timeRangeLocators).containsText(expectedTimeRanges.toTypedArray())
+
+            // Assert durations for expanded entries
+            val expectedDurations = expandedEntries.map { it.duration }
+            val durationLocators = expandedEntryLocators.locator("[data-testid='entry-duration']")
+            assertThat(durationLocators).containsText(expectedDurations.toTypedArray())
+
+            // For each expanded entry, verify title and tags are NOT visible
+            for (i in expandedEntries.indices) {
+                val entryElement = expandedEntryLocators.nth(i)
+                assertThat(entryElement.locator("[data-testid='entry-title']")).not().isVisible()
+                assertThat(entryElement.locator("[data-testid='entry-tags']")).not().isVisible()
+
+                // Continue button should NOT be visible
                 assertThat(entryElement.locator("[data-testid='continue-button']")).not().isVisible()
-            }
 
-            if (entry.menuButtonVisible) {
+                // Burger menu SHOULD be visible
                 assertThat(entryElement.locator("[data-testid='entry-menu-button']")).isVisible()
-            } else {
-                assertThat(entryElement.locator("[data-testid='entry-menu-button']")).not().isVisible()
             }
-
-            // Assert different day warning icon visibility
-            val warningIcon = entryElement.locator("[data-testid='different-day-warning']")
-            if (entry.hasDifferentDayWarning) {
-                assertThat(warningIcon).isVisible()
-            } else {
-                assertThat(warningIcon).not().isVisible()
-            }
+        } else {
+            assertThat(groupedEntryLocator.locator("[data-testid='grouped-entries-expanded']")).not().isVisible()
         }
     }
 

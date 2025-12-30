@@ -1,6 +1,5 @@
 package io.orangebuffalo.aionify.timelogs
 
-import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.*
 import io.orangebuffalo.aionify.domain.TimeLogEntry
 import org.junit.jupiter.api.Assertions.*
@@ -55,28 +54,35 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
         // Verify the entry is started immediately with the same title and tags
         // Note: With grouping enabled, the new active entry and the completed entry
         // will be grouped together since they have the same title and tags
-        val groupedEntry = page.locator("[data-testid='grouped-time-entry']")
-        assertThat(groupedEntry).isVisible()
-
-        // Verify the count badge shows 2 entries
-        assertThat(groupedEntry.locator("[data-testid='entry-count-badge']")).containsText("2")
-
-        // Verify title and tag
-        assertThat(groupedEntry.locator("[data-testid='entry-title']")).containsText("Previous Task")
-        assertThat(groupedEntry.locator("[data-testid^='entry-tag-']")).containsText(arrayOf("completed"))
-
-        // Verify time range shows earliest start to "in progress"
-        assertThat(groupedEntry.locator("[data-testid='entry-time-range']")).containsText("02:30 - in progress")
-
-        // Verify total duration only includes the completed entry
-        assertThat(groupedEntry.locator("[data-testid='entry-duration']")).containsText("00:30:00")
-
-        // Verify continue button is visible
-        assertThat(groupedEntry.locator("[data-testid='continue-button']")).isVisible()
-
-        // Verify active entry panel shows the active entry
-        assertThat(page.locator("[data-testid='active-timer']")).isVisible()
-        assertThat(page.locator("[data-testid='current-entry-panel']")).containsText("Previous Task")
+        val activeState =
+            TimeLogsPageState(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Previous Task",
+                        duration = "00:00:00",
+                        startedAt = "16 Mar, 03:30", // Started at FIXED_TEST_TIME (backend time)
+                    ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:30:00"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Previous Task",
+                                        timeRange = "02:30 - in progress",
+                                        duration = "00:30:00",
+                                        tags = listOf("completed"),
+                                        isGrouped = true,
+                                        groupCount = 2,
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
+        timeLogsPage.assertPageState(activeState)
 
         // Verify database state - new entry created with backend timestamp
         val newActiveEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
@@ -159,36 +165,43 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
         // - The previously active entry should now be stopped
         // - A new active entry with "Completed Task" title and tags should be started
         // - The new active entry and original completed entry will be grouped (same title and tags)
-
-        // Verify active entry panel shows the new active entry
-        assertThat(page.locator("[data-testid='active-timer']")).isVisible()
-        assertThat(page.locator("[data-testid='current-entry-panel']")).containsText("Completed Task")
-
-        // Verify the grouped entry for "Completed Task" entries
-        val completedTaskGroup =
-            page
-                .locator(
-                    "[data-testid='grouped-time-entry']",
-                ).filter(
-                    com.microsoft.playwright.Locator
-                        .FilterOptions()
-                        .setHasText("Completed Task"),
-                )
-        assertThat(completedTaskGroup).isVisible()
-        assertThat(completedTaskGroup.locator("[data-testid='entry-count-badge']")).containsText("2")
-
-        // Verify the "Currently Active Task" is now stopped and shown as a regular entry
-        val activeTaskEntry =
-            page
-                .locator(
-                    "[data-testid='time-entry']",
-                ).filter(
-                    com.microsoft.playwright.Locator
-                        .FilterOptions()
-                        .setHasText("Currently Active Task"),
-                )
-        assertThat(activeTaskEntry).isVisible()
-        assertThat(activeTaskEntry.locator("[data-testid='entry-time-range']")).containsText("03:00 - 03:30")
+        val newState =
+            TimeLogsPageState(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Completed Task",
+                        duration = "00:00:00",
+                        startedAt = "16 Mar, 03:30", // Started at FIXED_TEST_TIME (backend time)
+                    ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "01:00:00"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "01:00:00", // Both completed entries
+                            entries =
+                                listOf(
+                                    // Grouped "Completed Task" entries (active + completed)
+                                    EntryState(
+                                        title = "Completed Task",
+                                        timeRange = "01:30 - in progress",
+                                        duration = "00:30:00", // Only the completed entry duration
+                                        tags = listOf("completed"),
+                                        isGrouped = true,
+                                        groupCount = 2,
+                                    ),
+                                    // Previously active entry, now stopped
+                                    EntryState(
+                                        title = "Currently Active Task",
+                                        timeRange = "03:00 - 03:30",
+                                        duration = "00:30:00",
+                                        tags = listOf("active"),
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
+        timeLogsPage.assertPageState(newState)
 
         // Verify database state:
         // 1. The previously active entry should be stopped with endTime from backend

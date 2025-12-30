@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Play, ChevronDown, ChevronUp } from "lucide-react";
+import { Play } from "lucide-react";
 import { formatTime } from "@/lib/date-format";
 import { formatDuration } from "@/lib/time-utils";
 import type { GroupedTimeLogEntry, TimeLogEntry } from "@/components/time-logs/types";
@@ -51,16 +51,26 @@ export function GroupedTimeEntry({
         <div className="flex-1">
           <div className="flex items-center gap-2">
             {/* Count badge */}
-            <Badge
-              variant="outline"
-              className="text-foreground border-border cursor-pointer hover:bg-muted"
+            <button
               onClick={() => setIsExpanded(!isExpanded)}
               data-testid="entry-count-badge"
               title={isExpanded ? t("timeLogs.groupedEntry.collapse") : t("timeLogs.groupedEntry.expand")}
+              className={`
+                flex items-center justify-center
+                w-6 h-6
+                rounded
+                text-xs font-semibold
+                cursor-pointer
+                transition-colors
+                ${
+                  isExpanded
+                    ? "bg-primary/20 text-primary border border-primary/50"
+                    : "bg-muted text-foreground border border-border hover:bg-muted/80"
+                }
+              `}
             >
-              {isExpanded ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
               {groupedEntry.entries.length}
-            </Badge>
+            </button>
             <p className="font-medium text-foreground" data-testid="entry-title">
               {groupedEntry.title}
             </p>
