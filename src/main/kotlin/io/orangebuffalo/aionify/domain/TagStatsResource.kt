@@ -95,13 +95,6 @@ data class TagStatsResponse(
 
 @Serdeable
 @Introspected
-data class TagStatsErrorResponse(
-    val error: String,
-    val errorCode: String,
-)
-
-@Serdeable
-@Introspected
 data class LegacyTagRequest(
     val tag: String,
 )

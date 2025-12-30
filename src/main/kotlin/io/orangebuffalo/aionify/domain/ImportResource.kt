@@ -85,7 +85,12 @@ open class ImportResource(
                 }
             }
 
-            log.info("Toggl import completed for user: {}, imported: {}, duplicates: {}", currentUser.user.userName, importedCount, duplicateCount)
+            log.info(
+                "Toggl import completed for user: {}, imported: {}, duplicates: {}",
+                currentUser.user.userName,
+                importedCount,
+                duplicateCount,
+            )
 
             return HttpResponse.ok(
                 ImportSuccessResponse(

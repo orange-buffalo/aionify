@@ -16,16 +16,14 @@ import jakarta.inject.Singleton
 @Produces
 @Singleton
 @Requires(classes = [UserNotAuthenticatedException::class, ExceptionHandler::class])
-class UserNotAuthenticatedExceptionHandler :
-    ExceptionHandler<UserNotAuthenticatedException, HttpResponse<GenericErrorResponse>> {
+class UserNotAuthenticatedExceptionHandler : ExceptionHandler<UserNotAuthenticatedException, HttpResponse<GenericErrorResponse>> {
     override fun handle(
         request: HttpRequest<*>,
         exception: UserNotAuthenticatedException,
-    ): HttpResponse<GenericErrorResponse> {
-        return HttpResponse
+    ): HttpResponse<GenericErrorResponse> =
+        HttpResponse
             .status<GenericErrorResponse>(HttpStatus.UNAUTHORIZED)
             .body(GenericErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
-    }
 }
 
 /**
@@ -34,16 +32,14 @@ class UserNotAuthenticatedExceptionHandler :
 @Produces
 @Singleton
 @Requires(classes = [UserNotFoundException::class, ExceptionHandler::class])
-class UserNotFoundExceptionHandler :
-    ExceptionHandler<UserNotFoundException, HttpResponse<GenericErrorResponse>> {
+class UserNotFoundExceptionHandler : ExceptionHandler<UserNotFoundException, HttpResponse<GenericErrorResponse>> {
     override fun handle(
         request: HttpRequest<*>,
         exception: UserNotFoundException,
-    ): HttpResponse<GenericErrorResponse> {
-        return HttpResponse
+    ): HttpResponse<GenericErrorResponse> =
+        HttpResponse
             .status<GenericErrorResponse>(HttpStatus.NOT_FOUND)
             .body(GenericErrorResponse("User not found", "USER_NOT_FOUND"))
-    }
 }
 
 /**

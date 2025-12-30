@@ -19,9 +19,7 @@ class CurrentUserArgumentBinder(
     private val currentUserService: CurrentUserService,
     private val securityService: SecurityService,
 ) : TypedRequestArgumentBinder<UserWithId> {
-    override fun argumentType(): Argument<UserWithId> {
-        return Argument.of(UserWithId::class.java)
-    }
+    override fun argumentType(): Argument<UserWithId> = Argument.of(UserWithId::class.java)
 
     override fun bind(
         context: ArgumentConversionContext<UserWithId>,
