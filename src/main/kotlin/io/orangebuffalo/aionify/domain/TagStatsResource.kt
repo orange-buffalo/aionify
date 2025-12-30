@@ -24,30 +24,12 @@ open class TagStatsResource(
     private val log = org.slf4j.LoggerFactory.getLogger(TagStatsResource::class.java)
 
     @Get("/stats")
-    open fun getTagStats(principal: Principal?): HttpResponse<*> {
-        val userName = principal?.name
-        if (userName == null) {
-            log.debug("Get tag stats failed: user not authenticated")
-            return HttpResponse
-                .unauthorized<TagStatsErrorResponse>()
-                .body(TagStatsErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
-        }
+    open fun getTagStats(currentUser: UserWithId): HttpResponse<*> {
+        log.debug("Getting tag statistics for user: {}", currentUser.user.userName)
 
-        val user = userRepository.findByUserName(userName).orElse(null)
-        if (user == null) {
-            log.debug("Get tag stats failed: user not found: {}", userName)
-            return HttpResponse
-                .notFound<TagStatsErrorResponse>()
-                .body(TagStatsErrorResponse("User not found", "USER_NOT_FOUND"))
-        }
+        val tagStats = tagStatsRepository.findTagStatsByOwnerId(currentUser.id)
 
-        val userId = requireNotNull(user.id) { "User must have an ID" }
-
-        log.debug("Getting tag statistics for user: {}", userName)
-
-        val tagStats = tagStatsRepository.findTagStatsByOwnerId(userId)
-
-        log.trace("Found {} unique tags for user: {}", tagStats.size, userName)
+        log.trace("Found {} unique tags for user: {}", tagStats.size, currentUser.user.userName)
 
         return HttpResponse.ok(
             TagStatsResponse(
@@ -59,38 +41,20 @@ open class TagStatsResource(
     @Post("/legacy")
     open fun markTagAsLegacy(
         @Body request: LegacyTagRequest,
-        principal: Principal?,
+        currentUser: UserWithId,
     ): HttpResponse<*> {
-        val userName = principal?.name
-        if (userName == null) {
-            log.debug("Mark tag as legacy failed: user not authenticated")
-            return HttpResponse
-                .unauthorized<TagStatsErrorResponse>()
-                .body(TagStatsErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
-        }
-
-        val user = userRepository.findByUserName(userName).orElse(null)
-        if (user == null) {
-            log.debug("Mark tag as legacy failed: user not found: {}", userName)
-            return HttpResponse
-                .notFound<TagStatsErrorResponse>()
-                .body(TagStatsErrorResponse("User not found", "USER_NOT_FOUND"))
-        }
-
-        val userId = requireNotNull(user.id) { "User must have an ID" }
-
         // Check if already marked as legacy
-        val existing = legacyTagRepository.findByUserIdAndName(userId, request.tag)
+        val existing = legacyTagRepository.findByUserIdAndName(currentUser.id, request.tag)
         if (existing.isPresent) {
-            log.debug("Tag '{}' is already marked as legacy for user: {}", request.tag, userName)
+            log.debug("Tag '{}' is already marked as legacy for user: {}", request.tag, currentUser.user.userName)
             return HttpResponse.ok(LegacyTagResponse("Tag is already marked as legacy"))
         }
 
-        log.debug("Marking tag '{}' as legacy for user: {}", request.tag, userName)
+        log.debug("Marking tag '{}' as legacy for user: {}", request.tag, currentUser.user.userName)
 
         legacyTagRepository.save(
             LegacyTag(
-                userId = userId,
+                userId = currentUser.id,
                 name = request.tag,
             ),
         )
@@ -101,32 +65,14 @@ open class TagStatsResource(
     @Delete("/legacy")
     open fun unmarkTagAsLegacy(
         @Body request: LegacyTagRequest,
-        principal: Principal?,
+        currentUser: UserWithId,
     ): HttpResponse<*> {
-        val userName = principal?.name
-        if (userName == null) {
-            log.debug("Unmark tag as legacy failed: user not authenticated")
-            return HttpResponse
-                .unauthorized<TagStatsErrorResponse>()
-                .body(TagStatsErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
-        }
+        log.debug("Unmarking tag '{}' as legacy for user: {}", request.tag, currentUser.user.userName)
 
-        val user = userRepository.findByUserName(userName).orElse(null)
-        if (user == null) {
-            log.debug("Unmark tag as legacy failed: user not found: {}", userName)
-            return HttpResponse
-                .notFound<TagStatsErrorResponse>()
-                .body(TagStatsErrorResponse("User not found", "USER_NOT_FOUND"))
-        }
-
-        val userId = requireNotNull(user.id) { "User must have an ID" }
-
-        log.debug("Unmarking tag '{}' as legacy for user: {}", request.tag, userName)
-
-        val deletedCount = legacyTagRepository.deleteByUserIdAndName(userId, request.tag)
+        val deletedCount = legacyTagRepository.deleteByUserIdAndName(currentUser.id, request.tag)
 
         if (deletedCount == 0L) {
-            log.debug("Tag '{}' was not marked as legacy for user: {}", request.tag, userName)
+            log.debug("Tag '{}' was not marked as legacy for user: {}", request.tag, currentUser.user.userName)
         }
 
         return HttpResponse.ok(LegacyTagResponse("Tag unmarked as legacy successfully"))

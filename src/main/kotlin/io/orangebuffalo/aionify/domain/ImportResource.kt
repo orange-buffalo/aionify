@@ -32,27 +32,9 @@ open class ImportResource(
     open fun importTogglCsv(
         @io.micronaut.http.annotation.Part("file") csvContent: String,
         @io.micronaut.http.annotation.Part("metadata") metadata: ImportMetadata,
-        principal: Principal?,
+        currentUser: UserWithId,
     ): HttpResponse<*> {
-        val userName = principal?.name
-        if (userName == null) {
-            log.debug("Import failed: user not authenticated")
-            return HttpResponse
-                .unauthorized<ImportErrorResponse>()
-                .body(ImportErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
-        }
-
-        val user = userRepository.findByUserName(userName).orElse(null)
-        if (user == null) {
-            log.debug("Import failed: user not found: {}", userName)
-            return HttpResponse
-                .notFound<ImportErrorResponse>()
-                .body(ImportErrorResponse("User not found", "USER_NOT_FOUND"))
-        }
-
-        val userId = requireNotNull(user.id) { "User must have an ID" }
-
-        log.debug("Starting Toggl import for user: {}", userName)
+        log.debug("Starting Toggl import for user: {}", currentUser.user.userName)
 
         try {
             // Parse CSV and validate format
@@ -79,7 +61,7 @@ open class ImportResource(
                 // Check for duplicates by description and start time (epoch millis comparison)
                 val existing =
                     timeLogEntryRepository.findByOwnerIdAndTitleAndStartTime(
-                        userId,
+                        currentUser.id,
                         togglEntry.description,
                         startInstant,
                     )
@@ -91,7 +73,7 @@ open class ImportResource(
                             startTime = startInstant,
                             endTime = endInstant,
                             title = togglEntry.description,
-                            ownerId = userId,
+                            ownerId = currentUser.id,
                             tags = togglEntry.tags.toTypedArray(),
                         ),
                     )
@@ -103,7 +85,7 @@ open class ImportResource(
                 }
             }
 
-            log.info("Toggl import completed for user: {}, imported: {}, duplicates: {}", userName, importedCount, duplicateCount)
+            log.info("Toggl import completed for user: {}, imported: {}, duplicates: {}", currentUser.user.userName, importedCount, duplicateCount)
 
             return HttpResponse.ok(
                 ImportSuccessResponse(
@@ -112,12 +94,12 @@ open class ImportResource(
                 ),
             )
         } catch (e: InvalidCsvFormatException) {
-            log.debug("Import failed: invalid CSV format for user: {}", userName, e)
+            log.debug("Import failed: invalid CSV format for user: {}", currentUser.user.userName, e)
             return HttpResponse.badRequest(
                 ImportErrorResponse("Invalid CSV format", "INVALID_CSV_FORMAT"),
             )
         } catch (e: Exception) {
-            log.error("Import failed unexpectedly for user: {}", userName, e)
+            log.error("Import failed unexpectedly for user: {}", currentUser.user.userName, e)
             return HttpResponse.serverError(
                 ImportErrorResponse("Import failed", "IMPORT_FAILED"),
             )
