@@ -70,18 +70,30 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
                             totalDuration = "00:30:00",
                             entries =
                                 listOf(
-                                    // Grouped entry showing:
-                                    // - Earliest start: 02:30 (original completed entry)
-                                    // - Latest end: in progress (new active entry)
-                                    // - Total duration: 00:30:00 (only completed entry, active excluded)
-                                    // - Count: 2 (1 completed + 1 active)
                                     EntryState(
                                         title = "Previous Task",
-                                        timeRange = "02:30 - in progress", // Earliest to latest
-                                        duration = "00:30:00", // Sum of completed entries only
+                                        timeRange = "02:30 - in progress",
+                                        duration = "00:30:00",
                                         tags = listOf("completed"),
                                         isGrouped = true,
-                                        groupCount = 2, // 2 entries in the group
+                                        groupCount = 2,
+                                        groupedEntries =
+                                            listOf(
+                                                // New active entry (most recent, shown first)
+                                                EntryState(
+                                                    title = "Previous Task",
+                                                    timeRange = "03:30 - in progress",
+                                                    duration = "00:00:00",
+                                                    tags = listOf("completed"),
+                                                ),
+                                                // Original completed entry
+                                                EntryState(
+                                                    title = "Previous Task",
+                                                    timeRange = "02:30 - 03:00",
+                                                    duration = "00:30:00",
+                                                    tags = listOf("completed"),
+                                                ),
+                                            ),
                                     ),
                                 ),
                         ),
@@ -186,18 +198,30 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
                             totalDuration = "01:00:00", // Both completed entries
                             entries =
                                 listOf(
-                                    // Grouped "Completed Task" entries showing:
-                                    // - Earliest start: 01:30 (original completed entry)
-                                    // - Latest end: in progress (new active entry)
-                                    // - Total duration: 00:30:00 (only the original completed entry)
-                                    // - Count: 2 (1 original completed + 1 new active)
                                     EntryState(
                                         title = "Completed Task",
-                                        timeRange = "01:30 - in progress", // Earliest to latest
-                                        duration = "00:30:00", // Only completed entry duration
+                                        timeRange = "01:30 - in progress",
+                                        duration = "00:30:00",
                                         tags = listOf("completed"),
                                         isGrouped = true,
                                         groupCount = 2,
+                                        groupedEntries =
+                                            listOf(
+                                                // New active entry (most recent, shown first)
+                                                EntryState(
+                                                    title = "Completed Task",
+                                                    timeRange = "03:30 - in progress",
+                                                    duration = "00:00:00",
+                                                    tags = listOf("completed"),
+                                                ),
+                                                // Original completed entry
+                                                EntryState(
+                                                    title = "Completed Task",
+                                                    timeRange = "01:30 - 02:00",
+                                                    duration = "00:30:00",
+                                                    tags = listOf("completed"),
+                                                ),
+                                            ),
                                     ),
                                     // Previously active entry, now stopped
                                     EntryState(

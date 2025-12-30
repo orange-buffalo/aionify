@@ -477,7 +477,42 @@ class TimeLogsPageObject(
         // Assert burger menu is NOT visible on grouped entry
         assertThat(groupedEntryLocator.locator("[data-testid='entry-menu-button']")).not().isVisible()
 
-        // If expanded, assert the expanded entries
+        // If grouped entries are specified, verify them regardless of expansion state
+        // This allows us to verify the logical composition of the group even when collapsed
+        if (expectedGroupedEntry.groupedEntries.isNotEmpty()) {
+            // The grouped entries list documents what individual entries make up the group
+            // We verify the count matches
+            require(expectedGroupedEntry.groupedEntries.size == expectedGroupedEntry.groupCount) {
+                "groupedEntries size (${expectedGroupedEntry.groupedEntries.size}) must match groupCount (${expectedGroupedEntry.groupCount})"
+            }
+
+            // Verify the aggregate time range matches the individual entries
+            val earliestStart =
+                expectedGroupedEntry.groupedEntries
+                    .minByOrNull {
+                        it.timeRange.split(
+                            " - ",
+                        )[0]
+                    }?.timeRange
+                    ?.split(" - ")
+                    ?.get(0)
+            val latestEnd =
+                if (expectedGroupedEntry.groupedEntries.any { it.timeRange.contains("in progress") }) {
+                    "in progress"
+                } else {
+                    expectedGroupedEntry.groupedEntries
+                        .maxByOrNull { it.timeRange.split(" - ")[1] }
+                        ?.timeRange
+                        ?.split(" - ")
+                        ?.get(1)
+                }
+            val expectedAggregateTimeRange = "$earliestStart - $latestEnd"
+            require(expectedGroupedEntry.timeRange == expectedAggregateTimeRange) {
+                "Grouped entry timeRange (${expectedGroupedEntry.timeRange}) must match aggregate of individual entries ($expectedAggregateTimeRange)"
+            }
+        }
+
+        // If expanded, assert the expanded entries in the UI
         if (expectedGroupedEntry.isGroupExpanded) {
             val expandedContainer = groupedEntryLocator.locator("[data-testid='grouped-entries-expanded']")
             assertThat(expandedContainer).isVisible()
