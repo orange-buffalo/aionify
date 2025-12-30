@@ -7,6 +7,7 @@ import io.orangebuffalo.aionify.domain.ActivationToken
 import io.orangebuffalo.aionify.domain.LegacyTag
 import io.orangebuffalo.aionify.domain.TimeLogEntry
 import io.orangebuffalo.aionify.domain.User
+import io.orangebuffalo.aionify.domain.UserApiAccessToken
 import io.orangebuffalo.aionify.domain.UserSettings
 
 /**
@@ -45,6 +46,11 @@ interface GenericEntityRepository {
     fun save(entity: UserSettings): UserSettings
 
     /**
+     * Inserts/updates a UserApiAccessToken entity.
+     */
+    fun save(entity: UserApiAccessToken): UserApiAccessToken
+
+    /**
      * Updates a User entity.
      */
     fun update(entity: User): User
@@ -68,4 +74,9 @@ interface GenericEntityRepository {
      * Updates a UserSettings entity.
      */
     fun update(entity: UserSettings): UserSettings
+
+    /**
+     * Updates a UserApiAccessToken entity.
+     */
+    fun update(entity: UserApiAccessToken): UserApiAccessToken
 }

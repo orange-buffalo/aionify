@@ -164,7 +164,8 @@ abstract class PlaywrightTestBase {
             Browser
                 .NewContextOptions()
                 .setBaseURL(baseUrl)
-                .setTimezoneId("Pacific/Auckland"),
+                .setTimezoneId("Pacific/Auckland")
+                .setPermissions(listOf("clipboard-read", "clipboard-write")),
         )
 
     /**
