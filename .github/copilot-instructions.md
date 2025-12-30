@@ -152,6 +152,15 @@ Playwright tests should extend `PlaywrightTestBase` which provides:
   - ✅ GOOD: Use Playwright's built-in `assertThat(locator).containsText(arrayOf("item1", "item2"))`
   - Example: `val items = page.locator("[data-testid^='item-']"); assertThat(items).containsText(arrayOf("expected1", "expected2"))`
   - This pattern has auto-waiting behavior and catches implementation errors where extra items appear on the page
+- **CRITICAL: Always verify that elements that should NOT be visible are actually not visible**:
+  - When testing a state, verify both what SHOULD be visible AND what should NOT be visible
+  - Example: When testing "no token" state, verify generate button IS visible AND token input is NOT visible
+  - This prevents regressions where multiple states show at once
+- **CRITICAL: Always verify database state in addition to UI state where applicable**:
+  - After operations that modify the database (create, update, delete), verify the database state
+  - Wrap database queries in `testDatabaseSupport.inTransaction {}` for proper transaction handling
+  - Example: After clicking "Generate", verify token exists in database with correct properties
+  - This ensures UI changes are properly persisted and prevents UI-only bugs
 
 Example:
 ```kotlin

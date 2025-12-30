@@ -59,6 +59,20 @@ class ApiAccessTokenPlaywrightTest : PlaywrightTestBase() {
         val generateButton = page.locator("[data-testid='generate-api-token-button']")
         assertThat(generateButton).isVisible()
         assertThat(generateButton).containsText("Generate API Token")
+
+        // Verify token input is not visible (since no token exists)
+        val tokenInput = page.locator("[data-testid='api-token-input']")
+        assertThat(tokenInput).not().isVisible()
+
+        // Verify regenerate button is not visible (since no token exists)
+        val regenerateButton = page.locator("[data-testid='regenerate-api-token-button']")
+        assertThat(regenerateButton).not().isVisible()
+
+        // Verify show/copy buttons are not visible (since no token exists)
+        val showButton = page.locator("[data-testid='show-api-token-button']")
+        assertThat(showButton).not().isVisible()
+        val copyButton = page.locator("[data-testid='copy-api-token-button']")
+        assertThat(copyButton).not().isVisible()
     }
 
     @Test
@@ -89,6 +103,18 @@ class ApiAccessTokenPlaywrightTest : PlaywrightTestBase() {
         // Verify no token message is no longer visible
         val noTokenMessage = page.locator("[data-testid='api-token-no-token-message']")
         assertThat(noTokenMessage).not().isVisible()
+
+        // Verify generate button is no longer visible
+        assertThat(generateButton).not().isVisible()
+
+        // Verify database state - token was created
+        testDatabaseSupport.inTransaction {
+            val userId = requireNotNull(regularUser.id)
+            val token = userApiAccessTokenRepository.findByUserId(userId)
+            assert(token.isPresent) { "Token should exist in database after generation" }
+            assert(token.get().token.length == 50) { "Token should be 50 characters long" }
+            assert(token.get().token.matches(Regex("^[a-zA-Z0-9]+$"))) { "Token should be alphanumeric" }
+        }
     }
 
     @Test
@@ -120,6 +146,17 @@ class ApiAccessTokenPlaywrightTest : PlaywrightTestBase() {
         // Verify regenerate button is visible
         val regenerateButton = page.locator("[data-testid='regenerate-api-token-button']")
         assertThat(regenerateButton).isVisible()
+
+        // Verify elements that should not be visible when token exists
+        val noTokenMessage = page.locator("[data-testid='api-token-no-token-message']")
+        assertThat(noTokenMessage).not().isVisible()
+
+        val generateButton = page.locator("[data-testid='generate-api-token-button']")
+        assertThat(generateButton).not().isVisible()
+
+        // Copy button should not be visible yet (token is masked)
+        val copyButton = page.locator("[data-testid='copy-api-token-button']")
+        assertThat(copyButton).not().isVisible()
     }
 
     @Test
@@ -241,6 +278,16 @@ class ApiAccessTokenPlaywrightTest : PlaywrightTestBase() {
         // Verify the new token has correct length (50 characters)
         assert(newTokenValue.length == 50) {
             "Token should be 50 characters but is ${newTokenValue.length}"
+        }
+
+        // Verify database state - token was updated
+        testDatabaseSupport.inTransaction {
+            val token = userApiAccessTokenRepository.findByUserId(userId)
+            assert(token.isPresent) { "Token should still exist in database" }
+            assert(token.get().token == newTokenValue) { "Token in database should match UI value" }
+            assert(token.get().token != oldToken) { "Token in database should be different from old token" }
+            assert(token.get().token.length == 50) { "Token should be 50 characters long" }
+            assert(token.get().token.matches(Regex("^[a-zA-Z0-9]+$"))) { "Token should be alphanumeric" }
         }
     }
 
