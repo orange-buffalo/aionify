@@ -32,7 +32,7 @@ export function EditUserPage() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { executeApiCall, apiCallInProgress, formMessage } = useApiExecutor();
+  const { executeApiCall, apiCallInProgress, formMessage, setSuccessMessage } = useApiExecutor("edit-user");
 
   const [user, setUser] = useState<UserDetail | null>(null);
   const [userName, setUserName] = useState("");
@@ -54,8 +54,7 @@ export function EditUserPage() {
       // Check if we have a success message from session storage (e.g., after creating a user)
       const userCreated = sessionStorage.getItem("userCreated");
       if (userCreated) {
-        // We'll need to handle this differently since success is managed by the hook
-        // For now, we can just remove it from session storage
+        setSuccessMessage(t("portal.admin.users.create.createSuccess"));
         sessionStorage.removeItem("userCreated");
       }
     };

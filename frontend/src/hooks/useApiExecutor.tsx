@@ -6,9 +6,11 @@ import { FormMessage } from "@/components/ui/form-message";
  * Hook for managing API call state and execution.
  * Handles loading state, error handling, and success messages automatically.
  *
+ * @param testIdPrefix - Optional prefix for test IDs (e.g., "api-token" will generate "api-token-error" and "api-token-success")
+ *
  * @example
  * ```tsx
- * const { executeApiCall, apiCallInProgress, formMessage } = useApiExecutor();
+ * const { executeApiCall, apiCallInProgress, formMessage } = useApiExecutor("api-token");
  *
  * const handleSave = async () => {
  *   await executeApiCall(async () => {
@@ -27,7 +29,7 @@ import { FormMessage } from "@/components/ui/form-message";
  *
  * @example With factory function for cleaner syntax:
  * ```tsx
- * const { createApiCallExecutor, apiCallInProgress, formMessage } = useApiExecutor();
+ * const { createApiCallExecutor, apiCallInProgress, formMessage } = useApiExecutor("api-token");
  *
  * const handleSave = createApiCallExecutor(async () => {
  *   await apiPut("/api/users/profile", { greeting });
@@ -35,7 +37,7 @@ import { FormMessage } from "@/components/ui/form-message";
  * });
  * ```
  */
-export function useApiExecutor() {
+export function useApiExecutor(testIdPrefix?: string) {
   const { t } = useTranslation();
   const [apiCallInProgress, setApiCallInProgress] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -94,12 +96,42 @@ export function useApiExecutor() {
   }, []);
 
   /**
+   * Set a success message programmatically
+   */
+  const setSuccessMessage = useCallback((message: string) => {
+    setError(null);
+    setSuccess(message);
+  }, []);
+
+  /**
+   * Set an error message programmatically
+   */
+  const setErrorMessage = useCallback((message: string) => {
+    setSuccess(null);
+    setError(message);
+  }, []);
+
+  /**
    * FormMessage component with managed state
    */
   const formMessage = (
     <>
-      {error && <FormMessage type="error" message={error} onClose={clearMessages} />}
-      {success && <FormMessage type="success" message={success} onClose={clearMessages} />}
+      {error && (
+        <FormMessage
+          type="error"
+          message={error}
+          testId={testIdPrefix ? `${testIdPrefix}-error` : undefined}
+          onClose={clearMessages}
+        />
+      )}
+      {success && (
+        <FormMessage
+          type="success"
+          message={success}
+          testId={testIdPrefix ? `${testIdPrefix}-success` : undefined}
+          onClose={clearMessages}
+        />
+      )}
     </>
   );
 
@@ -109,5 +141,7 @@ export function useApiExecutor() {
     apiCallInProgress,
     formMessage,
     clearMessages,
+    setSuccessMessage,
+    setErrorMessage,
   };
 }

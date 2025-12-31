@@ -14,7 +14,7 @@ interface ChangePasswordResponse {
 
 export function ChangePasswordPanel() {
   const { t } = useTranslation();
-  const { executeApiCall, apiCallInProgress, formMessage } = useApiExecutor();
+  const { executeApiCall, apiCallInProgress, formMessage } = useApiExecutor("change-password");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

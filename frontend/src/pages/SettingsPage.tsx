@@ -35,7 +35,7 @@ export function SettingsPage() {
     executeApiCall: executePreferencesCall,
     apiCallInProgress: preferencesInProgress,
     formMessage: preferencesFormMessage,
-  } = useApiExecutor();
+  } = useApiExecutor("preferences");
   const [tags, setTags] = useState<TagStat[]>([]);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);

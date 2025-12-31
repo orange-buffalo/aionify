@@ -65,7 +65,7 @@ function formatDateTimeExample(locale: string): string {
 
 export function ProfilePanel() {
   const { t, i18n } = useTranslation();
-  const { executeApiCall, apiCallInProgress, formMessage } = useApiExecutor();
+  const { executeApiCall, apiCallInProgress, formMessage, setSuccessMessage } = useApiExecutor("profile");
   const [greeting, setGreeting] = useState("");
   const [locale, setLocale] = useState("");
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
@@ -124,8 +124,12 @@ export function ProfilePanel() {
 
       // Update user language preference and apply changes
       await initializeLanguage(language);
+    });
 
-      return t("profile.profile.updateSuccess");
+    // Need to wait for React to re-render with new language
+    // Use requestAnimationFrame to ensure we're after the next paint
+    requestAnimationFrame(() => {
+      setSuccessMessage(t("profile.profile.updateSuccess"));
     });
   };
 

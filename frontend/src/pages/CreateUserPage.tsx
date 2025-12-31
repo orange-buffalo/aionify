@@ -25,7 +25,7 @@ interface CreateUserResponse {
 export function CreateUserPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { executeApiCall, apiCallInProgress, formMessage } = useApiExecutor();
+  const { executeApiCall, apiCallInProgress, formMessage } = useApiExecutor("create-user");
 
   const [userName, setUserName] = useState("");
   const [greeting, setGreeting] = useState("");

@@ -18,7 +18,7 @@ interface ApiTokenData {
 
 export function ApiAccessTokenPanel() {
   const { t } = useTranslation();
-  const { executeApiCall, apiCallInProgress, formMessage } = useApiExecutor();
+  const { executeApiCall, apiCallInProgress, formMessage } = useApiExecutor("api-token");
   const [tokenExists, setTokenExists] = useState(false);
   const [tokenValue, setTokenValue] = useState<string | null>(null);
   const [isTokenVisible, setIsTokenVisible] = useState(false);
