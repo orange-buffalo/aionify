@@ -11,13 +11,14 @@ import org.junit.jupiter.api.Test
 class TimeLogsContinueTest : TimeLogsPageTestBase() {
     @Test
     fun `should continue with an existing entry`() {
-        // Create a completed entry
+        // Create a completed entry with a specific tag to avoid grouping with the new entry
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(3600),
                 endTime = FIXED_TEST_TIME.minusSeconds(1800),
                 title = "Previous Task",
                 ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("completed"),
             ),
         )
 
@@ -39,6 +40,7 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
                                         title = "Previous Task",
                                         timeRange = "02:30 - 03:00",
                                         duration = "00:30:00",
+                                        tags = listOf("completed"),
                                     ),
                                 ),
                         ),
@@ -49,8 +51,9 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
         // Click continue button
         timeLogsPage.clickContinueForEntry("Previous Task")
 
-        // Verify the entry is started immediately with the same title
-        // Note: The new active entry appears in the day groups, plus the previous completed entry
+        // Verify the entry is started immediately with the same title and tags
+        // Note: With grouping enabled, the new active entry and the completed entry
+        // will be grouped together since they have the same title and tags
         val activeState =
             TimeLogsPageState(
                 currentEntry =
@@ -64,20 +67,33 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
                     listOf(
                         DayGroupState(
                             displayTitle = "Today",
-                            totalDuration = "00:30:00", // Total includes both entries
+                            totalDuration = "00:30:00",
                             entries =
                                 listOf(
-                                    // New active entry appears first (most recent)
                                     EntryState(
                                         title = "Previous Task",
-                                        timeRange = "03:30 - in progress", // Started at FIXED_TEST_TIME (backend time)
-                                        duration = "00:00:00",
-                                    ),
-                                    // Original completed entry
-                                    EntryState(
-                                        title = "Previous Task",
-                                        timeRange = "02:30 - 03:00",
+                                        timeRange = "02:30 - in progress",
                                         duration = "00:30:00",
+                                        tags = listOf("completed"),
+                                        isGrouped = true,
+                                        groupCount = 2,
+                                        groupedEntries =
+                                            listOf(
+                                                // New active entry (most recent, shown first)
+                                                EntryState(
+                                                    title = "Previous Task",
+                                                    timeRange = "03:30 - in progress",
+                                                    duration = "00:00:00",
+                                                    tags = listOf("completed"),
+                                                ),
+                                                // Original completed entry
+                                                EntryState(
+                                                    title = "Previous Task",
+                                                    timeRange = "02:30 - 03:00",
+                                                    duration = "00:30:00",
+                                                    tags = listOf("completed"),
+                                                ),
+                                            ),
                                     ),
                                 ),
                         ),
@@ -96,17 +112,18 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should start from existing entry when active entry exists by stopping active entry first`() {
-        // Create a completed entry
+        // Create a completed entry with tags to prevent grouping with the new active entry
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(7200), // 2 hours ago (12:30)
                 endTime = FIXED_TEST_TIME.minusSeconds(5400), // 1.5 hours ago (13:00)
                 title = "Completed Task",
                 ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("completed"),
             ),
         )
 
-        // Create an active entry
+        // Create an active entry with different tags to avoid grouping
         val previouslyActiveEntry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
@@ -114,6 +131,7 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
                     endTime = null,
                     title = "Currently Active Task",
                     ownerId = requireNotNull(testUser.id),
+                    tags = arrayOf("active"),
                 ),
             )
 
@@ -140,11 +158,13 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
                                         title = "Currently Active Task",
                                         timeRange = "03:00 - in progress",
                                         duration = "00:30:00",
+                                        tags = listOf("active"),
                                     ),
                                     EntryState(
                                         title = "Completed Task",
                                         timeRange = "01:30 - 02:00",
                                         duration = "00:30:00",
+                                        tags = listOf("completed"),
                                     ),
                                 ),
                         ),
@@ -152,15 +172,16 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
             )
         timeLogsPage.assertPageState(initialState)
 
-        // Click start button on the completed entry
+        // Click continue button on the completed entry
         // This should:
         // 1. Stop the currently active entry
-        // 2. Start a new entry with the completed entry's title
+        // 2. Start a new entry with the completed entry's title and tags
         timeLogsPage.clickContinueForEntry("Completed Task")
 
         // Verify the new state:
         // - The previously active entry should now be stopped
-        // - A new active entry with "Completed Task" title should be started
+        // - A new active entry with "Completed Task" title and tags should be started
+        // - The new active entry and original completed entry will be grouped (same title and tags)
         val newState =
             TimeLogsPageState(
                 currentEntry =
@@ -174,26 +195,40 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
                     listOf(
                         DayGroupState(
                             displayTitle = "Today",
-                            totalDuration = "01:00:00", // All entries combined
+                            totalDuration = "01:00:00", // Both completed entries
                             entries =
                                 listOf(
-                                    // New active entry (most recent)
                                     EntryState(
                                         title = "Completed Task",
-                                        timeRange = "03:30 - in progress", // Started at FIXED_TEST_TIME (backend time)
-                                        duration = "00:00:00",
+                                        timeRange = "01:30 - in progress",
+                                        duration = "00:30:00",
+                                        tags = listOf("completed"),
+                                        isGrouped = true,
+                                        groupCount = 2,
+                                        groupedEntries =
+                                            listOf(
+                                                // New active entry (most recent, shown first)
+                                                EntryState(
+                                                    title = "Completed Task",
+                                                    timeRange = "03:30 - in progress",
+                                                    duration = "00:00:00",
+                                                    tags = listOf("completed"),
+                                                ),
+                                                // Original completed entry
+                                                EntryState(
+                                                    title = "Completed Task",
+                                                    timeRange = "01:30 - 02:00",
+                                                    duration = "00:30:00",
+                                                    tags = listOf("completed"),
+                                                ),
+                                            ),
                                     ),
                                     // Previously active entry, now stopped
                                     EntryState(
                                         title = "Currently Active Task",
-                                        timeRange = "03:00 - 03:30", // Stopped at FIXED_TEST_TIME (backend time)
+                                        timeRange = "03:00 - 03:30",
                                         duration = "00:30:00",
-                                    ),
-                                    // Original completed entry
-                                    EntryState(
-                                        title = "Completed Task",
-                                        timeRange = "01:30 - 02:00",
-                                        duration = "00:30:00",
+                                        tags = listOf("active"),
                                     ),
                                 ),
                         ),
