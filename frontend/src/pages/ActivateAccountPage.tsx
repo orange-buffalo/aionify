@@ -48,7 +48,9 @@ export function ActivateAccountPage() {
     // Validate the token on page load
     const validateToken = async () => {
       try {
-        const data = await apiGet<ValidateTokenResponse>(`/api-ui/activation/validate?token=${encodeURIComponent(token)}`);
+        const data = await apiGet<ValidateTokenResponse>(
+          `/api-ui/activation/validate?token=${encodeURIComponent(token)}`
+        );
 
         if (data.valid) {
           setIsValid(true);
