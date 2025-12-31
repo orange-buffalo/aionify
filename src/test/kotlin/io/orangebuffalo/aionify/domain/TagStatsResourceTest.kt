@@ -65,7 +65,7 @@ class TagStatsResourceTest {
         val exception =
             assertThrows(HttpClientResponseException::class.java) {
                 client.toBlocking().exchange(
-                    HttpRequest.GET<Any>("/api/tags/stats"),
+                    HttpRequest.GET<Any>("/api-ui/tags/stats"),
                     String::class.java,
                 )
             }
@@ -102,7 +102,7 @@ class TagStatsResourceTest {
         val response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .GET<Any>("/api/tags/stats")
+                    .GET<Any>("/api-ui/tags/stats")
                     .bearerAuth(user1Token),
                 TagStatsResponse::class.java,
             )
@@ -132,7 +132,7 @@ class TagStatsResourceTest {
         val response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .GET<Any>("/api/tags/stats")
+                    .GET<Any>("/api-ui/tags/stats")
                     .bearerAuth(user1Token),
                 TagStatsResponse::class.java,
             )
@@ -162,7 +162,7 @@ class TagStatsResourceTest {
         val response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .GET<Any>("/api/tags/stats")
+                    .GET<Any>("/api-ui/tags/stats")
                     .bearerAuth(user1Token),
                 TagStatsResponse::class.java,
             )
@@ -212,7 +212,7 @@ class TagStatsResourceTest {
         val response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .GET<Any>("/api/tags/stats")
+                    .GET<Any>("/api-ui/tags/stats")
                     .bearerAuth(user1Token),
                 TagStatsResponse::class.java,
             )
@@ -291,7 +291,7 @@ class TagStatsResourceTest {
         val response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .GET<Any>("/api/tags/stats")
+                    .GET<Any>("/api-ui/tags/stats")
                     .bearerAuth(user1Token),
                 TagStatsResponse::class.java,
             )
@@ -333,7 +333,7 @@ class TagStatsResourceTest {
         val response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .GET<Any>("/api/tags/stats")
+                    .GET<Any>("/api-ui/tags/stats")
                     .bearerAuth(user1Token),
                 TagStatsResponse::class.java,
             )
@@ -365,7 +365,7 @@ class TagStatsResourceTest {
         val response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .GET<Any>("/api/tags/stats")
+                    .GET<Any>("/api-ui/tags/stats")
                     .bearerAuth(user1Token),
                 TagStatsResponse::class.java,
             )
@@ -399,7 +399,7 @@ class TagStatsResourceTest {
         val response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .GET<Any>("/api/tags/stats")
+                    .GET<Any>("/api-ui/tags/stats")
                     .bearerAuth(user1Token),
                 TagStatsResponse::class.java,
             )
@@ -418,7 +418,7 @@ class TagStatsResourceTest {
         val exception =
             assertThrows(HttpClientResponseException::class.java) {
                 client.toBlocking().exchange(
-                    HttpRequest.POST("/api/tags/legacy", LegacyTagRequest("kotlin")),
+                    HttpRequest.POST("/api-ui/tags/legacy", LegacyTagRequest("kotlin")),
                     String::class.java,
                 )
             }
@@ -433,7 +433,7 @@ class TagStatsResourceTest {
         val exception =
             assertThrows(HttpClientResponseException::class.java) {
                 client.toBlocking().exchange(
-                    HttpRequest.DELETE("/api/tags/legacy", LegacyTagRequest("kotlin")),
+                    HttpRequest.DELETE("/api-ui/tags/legacy", LegacyTagRequest("kotlin")),
                     String::class.java,
                 )
             }
@@ -479,7 +479,7 @@ class TagStatsResourceTest {
         val response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .GET<Any>("/api/tags/stats")
+                    .GET<Any>("/api-ui/tags/stats")
                     .bearerAuth(user1Token),
                 TagStatsResponse::class.java,
             )
@@ -522,7 +522,7 @@ class TagStatsResourceTest {
         val markResponse =
             client.toBlocking().exchange(
                 HttpRequest
-                    .POST("/api/tags/legacy", LegacyTagRequest("kotlin"))
+                    .POST("/api-ui/tags/legacy", LegacyTagRequest("kotlin"))
                     .bearerAuth(user1Token),
                 LegacyTagResponse::class.java,
             )
@@ -533,7 +533,7 @@ class TagStatsResourceTest {
         val user1Response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .GET<Any>("/api/tags/stats")
+                    .GET<Any>("/api-ui/tags/stats")
                     .bearerAuth(user1Token),
                 TagStatsResponse::class.java,
             )
@@ -547,7 +547,7 @@ class TagStatsResourceTest {
         val user2Response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .GET<Any>("/api/tags/stats")
+                    .GET<Any>("/api-ui/tags/stats")
                     .bearerAuth(user2Token),
                 TagStatsResponse::class.java,
             )
@@ -602,7 +602,7 @@ class TagStatsResourceTest {
         val unmarkResponse =
             client.toBlocking().exchange(
                 HttpRequest
-                    .DELETE("/api/tags/legacy", LegacyTagRequest("kotlin"))
+                    .DELETE("/api-ui/tags/legacy", LegacyTagRequest("kotlin"))
                     .bearerAuth(user1Token),
                 LegacyTagResponse::class.java,
             )
@@ -613,7 +613,7 @@ class TagStatsResourceTest {
         val user1Response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .GET<Any>("/api/tags/stats")
+                    .GET<Any>("/api-ui/tags/stats")
                     .bearerAuth(user1Token),
                 TagStatsResponse::class.java,
             )
@@ -627,7 +627,7 @@ class TagStatsResourceTest {
         val user2Response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .GET<Any>("/api/tags/stats")
+                    .GET<Any>("/api-ui/tags/stats")
                     .bearerAuth(user2Token),
                 TagStatsResponse::class.java,
             )
@@ -664,7 +664,7 @@ class TagStatsResourceTest {
         val markResponse =
             client.toBlocking().exchange(
                 HttpRequest
-                    .POST("/api/tags/legacy", LegacyTagRequest("kotlin"))
+                    .POST("/api-ui/tags/legacy", LegacyTagRequest("kotlin"))
                     .bearerAuth(user1Token),
                 LegacyTagResponse::class.java,
             )
@@ -696,7 +696,7 @@ class TagStatsResourceTest {
         val unmarkResponse =
             client.toBlocking().exchange(
                 HttpRequest
-                    .DELETE("/api/tags/legacy", LegacyTagRequest("kotlin"))
+                    .DELETE("/api-ui/tags/legacy", LegacyTagRequest("kotlin"))
                     .bearerAuth(user1Token),
                 LegacyTagResponse::class.java,
             )

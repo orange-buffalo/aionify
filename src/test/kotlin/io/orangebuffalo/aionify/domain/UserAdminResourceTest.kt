@@ -81,7 +81,7 @@ class UserAdminResourceTest {
             assertThrows(HttpClientResponseException::class.java) {
                 client.toBlocking().exchange(
                     HttpRequest
-                        .GET<Any>("/api/admin/users")
+                        .GET<Any>("/api-ui/admin/users")
                         .bearerAuth(regularUserToken),
                     String::class.java,
                 )
@@ -100,7 +100,7 @@ class UserAdminResourceTest {
         val response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .GET<Any>("/api/admin/users")
+                    .GET<Any>("/api-ui/admin/users")
                     .bearerAuth(adminToken),
                 UsersListResponse::class.java,
             )
@@ -116,7 +116,7 @@ class UserAdminResourceTest {
         val exception =
             assertThrows(HttpClientResponseException::class.java) {
                 client.toBlocking().exchange(
-                    HttpRequest.GET<Any>("/api/admin/users"),
+                    HttpRequest.GET<Any>("/api-ui/admin/users"),
                     String::class.java,
                 )
             }
@@ -136,7 +136,7 @@ class UserAdminResourceTest {
             assertThrows(HttpClientResponseException::class.java) {
                 client.toBlocking().exchange(
                     HttpRequest
-                        .DELETE<Any>("/api/admin/users/$adminId")
+                        .DELETE<Any>("/api-ui/admin/users/$adminId")
                         .bearerAuth(adminToken),
                     String::class.java,
                 )
@@ -162,7 +162,7 @@ class UserAdminResourceTest {
         val response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .DELETE<Any>("/api/admin/users/$userToDeleteId")
+                    .DELETE<Any>("/api-ui/admin/users/$userToDeleteId")
                     .bearerAuth(adminToken),
                 String::class.java,
             )
@@ -185,7 +185,7 @@ class UserAdminResourceTest {
             assertThrows(HttpClientResponseException::class.java) {
                 client.toBlocking().exchange(
                     HttpRequest
-                        .DELETE<Any>("/api/admin/users/$userToDeleteId")
+                        .DELETE<Any>("/api-ui/admin/users/$userToDeleteId")
                         .bearerAuth(regularUserToken),
                     String::class.java,
                 )
@@ -206,7 +206,7 @@ class UserAdminResourceTest {
             assertThrows(HttpClientResponseException::class.java) {
                 client.toBlocking().exchange(
                     HttpRequest
-                        .GET<Any>("/api/admin/users/$userId")
+                        .GET<Any>("/api-ui/admin/users/$userId")
                         .bearerAuth(regularUserToken),
                     String::class.java,
                 )
@@ -226,7 +226,7 @@ class UserAdminResourceTest {
         val response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .GET<Any>("/api/admin/users/$userId")
+                    .GET<Any>("/api-ui/admin/users/$userId")
                     .bearerAuth(adminToken),
                 String::class.java,
             )
@@ -246,7 +246,7 @@ class UserAdminResourceTest {
             assertThrows(HttpClientResponseException::class.java) {
                 client.toBlocking().exchange(
                     HttpRequest
-                        .PUT("/api/admin/users/$userId", mapOf("userName" to "newname"))
+                        .PUT("/api-ui/admin/users/$userId", mapOf("userName" to "newname"))
                         .bearerAuth(regularUserToken),
                     String::class.java,
                 )
@@ -266,7 +266,7 @@ class UserAdminResourceTest {
         val response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .PUT("/api/admin/users/$userId", mapOf("userName" to "updateduser"))
+                    .PUT("/api-ui/admin/users/$userId", mapOf("userName" to "updateduser"))
                     .bearerAuth(adminToken),
                 String::class.java,
             )
@@ -290,7 +290,7 @@ class UserAdminResourceTest {
             assertThrows(HttpClientResponseException::class.java) {
                 client.toBlocking().exchange(
                     HttpRequest
-                        .POST("/api/admin/users/$userId/regenerate-activation-token", emptyMap<String, Any>())
+                        .POST("/api-ui/admin/users/$userId/regenerate-activation-token", emptyMap<String, Any>())
                         .bearerAuth(regularUserToken),
                     String::class.java,
                 )
@@ -310,7 +310,7 @@ class UserAdminResourceTest {
         val response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .POST("/api/admin/users/$userId/regenerate-activation-token", emptyMap<String, Any>())
+                    .POST("/api-ui/admin/users/$userId/regenerate-activation-token", emptyMap<String, Any>())
                     .bearerAuth(adminToken),
                 String::class.java,
             )
@@ -330,7 +330,7 @@ class UserAdminResourceTest {
                 client.toBlocking().exchange(
                     HttpRequest
                         .POST(
-                            "/api/admin/users",
+                            "/api-ui/admin/users",
                             mapOf(
                                 "userName" to "newuser",
                                 "greeting" to "New User",
@@ -355,7 +355,7 @@ class UserAdminResourceTest {
             client.toBlocking().exchange(
                 HttpRequest
                     .POST(
-                        "/api/admin/users",
+                        "/api-ui/admin/users",
                         mapOf(
                             "userName" to "newuser",
                             "greeting" to "New User",
@@ -382,7 +382,7 @@ class UserAdminResourceTest {
             assertThrows(HttpClientResponseException::class.java) {
                 client.toBlocking().exchange(
                     HttpRequest.POST(
-                        "/api/admin/users",
+                        "/api-ui/admin/users",
                         mapOf(
                             "userName" to "newuser",
                             "greeting" to "New User",
