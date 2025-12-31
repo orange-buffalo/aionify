@@ -61,6 +61,15 @@ class ApiRateLimitingService(
         log.trace("API rate limit: Cleared all attempts for IP {}", ipAddress)
     }
 
+    /**
+     * Clears all failed attempts for all IP addresses.
+     * Useful for testing scenarios.
+     */
+    fun clearAllAttempts() {
+        attempts.clear()
+        log.trace("API rate limit: Cleared all attempts for all IPs")
+    }
+
     private fun cleanupOldAttempts(ipAddress: String) {
         val cutoff = timeService.now().minus(BLOCK_DURATION_MINUTES, ChronoUnit.MINUTES)
         attempts.computeIfPresent(ipAddress) { _, list ->

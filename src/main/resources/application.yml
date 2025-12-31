@@ -43,11 +43,6 @@ micronaut:
   openapi:
     enabled: true
 
-endpoints:
-  openapi:
-    path: /api/schema
-    enabled: true
-
 datasources:
   default:
     url: ${AIONIFY_DB_URL:`jdbc:postgresql://localhost:5432/aionify`}

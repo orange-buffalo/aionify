@@ -74,7 +74,7 @@ class ApiAuthenticationTest {
         )
 
         // Clear any existing rate limit state
-        apiRateLimitingService.clearAttempts("127.0.0.1")
+        apiRateLimitingService.clearAllAttempts()
     }
 
     @Test
@@ -215,9 +215,11 @@ class ApiAuthenticationTest {
         // Then: Request succeeds
         assertEquals(HttpStatus.OK, response.status)
 
-        // And: Response is not empty (actual OpenAPI schema content may vary)
+        // And: Response contains OpenAPI schema (not SPA HTML)
         assertNotNull(response.body())
-        assertTrue(response.body()!!.isNotEmpty())
+        val body = response.body()!!
+        assertTrue(body.contains("openapi"), "Response should contain 'openapi' field")
+        assertFalse(body.contains("<!DOCTYPE html>"), "Response should not be HTML/SPA")
     }
 
     @Test
