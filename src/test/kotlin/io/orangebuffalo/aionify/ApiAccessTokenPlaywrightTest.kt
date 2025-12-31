@@ -1,6 +1,8 @@
 package io.orangebuffalo.aionify
 
+import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
+import com.microsoft.playwright.options.AriaRole
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserApiAccessToken
@@ -345,5 +347,122 @@ class ApiAccessTokenPlaywrightTest : PlaywrightTestBase() {
 
         val tokenInput2 = page.locator("[data-testid='api-token-input']")
         assertThat(tokenInput2).hasValue(token2)
+    }
+
+    @Test
+    fun `should delete API token when clicking delete button and confirming`() {
+        // Create API token for user
+        val userId = requireNotNull(regularUser.id)
+        val testToken = "test1234567890abcdefghijklmnopqrstuvwxyz12345678"
+        testDatabaseSupport.insert(
+            UserApiAccessToken(
+                userId = userId,
+                token = testToken,
+            ),
+        )
+
+        navigateToSettingsViaToken()
+
+        // Wait for loading to complete
+        val apiTokenLoading = page.locator("[data-testid='api-token-loading']")
+        assertThat(apiTokenLoading).not().isVisible()
+
+        // Verify token input and delete button are visible
+        val tokenInput = page.locator("[data-testid='api-token-input']")
+        assertThat(tokenInput).isVisible()
+        val deleteButton = page.locator("[data-testid='delete-api-token-button']")
+        assertThat(deleteButton).isVisible()
+
+        // Click delete button
+        deleteButton.click()
+
+        // Verify confirmation dialog appears - use role selector to be specific
+        val dialogTitle = page.getByRole(AriaRole.HEADING, Page.GetByRoleOptions().setName("Delete API Token"))
+        assertThat(dialogTitle).isVisible()
+
+        // Verify dialog message is visible
+        val dialogMessage = page.locator("text=Are you sure you want to delete your API access token?")
+        assertThat(dialogMessage).isVisible()
+
+        // Click confirm button
+        val confirmButton = page.locator("[data-testid='confirm-delete-api-token-button']")
+        confirmButton.click()
+
+        // Verify success message appears
+        val successMessage = page.locator("[data-testid='api-token-success']")
+        assertThat(successMessage).isVisible()
+        assertThat(successMessage).containsText("API token deleted successfully")
+
+        // Verify UI now shows "no token" state
+        val noTokenMessage = page.locator("[data-testid='api-token-no-token-message']")
+        assertThat(noTokenMessage).isVisible()
+
+        val generateButton = page.locator("[data-testid='generate-api-token-button']")
+        assertThat(generateButton).isVisible()
+
+        // Verify token input is not visible
+        assertThat(tokenInput).not().isVisible()
+
+        // Verify delete button is not visible
+        assertThat(deleteButton).not().isVisible()
+
+        // Verify database state - token was deleted
+        testDatabaseSupport.inTransaction {
+            val token = userApiAccessTokenRepository.findByUserId(userId)
+            assert(!token.isPresent) { "Token should not exist in database after deletion" }
+        }
+    }
+
+    @Test
+    fun `should cancel delete operation when clicking cancel in dialog`() {
+        // Create API token for user
+        val userId = requireNotNull(regularUser.id)
+        val testToken = "test1234567890abcdefghijklmnopqrstuvwxyz12345678"
+        testDatabaseSupport.insert(
+            UserApiAccessToken(
+                userId = userId,
+                token = testToken,
+            ),
+        )
+
+        navigateToSettingsViaToken()
+
+        // Wait for loading to complete
+        val apiTokenLoading = page.locator("[data-testid='api-token-loading']")
+        assertThat(apiTokenLoading).not().isVisible()
+
+        // Click delete button
+        val deleteButton = page.locator("[data-testid='delete-api-token-button']")
+        deleteButton.click()
+
+        // Verify confirmation dialog appears - use role selector to be specific
+        val dialogTitle = page.getByRole(AriaRole.HEADING, Page.GetByRoleOptions().setName("Delete API Token"))
+        assertThat(dialogTitle).isVisible()
+
+        // Click cancel button
+        val cancelButton = page.locator("[data-testid='cancel-delete-api-token-button']")
+        cancelButton.click()
+
+        // Verify dialog is closed
+        assertThat(dialogTitle).not().isVisible()
+
+        // Verify token still exists in UI
+        val tokenInput = page.locator("[data-testid='api-token-input']")
+        assertThat(tokenInput).isVisible()
+        assertThat(tokenInput).hasValue("••••••••••••••••••••••••••••••••")
+
+        // Verify delete button is still visible
+        assertThat(deleteButton).isVisible()
+
+        // Verify no success message appears
+        val successMessage = page.locator("[data-testid='api-token-success']")
+        assertThat(successMessage).not().isVisible()
+
+        // Verify database state - token still exists
+        testDatabaseSupport.inTransaction {
+            val token = userApiAccessTokenRepository.findByUserId(userId)
+            assert(token.isPresent) { "Token should still exist in database after cancel" }
+            assert(token.get().token == testToken) { "Token should not have changed" }
+        }
     }
 }
