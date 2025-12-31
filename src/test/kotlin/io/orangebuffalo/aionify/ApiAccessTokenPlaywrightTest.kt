@@ -95,6 +95,8 @@ class ApiAccessTokenPlaywrightTest : PlaywrightTestBase() {
         // Verify token input and regenerate button are now visible
         val tokenInput = page.locator("[data-testid='api-token-input']")
         assertThat(tokenInput).isVisible()
+        // Wait for the token input to show the masked value, indicating the state has fully updated
+        assertThat(tokenInput).hasValue("••••••••••••••••••••••••••••••••")
 
         val regenerateButton = page.locator("[data-testid='regenerate-api-token-button']")
         assertThat(regenerateButton).isVisible()
@@ -268,6 +270,11 @@ class ApiAccessTokenPlaywrightTest : PlaywrightTestBase() {
 
         // Show the new token to verify it changed
         showButton.click()
+
+        // Wait for the token value to be loaded from the API (it should no longer be masked)
+        // This ensures the async API call completes before we read the token value
+        assertThat(tokenInput).not().hasValue("••••••••••••••••••••••••••••••••")
+
         val newTokenValue = tokenInput.inputValue()
 
         // Verify the token has been regenerated (it should be different from old token)
