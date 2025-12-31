@@ -168,7 +168,7 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         // Verify title IS shown for detailed entries (changed from hideTitle=true to false)
         assertThat(expandedEntries.first().locator("[data-testid='entry-title']")).isVisible()
         assertThat(expandedEntries.first().locator("[data-testid='entry-title']")).containsText("Code Review")
-        
+
         // Verify tags are NOT shown for detailed entries
         assertThat(expandedEntries.first().locator("[data-testid='entry-tags']")).not().isVisible()
 
