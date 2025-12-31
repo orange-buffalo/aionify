@@ -46,6 +46,10 @@ function hasSignificantOverlap(start1: string, end1: string | null, start2: stri
  * Detects overlaps for entries within a day group.
  * Returns a map of entry IDs to their overlaps.
  *
+ * Note: If an entry overlaps with multiple entries, only the first overlap
+ * found is stored and reported to the user. This keeps the UI simple and
+ * still alerts users to potential recording mistakes.
+ *
  * @param entries All entries in the day group
  * @returns Map from entry ID to overlap information
  */

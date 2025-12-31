@@ -12,9 +12,9 @@ class TimeLogsOverlapDemoTest : TimeLogsPageTestBase() {
     @Test
     fun `demonstrate overlap warning feature`() {
         // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30 NZDT
-        
+
         // Create three entries with various overlaps to show the feature
-        
+
         // Entry 1: 01:00 - 02:30 (1h 30min)
         testDatabaseSupport.insert(
             TimeLogEntry(
@@ -24,7 +24,7 @@ class TimeLogsOverlapDemoTest : TimeLogsPageTestBase() {
                 ownerId = requireNotNull(testUser.id),
             ),
         )
-        
+
         // Entry 2: 02:00 - 03:00 (1h) - overlaps with Entry 1 from 02:00 to 02:30 (30min)
         testDatabaseSupport.insert(
             TimeLogEntry(
@@ -34,7 +34,7 @@ class TimeLogsOverlapDemoTest : TimeLogsPageTestBase() {
                 ownerId = requireNotNull(testUser.id),
             ),
         )
-        
+
         // Entry 3: 02:15 - 03:15 (1h) - overlaps with Entry 2
         testDatabaseSupport.insert(
             TimeLogEntry(
@@ -49,13 +49,15 @@ class TimeLogsOverlapDemoTest : TimeLogsPageTestBase() {
 
         // Wait for page to load
         assertThat(page.locator("[data-testid='day-group']")).isVisible()
-        
+
         // Take a screenshot showing the overlap warnings
         page.screenshot(
             com.microsoft.playwright.Page
                 .ScreenshotOptions()
-                .setPath(java.nio.file.Paths.get("build/overlap-demo-screenshot.png"))
-                .setFullPage(true),
+                .setPath(
+                    java.nio.file.Paths
+                        .get("build/overlap-demo-screenshot.png"),
+                ).setFullPage(true),
         )
     }
 }
