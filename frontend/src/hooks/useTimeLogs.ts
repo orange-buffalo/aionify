@@ -366,18 +366,6 @@ export function useTimeLogs() {
     loadUserProfile();
   }, []);
 
-  // Check for date changes periodically (every minute) to auto-update week
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const currentWeekStart = getWeekStart(new Date(), startOfWeek);
-      if (currentWeekStart.getTime() !== weekStart.getTime()) {
-        setWeekStart(currentWeekStart);
-      }
-    }, 60000);
-
-    return () => clearInterval(interval);
-  }, [weekStart, startOfWeek]);
-
   // Auto-refresh active entry timer every second
   useEffect(() => {
     if (!activeEntry) {
