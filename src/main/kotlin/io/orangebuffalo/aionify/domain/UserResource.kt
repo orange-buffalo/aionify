@@ -151,14 +151,6 @@ open class UserResource(
 
     @Delete("/api-token")
     open fun deleteApiToken(currentUser: UserWithId): HttpResponse<*> {
-        val existingToken = userApiAccessTokenRepository.findByUserId(currentUser.id).orElse(null)
-        if (existingToken == null) {
-            log.debug("Delete API token failed: token not found for user: {}", currentUser.user.userName)
-            return HttpResponse
-                .notFound<ApiTokenErrorResponse>()
-                .body(ApiTokenErrorResponse("API token not found", "API_TOKEN_NOT_FOUND"))
-        }
-
         userApiAccessTokenRepository.deleteByUserId(currentUser.id)
         log.info("API token deleted for user: {}", currentUser.user.userName)
 

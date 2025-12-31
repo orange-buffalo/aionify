@@ -69,14 +69,15 @@ export function ApiAccessTokenPanel() {
 
   const handleDeleteToken = async () => {
     setShowDeleteDialog(false);
-    setTokenValue(null);
-    setIsTokenVisible(false);
 
     await executeApiCall(async () => {
       await apiRequest("/api-ui/users/api-token", {
         method: "DELETE",
       });
+      // Only update state after successful API call
       setTokenExists(false);
+      setTokenValue(null);
+      setIsTokenVisible(false);
       return t("settings.apiToken.deleteSuccess");
     });
   };
