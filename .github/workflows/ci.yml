@@ -85,12 +85,19 @@ jobs:
           echo $! > thread-dump-collector.pid
           echo "Thread dump collector started with PID: $(cat thread-dump-collector.pid)"
 
-      - name: Build, test and push Docker image
+      - name: Run tests and checks
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: |
+          ./gradlew check \
+            --console=plain
+
+      - name: Build and push native Docker image
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
           DOCKER_IMAGE_TAG: ${{ steps.prepare-tag.outputs.tag }}
         run: |
-          ./gradlew check dockerBuildNative dockerPushNative \
+          ./gradlew dockerBuildNative dockerPushNative \
             --console=plain
 
       - name: Stop thread dump collection
