@@ -133,7 +133,7 @@ abstract class PlaywrightTestBase {
 
         // Add request/response logging for AJAX debugging
         _page.onRequest { request ->
-            if (request.url().contains("/api/")) {
+            if (request.url().contains("/api-ui/")) {
                 log.debug("[REQUEST] ${request.method()} ${request.url()}")
                 if (request.postData() != null) {
                     log.debug("[REQUEST BODY] ${request.postData()}")
@@ -142,7 +142,7 @@ abstract class PlaywrightTestBase {
         }
 
         _page.onResponse { response ->
-            if (response.url().contains("/api/")) {
+            if (response.url().contains("/api-ui/")) {
                 log.debug("[RESPONSE] ${response.status()} ${response.url()}")
                 try {
                     val body = response.text()

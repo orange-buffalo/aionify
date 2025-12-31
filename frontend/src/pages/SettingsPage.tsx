@@ -44,7 +44,7 @@ export function SettingsPage() {
 
   const loadTags = async () => {
     await executeTagsCall(async () => {
-      const data = await apiGet<TagStatsResponse>("/api/tags/stats");
+      const data = await apiGet<TagStatsResponse>("/api-ui/tags/stats");
       // Defensive check: Handle edge case where API might return empty object
       // This can happen if serialization fails or in certain error scenarios
       // Better to show empty list than crash with "Cannot read properties of undefined"
@@ -60,7 +60,7 @@ export function SettingsPage() {
     setActionInProgress(tag);
 
     await executeTagsCall(async () => {
-      await apiPost("/api/tags/legacy", { tag });
+      await apiPost("/api-ui/tags/legacy", { tag });
       await loadTags();
     });
 
@@ -71,7 +71,7 @@ export function SettingsPage() {
     setActionInProgress(tag);
 
     await executeTagsCall(async () => {
-      await apiRequest("/api/tags/legacy", {
+      await apiRequest("/api-ui/tags/legacy", {
         method: "DELETE",
         body: JSON.stringify({ tag }),
       });
@@ -82,13 +82,13 @@ export function SettingsPage() {
   };
 
   const loadPreferences = async () => {
-    const profile = await apiGet<{ startOfWeek: string }>("/api/users/profile");
+    const profile = await apiGet<{ startOfWeek: string }>("/api-ui/users/profile");
     setStartOfWeek(profile.startOfWeek);
   };
 
   const handleSavePreferences = async () => {
     await executePreferencesCall(async () => {
-      await apiPut("/api/users/settings", { startOfWeek });
+      await apiPut("/api-ui/users/settings", { startOfWeek });
       return t("settings.preferences.updateSuccess");
     });
   };

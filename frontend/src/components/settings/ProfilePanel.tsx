@@ -81,7 +81,7 @@ export function ProfilePanel() {
   useEffect(() => {
     const loadProfile = async () => {
       await executeApiCall(async () => {
-        const data = await apiGet<ProfileResponse>("/api/users/profile");
+        const data = await apiGet<ProfileResponse>("/api-ui/users/profile");
         setGreeting(data.greeting);
         setLocale(data.locale);
       });
@@ -109,7 +109,7 @@ export function ProfilePanel() {
     }
 
     await executeApiCall(async () => {
-      await apiPut<ProfileUpdateResponse>("/api/users/profile", {
+      await apiPut<ProfileUpdateResponse>("/api-ui/users/profile", {
         greeting,
         locale,
       });

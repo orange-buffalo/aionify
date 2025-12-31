@@ -14,7 +14,7 @@ import { FormMessage } from "@/components/ui/form-message";
  *
  * const handleSave = async () => {
  *   await executeApiCall(async () => {
- *     await apiPut("/api/users/profile", { greeting });
+ *     await apiPut("/api-ui/users/profile", { greeting });
  *     return t("profile.updateSuccess");
  *   });
  * };
@@ -32,7 +32,7 @@ import { FormMessage } from "@/components/ui/form-message";
  * const { createApiCallExecutor, apiCallInProgress, formMessage } = useApiExecutor("api-token");
  *
  * const handleSave = createApiCallExecutor(async () => {
- *   await apiPut("/api/users/profile", { greeting });
+ *   await apiPut("/api-ui/users/profile", { greeting });
  *   return t("profile.updateSuccess");
  * });
  * ```

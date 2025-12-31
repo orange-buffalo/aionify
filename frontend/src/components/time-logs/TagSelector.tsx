@@ -44,7 +44,7 @@ export function TagSelector({
 
       try {
         setLoading(true);
-        const response = await apiGet<{ tags: TagStat[] }>("/api/tags/stats");
+        const response = await apiGet<{ tags: TagStat[] }>("/api-ui/tags/stats");
 
         // Filter out legacy tags and extract tag names
         const nonLegacyTags = (response.tags || []).filter((stat) => !stat.isLegacy).map((stat) => stat.tag);

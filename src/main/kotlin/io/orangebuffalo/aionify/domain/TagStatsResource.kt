@@ -13,7 +13,7 @@ import io.micronaut.serde.annotation.Serdeable
 import jakarta.transaction.Transactional
 import java.security.Principal
 
-@Controller("/api/tags")
+@Controller("/api-ui/tags")
 @Secured(SecurityRule.IS_AUTHENTICATED)
 @Transactional
 open class TagStatsResource(

@@ -84,7 +84,7 @@ class TimeLogEntryResourceTest {
         val exception =
             assertThrows(HttpClientResponseException::class.java) {
                 client.toBlocking().exchange(
-                    HttpRequest.GET<Any>("/api/time-log-entries?startTime=2024-01-15T00:00:00Z&endTime=2024-01-22T00:00:00Z"),
+                    HttpRequest.GET<Any>("/api-ui/time-log-entries?startTime=2024-01-15T00:00:00Z&endTime=2024-01-22T00:00:00Z"),
                     String::class.java,
                 )
             }
@@ -99,7 +99,7 @@ class TimeLogEntryResourceTest {
         val exception =
             assertThrows(HttpClientResponseException::class.java) {
                 client.toBlocking().exchange(
-                    HttpRequest.GET<Any>("/api/time-log-entries/active"),
+                    HttpRequest.GET<Any>("/api-ui/time-log-entries/active"),
                     String::class.java,
                 )
             }
@@ -114,7 +114,7 @@ class TimeLogEntryResourceTest {
         val exception =
             assertThrows(HttpClientResponseException::class.java) {
                 client.toBlocking().exchange(
-                    HttpRequest.POST("/api/time-log-entries", mapOf("title" to "Test Task")),
+                    HttpRequest.POST("/api-ui/time-log-entries", mapOf("title" to "Test Task")),
                     String::class.java,
                 )
             }
@@ -132,7 +132,7 @@ class TimeLogEntryResourceTest {
         val response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .GET<Any>("/api/time-log-entries?startTime=2024-01-15T00:00:00Z&endTime=2024-01-22T00:00:00Z")
+                    .GET<Any>("/api-ui/time-log-entries?startTime=2024-01-15T00:00:00Z&endTime=2024-01-22T00:00:00Z")
                     .bearerAuth(user1Token),
                 TimeLogEntriesResponse::class.java,
             )
@@ -155,7 +155,7 @@ class TimeLogEntryResourceTest {
             assertThrows(HttpClientResponseException::class.java) {
                 client.toBlocking().exchange(
                     HttpRequest
-                        .PUT("/api/time-log-entries/${user2Entry.id}/stop", emptyMap<String, Any>())
+                        .PUT("/api-ui/time-log-entries/${user2Entry.id}/stop", emptyMap<String, Any>())
                         .bearerAuth(user1Token),
                     String::class.java,
                 )
@@ -175,7 +175,7 @@ class TimeLogEntryResourceTest {
             assertThrows(HttpClientResponseException::class.java) {
                 client.toBlocking().exchange(
                     HttpRequest
-                        .DELETE<Any>("/api/time-log-entries/${user2Entry.id}")
+                        .DELETE<Any>("/api-ui/time-log-entries/${user2Entry.id}")
                         .bearerAuth(user1Token),
                     String::class.java,
                 )
@@ -198,7 +198,7 @@ class TimeLogEntryResourceTest {
         val response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .PUT("/api/time-log-entries/${user2Entry.id}/stop", emptyMap<String, Any>())
+                    .PUT("/api-ui/time-log-entries/${user2Entry.id}/stop", emptyMap<String, Any>())
                     .bearerAuth(user2Token),
                 TimeLogEntryDto::class.java,
             )
@@ -219,7 +219,7 @@ class TimeLogEntryResourceTest {
         val response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .DELETE<Any>("/api/time-log-entries/${user1Entry.id}")
+                    .DELETE<Any>("/api-ui/time-log-entries/${user1Entry.id}")
                     .bearerAuth(user1Token),
                 String::class.java,
             )
@@ -241,7 +241,7 @@ class TimeLogEntryResourceTest {
         val response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .GET<Any>("/api/time-log-entries/active")
+                    .GET<Any>("/api-ui/time-log-entries/active")
                     .bearerAuth(user2Token),
                 ActiveLogEntryResponse::class.java,
             )
@@ -263,7 +263,7 @@ class TimeLogEntryResourceTest {
         val response =
             client.toBlocking().exchange(
                 HttpRequest
-                    .GET<Any>("/api/time-log-entries/active")
+                    .GET<Any>("/api-ui/time-log-entries/active")
                     .bearerAuth(user1Token),
                 ActiveLogEntryResponse::class.java,
             )

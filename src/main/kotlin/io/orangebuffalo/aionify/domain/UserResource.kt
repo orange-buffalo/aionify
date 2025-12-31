@@ -17,7 +17,7 @@ import jakarta.validation.constraints.Size
 import java.security.Principal
 import java.util.Locale
 
-@Controller("/api/users")
+@Controller("/api-ui/users")
 @Secured(SecurityRule.IS_AUTHENTICATED)
 @Transactional
 open class UserResource(

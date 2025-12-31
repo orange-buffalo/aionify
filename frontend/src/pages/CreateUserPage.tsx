@@ -56,7 +56,7 @@ export function CreateUserPage() {
     }
 
     await executeApiCall(async () => {
-      const response = await apiPost<CreateUserResponse>("/api/admin/users", {
+      const response = await apiPost<CreateUserResponse>("/api-ui/admin/users", {
         userName: userName.trim(),
         greeting: greeting.trim(),
         isAdmin: userType === "admin",

@@ -24,14 +24,14 @@ micronaut:
           access-token:
             expiration: 86400  # 24 hours in seconds
     intercept-url-map:
-      - pattern: /api/auth/login
+      - pattern: /api-ui/auth/login
         http-method: POST
         access:
           - isAnonymous()
-      - pattern: /api/activation/**
+      - pattern: /api-ui/activation/**
         access:
           - isAnonymous()
-      - pattern: /api/**
+      - pattern: /api-ui/**
         access:
           - isAuthenticated()
       - pattern: /**

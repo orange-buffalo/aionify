@@ -41,7 +41,7 @@ export function EditUserPage() {
 
   const loadUser = async () => {
     await executeApiCall(async () => {
-      const data = await apiGet<UserDetail>(`/api/admin/users/${id}`);
+      const data = await apiGet<UserDetail>(`/api-ui/admin/users/${id}`);
       setUser(data);
       setUserName(data.userName);
     });
@@ -77,12 +77,12 @@ export function EditUserPage() {
     }
 
     await executeApiCall(async () => {
-      await apiPut(`/api/admin/users/${id}`, {
+      await apiPut(`/api-ui/admin/users/${id}`, {
         userName: userName,
       });
 
       // Reload user to get updated data
-      const data = await apiGet<UserDetail>(`/api/admin/users/${id}`);
+      const data = await apiGet<UserDetail>(`/api-ui/admin/users/${id}`);
       setUser(data);
       setUserName(data.userName);
 
@@ -92,10 +92,10 @@ export function EditUserPage() {
 
   const handleRegenerateToken = async () => {
     await executeApiCall(async () => {
-      await apiPost<ActivationTokenResponse>(`/api/admin/users/${id}/regenerate-activation-token`, {});
+      await apiPost<ActivationTokenResponse>(`/api-ui/admin/users/${id}/regenerate-activation-token`, {});
 
       // Reload user to get updated activation token
-      const data = await apiGet<UserDetail>(`/api/admin/users/${id}`);
+      const data = await apiGet<UserDetail>(`/api-ui/admin/users/${id}`);
       setUser(data);
 
       return t("portal.admin.users.edit.tokenRegenerated");

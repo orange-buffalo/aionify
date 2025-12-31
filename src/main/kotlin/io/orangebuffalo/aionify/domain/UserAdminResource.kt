@@ -19,7 +19,7 @@ import jakarta.validation.constraints.Size
 import java.security.Principal
 import java.time.Instant
 
-@Controller("/api/admin/users")
+@Controller("/api-ui/admin/users")
 @Secured("admin")
 @Transactional
 open class UserAdminResource(

@@ -20,7 +20,7 @@ import jakarta.validation.constraints.Size
 import java.security.Principal
 import java.time.Instant
 
-@Controller("/api/time-log-entries")
+@Controller("/api-ui/time-log-entries")
 @Secured(SecurityRule.IS_AUTHENTICATED)
 @Transactional
 open class TimeLogEntryResource(

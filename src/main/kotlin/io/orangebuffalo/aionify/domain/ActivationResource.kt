@@ -17,7 +17,7 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
-@Controller("/api/activation")
+@Controller("/api-ui/activation")
 @Secured(SecurityRule.IS_ANONYMOUS)
 @Transactional
 open class ActivationResource(

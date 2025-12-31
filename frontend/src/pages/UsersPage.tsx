@@ -69,7 +69,7 @@ export function UsersPage() {
     setSuccessMessage(null);
 
     try {
-      const data = await apiGet<UsersListResponse>(`/api/admin/users?page=${page}&size=${size}`);
+      const data = await apiGet<UsersListResponse>(`/api-ui/admin/users?page=${page}&size=${size}`);
       setUsers(data.users);
       setTotal(data.total);
     } catch (err) {
@@ -85,7 +85,7 @@ export function UsersPage() {
 
   const handleDelete = async (userId: number) => {
     try {
-      await apiRequest(`/api/admin/users/${userId}`, {
+      await apiRequest(`/api-ui/admin/users/${userId}`, {
         method: "DELETE",
       });
 

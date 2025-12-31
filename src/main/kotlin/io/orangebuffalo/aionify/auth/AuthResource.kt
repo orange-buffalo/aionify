@@ -13,7 +13,7 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import java.security.Principal
 
-@Controller("/api/auth")
+@Controller("/api-ui/auth")
 open class AuthResource(
     private val authService: AuthService,
 ) {
