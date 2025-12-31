@@ -40,6 +40,8 @@ micronaut:
       - pattern: /**
         access:
           - isAnonymous()
+  openapi:
+    enabled: true
 
 endpoints:
   openapi:
