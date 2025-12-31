@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Play } from "lucide-react";
 import { formatTime } from "@/lib/date-format";
 import { calculateDuration, formatDuration } from "@/lib/time-utils";
+import type { EntryOverlap } from "@/lib/overlap-detection";
 import type { GroupedTimeLogEntry, TimeLogEntry } from "@/components/time-logs/types";
 import { TimeEntry } from "./TimeEntry";
 
@@ -19,6 +20,7 @@ interface GroupedTimeEntryProps {
   onEdit: (entry: TimeLogEntry) => void;
   onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string, tags: string[]) => Promise<void>;
   onCancelEdit: () => void;
+  overlaps: Map<number, EntryOverlap>;
 }
 
 export function GroupedTimeEntry({
@@ -32,6 +34,7 @@ export function GroupedTimeEntry({
   onEdit,
   onSaveEdit,
   onCancelEdit,
+  overlaps,
 }: GroupedTimeEntryProps) {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -135,24 +138,28 @@ export function GroupedTimeEntry({
       {/* Expanded entries */}
       {isExpanded && (
         <div className="ml-8 mt-2 space-y-2" data-testid="grouped-entries-expanded">
-          {groupedEntry.entries.map((entry) => (
-            <TimeEntry
-              key={`${entry.id}-${entry.startTime}`}
-              entry={entry}
-              locale={locale}
-              startOfWeek={startOfWeek}
-              isEditing={editingEntryId === entry.id}
-              isSaving={isSaving}
-              onContinue={onContinue}
-              onDelete={onDelete}
-              onEdit={onEdit}
-              onSaveEdit={onSaveEdit}
-              onCancelEdit={onCancelEdit}
-              hideTitle={false}
-              hideTags={true}
-              hideContinue={true}
-            />
-          ))}
+          {groupedEntry.entries.map((entry) => {
+            const overlap = overlaps.get(entry.id);
+            return (
+              <TimeEntry
+                key={`${entry.id}-${entry.startTime}`}
+                entry={entry}
+                locale={locale}
+                startOfWeek={startOfWeek}
+                isEditing={editingEntryId === entry.id}
+                isSaving={isSaving}
+                onContinue={onContinue}
+                onDelete={onDelete}
+                onEdit={onEdit}
+                onSaveEdit={onSaveEdit}
+                onCancelEdit={onCancelEdit}
+                hideTitle={false}
+                hideTags={true}
+                hideContinue={true}
+                overlap={overlap}
+              />
+            );
+          })}
         </div>
       )}
     </div>

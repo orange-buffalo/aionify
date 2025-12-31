@@ -145,6 +145,8 @@ data class EntryState(
     val continueButtonVisible: Boolean = true,
     val menuButtonVisible: Boolean = true,
     val hasDifferentDayWarning: Boolean = false,
+    val hasOverlapWarning: Boolean = false,
+    val overlappingEntryTitle: String? = null,
     val isGrouped: Boolean = false,
     val groupCount: Int? = null,
     val isGroupExpanded: Boolean = false,
@@ -411,11 +413,19 @@ class TimeLogsPageObject(
                 }
 
                 // Assert different day warning icon visibility
-                val warningIcon = entryElement.locator("[data-testid='different-day-warning']")
+                val differentDayWarningIcon = entryElement.locator("[data-testid='different-day-warning']")
                 if (entry.hasDifferentDayWarning) {
-                    assertThat(warningIcon).isVisible()
+                    assertThat(differentDayWarningIcon).isVisible()
                 } else {
-                    assertThat(warningIcon).not().isVisible()
+                    assertThat(differentDayWarningIcon).not().isVisible()
+                }
+
+                // Assert overlap warning icon visibility
+                val overlapWarningIcon = entryElement.locator("[data-testid='overlap-warning']")
+                if (entry.hasOverlapWarning) {
+                    assertThat(overlapWarningIcon).isVisible()
+                } else {
+                    assertThat(overlapWarningIcon).not().isVisible()
                 }
             }
         }
