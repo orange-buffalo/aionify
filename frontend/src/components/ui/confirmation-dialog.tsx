@@ -17,7 +17,7 @@ interface ConfirmationDialogProps {
   children?: React.ReactNode;
   confirmLabel: string;
   cancelLabel: string;
-  onConfirm: () => void | Promise<void>;
+  onConfirm: () => Promise<void> | void;
   confirmVariant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   isConfirming?: boolean;
   confirmTestId?: string;
@@ -40,6 +40,16 @@ export function ConfirmationDialog({
   cancelTestId,
   dialogTestId,
 }: ConfirmationDialogProps) {
+  const handleConfirm = async () => {
+    try {
+      await onConfirm();
+    } catch (error) {
+      // Error handling is expected to be done by the caller
+      // Re-throw to allow the caller to handle it
+      throw error;
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent data-testid={dialogTestId}>
@@ -58,7 +68,7 @@ export function ConfirmationDialog({
           >
             {cancelLabel}
           </Button>
-          <Button variant={confirmVariant} onClick={onConfirm} disabled={isConfirming} data-testid={confirmTestId}>
+          <Button variant={confirmVariant} onClick={handleConfirm} disabled={isConfirming} data-testid={confirmTestId}>
             {confirmLabel}
           </Button>
         </DialogFooter>
