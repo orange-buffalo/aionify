@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, Loader2 } from "lucide-react";
 import { apiGet, apiPut } from "@/lib/api";
-import { initializeLanguage, translateErrorCode } from "@/lib/i18n";
+import i18n, { initializeLanguage, translateErrorCode } from "@/lib/i18n";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
 
 // Standard locales (BCP 47 language tags with region)
@@ -126,11 +126,9 @@ export function ProfilePanel() {
       await initializeLanguage(language);
     });
 
-    // Need to wait for React to re-render with new language
-    // Use requestAnimationFrame to ensure we're after the next paint
-    requestAnimationFrame(() => {
-      setSuccessMessage(t("profile.profile.updateSuccess"));
-    });
+    // Use i18n.t() directly to get the translation in the NEW language
+    // The useTranslation hook's t function might not have updated yet
+    setSuccessMessage(i18n.t("profile.profile.updateSuccess"));
   };
 
   return (
