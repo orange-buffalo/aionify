@@ -4,6 +4,7 @@ import io.micronaut.core.annotation.Introspected
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
+import io.micronaut.http.annotation.Delete
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
 import io.micronaut.http.annotation.Put
@@ -146,6 +147,22 @@ open class UserResource(
         log.info("API token regenerated for user: {}", currentUser.user.userName)
 
         return HttpResponse.ok(ApiTokenSuccessResponse("API token regenerated successfully"))
+    }
+
+    @Delete("/api-token")
+    open fun deleteApiToken(currentUser: UserWithId): HttpResponse<*> {
+        val existingToken = userApiAccessTokenRepository.findByUserId(currentUser.id).orElse(null)
+        if (existingToken == null) {
+            log.debug("Delete API token failed: token not found for user: {}", currentUser.user.userName)
+            return HttpResponse
+                .notFound<ApiTokenErrorResponse>()
+                .body(ApiTokenErrorResponse("API token not found", "API_TOKEN_NOT_FOUND"))
+        }
+
+        userApiAccessTokenRepository.deleteByUserId(currentUser.id)
+        log.info("API token deleted for user: {}", currentUser.user.userName)
+
+        return HttpResponse.ok(ApiTokenSuccessResponse("API token deleted successfully"))
     }
 
     private fun generateRandomToken(): String {

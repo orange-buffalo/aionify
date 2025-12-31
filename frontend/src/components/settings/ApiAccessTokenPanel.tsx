@@ -4,9 +4,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { apiGet, apiPost, apiPut } from "@/lib/api";
+import { apiGet, apiPost, apiPut, apiRequest } from "@/lib/api";
 import { Eye, Copy } from "lucide-react";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ApiTokenStatus {
   exists: boolean;
@@ -23,6 +31,7 @@ export function ApiAccessTokenPanel() {
   const [tokenValue, setTokenValue] = useState<string | null>(null);
   const [isTokenVisible, setIsTokenVisible] = useState(false);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const loadTokenStatus = async () => {
     await executeApiCall(async () => {
@@ -55,6 +64,20 @@ export function ApiAccessTokenPanel() {
     await executeApiCall(async () => {
       await apiPut("/api-ui/users/api-token", {});
       return t("settings.apiToken.regenerateSuccess");
+    });
+  };
+
+  const handleDeleteToken = async () => {
+    setShowDeleteDialog(false);
+    setTokenValue(null);
+    setIsTokenVisible(false);
+
+    await executeApiCall(async () => {
+      await apiRequest("/api-ui/users/api-token", {
+        method: "DELETE",
+      });
+      setTokenExists(false);
+      return t("settings.apiToken.deleteSuccess");
     });
   };
 
@@ -147,19 +170,58 @@ export function ApiAccessTokenPanel() {
                     )}
                   </div>
                 </div>
-                <Button
-                  onClick={handleRegenerateToken}
-                  disabled={apiCallInProgress}
-                  data-testid="regenerate-api-token-button"
-                  className="bg-teal-600 hover:bg-teal-700"
-                >
-                  {apiCallInProgress ? t("settings.apiToken.regenerating") : t("settings.apiToken.regenerate")}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleRegenerateToken}
+                    disabled={apiCallInProgress}
+                    data-testid="regenerate-api-token-button"
+                    className="bg-teal-600 hover:bg-teal-700"
+                  >
+                    {apiCallInProgress ? t("settings.apiToken.regenerating") : t("settings.apiToken.regenerate")}
+                  </Button>
+                  <Button
+                    onClick={() => setShowDeleteDialog(true)}
+                    disabled={apiCallInProgress}
+                    data-testid="delete-api-token-button"
+                    variant="destructive"
+                  >
+                    {t("settings.apiToken.delete")}
+                  </Button>
+                </div>
               </div>
             )}
           </>
         )}
       </CardContent>
+
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="text-foreground">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">{t("settings.apiToken.deleteConfirm.title")}</DialogTitle>
+            <DialogDescription className="text-foreground">
+              {t("settings.apiToken.deleteConfirm.message")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              data-testid="cancel-delete-api-token-button"
+              className="text-foreground"
+            >
+              {t("settings.apiToken.deleteConfirm.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteToken}
+              disabled={apiCallInProgress}
+              data-testid="confirm-delete-api-token-button"
+            >
+              {apiCallInProgress ? t("settings.apiToken.deleting") : t("settings.apiToken.deleteConfirm.confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
