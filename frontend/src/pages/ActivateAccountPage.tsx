@@ -48,7 +48,7 @@ export function ActivateAccountPage() {
     // Validate the token on page load
     const validateToken = async () => {
       try {
-        const data = await apiGet<ValidateTokenResponse>(`/api/activation/validate?token=${encodeURIComponent(token)}`);
+        const data = await apiGet<ValidateTokenResponse>(`/api-ui/activation/validate?token=${encodeURIComponent(token)}`);
 
         if (data.valid) {
           setIsValid(true);
@@ -88,7 +88,7 @@ export function ActivateAccountPage() {
     setLoading(true);
 
     try {
-      await apiPost<SetPasswordResponse>("/api/activation/set-password", {
+      await apiPost<SetPasswordResponse>("/api-ui/activation/set-password", {
         token: token!,
         password,
       });

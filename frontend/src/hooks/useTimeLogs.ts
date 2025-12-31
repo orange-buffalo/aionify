@@ -108,7 +108,7 @@ export function useTimeLogs() {
       const endTimeStr = weekEndTime.toISOString();
 
       const response = await apiGet<{ entries: TimeLogEntry[] }>(
-        `/api/time-log-entries?startTime=${encodeURIComponent(startTimeStr)}&endTime=${encodeURIComponent(endTimeStr)}`
+        `/api-ui/time-log-entries?startTime=${encodeURIComponent(startTimeStr)}&endTime=${encodeURIComponent(endTimeStr)}`
       );
 
       setEntries(response.entries || []);
@@ -122,7 +122,7 @@ export function useTimeLogs() {
   // Load active entry
   async function loadActiveEntry() {
     try {
-      const response = await apiGet<{ entry: TimeLogEntry | null }>("/api/time-log-entries/active");
+      const response = await apiGet<{ entry: TimeLogEntry | null }>("/api-ui/time-log-entries/active");
       setActiveEntry(response.entry);
     } catch (err: any) {
       console.error("Failed to load active entry:", err);
@@ -135,7 +135,7 @@ export function useTimeLogs() {
       setIsStarting(true);
       setError(null);
 
-      const entry = await apiPost<TimeEntry>("/api/time-log-entries", { title, tags });
+      const entry = await apiPost<TimeEntry>("/api-ui/time-log-entries", { title, tags });
 
       setActiveEntry(entry);
       setSuccess(t("timeLogs.success.started"));
@@ -161,7 +161,7 @@ export function useTimeLogs() {
       setIsStopping(true);
       setError(null);
 
-      await apiPut(`/api/time-log-entries/${activeEntry.id}/stop`, {});
+      await apiPut(`/api-ui/time-log-entries/${activeEntry.id}/stop`, {});
 
       setActiveEntry(null);
       setActiveDuration(0);
@@ -184,7 +184,7 @@ export function useTimeLogs() {
       setIsStarting(true);
       setError(null);
 
-      const newEntry = await apiPost<TimeEntry>("/api/time-log-entries", {
+      const newEntry = await apiPost<TimeEntry>("/api-ui/time-log-entries", {
         title: entry.title,
         tags: entry.tags,
         stopActiveEntry: true,
@@ -218,7 +218,7 @@ export function useTimeLogs() {
       setIsDeleting(true);
       setError(null);
 
-      await apiDelete(`/api/time-log-entries/${entryToDelete.id}`);
+      await apiDelete(`/api-ui/time-log-entries/${entryToDelete.id}`);
 
       setIsDeleting(false);
       setDeleteDialogOpen(false);
@@ -248,7 +248,7 @@ export function useTimeLogs() {
       setIsSaving(true);
       setError(null);
 
-      const updatedEntry = await apiPut<TimeEntry>(`/api/time-log-entries/${activeEntry.id}`, {
+      const updatedEntry = await apiPut<TimeEntry>(`/api-ui/time-log-entries/${activeEntry.id}`, {
         title,
         startTime: startTimeISO,
         tags,
@@ -299,7 +299,7 @@ export function useTimeLogs() {
       setIsSaving(true);
       setError(null);
 
-      await apiPut<TimeEntry>(`/api/time-log-entries/${entry.id}`, {
+      await apiPut<TimeEntry>(`/api-ui/time-log-entries/${entry.id}`, {
         title,
         startTime: startTimeISO,
         endTime: endTimeISO,
@@ -356,7 +356,7 @@ export function useTimeLogs() {
   // Load user's locale and settings on mount
   useEffect(() => {
     async function loadUserProfile() {
-      const profile = await apiGet<{ locale: string; startOfWeek: string }>("/api/users/profile");
+      const profile = await apiGet<{ locale: string; startOfWeek: string }>("/api-ui/users/profile");
       setUserLocale(profile.locale);
       const startOfWeekNum = weekDayToNumber(profile.startOfWeek);
       setStartOfWeek(startOfWeekNum);

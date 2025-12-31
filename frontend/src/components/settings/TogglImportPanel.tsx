@@ -54,7 +54,7 @@ export function TogglImportPanel() {
 
       // Use fetch directly for multipart
       const token = localStorage.getItem("aionify_token");
-      const response = await fetch("/api/import/toggl", {
+      const response = await fetch("/api-ui/import/toggl", {
         method: "POST",
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),

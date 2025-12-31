@@ -26,7 +26,7 @@ export function ApiAccessTokenPanel() {
 
   const loadTokenStatus = async () => {
     await executeApiCall(async () => {
-      const data = await apiGet<ApiTokenStatus>("/api/users/api-token/status");
+      const data = await apiGet<ApiTokenStatus>("/api-ui/users/api-token/status");
       setTokenExists(data.exists);
     });
     setInitialDataLoaded(true);
@@ -34,7 +34,7 @@ export function ApiAccessTokenPanel() {
 
   const loadTokenValue = async () => {
     await executeApiCall(async () => {
-      const data = await apiGet<ApiTokenData>("/api/users/api-token");
+      const data = await apiGet<ApiTokenData>("/api-ui/users/api-token");
       setTokenValue(data.token);
       setIsTokenVisible(true);
     });
@@ -42,7 +42,7 @@ export function ApiAccessTokenPanel() {
 
   const handleGenerateToken = async () => {
     await executeApiCall(async () => {
-      await apiPost("/api/users/api-token", {});
+      await apiPost("/api-ui/users/api-token", {});
       setTokenExists(true);
       return t("settings.apiToken.generateSuccess");
     });
@@ -53,7 +53,7 @@ export function ApiAccessTokenPanel() {
     setIsTokenVisible(false);
 
     await executeApiCall(async () => {
-      await apiPut("/api/users/api-token", {});
+      await apiPut("/api-ui/users/api-token", {});
       return t("settings.apiToken.regenerateSuccess");
     });
   };

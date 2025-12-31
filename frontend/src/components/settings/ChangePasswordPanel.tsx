@@ -52,7 +52,7 @@ export function ChangePasswordPanel() {
     }
 
     await executeApiCall(async () => {
-      await apiPost<ChangePasswordResponse>("/api/auth/change-password", {
+      await apiPost<ChangePasswordResponse>("/api-ui/auth/change-password", {
         currentPassword,
         newPassword,
       });

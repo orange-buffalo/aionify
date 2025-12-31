@@ -18,7 +18,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-@Controller("/api/import")
+@Controller("/api-ui/import")
 @Secured(SecurityRule.IS_AUTHENTICATED)
 @Transactional
 open class ImportResource(
