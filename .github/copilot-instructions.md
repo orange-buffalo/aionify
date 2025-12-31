@@ -105,6 +105,20 @@ To run a specific test class:
 - All DTOs used in REST endpoints must have `@Introspected` annotation for serialization/validation
 - **CRITICAL: All error responses MUST include an `errorCode` field** for frontend internationalization (see UserResource.kt and UserAdminResource.kt for examples)
 
+### Public API (`/api/**`)
+
+- All public API endpoints must be in the `io.orangebuffalo.aionify.api` package
+- All endpoints must use OpenAPI annotations (`@Operation`, `@ApiResponse`, `@SecurityRequirement`, etc.)
+- **CRITICAL: When adding or modifying public API endpoints, always update OpenAPI schema annotations**
+  - Use `@Operation` to describe the endpoint
+  - Use `@ApiResponse` for all possible response codes (200, 401, 429, etc.)
+  - Use `@SecurityRequirement(name = "BearerAuth")` to indicate authentication is required
+  - Use `@Tag` to group related endpoints
+  - Use `@Schema` on DTOs to describe fields
+- Public API uses Bearer token authentication (UserApiAccessToken)
+- Rate limiting is automatically applied (10 failed attempts = 10 minute block)
+- OpenAPI schema is available at `/api/schema` without authentication
+
 ### TypeScript/Frontend
 
 - Use TypeScript with strict mode
