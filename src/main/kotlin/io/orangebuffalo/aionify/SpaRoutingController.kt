@@ -7,6 +7,7 @@ import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule
+import io.swagger.v3.oas.annotations.Hidden
 import java.io.InputStream
 
 /**
@@ -15,6 +16,7 @@ import java.io.InputStream
  */
 @Controller
 @Secured(SecurityRule.IS_ANONYMOUS)
+@Hidden
 open class SpaRoutingController {
     @Get(uri = "/{path:(?!api-ui/|api/|.*\\.(css|js|ico|svg|png|jpg|jpeg|gif|woff|woff2|ttf|eot)).*}", produces = [MediaType.TEXT_HTML])
     open fun serveIndex(
