@@ -241,6 +241,132 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
     }
 
     @Test
+    fun `should update grouped entry duration automatically when it contains active entry`() {
+        // Create one completed entry
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(7200), // 2 hours ago (13:30)
+                endTime = FIXED_TEST_TIME.minusSeconds(5400), // 1.5 hours ago (14:00)
+                title = "Meeting Notes",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("meeting"),
+            ),
+        )
+
+        // Create an active entry with same title and tags
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago (15:00)
+                endTime = null, // Active entry
+                title = "Meeting Notes",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("meeting"),
+            ),
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Verify initial state: grouped entry shows 1 hour total (30 min completed + 30 min active)
+        val initialState =
+            TimeLogsPageState(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Meeting Notes",
+                        duration = "00:30:00",
+                        startedAt = "16 Mar, 03:00",
+                    ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "01:00:00"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "01:00:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Meeting Notes",
+                                        timeRange = "01:30 - in progress",
+                                        duration = "01:00:00",
+                                        tags = listOf("meeting"),
+                                        isGrouped = true,
+                                        groupCount = 2,
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
+        timeLogsPage.assertPageState(initialState)
+
+        // Advance the clock by 10 minutes
+        timeLogsPage.advanceClock(10 * 60 * 1000)
+
+        // Verify grouped entry duration and day total both increased by 10 minutes
+        val state10min =
+            initialState.copy(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Meeting Notes",
+                        duration = "00:40:00",
+                        startedAt = "16 Mar, 03:00",
+                    ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "01:10:00"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "01:10:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Meeting Notes",
+                                        timeRange = "01:30 - in progress",
+                                        duration = "01:10:00",
+                                        tags = listOf("meeting"),
+                                        isGrouped = true,
+                                        groupCount = 2,
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
+        timeLogsPage.assertPageState(state10min)
+
+        // Advance another 20 minutes to reach 1 hour active time
+        timeLogsPage.advanceClock(20 * 60 * 1000)
+
+        // Verify grouped entry duration and day total show 1:30 total (30 min completed + 1 hour active)
+        val state1hour =
+            state10min.copy(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "Meeting Notes",
+                        duration = "01:00:00",
+                        startedAt = "16 Mar, 03:00",
+                    ),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "01:30:00"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "01:30:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Meeting Notes",
+                                        timeRange = "01:30 - in progress",
+                                        duration = "01:30:00",
+                                        tags = listOf("meeting"),
+                                        isGrouped = true,
+                                        groupCount = 2,
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
+        timeLogsPage.assertPageState(state1hour)
+    }
+
+    @Test
     fun `should allow clicking continue on grouped entry`() {
         // Create two completed entries with same title and tags
         testDatabaseSupport.insert(

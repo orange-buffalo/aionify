@@ -161,6 +161,12 @@ Playwright tests should extend `PlaywrightTestBase` which provides:
   - Wrap database queries in `testDatabaseSupport.inTransaction {}` for proper transaction handling
   - Example: After clicking "Generate", verify token exists in database with correct properties
   - This ensures UI changes are properly persisted and prevents UI-only bugs
+- **CRITICAL: Always wait for async UI operations to complete before reading UI state**:
+  - When clicking a button that triggers an async API call (e.g., "show token"), wait for the UI to update before reading values
+  - Use Playwright assertions to wait for the expected state (e.g., `assertThat(input).not().hasValue("masked")` before reading the actual value)
+  - ❌ BAD: `showButton.click(); val value = input.inputValue()` - races with async API call
+  - ✅ GOOD: `showButton.click(); assertThat(input).not().hasValue("••••••"); val value = input.inputValue()` - waits for async update
+  - This prevents flaky tests where sometimes the old value is read before the async operation completes
 
 Example:
 ```kotlin
