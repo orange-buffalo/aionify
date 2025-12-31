@@ -32,7 +32,8 @@ export function EditUserPage() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { executeApiCall, apiCallInProgress, formMessage, setSuccessMessage } = useApiExecutor("edit-user");
+  const { executeApiCall, apiCallInProgress, formMessage, setSuccessMessage, setErrorMessage } =
+    useApiExecutor("edit-user");
 
   const [user, setUser] = useState<UserDetail | null>(null);
   const [userName, setUserName] = useState("");
@@ -66,16 +67,12 @@ export function EditUserPage() {
 
     // Client-side validation
     if (!userName || userName.trim() === "") {
-      await executeApiCall(async () => {
-        throw new Error(t("validation.usernameBlank"));
-      });
+      setErrorMessage(t("validation.usernameBlank"));
       return;
     }
 
     if (userName.length > 255) {
-      await executeApiCall(async () => {
-        throw new Error(t("validation.usernameTooLong"));
-      });
+      setErrorMessage(t("validation.usernameTooLong"));
       return;
     }
 

@@ -25,7 +25,7 @@ interface CreateUserResponse {
 export function CreateUserPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { executeApiCall, apiCallInProgress, formMessage } = useApiExecutor("create-user");
+  const { executeApiCall, apiCallInProgress, formMessage, setErrorMessage } = useApiExecutor("create-user");
 
   const [userName, setUserName] = useState("");
   const [greeting, setGreeting] = useState("");
@@ -36,30 +36,22 @@ export function CreateUserPage() {
 
     // Client-side validation
     if (!userName || userName.trim() === "") {
-      await executeApiCall(async () => {
-        throw new Error(t("validation.usernameBlank"));
-      });
+      setErrorMessage(t("validation.usernameBlank"));
       return;
     }
 
     if (userName.length > 255) {
-      await executeApiCall(async () => {
-        throw new Error(t("validation.usernameTooLong"));
-      });
+      setErrorMessage(t("validation.usernameTooLong"));
       return;
     }
 
     if (!greeting || greeting.trim() === "") {
-      await executeApiCall(async () => {
-        throw new Error(t("validation.greetingBlank"));
-      });
+      setErrorMessage(t("validation.greetingBlank"));
       return;
     }
 
     if (greeting.length > 255) {
-      await executeApiCall(async () => {
-        throw new Error(t("validation.greetingTooLong"));
-      });
+      setErrorMessage(t("validation.greetingTooLong"));
       return;
     }
 

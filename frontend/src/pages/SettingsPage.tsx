@@ -36,14 +36,14 @@ export function SettingsPage() {
     apiCallInProgress: preferencesInProgress,
     formMessage: preferencesFormMessage,
   } = useApiExecutor("preferences");
+  const { executeApiCall: executeTagsCall, formMessage: tagsFormMessage } = useApiExecutor("tags");
   const [tags, setTags] = useState<TagStat[]>([]);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
   const [startOfWeek, setStartOfWeek] = useState<string>("MONDAY");
 
   const loadTags = async () => {
-    try {
+    await executeTagsCall(async () => {
       const data = await apiGet<TagStatsResponse>("/api/tags/stats");
       // Defensive check: Handle edge case where API might return empty object
       // This can happen if serialization fails or in certain error scenarios
@@ -53,40 +53,32 @@ export function SettingsPage() {
       } else {
         setTags([]);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    }
+    });
   };
 
   const handleMarkAsLegacy = async (tag: string) => {
     setActionInProgress(tag);
-    setError(null);
 
-    try {
+    await executeTagsCall(async () => {
       await apiPost("/api/tags/legacy", { tag });
       await loadTags();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setActionInProgress(null);
-    }
+    });
+
+    setActionInProgress(null);
   };
 
   const handleRemoveFromLegacy = async (tag: string) => {
     setActionInProgress(tag);
-    setError(null);
 
-    try {
+    await executeTagsCall(async () => {
       await apiRequest("/api/tags/legacy", {
         method: "DELETE",
         body: JSON.stringify({ tag }),
       });
       await loadTags();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setActionInProgress(null);
-    }
+    });
+
+    setActionInProgress(null);
   };
 
   const loadPreferences = async () => {
@@ -185,11 +177,7 @@ export function SettingsPage() {
                 <CardDescription>{t("settings.tags.subtitle")}</CardDescription>
               </CardHeader>
               <CardContent>
-                {error && (
-                  <div className="mb-4">
-                    <FormMessage type="error" message={error} testId="tags-error" />
-                  </div>
-                )}
+                <div className="mb-4">{tagsFormMessage}</div>
 
                 {!initialDataLoaded ? (
                   <div className="text-center py-8 text-foreground" data-testid="tags-loading">

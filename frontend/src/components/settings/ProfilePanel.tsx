@@ -65,7 +65,8 @@ function formatDateTimeExample(locale: string): string {
 
 export function ProfilePanel() {
   const { t, i18n } = useTranslation();
-  const { executeApiCall, apiCallInProgress, formMessage, setSuccessMessage } = useApiExecutor("profile");
+  const { executeApiCall, apiCallInProgress, formMessage, setSuccessMessage, setErrorMessage } =
+    useApiExecutor("profile");
   const [greeting, setGreeting] = useState("");
   const [locale, setLocale] = useState("");
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
@@ -95,21 +96,15 @@ export function ProfilePanel() {
 
     // Client-side validation
     if (!greeting.trim()) {
-      await executeApiCall(async () => {
-        throw new Error(t("validation.greetingBlank"));
-      });
+      setErrorMessage(t("validation.greetingBlank"));
       return;
     }
     if (greeting.length > 255) {
-      await executeApiCall(async () => {
-        throw new Error(t("validation.greetingTooLong"));
-      });
+      setErrorMessage(t("validation.greetingTooLong"));
       return;
     }
     if (!locale) {
-      await executeApiCall(async () => {
-        throw new Error(t("validation.localeRequired"));
-      });
+      setErrorMessage(t("validation.localeRequired"));
       return;
     }
 
