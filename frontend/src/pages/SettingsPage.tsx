@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { PortalLayout } from "@/components/layout/PortalLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FormMessage } from "@/components/ui/form-message";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -18,6 +17,7 @@ import { apiGet, apiPost, apiRequest, apiPut } from "@/lib/api";
 import { MoreVertical, Archive, ArchiveRestore } from "lucide-react";
 import { ImportDataPanel } from "@/components/settings/ImportDataPanel";
 import { ApiAccessTokenPanel } from "@/components/settings/ApiAccessTokenPanel";
+import { useApiExecutor } from "@/hooks/useApiExecutor";
 
 interface TagStat {
   tag: string;
@@ -31,19 +31,18 @@ interface TagStatsResponse {
 
 export function SettingsPage() {
   const { t } = useTranslation();
+  const {
+    executeApiCall: executePreferencesCall,
+    apiCallInProgress: preferencesInProgress,
+    formMessage: preferencesFormMessage,
+  } = useApiExecutor();
   const [tags, setTags] = useState<TagStat[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
   const [startOfWeek, setStartOfWeek] = useState<string>("MONDAY");
-  const [isSavingPreferences, setIsSavingPreferences] = useState(false);
-  const [preferencesSuccess, setPreferencesSuccess] = useState<string | null>(null);
-  const [preferencesError, setPreferencesError] = useState<string | null>(null);
 
   const loadTags = async () => {
-    setLoading(true);
-    setError(null);
-
     try {
       const data = await apiGet<TagStatsResponse>("/api/tags/stats");
       // Defensive check: Handle edge case where API might return empty object
@@ -56,8 +55,6 @@ export function SettingsPage() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -98,28 +95,19 @@ export function SettingsPage() {
   };
 
   const handleSavePreferences = async () => {
-    setIsSavingPreferences(true);
-    setPreferencesError(null);
-    setPreferencesSuccess(null);
-
-    try {
+    await executePreferencesCall(async () => {
       await apiPut("/api/users/settings", { startOfWeek });
-      setPreferencesSuccess(t("settings.preferences.updateSuccess"));
-    } catch (err: any) {
-      const errorCode = err.errorCode;
-      if (errorCode) {
-        setPreferencesError(t(`errorCodes.${errorCode}`));
-      } else {
-        setPreferencesError(err.message || "An error occurred");
-      }
-    } finally {
-      setIsSavingPreferences(false);
-    }
+      return t("settings.preferences.updateSuccess");
+    });
   };
 
   useEffect(() => {
-    loadTags();
-    loadPreferences();
+    const loadInitialData = async () => {
+      await loadTags();
+      await loadPreferences();
+      setInitialDataLoaded(true);
+    };
+    loadInitialData();
   }, []);
 
   return (
@@ -141,16 +129,7 @@ export function SettingsPage() {
                 <CardDescription>{t("settings.preferences.subtitle")}</CardDescription>
               </CardHeader>
               <CardContent>
-                {preferencesError && (
-                  <div className="mb-4">
-                    <FormMessage type="error" message={preferencesError} testId="preferences-error" />
-                  </div>
-                )}
-                {preferencesSuccess && (
-                  <div className="mb-4">
-                    <FormMessage type="success" message={preferencesSuccess} testId="preferences-success" />
-                  </div>
-                )}
+                <div className="mb-4">{preferencesFormMessage}</div>
 
                 <div className="space-y-4">
                   <div className="space-y-2">
@@ -158,7 +137,7 @@ export function SettingsPage() {
                       {t("settings.preferences.startOfWeek")}
                     </Label>
                     <p className="text-sm text-muted-foreground">{t("settings.preferences.startOfWeekDescription")}</p>
-                    <Select value={startOfWeek} onValueChange={setStartOfWeek} disabled={isSavingPreferences}>
+                    <Select value={startOfWeek} onValueChange={setStartOfWeek} disabled={preferencesInProgress}>
                       <SelectTrigger id="start-of-week" data-testid="start-of-week-select" className="text-foreground">
                         <SelectValue />
                       </SelectTrigger>
@@ -189,11 +168,11 @@ export function SettingsPage() {
                   </div>
                   <Button
                     onClick={handleSavePreferences}
-                    disabled={isSavingPreferences}
+                    disabled={preferencesInProgress}
                     data-testid="save-preferences-button"
                     className="bg-teal-600 hover:bg-teal-700"
                   >
-                    {isSavingPreferences ? t("settings.preferences.saving") : t("settings.preferences.save")}
+                    {preferencesInProgress ? t("settings.preferences.saving") : t("settings.preferences.save")}
                   </Button>
                 </div>
               </CardContent>
@@ -212,7 +191,7 @@ export function SettingsPage() {
                   </div>
                 )}
 
-                {loading ? (
+                {!initialDataLoaded ? (
                   <div className="text-center py-8 text-foreground" data-testid="tags-loading">
                     {t("common.loading")}
                   </div>

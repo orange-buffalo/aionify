@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FormMessage } from "@/components/ui/form-message";
 import { User, Loader2 } from "lucide-react";
 import { apiGet, apiPut } from "@/lib/api";
 import { initializeLanguage, translateErrorCode } from "@/lib/i18n";
+import { useApiExecutor } from "@/hooks/useApiExecutor";
 
 // Standard locales (BCP 47 language tags with region)
 const LOCALES = [
@@ -65,12 +65,10 @@ function formatDateTimeExample(locale: string): string {
 
 export function ProfilePanel() {
   const { t, i18n } = useTranslation();
+  const { executeApiCall, apiCallInProgress, formMessage } = useApiExecutor();
   const [greeting, setGreeting] = useState("");
   const [locale, setLocale] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
 
   // Format example based on selected locale
   const localeExample = useMemo(() => {
@@ -81,15 +79,12 @@ export function ProfilePanel() {
   // Load profile data on mount
   useEffect(() => {
     const loadProfile = async () => {
-      try {
+      await executeApiCall(async () => {
         const data = await apiGet<ProfileResponse>("/api/users/profile");
         setGreeting(data.greeting);
         setLocale(data.locale);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load profile");
-      } finally {
-        setLoading(false);
-      }
+      });
+      setInitialDataLoaded(true);
     };
 
     loadProfile();
@@ -97,26 +92,28 @@ export function ProfilePanel() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
 
     // Client-side validation
     if (!greeting.trim()) {
-      setError(t("validation.greetingBlank"));
+      await executeApiCall(async () => {
+        throw new Error(t("validation.greetingBlank"));
+      });
       return;
     }
     if (greeting.length > 255) {
-      setError(t("validation.greetingTooLong"));
+      await executeApiCall(async () => {
+        throw new Error(t("validation.greetingTooLong"));
+      });
       return;
     }
     if (!locale) {
-      setError(t("validation.localeRequired"));
+      await executeApiCall(async () => {
+        throw new Error(t("validation.localeRequired"));
+      });
       return;
     }
 
-    setSaving(true);
-
-    try {
+    await executeApiCall(async () => {
       await apiPut<ProfileUpdateResponse>("/api/users/profile", {
         greeting,
         locale,
@@ -128,15 +125,8 @@ export function ProfilePanel() {
       // Update user language preference and apply changes
       await initializeLanguage(language);
 
-      // Set success flag (translation will be applied in JSX with current language)
-      setSuccess("success");
-    } catch (err) {
-      // Translate error using error code if available
-      const errorMessage = err instanceof Error ? err.message : t("common.error");
-      setError(errorMessage);
-    } finally {
-      setSaving(false);
-    }
+      return t("profile.profile.updateSuccess");
+    });
   };
 
   return (
@@ -149,7 +139,7 @@ export function ProfilePanel() {
         <CardDescription>{t("profile.profile.subtitle")}</CardDescription>
       </CardHeader>
       <CardContent>
-        {loading ? (
+        {!initialDataLoaded ? (
           <div className="flex items-center gap-2 text-muted-foreground" data-testid="profile-loading">
             <Loader2 className="h-4 w-4 animate-spin" />
             {t("profile.profile.loading")}
@@ -197,22 +187,16 @@ export function ProfilePanel() {
               )}
             </div>
 
-            {/* Error Message */}
-            {error && <FormMessage type="error" message={error} testId="profile-error" />}
-
-            {/* Success Message */}
-            {success && (
-              <FormMessage type="success" message={t("profile.profile.updateSuccess")} testId="profile-success" />
-            )}
+            {formMessage}
 
             {/* Submit Button */}
             <Button
               type="submit"
               className="bg-teal-600 hover:bg-teal-700"
-              disabled={saving}
+              disabled={apiCallInProgress}
               data-testid="profile-save-button"
             >
-              {saving ? t("profile.profile.saving") : t("profile.profile.save")}
+              {apiCallInProgress ? t("profile.profile.saving") : t("profile.profile.save")}
             </Button>
           </form>
         )}

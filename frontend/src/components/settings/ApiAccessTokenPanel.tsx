@@ -4,9 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FormMessage } from "@/components/ui/form-message";
 import { apiGet, apiPost, apiPut } from "@/lib/api";
 import { Eye, Copy } from "lucide-react";
+import { useApiExecutor } from "@/hooks/useApiExecutor";
 
 interface ApiTokenStatus {
   exists: boolean;
@@ -18,101 +18,52 @@ interface ApiTokenData {
 
 export function ApiAccessTokenPanel() {
   const { t } = useTranslation();
+  const { executeApiCall, apiCallInProgress, formMessage } = useApiExecutor();
   const [tokenExists, setTokenExists] = useState(false);
   const [tokenValue, setTokenValue] = useState<string | null>(null);
   const [isTokenVisible, setIsTokenVisible] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [actionInProgress, setActionInProgress] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
 
   const loadTokenStatus = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
+    await executeApiCall(async () => {
       const data = await apiGet<ApiTokenStatus>("/api/users/api-token/status");
       setTokenExists(data.exists);
-    } catch (err: any) {
-      const errorCode = err.errorCode;
-      if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`));
-      } else {
-        setError(err.message || "An error occurred");
-      }
-    } finally {
-      setLoading(false);
-    }
+    });
+    setInitialDataLoaded(true);
   };
 
   const loadTokenValue = async () => {
-    setError(null);
-
-    try {
+    await executeApiCall(async () => {
       const data = await apiGet<ApiTokenData>("/api/users/api-token");
       setTokenValue(data.token);
       setIsTokenVisible(true);
-    } catch (err: any) {
-      const errorCode = err.errorCode;
-      if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`));
-      } else {
-        setError(err.message || "An error occurred");
-      }
-    }
+    });
   };
 
   const handleGenerateToken = async () => {
-    setActionInProgress(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
+    await executeApiCall(async () => {
       await apiPost("/api/users/api-token", {});
-      setSuccess(t("settings.apiToken.generateSuccess"));
       setTokenExists(true);
-    } catch (err: any) {
-      const errorCode = err.errorCode;
-      if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`));
-      } else {
-        setError(err.message || "An error occurred");
-      }
-    } finally {
-      setActionInProgress(false);
-    }
+      return t("settings.apiToken.generateSuccess");
+    });
   };
 
   const handleRegenerateToken = async () => {
-    setActionInProgress(true);
-    setError(null);
-    setSuccess(null);
     setTokenValue(null);
     setIsTokenVisible(false);
 
-    try {
+    await executeApiCall(async () => {
       await apiPut("/api/users/api-token", {});
-      setSuccess(t("settings.apiToken.regenerateSuccess"));
-    } catch (err: any) {
-      const errorCode = err.errorCode;
-      if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`));
-      } else {
-        setError(err.message || "An error occurred");
-      }
-    } finally {
-      setActionInProgress(false);
-    }
+      return t("settings.apiToken.regenerateSuccess");
+    });
   };
 
   const handleCopyToken = async () => {
     if (tokenValue) {
-      try {
+      await executeApiCall(async () => {
         await navigator.clipboard.writeText(tokenValue);
-        setSuccess(t("settings.apiToken.tokenCopied"));
-      } catch (err) {
-        setError("Failed to copy token to clipboard");
-      }
+        return t("settings.apiToken.tokenCopied");
+      });
     }
   };
 
@@ -129,22 +80,6 @@ export function ApiAccessTokenPanel() {
     loadTokenStatus();
   }, []);
 
-  if (loading) {
-    return (
-      <Card className="border-none shadow-md">
-        <CardHeader>
-          <CardTitle data-testid="api-token-title">{t("settings.apiToken.title")}</CardTitle>
-          <CardDescription>{t("settings.apiToken.subtitle")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-foreground" data-testid="api-token-loading">
-            {t("common.loading")}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card className="border-none shadow-md">
       <CardHeader>
@@ -152,78 +87,77 @@ export function ApiAccessTokenPanel() {
         <CardDescription>{t("settings.apiToken.subtitle")}</CardDescription>
       </CardHeader>
       <CardContent>
-        {error && (
-          <div className="mb-4">
-            <FormMessage type="error" message={error} testId="api-token-error" />
-          </div>
-        )}
-        {success && (
-          <div className="mb-4">
-            <FormMessage type="success" message={success} testId="api-token-success" />
-          </div>
-        )}
-
-        {!tokenExists ? (
-          <div className="space-y-4">
-            <p className="text-foreground" data-testid="api-token-no-token-message">
-              {t("settings.apiToken.noToken")}
-            </p>
-            <Button
-              onClick={handleGenerateToken}
-              disabled={actionInProgress}
-              data-testid="generate-api-token-button"
-              className="bg-teal-600 hover:bg-teal-700"
-            >
-              {actionInProgress ? t("settings.apiToken.generating") : t("settings.apiToken.generate")}
-            </Button>
+        {!initialDataLoaded ? (
+          <div className="text-center py-8 text-foreground" data-testid="api-token-loading">
+            {t("common.loading")}
           </div>
         ) : (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="api-token-input" className="text-foreground">
-                {t("settings.apiToken.tokenLabel")}
-              </Label>
-              <div className="flex gap-2">
-                <Input
-                  id="api-token-input"
-                  type={isTokenVisible && tokenValue ? "text" : "password"}
-                  value={isTokenVisible && tokenValue ? tokenValue : "••••••••••••••••••••••••••••••••"}
-                  readOnly
-                  data-testid="api-token-input"
-                  className="text-foreground"
-                />
-                {!isTokenVisible || !tokenValue ? (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleToggleTokenVisibility}
-                    data-testid="show-api-token-button"
-                    className="shrink-0"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleCopyToken}
-                    data-testid="copy-api-token-button"
-                    className="shrink-0"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                )}
+          <>
+            <div className="mb-4">{formMessage}</div>
+
+            {!tokenExists ? (
+              <div className="space-y-4">
+                <p className="text-foreground" data-testid="api-token-no-token-message">
+                  {t("settings.apiToken.noToken")}
+                </p>
+                <Button
+                  onClick={handleGenerateToken}
+                  disabled={apiCallInProgress}
+                  data-testid="generate-api-token-button"
+                  className="bg-teal-600 hover:bg-teal-700"
+                >
+                  {apiCallInProgress ? t("settings.apiToken.generating") : t("settings.apiToken.generate")}
+                </Button>
               </div>
-            </div>
-            <Button
-              onClick={handleRegenerateToken}
-              disabled={actionInProgress}
-              data-testid="regenerate-api-token-button"
-              className="bg-teal-600 hover:bg-teal-700"
-            >
-              {actionInProgress ? t("settings.apiToken.regenerating") : t("settings.apiToken.regenerate")}
-            </Button>
-          </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="api-token-input" className="text-foreground">
+                    {t("settings.apiToken.tokenLabel")}
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="api-token-input"
+                      type={isTokenVisible && tokenValue ? "text" : "password"}
+                      value={isTokenVisible && tokenValue ? tokenValue : "••••••••••••••••••••••••••••••••"}
+                      readOnly
+                      data-testid="api-token-input"
+                      className="text-foreground"
+                    />
+                    {!isTokenVisible || !tokenValue ? (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleToggleTokenVisibility}
+                        data-testid="show-api-token-button"
+                        className="shrink-0"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleCopyToken}
+                        data-testid="copy-api-token-button"
+                        className="shrink-0"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <Button
+                  onClick={handleRegenerateToken}
+                  disabled={apiCallInProgress}
+                  data-testid="regenerate-api-token-button"
+                  className="bg-teal-600 hover:bg-teal-700"
+                >
+                  {apiCallInProgress ? t("settings.apiToken.regenerating") : t("settings.apiToken.regenerate")}
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>
