@@ -4,9 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FormMessage } from "@/components/ui/form-message";
 import { KeyRound, Eye, EyeOff } from "lucide-react";
 import { apiPost } from "@/lib/api";
+import { useApiExecutor } from "@/hooks/useApiExecutor";
 
 interface ChangePasswordResponse {
   message: string;
@@ -14,57 +14,56 @@ interface ChangePasswordResponse {
 
 export function ChangePasswordPanel() {
   const { t } = useTranslation();
+  const { executeApiCall, apiCallInProgress, formMessage } = useApiExecutor("change-password");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
 
     // Client-side validation
     if (!currentPassword) {
-      setError(t("validation.currentPasswordRequired"));
+      await executeApiCall(async () => {
+        throw new Error(t("validation.currentPasswordRequired"));
+      });
       return;
     }
     if (!newPassword) {
-      setError(t("validation.newPasswordRequired"));
+      await executeApiCall(async () => {
+        throw new Error(t("validation.newPasswordRequired"));
+      });
       return;
     }
     if (newPassword.length > 50) {
-      setError(t("validation.passwordTooLong"));
+      await executeApiCall(async () => {
+        throw new Error(t("validation.passwordTooLong"));
+      });
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError(t("validation.passwordsDoNotMatch"));
+      await executeApiCall(async () => {
+        throw new Error(t("validation.passwordsDoNotMatch"));
+      });
       return;
     }
 
-    setLoading(true);
-
-    try {
-      const data = await apiPost<ChangePasswordResponse>("/api/auth/change-password", {
+    await executeApiCall(async () => {
+      await apiPost<ChangePasswordResponse>("/api/auth/change-password", {
         currentPassword,
         newPassword,
       });
-      setSuccess(t("profile.changePassword.changeSuccess"));
 
       // Reset form on success
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("common.error"));
-    } finally {
-      setLoading(false);
-    }
+
+      return t("profile.changePassword.changeSuccess");
+    });
   };
 
   return (
@@ -162,20 +161,16 @@ export function ChangePasswordPanel() {
             </div>
           </div>
 
-          {/* Error Message */}
-          {error && <FormMessage type="error" message={error} testId="change-password-error" />}
-
-          {/* Success Message */}
-          {success && <FormMessage type="success" message={success} testId="change-password-success" />}
+          {formMessage}
 
           {/* Submit Button */}
           <Button
             type="submit"
             className="bg-teal-600 hover:bg-teal-700"
-            disabled={loading}
+            disabled={apiCallInProgress}
             data-testid="change-password-button"
           >
-            {loading ? t("profile.changePassword.changing") : t("profile.changePassword.change")}
+            {apiCallInProgress ? t("profile.changePassword.changing") : t("profile.changePassword.change")}
           </Button>
         </form>
       </CardContent>

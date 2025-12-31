@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FormMessage } from "@/components/ui/form-message";
 import { apiPost } from "@/lib/api";
 import { ArrowLeft } from "lucide-react";
+import { useApiExecutor } from "@/hooks/useApiExecutor";
 
 interface CreateUserResponse {
   id: number;
@@ -25,41 +25,37 @@ interface CreateUserResponse {
 export function CreateUserPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { executeApiCall, apiCallInProgress, formMessage, setErrorMessage } = useApiExecutor("create-user");
 
   const [userName, setUserName] = useState("");
   const [greeting, setGreeting] = useState("");
   const [userType, setUserType] = useState("regular");
-  const [creating, setCreating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
 
     // Client-side validation
     if (!userName || userName.trim() === "") {
-      setError(t("validation.usernameBlank"));
+      setErrorMessage(t("validation.usernameBlank"));
       return;
     }
 
     if (userName.length > 255) {
-      setError(t("validation.usernameTooLong"));
+      setErrorMessage(t("validation.usernameTooLong"));
       return;
     }
 
     if (!greeting || greeting.trim() === "") {
-      setError(t("validation.greetingBlank"));
+      setErrorMessage(t("validation.greetingBlank"));
       return;
     }
 
     if (greeting.length > 255) {
-      setError(t("validation.greetingTooLong"));
+      setErrorMessage(t("validation.greetingTooLong"));
       return;
     }
 
-    setCreating(true);
-
-    try {
+    await executeApiCall(async () => {
       const response = await apiPost<CreateUserResponse>("/api/admin/users", {
         userName: userName.trim(),
         greeting: greeting.trim(),
@@ -71,20 +67,7 @@ export function CreateUserPage() {
 
       // Navigate to edit page
       navigate(`/admin/users/${response.id}`);
-    } catch (err) {
-      const errorCode = (err as any).errorCode;
-      if (errorCode) {
-        setError(
-          t(`errorCodes.${errorCode}`, {
-            defaultValue: err instanceof Error ? err.message : "An error occurred",
-          })
-        );
-      } else {
-        setError(err instanceof Error ? err.message : "An error occurred");
-      }
-    } finally {
-      setCreating(false);
-    }
+    });
   };
 
   const handleBack = () => {
@@ -113,11 +96,7 @@ export function CreateUserPage() {
             <p className="text-muted-foreground">{t("portal.admin.users.create.subtitle")}</p>
           </div>
 
-          {error && (
-            <div className="mb-4">
-              <FormMessage type="error" message={error} testId="create-user-error" />
-            </div>
-          )}
+          <div className="mb-4">{formMessage}</div>
 
           <Card className="border-none shadow-md">
             <CardContent className="pt-6">
@@ -173,11 +152,11 @@ export function CreateUserPage() {
 
                 <Button
                   type="submit"
-                  disabled={creating}
+                  disabled={apiCallInProgress}
                   data-testid="create-button"
                   className="bg-teal-600 hover:bg-teal-700"
                 >
-                  {creating ? t("portal.admin.users.create.creating") : t("portal.admin.users.create.create")}
+                  {apiCallInProgress ? t("portal.admin.users.create.creating") : t("portal.admin.users.create.create")}
                 </Button>
               </form>
             </CardContent>
