@@ -1,6 +1,7 @@
 package io.orangebuffalo.aionify
 
 import com.microsoft.playwright.*
+import com.microsoft.playwright.options.WaitUntilState
 import io.micronaut.runtime.server.EmbeddedServer
 import io.orangebuffalo.aionify.domain.User
 import jakarta.inject.Inject
@@ -157,6 +158,10 @@ abstract class PlaywrightTestBase {
         // Use pauseAt to prevent automatic time progression - time only advances when explicitly requested
         // This ensures frontend JavaScript Date API uses the same fixed time as backend TimeService
         _page.clock().pauseAt(FIXED_TEST_TIME.toEpochMilli())
+
+        // Disable SSE in tests to avoid connection lifecycle issues with Playwright
+        // Tests can manually enable SSE by setting window.__DISABLE_SSE__ = false
+        _page.addInitScript("window.__DISABLE_SSE__ = true;")
     }
 
     private fun createBrowserContext(): BrowserContext =
@@ -224,7 +229,11 @@ abstract class PlaywrightTestBase {
         )
 
         // Navigate to the target page - localStorage will already be set and i18n will initialize with localStorage values
-        page.navigate(targetPath)
+        // Use waitUntil="domcontentloaded" to not wait for SSE connections to close
+        page.navigate(
+            targetPath,
+            Page.NavigateOptions().setWaitUntil(WaitUntilState.DOMCONTENTLOADED),
+        )
     }
 
     @AfterEach
