@@ -115,7 +115,7 @@ export function ApiAccessTokenPanel() {
             href="/api/schema"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300 underline"
+            className="text-teal-600 hover:test-teal-700 underline"
             data-testid="openapi-schema-link"
           >
             {t("settings.apiToken.openApiSchemaLink")}
