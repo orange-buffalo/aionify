@@ -7,14 +7,7 @@ import { Label } from "@/components/ui/label";
 import { apiGet, apiPost, apiPut, apiRequest } from "@/lib/api";
 import { Eye, Copy } from "lucide-react";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 interface ApiTokenStatus {
   exists: boolean;
@@ -195,34 +188,20 @@ export function ApiAccessTokenPanel() {
         )}
       </CardContent>
 
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="text-foreground">
-          <DialogHeader>
-            <DialogTitle className="text-foreground">{t("settings.apiToken.deleteConfirm.title")}</DialogTitle>
-            <DialogDescription className="text-foreground">
-              {t("settings.apiToken.deleteConfirm.message")}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleteDialog(false)}
-              data-testid="cancel-delete-api-token-button"
-              className="text-foreground"
-            >
-              {t("settings.apiToken.deleteConfirm.cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteToken}
-              disabled={apiCallInProgress}
-              data-testid="confirm-delete-api-token-button"
-            >
-              {apiCallInProgress ? t("settings.apiToken.deleting") : t("settings.apiToken.deleteConfirm.confirm")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmationDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        title={t("settings.apiToken.deleteConfirm.title")}
+        description={t("settings.apiToken.deleteConfirm.message")}
+        confirmLabel={
+          apiCallInProgress ? t("settings.apiToken.deleting") : t("settings.apiToken.deleteConfirm.confirm")
+        }
+        cancelLabel={t("settings.apiToken.deleteConfirm.cancel")}
+        onConfirm={handleDeleteToken}
+        isConfirming={apiCallInProgress}
+        confirmTestId="confirm-delete-api-token-button"
+        cancelTestId="cancel-delete-api-token-button"
+      />
     </Card>
   );
 }

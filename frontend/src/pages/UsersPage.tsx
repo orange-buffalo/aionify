@@ -11,14 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { FormMessage } from "@/components/ui/form-message";
 import { apiGet, apiRequest } from "@/lib/api";
 import { MoreVertical, ChevronLeft, ChevronRight, Pencil, Trash2, Plus } from "lucide-react";
@@ -204,42 +197,20 @@ export function UsersPage() {
                                     </DropdownMenuContent>
                                   </DropdownMenu>
 
-                                  <Dialog
+                                  <ConfirmationDialog
                                     open={deletePopoverOpen === user.id}
                                     onOpenChange={(open) => setDeletePopoverOpen(open ? user.id : null)}
-                                  >
-                                    <DialogContent data-testid={`delete-confirm-${user.userName}`} className="dark">
-                                      <DialogHeader>
-                                        <DialogTitle className="text-foreground">
-                                          {t("portal.admin.users.deleteConfirm.title")}
-                                        </DialogTitle>
-                                        <DialogDescription className="text-foreground">
-                                          {t("portal.admin.users.deleteConfirm.message", {
-                                            userName: user.userName,
-                                          })}
-                                        </DialogDescription>
-                                      </DialogHeader>
-                                      <DialogFooter>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => setDeletePopoverOpen(null)}
-                                          data-testid={`delete-cancel-${user.userName}`}
-                                          className="text-foreground"
-                                        >
-                                          {t("portal.admin.users.deleteConfirm.cancel")}
-                                        </Button>
-                                        <Button
-                                          variant="destructive"
-                                          size="sm"
-                                          onClick={() => handleDelete(user.id)}
-                                          data-testid={`delete-confirm-button-${user.userName}`}
-                                        >
-                                          {t("portal.admin.users.deleteConfirm.confirm")}
-                                        </Button>
-                                      </DialogFooter>
-                                    </DialogContent>
-                                  </Dialog>
+                                    title={t("portal.admin.users.deleteConfirm.title")}
+                                    description={t("portal.admin.users.deleteConfirm.message", {
+                                      userName: user.userName,
+                                    })}
+                                    confirmLabel={t("portal.admin.users.deleteConfirm.confirm")}
+                                    cancelLabel={t("portal.admin.users.deleteConfirm.cancel")}
+                                    onConfirm={() => handleDelete(user.id)}
+                                    confirmTestId={`delete-confirm-button-${user.userName}`}
+                                    cancelTestId={`delete-cancel-${user.userName}`}
+                                    dialogTestId={`delete-confirm-${user.userName}`}
+                                  />
                                 </>
                               )}
                             </TableCell>
