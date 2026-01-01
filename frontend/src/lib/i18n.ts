@@ -152,6 +152,7 @@ const resources = {
           generateSuccess: "API token generated successfully",
           regenerateSuccess: "API token regenerated successfully",
           deleteSuccess: "API token deleted successfully",
+          openApiSchemaLink: "View OpenAPI Schema",
           deleteConfirm: {
             title: "Delete API Token",
             message:
@@ -559,6 +560,7 @@ const resources = {
           generateSuccess: "API токен успішно згенеровано",
           regenerateSuccess: "API токен успішно перегенеровано",
           deleteSuccess: "API токен успішно видалено",
+          openApiSchemaLink: "Переглянути OpenAPI схему",
           deleteConfirm: {
             title: "Видалити API токен",
             message:

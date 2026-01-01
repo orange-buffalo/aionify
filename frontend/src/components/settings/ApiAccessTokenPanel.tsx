@@ -101,7 +101,19 @@ export function ApiAccessTokenPanel() {
     <Card className="border-none shadow-md">
       <CardHeader>
         <CardTitle data-testid="api-token-title">{t("settings.apiToken.title")}</CardTitle>
-        <CardDescription>{t("settings.apiToken.subtitle")}</CardDescription>
+        <CardDescription>
+          {t("settings.apiToken.subtitle")}
+          {" · "}
+          <a
+            href="/api/schema"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-teal-600 hover:test-teal-700 underline"
+            data-testid="openapi-schema-link"
+          >
+            {t("settings.apiToken.openApiSchemaLink")}
+          </a>
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {!initialDataLoaded ? (

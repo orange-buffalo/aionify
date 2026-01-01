@@ -92,14 +92,6 @@ jobs:
           ./gradlew check \
             --console=plain
 
-      - name: Build and push native Docker image
-        env:
-          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
-          DOCKER_IMAGE_TAG: ${{ steps.prepare-tag.outputs.tag }}
-        run: |
-          ./gradlew dockerBuildNative dockerPushNative \
-            --console=plain
-
       - name: Stop thread dump collection
         if: always()
         run: |
@@ -134,6 +126,14 @@ jobs:
           path: build/thread-dumps/
           retention-days: 10
           if-no-files-found: ignore
+
+      - name: Build and push native Docker image
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+          DOCKER_IMAGE_TAG: ${{ steps.prepare-tag.outputs.tag }}
+        run: |
+          ./gradlew dockerBuildNative dockerPushNative \
+            --console=plain
 
       - name: Run E2E tests against Docker image
         env:
