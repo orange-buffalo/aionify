@@ -5,7 +5,6 @@ import { getWeekStart, formatISODate, calculateDuration, weekDayToNumber } from 
 import { formatDate } from "@/lib/date-format";
 import { useDocumentTitle } from "./useDocumentTitle";
 import { useTimeLogEntryEvents } from "./useTimeLogEntryEvents";
-import { isTestEnvironment } from "@/lib/environment";
 import type { TimeEntry, TimeLogEntry, DayGroup } from "../components/time-logs/types";
 
 /**
@@ -133,7 +132,7 @@ export function useTimeLogs() {
 
   // Handle SSE events for time log entry changes
   const handleTimeLogEvent = useCallback(
-    async (event: { type: "ENTRY_STARTED" | "ENTRY_STOPPED"; entryId: number | null; title: string | null }) => {
+    async (event: { type: "ENTRY_STARTED" | "ENTRY_STOPPED"; entryId: number; title: string }) => {
       console.log("[useTimeLogs] Received SSE event:", event);
 
       // Reload active entry to get the latest state
@@ -146,9 +145,7 @@ export function useTimeLogs() {
   );
 
   // Subscribe to SSE events for real-time updates
-  // Disable SSE in test/automation environments (Playwright, etc.)
-  const sseEnabled = !isTestEnvironment();
-  useTimeLogEntryEvents(handleTimeLogEvent, sseEnabled);
+  useTimeLogEntryEvents(handleTimeLogEvent, true);
 
   // Start a new time entry
   async function handleStart(title: string, tags: string[] = []) {

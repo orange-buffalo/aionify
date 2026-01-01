@@ -55,15 +55,8 @@ class TimeLogsAutomaticUpdateTest : TimeLogsPageTestBase() {
         val response = httpClient.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
         assertEquals(200, response.status.code)
 
-        // Then: UI should automatically update within a few seconds (SSE notification + auto-reload)
-        // Note: In real-world usage, SSE is disabled during Playwright tests (navigator.webdriver check),
-        // so we're testing the manual reload path which is triggered by user actions.
-        // For true SSE testing, we'd need to remove the webdriver check or use real browsers.
-
-        // Reload the page manually to simulate what would happen after SSE event
-        page.reload()
-
-        // Verify the entry appears in the UI
+        // Then: UI should automatically update via SSE
+        // Wait for the UI to reflect the change (SSE event triggers reload)
         val updatedState =
             initialState.copy(
                 currentEntry =
@@ -151,11 +144,8 @@ class TimeLogsAutomaticUpdateTest : TimeLogsPageTestBase() {
         val response = httpClient.toBlocking().exchange(request, Map::class.java)
         assertEquals(200, response.status.code)
 
-        // Then: UI should automatically update (in real scenario via SSE)
-        // Reload page manually to simulate the effect
-        page.reload()
-
-        // Verify the entry is now stopped
+        // Then: UI should automatically update via SSE
+        // Wait for the UI to reflect the change (SSE event triggers reload)
         val updatedState =
             TimeLogsPageState(
                 currentEntry = CurrentEntryState.NoActiveEntry(),

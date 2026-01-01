@@ -2,8 +2,8 @@ import { useEffect, useRef, useCallback } from "react";
 
 export interface TimeLogEntryEvent {
   type: "ENTRY_STARTED" | "ENTRY_STOPPED";
-  entryId: number | null;
-  title: string | null;
+  entryId: number;
+  title: string;
 }
 
 /**
@@ -52,7 +52,6 @@ export function useTimeLogEntryEvents(onEvent: (event: TimeLogEntryEvent) => voi
         console.log("[SSE] Received event:", data);
         onEventRef.current(data);
       } catch (error) {
-        // Silently ignore parse errors to avoid test failures
         console.debug("[SSE] Failed to parse event data:", error);
       }
     };
@@ -62,21 +61,12 @@ export function useTimeLogEntryEvents(onEvent: (event: TimeLogEntryEvent) => voi
       console.debug("[SSE] Heartbeat received");
     });
 
-    eventSource.onerror = (error) => {
-      // Don't log errors to console to avoid test failures
-      // SSE connections can fail during page transitions, which is normal
-
+    eventSource.onerror = () => {
       // Close and cleanup on error
       if (eventSource.readyState === EventSource.CLOSED) {
-        console.log("[SSE] Connection closed, will reconnect...");
+        console.log("[SSE] Connection closed");
         eventSourceRef.current = null;
-
-        // Reconnect after a delay
-        setTimeout(() => {
-          if (enabled) {
-            connect();
-          }
-        }, 3000);
+        // Don't automatically reconnect on error to avoid infinite loops in tests
       }
     };
 

@@ -26,7 +26,7 @@ class TimeLogEntryEventService {
     fun emitEvent(
         userId: Long,
         eventType: TimeLogEntryEventType,
-        entry: TimeLogEntry? = null,
+        entry: TimeLogEntry,
     ) {
         val sink = userEventSinks[userId]
 
@@ -38,8 +38,8 @@ class TimeLogEntryEventService {
         val event =
             TimeLogEntryEvent(
                 type = eventType,
-                entryId = entry?.id,
-                title = entry?.title,
+                entryId = requireNotNull(entry.id) { "Entry ID must not be null" },
+                title = entry.title,
             )
 
         log.debug("Emitting event to user {}: {}", userId, event)
@@ -91,6 +91,6 @@ enum class TimeLogEntryEventType {
 @Serdeable
 data class TimeLogEntryEvent(
     val type: TimeLogEntryEventType,
-    val entryId: Long?,
-    val title: String?,
+    val entryId: Long,
+    val title: String,
 )
