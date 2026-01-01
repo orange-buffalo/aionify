@@ -26,6 +26,7 @@ import java.time.format.DateTimeFormatter
 open class ImportResource(
     private val timeLogEntryRepository: TimeLogEntryRepository,
     private val userRepository: UserRepository,
+    private val timeService: TimeService,
 ) {
     private val log = org.slf4j.LoggerFactory.getLogger(ImportResource::class.java)
 
@@ -70,7 +71,7 @@ open class ImportResource(
 
                 if (existing.isEmpty) {
                     // Create new entry
-                    val importTime = Instant.now()
+                    val importTime = timeService.now()
                     timeLogEntryRepository.save(
                         TimeLogEntry(
                             startTime = startInstant,
