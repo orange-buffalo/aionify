@@ -103,11 +103,19 @@ class TogglImportValidationPlaywrightTest : PlaywrightTestBase() {
             assertEquals(2, entry1?.tags?.size)
             assertEquals("Tag1", entry1?.tags?.get(0))
             assertEquals("Tag2", entry1?.tags?.get(1))
+            // Verify metadata
+            assertEquals(2, entry1?.metadata?.size)
+            assertEquals("importTime:${TestTimeService.FIXED_TEST_TIME}", entry1?.metadata?.get(0))
+            assertEquals("importSource:toggl", entry1?.metadata?.get(1))
 
             val entry2 = entries.find { it.title == "Test Entry 2" }
             assertEquals("Test Entry 2", entry2?.title)
             assertEquals(1, entry2?.tags?.size)
             assertEquals("Tag3", entry2?.tags?.get(0))
+            // Verify metadata
+            assertEquals(2, entry2?.metadata?.size)
+            assertEquals("importTime:${TestTimeService.FIXED_TEST_TIME}", entry2?.metadata?.get(0))
+            assertEquals("importSource:toggl", entry2?.metadata?.get(1))
         }
     }
 
