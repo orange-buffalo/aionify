@@ -127,16 +127,15 @@ abstract class PlaywrightTestBase {
 
         _page = browserContext.newPage()
 
-        // Intercept SSE endpoint and fulfill with an immediately closing stream
-        // This allows SSE to "connect" but doesn't keep the connection open
+        // Intercept SSE endpoint to prevent long-lived connections from blocking tests
+        // Send only SSE comments (keepalive) without actual events
         _page.route("**/api-ui/time-log-entries/events**") { route ->
-            // Fulfill with a minimal SSE response that closes immediately
             route.fulfill(
                 Route
                     .FulfillOptions()
                     .setStatus(200)
-                    .setContentType("text/event-stream")
-                    .setBody("data: {\"type\":\"connected\"}\n\n"),
+                    .setContentType("text/event-stream; charset=utf-8")
+                    .setBody(": keepalive\n\n: keepalive\n\n"),
             )
         }
 
@@ -166,38 +165,6 @@ abstract class PlaywrightTestBase {
                 }
             }
         }
-
-        // Patch EventSource to allow SSE connections but prevent blocking
-        // Close connections after onopen to allow tests to complete
-        _page.addInitScript(
-            """
-            (function() {
-                const OriginalEventSource = window.EventSource;
-                window.EventSource = function(url, config) {
-                    const es = new OriginalEventSource(url, config);
-                    
-                    // Close the connection after a longer delay to allow event processing
-                    const originalOnOpen = es.onopen;
-                    es.onopen = function(event) {
-                        if (originalOnOpen) originalOnOpen.call(es, event);
-                        
-                        // Close after sufficient time for events to be processed
-                        setTimeout(() => {
-                            if (es.readyState !== EventSource.CLOSED) {
-                                es.close();
-                            }
-                        }, 500);
-                    };
-                    
-                    return es;
-                };
-                window.EventSource.prototype = OriginalEventSource.prototype;
-                window.EventSource.CONNECTING = OriginalEventSource.CONNECTING;
-                window.EventSource.OPEN = OriginalEventSource.OPEN;
-                window.EventSource.CLOSED = OriginalEventSource.CLOSED;
-            })();
-            """.trimIndent(),
-        )
 
         // Install Playwright clock with fixed time for deterministic tests
         // Use pauseAt to prevent automatic time progression - time only advances when explicitly requested
