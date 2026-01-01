@@ -7,8 +7,6 @@ import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
 import io.micronaut.serde.annotation.Serdeable
-import io.orangebuffalo.aionify.domain.TimeLogEntryEventService
-import io.orangebuffalo.aionify.domain.TimeLogEntryEventType
 import io.orangebuffalo.aionify.domain.TimeLogEntryService
 import io.orangebuffalo.aionify.domain.UserWithId
 import io.swagger.v3.oas.annotations.Operation
@@ -32,7 +30,6 @@ import org.slf4j.LoggerFactory
 @Transactional
 open class TimeLogEntryApiResource(
     private val timeLogEntryService: TimeLogEntryService,
-    private val eventService: TimeLogEntryEventService,
 ) {
     private val log = LoggerFactory.getLogger(TimeLogEntryApiResource::class.java)
 
@@ -71,33 +68,19 @@ open class TimeLogEntryApiResource(
         log.debug("Starting time log entry for user: {}, title: {}", currentUser.user.userName, request.title)
 
         val metadata = request.metadata?.toTypedArray() ?: emptyArray()
-        val result =
+        val newEntry =
             timeLogEntryService.startEntry(
                 userId = currentUser.id,
                 title = request.title,
                 metadata = metadata,
-                emitEvents = false, // Defer event emission until after transaction commits
             )
 
-        return HttpResponse
-            .ok(
-                StartTimeLogEntryResponse(
-                    title = result.newEntry.title,
-                    metadata = result.newEntry.metadata.toList(),
-                ),
-            ).also {
-                // Emit SSE events after transaction has committed.
-                // The @Transactional annotation on the controller ensures the transaction commits
-                // when this method returns. The .also {} block executes as part of the return
-                // statement, so events are emitted after business logic completes but the actual
-                // emission happens when the HttpResponse is being constructed for return.
-                // This timing ensures the database changes are committed before SSE subscribers
-                // receive events and query for the data.
-                result.stoppedEntry?.let { stopped ->
-                    eventService.emitEvent(currentUser.id, TimeLogEntryEventType.ENTRY_STOPPED, stopped)
-                }
-                eventService.emitEvent(currentUser.id, TimeLogEntryEventType.ENTRY_STARTED, result.newEntry)
-            }
+        return HttpResponse.ok(
+            StartTimeLogEntryResponse(
+                title = newEntry.title,
+                metadata = newEntry.metadata.toList(),
+            ),
+        )
     }
 
     @Post("/stop")
@@ -126,13 +109,10 @@ open class TimeLogEntryApiResource(
     open fun stopEntry(currentUser: UserWithId): HttpResponse<*> {
         log.debug("Stopping active time log entry for user: {}", currentUser.user.userName)
 
-        val stoppedEntry = timeLogEntryService.stopActiveEntry(currentUser.id, emitEvents = false)
+        val stoppedEntry = timeLogEntryService.stopActiveEntry(currentUser.id)
 
         return if (stoppedEntry != null) {
-            HttpResponse.ok(StopTimeLogEntryResponse(message = "Entry stopped", stopped = true)).also {
-                // Emit SSE event after transaction has committed
-                eventService.emitEvent(currentUser.id, TimeLogEntryEventType.ENTRY_STOPPED, stoppedEntry)
-            }
+            HttpResponse.ok(StopTimeLogEntryResponse(message = "Entry stopped", stopped = true))
         } else {
             HttpResponse.ok(StopTimeLogEntryResponse(message = "No active entry", stopped = false))
         }

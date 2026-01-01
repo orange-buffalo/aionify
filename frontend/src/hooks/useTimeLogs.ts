@@ -123,8 +123,8 @@ export function useTimeLogs() {
   // Load active entry
   async function loadActiveEntry() {
     try {
-      const response = await apiGet<{ entry: TimeLogEntry | null }>("/api-ui/time-log-entries/active");
-      setActiveEntry(response.entry);
+      const response = await apiGet<{ entry?: TimeLogEntry | null }>("/api-ui/time-log-entries/active");
+      setActiveEntry(response.entry ?? null);
     } catch (err: any) {
       console.error("Failed to load active entry:", err);
     }
