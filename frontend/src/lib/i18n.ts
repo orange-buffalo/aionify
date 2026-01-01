@@ -152,6 +152,7 @@ const resources = {
           generateSuccess: "API token generated successfully",
           regenerateSuccess: "API token regenerated successfully",
           deleteSuccess: "API token deleted successfully",
+          openApiSchemaLink: "View OpenAPI Schema",
           deleteConfirm: {
             title: "Delete API Token",
             message:
@@ -205,6 +206,7 @@ const resources = {
         weeklyTotal: "Weekly total",
         inProgress: "in progress",
         differentDayWarning: "This entry finishes on another day - {{date}}",
+        overlapWarning: "This entry overlaps with '{{title}}'",
         noEntries: "No time log entries for this week",
         timezoneHint: "Times shown in {{timezone}}",
         deleteDialog: {
@@ -558,6 +560,7 @@ const resources = {
           generateSuccess: "API токен успішно згенеровано",
           regenerateSuccess: "API токен успішно перегенеровано",
           deleteSuccess: "API токен успішно видалено",
+          openApiSchemaLink: "Переглянути OpenAPI схему",
           deleteConfirm: {
             title: "Видалити API токен",
             message:
@@ -611,6 +614,7 @@ const resources = {
         weeklyTotal: "Всього за тиждень",
         inProgress: "виконується",
         differentDayWarning: "Цей запис закінчується в інший день - {{date}}",
+        overlapWarning: "Цей запис перетинається з '{{title}}'",
         noEntries: "Немає записів часу для цього тижня",
         timezoneHint: "Час показано у {{timezone}}",
         deleteDialog: {

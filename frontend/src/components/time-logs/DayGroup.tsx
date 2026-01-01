@@ -4,6 +4,7 @@ import { formatDuration } from "@/lib/time-utils";
 import { TimeEntry } from "./TimeEntry";
 import { GroupedTimeEntry } from "./GroupedTimeEntry";
 import { groupEntriesByTitleAndTags, isGroupedEntry } from "@/lib/entry-grouping";
+import { detectOverlaps } from "@/lib/overlap-detection";
 import type { DayGroup as DayGroupType, TimeLogEntry } from "./types";
 
 interface DayGroupProps {
@@ -32,6 +33,9 @@ export function DayGroup({
   onCancelEdit,
 }: DayGroupProps) {
   const { t } = useTranslation();
+
+  // Detect overlaps within this day group
+  const overlaps = detectOverlaps(group.entries);
 
   // Group entries by title and tags
   const groupedEntries = groupEntriesByTitleAndTags(group.entries);
@@ -65,9 +69,11 @@ export function DayGroup({
                   onEdit={onEdit}
                   onSaveEdit={onSaveEdit}
                   onCancelEdit={onCancelEdit}
+                  overlaps={overlaps}
                 />
               );
             } else {
+              const overlap = overlaps.get(item.id);
               return (
                 <TimeEntry
                   key={`${item.id}-${item.startTime}`}
@@ -81,6 +87,7 @@ export function DayGroup({
                   onEdit={onEdit}
                   onSaveEdit={onSaveEdit}
                   onCancelEdit={onCancelEdit}
+                  overlap={overlap}
                 />
               );
             }
