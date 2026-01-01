@@ -7,6 +7,8 @@ import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
 import io.micronaut.serde.annotation.Serdeable
+import io.orangebuffalo.aionify.domain.TimeLogEntryEventService
+import io.orangebuffalo.aionify.domain.TimeLogEntryEventType
 import io.orangebuffalo.aionify.domain.TimeLogEntryService
 import io.orangebuffalo.aionify.domain.UserWithId
 import io.swagger.v3.oas.annotations.Operation
@@ -30,6 +32,7 @@ import org.slf4j.LoggerFactory
 @Transactional
 open class TimeLogEntryApiResource(
     private val timeLogEntryService: TimeLogEntryService,
+    private val eventService: TimeLogEntryEventService,
 ) {
     private val log = LoggerFactory.getLogger(TimeLogEntryApiResource::class.java)
 
@@ -68,19 +71,28 @@ open class TimeLogEntryApiResource(
         log.debug("Starting time log entry for user: {}, title: {}", currentUser.user.userName, request.title)
 
         val metadata = request.metadata?.toTypedArray() ?: emptyArray()
-        val newEntry =
+        val result =
             timeLogEntryService.startEntry(
                 userId = currentUser.id,
                 title = request.title,
                 metadata = metadata,
+                emitEvents = false, // Defer event emission until after transaction commits
             )
 
-        return HttpResponse.ok(
-            StartTimeLogEntryResponse(
-                title = newEntry.title,
-                metadata = newEntry.metadata.toList(),
-            ),
-        )
+        return HttpResponse
+            .ok(
+                StartTimeLogEntryResponse(
+                    title = result.newEntry.title,
+                    metadata = result.newEntry.metadata.toList(),
+                ),
+            ).also {
+                // Emit SSE events after transaction has committed
+                // This ensures the new entry is visible to subscribers when they reload
+                result.stoppedEntry?.let { stopped ->
+                    eventService.emitEvent(currentUser.id, TimeLogEntryEventType.ENTRY_STOPPED, stopped)
+                }
+                eventService.emitEvent(currentUser.id, TimeLogEntryEventType.ENTRY_STARTED, result.newEntry)
+            }
     }
 
     @Post("/stop")
@@ -109,10 +121,13 @@ open class TimeLogEntryApiResource(
     open fun stopEntry(currentUser: UserWithId): HttpResponse<*> {
         log.debug("Stopping active time log entry for user: {}", currentUser.user.userName)
 
-        val stoppedEntry = timeLogEntryService.stopActiveEntry(currentUser.id)
+        val stoppedEntry = timeLogEntryService.stopActiveEntry(currentUser.id, emitEvents = false)
 
         return if (stoppedEntry != null) {
-            HttpResponse.ok(StopTimeLogEntryResponse(message = "Entry stopped", stopped = true))
+            HttpResponse.ok(StopTimeLogEntryResponse(message = "Entry stopped", stopped = true)).also {
+                // Emit SSE event after transaction has committed
+                eventService.emitEvent(currentUser.id, TimeLogEntryEventType.ENTRY_STOPPED, stoppedEntry)
+            }
         } else {
             HttpResponse.ok(StopTimeLogEntryResponse(message = "No active entry", stopped = false))
         }

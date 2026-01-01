@@ -92,9 +92,9 @@ open class TimeLogEntryResource(
             }
         }
 
-        val newEntry = timeLogEntryService.startEntry(currentUser.id, request.title, request.tags.toTypedArray())
+        val result = timeLogEntryService.startEntry(currentUser.id, request.title, request.tags.toTypedArray())
 
-        return HttpResponse.created(newEntry.toDto())
+        return HttpResponse.created(result.newEntry.toDto())
     }
 
     @Put("/{id}/stop")
