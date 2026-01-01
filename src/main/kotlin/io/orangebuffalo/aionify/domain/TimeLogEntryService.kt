@@ -23,7 +23,10 @@ class TimeLogEntryService(
      * @param title The title of the new entry
      * @param tags Optional tags for the entry
      * @param metadata Optional metadata for the entry
-     * @param emitEvents Whether to emit SSE events (default true). Set to false when events should be emitted by caller after transaction commit.
+     * @param emitEvents Whether to emit SSE events immediately (default true).
+     *                   Set to false when caller needs to emit events after transaction commits
+     *                   to ensure data visibility to SSE subscribers. This prevents race conditions
+     *                   where subscribers receive events and query for data before it's committed.
      * @return A result containing the created entry and optional stopped entry
      */
     fun startEntry(
@@ -78,7 +81,10 @@ class TimeLogEntryService(
      * Stops the active time log entry for the user.
      *
      * @param userId The ID of the user
-     * @param emitEvents Whether to emit SSE events (default true). Set to false when events should be emitted by caller after transaction commit.
+     * @param emitEvents Whether to emit SSE events immediately (default true).
+     *                   Set to false when caller needs to emit events after transaction commits
+     *                   to ensure data visibility to SSE subscribers. This prevents race conditions
+     *                   where subscribers receive events and query for data before it's committed.
      * @return The stopped entry if one was active, null otherwise
      */
     fun stopActiveEntry(

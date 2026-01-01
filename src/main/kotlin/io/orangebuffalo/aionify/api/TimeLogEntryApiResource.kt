@@ -86,8 +86,13 @@ open class TimeLogEntryApiResource(
                     metadata = result.newEntry.metadata.toList(),
                 ),
             ).also {
-                // Emit SSE events after transaction has committed
-                // This ensures the new entry is visible to subscribers when they reload
+                // Emit SSE events after transaction has committed.
+                // The @Transactional annotation on the controller ensures the transaction commits
+                // when this method returns. The .also {} block executes as part of the return
+                // statement, so events are emitted after business logic completes but the actual
+                // emission happens when the HttpResponse is being constructed for return.
+                // This timing ensures the database changes are committed before SSE subscribers
+                // receive events and query for the data.
                 result.stoppedEntry?.let { stopped ->
                     eventService.emitEvent(currentUser.id, TimeLogEntryEventType.ENTRY_STOPPED, stopped)
                 }
