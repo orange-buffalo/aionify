@@ -119,7 +119,11 @@ class TimeLogEntryApiResourceTest {
 
             // Then: Request succeeds
             assertEquals(HttpStatus.OK, response.status)
-            assertEquals("Working on API", response.body()?.title)
+            val responseBody = response.body()!!
+            assertEquals("Working on API", responseBody.title)
+            assertNotNull(responseBody.id)
+            assertNotNull(responseBody.startTime)
+            assertEquals(emptyList<String>(), responseBody.tags)
 
             // And: Entry is saved in database
             val activeEntry =
@@ -130,6 +134,8 @@ class TimeLogEntryApiResourceTest {
             assertEquals("Working on API", activeEntry?.title)
             assertEquals(testUser1.id, activeEntry?.ownerId)
             assertNull(activeEntry?.endTime)
+            assertEquals(responseBody.id, activeEntry?.id)
+            assertEquals(responseBody.startTime, activeEntry?.startTime)
         }
 
         @Test
@@ -247,6 +253,33 @@ class TimeLogEntryApiResourceTest {
 
             // Then: Request is rejected with 401
             assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+        }
+
+        @Test
+        fun `should start entry with tags`() {
+            // When: Starting an entry with tags
+            val request =
+                HttpRequest
+                    .POST(
+                        "/api/time-log-entries/start",
+                        StartTimeLogEntryRequest(title = "Working on API", tags = listOf("backend", "api")),
+                    ).bearerAuth(validToken1)
+
+            val response = client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
+
+            // Then: Request succeeds with tags
+            assertEquals(HttpStatus.OK, response.status)
+            val responseBody = response.body()!!
+            assertEquals("Working on API", responseBody.title)
+            assertEquals(listOf("backend", "api"), responseBody.tags)
+
+            // And: Entry is saved with tags in database
+            val activeEntry =
+                testDatabaseSupport.inTransaction {
+                    timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(testUser1.id!!).orElse(null)
+                }
+            assertNotNull(activeEntry)
+            assertEquals(listOf("backend", "api"), activeEntry?.tags?.toList())
         }
 
         @Test
@@ -404,16 +437,18 @@ class TimeLogEntryApiResourceTest {
         @Test
         fun `should get active entry`() {
             // Given: User has an active entry
-            testDatabaseSupport.inTransaction {
-                timeLogEntryRepository.save(
-                    TimeLogEntry(
-                        startTime = timeService.now(),
-                        endTime = null,
-                        title = "Active Entry",
-                        ownerId = testUser1.id!!,
-                    ),
-                )
-            }
+            val savedEntry =
+                testDatabaseSupport.inTransaction {
+                    timeLogEntryRepository.save(
+                        TimeLogEntry(
+                            startTime = timeService.now(),
+                            endTime = null,
+                            title = "Active Entry",
+                            ownerId = testUser1.id!!,
+                            tags = arrayOf("tag1", "tag2"),
+                        ),
+                    )
+                }
 
             // When: Getting active entry
             val request =
@@ -423,9 +458,13 @@ class TimeLogEntryApiResourceTest {
 
             val response = client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
 
-            // Then: Request succeeds
+            // Then: Request succeeds with metadata
             assertEquals(HttpStatus.OK, response.status)
-            assertEquals("Active Entry", response.body()?.title)
+            val responseBody = response.body()!!
+            assertEquals("Active Entry", responseBody.title)
+            assertEquals(savedEntry.id, responseBody.id)
+            assertEquals(savedEntry.startTime, responseBody.startTime)
+            assertEquals(listOf("tag1", "tag2"), responseBody.tags)
         }
 
         @Test

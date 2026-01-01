@@ -20,6 +20,7 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import org.slf4j.LoggerFactory
+import java.time.Instant
 
 /**
  * Public API controller for time log entries.
@@ -67,9 +68,16 @@ open class TimeLogEntryApiResource(
     ): HttpResponse<*> {
         log.debug("Starting time log entry for user: {}, title: {}", currentUser.user.userName, request.title)
 
-        val newEntry = timeLogEntryService.startEntry(currentUser.id, request.title)
+        val newEntry = timeLogEntryService.startEntry(currentUser.id, request.title, request.tags.toTypedArray())
 
-        return HttpResponse.ok(StartTimeLogEntryResponse(title = newEntry.title))
+        return HttpResponse.ok(
+            StartTimeLogEntryResponse(
+                id = requireNotNull(newEntry.id) { "Entry must have an ID" },
+                title = newEntry.title,
+                startTime = newEntry.startTime,
+                tags = newEntry.tags.toList(),
+            ),
+        )
     }
 
     @Post("/stop")
@@ -141,7 +149,14 @@ open class TimeLogEntryApiResource(
         val activeEntry = timeLogEntryService.getActiveEntry(currentUser.id)
 
         return if (activeEntry != null) {
-            HttpResponse.ok(ActiveTimeLogEntryResponse(title = activeEntry.title))
+            HttpResponse.ok(
+                ActiveTimeLogEntryResponse(
+                    id = requireNotNull(activeEntry.id) { "Entry must have an ID" },
+                    title = activeEntry.title,
+                    startTime = activeEntry.startTime,
+                    tags = activeEntry.tags.toList(),
+                ),
+            )
         } else {
             HttpResponse
                 .notFound<TimeLogEntryApiErrorResponse>()
@@ -163,14 +178,25 @@ data class StartTimeLogEntryRequest(
         required = true,
     )
     val title: String,
+    @field:Schema(
+        description = "Optional tags for the time log entry",
+        example = "[\"project-a\", \"backend\"]",
+    )
+    val tags: List<String> = emptyList(),
 )
 
 @Serdeable
 @Introspected
 @Schema(description = "Response after starting a time log entry")
 data class StartTimeLogEntryResponse(
+    @field:Schema(description = "ID of the started time log entry", example = "123")
+    val id: Long,
     @field:Schema(description = "Title of the started time log entry", example = "Working on feature X")
     val title: String,
+    @field:Schema(description = "Start time of the entry in ISO 8601 format", example = "2024-01-15T10:30:00Z")
+    val startTime: java.time.Instant,
+    @field:Schema(description = "Tags associated with the time log entry", example = "[\"project-a\", \"backend\"]")
+    val tags: List<String>,
 )
 
 @Serdeable
@@ -187,8 +213,14 @@ data class StopTimeLogEntryResponse(
 @Introspected
 @Schema(description = "Response containing the active time log entry")
 data class ActiveTimeLogEntryResponse(
+    @field:Schema(description = "ID of the active time log entry", example = "123")
+    val id: Long,
     @field:Schema(description = "Title of the active time log entry", example = "Working on feature X")
     val title: String,
+    @field:Schema(description = "Start time of the entry in ISO 8601 format", example = "2024-01-15T10:30:00Z")
+    val startTime: java.time.Instant,
+    @field:Schema(description = "Tags associated with the time log entry", example = "[\"project-a\", \"backend\"]")
+    val tags: List<String>,
 )
 
 @Serdeable
