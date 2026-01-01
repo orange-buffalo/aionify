@@ -120,6 +120,7 @@ class TimeLogEntryApiResourceTest {
             // Then: Request succeeds
             assertEquals(HttpStatus.OK, response.status)
             assertEquals("Working on API", response.body()?.title)
+            assertEquals(emptyList<String>(), response.body()?.metadata)
 
             // And: Entry is saved in database
             val activeEntry =
@@ -159,6 +160,7 @@ class TimeLogEntryApiResourceTest {
             // Then: Request succeeds
             assertEquals(HttpStatus.OK, response.status)
             assertEquals("New Entry", response.body()?.title)
+            assertEquals(emptyList<String>(), response.body()?.metadata)
 
             // And: Old entry is stopped
             val entries =
@@ -229,6 +231,7 @@ class TimeLogEntryApiResourceTest {
             // Then: Request succeeds
             assertEquals(HttpStatus.OK, response.status)
             assertEquals(maxTitle, response.body()?.title)
+            assertEquals(emptyList<String>(), response.body()?.metadata)
         }
 
         @Test
@@ -281,6 +284,89 @@ class TimeLogEntryApiResourceTest {
             assertNotNull(user2ActiveEntry)
             assertEquals("User2 Active Entry", user2ActiveEntry?.title)
             assertNull(user2ActiveEntry?.endTime, "User2's entry should still be active")
+        }
+
+        @Test
+        fun `should start a new time log entry with metadata`() {
+            // When: Starting a new entry with metadata
+            val request =
+                HttpRequest
+                    .POST(
+                        "/api/time-log-entries/start",
+                        StartTimeLogEntryRequest(
+                            title = "Working on API",
+                            metadata = listOf("project:aionify", "task:API-123"),
+                        ),
+                    ).bearerAuth(validToken1)
+
+            val response = client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
+
+            // Then: Request succeeds
+            assertEquals(HttpStatus.OK, response.status)
+            assertEquals("Working on API", response.body()?.title)
+            assertEquals(listOf("project:aionify", "task:API-123"), response.body()?.metadata)
+
+            // And: Entry is saved in database with metadata
+            val activeEntry =
+                testDatabaseSupport.inTransaction {
+                    timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(testUser1.id!!).orElse(null)
+                }
+            assertNotNull(activeEntry)
+            assertEquals("Working on API", activeEntry?.title)
+            assertArrayEquals(arrayOf("project:aionify", "task:API-123"), activeEntry?.metadata)
+        }
+
+        @Test
+        fun `should start a new time log entry with empty metadata when not provided`() {
+            // When: Starting a new entry without metadata
+            val request =
+                HttpRequest
+                    .POST(
+                        "/api/time-log-entries/start",
+                        StartTimeLogEntryRequest(title = "Working on API"),
+                    ).bearerAuth(validToken1)
+
+            val response = client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
+
+            // Then: Request succeeds
+            assertEquals(HttpStatus.OK, response.status)
+            assertEquals("Working on API", response.body()?.title)
+            assertEquals(emptyList<String>(), response.body()?.metadata)
+
+            // And: Entry is saved in database with empty metadata
+            val activeEntry =
+                testDatabaseSupport.inTransaction {
+                    timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(testUser1.id!!).orElse(null)
+                }
+            assertNotNull(activeEntry)
+            assertEquals("Working on API", activeEntry?.title)
+            assertArrayEquals(emptyArray<String>(), activeEntry?.metadata)
+        }
+
+        @Test
+        fun `should start a new time log entry with explicit empty metadata`() {
+            // When: Starting a new entry with explicit empty metadata
+            val request =
+                HttpRequest
+                    .POST(
+                        "/api/time-log-entries/start",
+                        StartTimeLogEntryRequest(title = "Working on API", metadata = emptyList()),
+                    ).bearerAuth(validToken1)
+
+            val response = client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
+
+            // Then: Request succeeds
+            assertEquals(HttpStatus.OK, response.status)
+            assertEquals("Working on API", response.body()?.title)
+            assertEquals(emptyList<String>(), response.body()?.metadata)
+
+            // And: Entry is saved in database with empty metadata
+            val activeEntry =
+                testDatabaseSupport.inTransaction {
+                    timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(testUser1.id!!).orElse(null)
+                }
+            assertNotNull(activeEntry)
+            assertArrayEquals(emptyArray<String>(), activeEntry?.metadata)
         }
     }
 
@@ -426,6 +512,7 @@ class TimeLogEntryApiResourceTest {
             // Then: Request succeeds
             assertEquals(HttpStatus.OK, response.status)
             assertEquals("Active Entry", response.body()?.title)
+            assertEquals(emptyList<String>(), response.body()?.metadata)
         }
 
         @Test
@@ -494,6 +581,7 @@ class TimeLogEntryApiResourceTest {
             // Then: User1 gets their own entry
             assertEquals(HttpStatus.OK, response1.status)
             assertEquals("User1 Active Entry", response1.body()?.title)
+            assertEquals(emptyList<String>(), response1.body()?.metadata)
 
             // When: User2 gets their active entry
             val request2 =
@@ -506,6 +594,7 @@ class TimeLogEntryApiResourceTest {
             // Then: User2 gets their own entry
             assertEquals(HttpStatus.OK, response2.status)
             assertEquals("User2 Active Entry", response2.body()?.title)
+            assertEquals(emptyList<String>(), response2.body()?.metadata)
         }
 
         @Test
@@ -564,6 +653,64 @@ class TimeLogEntryApiResourceTest {
 
             // Then: Returns 404 (stopped entry is not active)
             assertEquals(HttpStatus.NOT_FOUND, exception.status)
+        }
+
+        @Test
+        fun `should return active entry with metadata`() {
+            // Given: User has an active entry with metadata
+            testDatabaseSupport.inTransaction {
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = timeService.now(),
+                        endTime = null,
+                        title = "Active Entry",
+                        ownerId = testUser1.id!!,
+                        metadata = arrayOf("project:aionify", "task:API-123"),
+                    ),
+                )
+            }
+
+            // When: Getting active entry
+            val request =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries/active")
+                    .bearerAuth(validToken1)
+
+            val response = client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
+
+            // Then: Request succeeds with metadata
+            assertEquals(HttpStatus.OK, response.status)
+            assertEquals("Active Entry", response.body()?.title)
+            assertEquals(listOf("project:aionify", "task:API-123"), response.body()?.metadata)
+        }
+
+        @Test
+        fun `should return active entry with empty metadata`() {
+            // Given: User has an active entry with empty metadata
+            testDatabaseSupport.inTransaction {
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = timeService.now(),
+                        endTime = null,
+                        title = "Active Entry",
+                        ownerId = testUser1.id!!,
+                        metadata = emptyArray(),
+                    ),
+                )
+            }
+
+            // When: Getting active entry
+            val request =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries/active")
+                    .bearerAuth(validToken1)
+
+            val response = client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
+
+            // Then: Request succeeds with empty metadata
+            assertEquals(HttpStatus.OK, response.status)
+            assertEquals("Active Entry", response.body()?.title)
+            assertEquals(emptyList<String>(), response.body()?.metadata)
         }
     }
 }
