@@ -68,7 +68,12 @@ open class TimeLogEntryApiResource(
         log.debug("Starting time log entry for user: {}, title: {}", currentUser.user.userName, request.title)
 
         val metadata = request.metadata?.toTypedArray() ?: emptyArray()
-        val newEntry = timeLogEntryService.startEntry(currentUser.id, request.title, metadata = metadata)
+        val newEntry =
+            timeLogEntryService.startEntry(
+                userId = currentUser.id,
+                title = request.title,
+                metadata = metadata,
+            )
 
         return HttpResponse.ok(
             StartTimeLogEntryResponse(
