@@ -15,8 +15,8 @@ import java.util.Optional
  * This binder extracts the principal from the security context and resolves the
  * corresponding user from the database.
  *
- * For API requests (/api/), the authentication is retrieved from request attributes
- * (set by ApiAuthenticationFilter). For UI requests, it's retrieved from SecurityService.
+ * Works with both UI authentication (via SecurityService) and API authentication
+ * (via request attributes set by ApiAuthenticationFilter).
  */
 @Singleton
 class CurrentUserArgumentBinder(
@@ -29,13 +29,13 @@ class CurrentUserArgumentBinder(
         context: ArgumentConversionContext<UserWithId>,
         source: HttpRequest<*>,
     ): ArgumentBinder.BindingResult<UserWithId> {
-        // For API requests, get authentication from request attributes
-        val authentication =
-            if (source.path.startsWith("/api/")) {
-                source.getAttribute("micronaut.security.AUTHENTICATION", Authentication::class.java).orElse(null)
-            } else {
-                securityService.authentication.orElse(null)
-            }
+        // Try to get authentication from SecurityService first (for UI/JWT auth)
+        var authentication = securityService.authentication.orElse(null)
+
+        // If not found, check request attributes (for API bearer token auth)
+        if (authentication == null) {
+            authentication = source.getAttribute("micronaut.security.AUTHENTICATION", Authentication::class.java).orElse(null)
+        }
 
         val principal = authentication?.let { java.security.Principal { it.name } }
         val userWithId = currentUserService.resolveUser(principal)
