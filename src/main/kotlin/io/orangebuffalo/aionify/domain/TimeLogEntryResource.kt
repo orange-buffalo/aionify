@@ -28,6 +28,7 @@ import java.time.Instant
 open class TimeLogEntryResource(
     private val timeLogEntryRepository: TimeLogEntryRepository,
     private val userRepository: UserRepository,
+    private val timeLogEntryService: TimeLogEntryService,
     private val timeService: TimeService,
 ) {
     private val log = org.slf4j.LoggerFactory.getLogger(TimeLogEntryResource::class.java)
@@ -81,15 +82,9 @@ open class TimeLogEntryResource(
         log.debug("Creating time log entry for user: {}, title: {}", currentUser.user.userName, request.title)
 
         // Check if there's already an active log entry
-        val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(currentUser.id).orElse(null)
-        if (activeEntry != null) {
-            // If stopActiveEntry is true, stop the active entry first
-            if (request.stopActiveEntry) {
-                log.debug("Stopping active entry before creating new one for user: {}", currentUser.user.userName)
-                timeLogEntryRepository.update(
-                    activeEntry.copy(endTime = timeService.now()),
-                )
-            } else {
+        if (!request.stopActiveEntry) {
+            val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(currentUser.id).orElse(null)
+            if (activeEntry != null) {
                 log.debug("Create entry failed: active entry exists for user: {}", currentUser.user.userName)
                 return HttpResponse.badRequest(
                     TimeLogEntryErrorResponse("Cannot start a new log entry while another is active", "ACTIVE_ENTRY_EXISTS"),
@@ -97,18 +92,7 @@ open class TimeLogEntryResource(
             }
         }
 
-        val newEntry =
-            timeLogEntryRepository.save(
-                TimeLogEntry(
-                    startTime = timeService.now(),
-                    endTime = null,
-                    title = request.title,
-                    ownerId = currentUser.id,
-                    tags = request.tags.toTypedArray(),
-                ),
-            )
-
-        log.info("Time log entry created for user: {}, id: {}", currentUser.user.userName, newEntry.id)
+        val newEntry = timeLogEntryService.startEntry(currentUser.id, request.title, request.tags.toTypedArray())
 
         return HttpResponse.created(newEntry.toDto())
     }
