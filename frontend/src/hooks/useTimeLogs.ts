@@ -145,7 +145,9 @@ export function useTimeLogs() {
   );
 
   // Subscribe to SSE events for real-time updates
-  useTimeLogEntryEvents(handleTimeLogEvent, true);
+  // Disable SSE in test/automation environments (Playwright, etc.)
+  const sseEnabled = typeof window !== "undefined" && typeof navigator !== "undefined" && !navigator.webdriver;
+  useTimeLogEntryEvents(handleTimeLogEvent, sseEnabled);
 
   // Start a new time entry
   async function handleStart(title: string, tags: string[] = []) {

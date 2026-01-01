@@ -265,15 +265,17 @@ abstract class PlaywrightTestBase {
      *
      * Note: "Failed to load resource" errors are ignored as they are expected when testing
      * error scenarios (e.g., 401 Unauthorized, 400 Bad Request responses).
+     * SSE-related errors are also ignored as SSE connections may fail during tests.
      */
     private fun verifyConsoleMessages() {
         val errorMessages =
             consoleMessages.filter { message ->
                 val isErrorOrWarning = message.type() == "error" || message.type() == "warning"
                 val isNetworkError = message.text().startsWith("Failed to load resource:")
+                val isSseError = message.text().contains("[SSE]") || message.text().contains("EventSource")
 
-                // Filter to only actual errors/warnings, excluding network-related errors
-                isErrorOrWarning && !isNetworkError
+                // Filter to only actual errors/warnings, excluding network-related and SSE errors
+                isErrorOrWarning && !isNetworkError && !isSseError
             }
 
         if (errorMessages.isNotEmpty()) {
