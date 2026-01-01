@@ -67,9 +67,20 @@ open class TimeLogEntryApiResource(
     ): HttpResponse<*> {
         log.debug("Starting time log entry for user: {}, title: {}", currentUser.user.userName, request.title)
 
-        val newEntry = timeLogEntryService.startEntry(currentUser.id, request.title)
+        val metadata = request.metadata?.toTypedArray() ?: emptyArray()
+        val newEntry =
+            timeLogEntryService.startEntry(
+                userId = currentUser.id,
+                title = request.title,
+                metadata = metadata,
+            )
 
-        return HttpResponse.ok(StartTimeLogEntryResponse(title = newEntry.title))
+        return HttpResponse.ok(
+            StartTimeLogEntryResponse(
+                title = newEntry.title,
+                metadata = newEntry.metadata.toList(),
+            ),
+        )
     }
 
     @Post("/stop")
@@ -141,7 +152,12 @@ open class TimeLogEntryApiResource(
         val activeEntry = timeLogEntryService.getActiveEntry(currentUser.id)
 
         return if (activeEntry != null) {
-            HttpResponse.ok(ActiveTimeLogEntryResponse(title = activeEntry.title))
+            HttpResponse.ok(
+                ActiveTimeLogEntryResponse(
+                    title = activeEntry.title,
+                    metadata = activeEntry.metadata.toList(),
+                ),
+            )
         } else {
             HttpResponse
                 .notFound<TimeLogEntryApiErrorResponse>()
@@ -163,6 +179,12 @@ data class StartTimeLogEntryRequest(
         required = true,
     )
     val title: String,
+    @field:Schema(
+        description = "Optional metadata for the time log entry",
+        example = "[\"project:aionify\", \"task:API-123\"]",
+        required = false,
+    )
+    val metadata: List<String>? = null,
 )
 
 @Serdeable
@@ -171,6 +193,8 @@ data class StartTimeLogEntryRequest(
 data class StartTimeLogEntryResponse(
     @field:Schema(description = "Title of the started time log entry", example = "Working on feature X")
     val title: String,
+    @field:Schema(description = "Metadata of the started time log entry", example = "[\"project:aionify\", \"task:API-123\"]")
+    val metadata: List<String>,
 )
 
 @Serdeable
@@ -189,6 +213,8 @@ data class StopTimeLogEntryResponse(
 data class ActiveTimeLogEntryResponse(
     @field:Schema(description = "Title of the active time log entry", example = "Working on feature X")
     val title: String,
+    @field:Schema(description = "Metadata of the active time log entry", example = "[\"project:aionify\", \"task:API-123\"]")
+    val metadata: List<String>,
 )
 
 @Serdeable

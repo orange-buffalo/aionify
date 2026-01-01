@@ -220,6 +220,7 @@ open class TimeLogEntryResource(
             title = this.title,
             ownerId = this.ownerId,
             tags = this.tags.toList(),
+            metadata = this.metadata.toList(),
         )
 }
 
@@ -232,6 +233,7 @@ data class TimeLogEntryDto(
     val title: String,
     val ownerId: Long,
     val tags: List<String> = emptyList(),
+    val metadata: List<String> = emptyList(),
 )
 
 @Serdeable

@@ -22,12 +22,14 @@ class TimeLogEntryService(
      * @param userId The ID of the user
      * @param title The title of the new entry
      * @param tags Optional tags for the entry
+     * @param metadata Optional metadata for the entry
      * @return The created time log entry
      */
     fun startEntry(
         userId: Long,
         title: String,
         tags: Array<String> = emptyArray(),
+        metadata: Array<String> = emptyArray(),
     ): TimeLogEntry {
         // Stop any active entry first
         val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(userId).orElse(null)
@@ -50,6 +52,7 @@ class TimeLogEntryService(
                     title = title,
                     ownerId = userId,
                     tags = tags,
+                    metadata = metadata,
                 ),
             )
 
