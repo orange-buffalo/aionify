@@ -127,18 +127,6 @@ abstract class PlaywrightTestBase {
 
         _page = browserContext.newPage()
 
-        // Intercept SSE endpoint to prevent long-lived connections from blocking tests
-        // Send only SSE comments (keepalive) without actual events
-        _page.route("**/api-ui/time-log-entries/events**") { route ->
-            route.fulfill(
-                Route
-                    .FulfillOptions()
-                    .setStatus(200)
-                    .setContentType("text/event-stream; charset=utf-8")
-                    .setBody(": keepalive\n\n: keepalive\n\n"),
-            )
-        }
-
         // Add console message listener to capture errors and warnings
         _page.onConsoleMessage { message ->
             consoleMessages.add(message)
@@ -146,7 +134,7 @@ abstract class PlaywrightTestBase {
 
         // Add request/response logging for AJAX debugging
         _page.onRequest { request ->
-            if (request.url().contains("/api-ui/") && !request.url().contains("/events")) {
+            if (request.url().contains("/api-ui/")) {
                 log.debug("[REQUEST] ${request.method()} ${request.url()}")
                 if (request.postData() != null) {
                     log.debug("[REQUEST BODY] ${request.postData()}")
@@ -155,13 +143,16 @@ abstract class PlaywrightTestBase {
         }
 
         _page.onResponse { response ->
-            if (response.url().contains("/api-ui/") && !response.url().contains("/events")) {
+            if (response.url().contains("/api-ui/")) {
                 log.debug("[RESPONSE] ${response.status()} ${response.url()}")
-                try {
-                    val body = response.text()
-                    log.debug("[RESPONSE BODY] $body")
-                } catch (e: Exception) {
-                    log.debug("[RESPONSE BODY] (unable to read: ${e.message})")
+                // Don't try to read SSE response bodies as they stream indefinitely
+                if (!response.url().contains("/events")) {
+                    try {
+                        val body = response.text()
+                        log.debug("[RESPONSE BODY] $body")
+                    } catch (e: Exception) {
+                        log.debug("[RESPONSE BODY] (unable to read: ${e.message})")
+                    }
                 }
             }
         }
