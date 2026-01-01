@@ -13,6 +13,7 @@ import { Play, MoreVertical, Trash2, Pencil, AlertCircle } from "lucide-react";
 import { formatTime, formatTimeWithWeekday, formatDate } from "@/lib/date-format";
 import { calculateDuration, formatDuration, isDifferentDay } from "@/lib/time-utils";
 import { EditEntryForm } from "./EditEntryForm";
+import type { EntryOverlap } from "@/lib/overlap-detection";
 import type { TimeLogEntry } from "./types";
 
 interface TimeEntryProps {
@@ -29,6 +30,7 @@ interface TimeEntryProps {
   hideTitle?: boolean;
   hideTags?: boolean;
   hideContinue?: boolean;
+  overlap?: EntryOverlap;
 }
 
 export function TimeEntry({
@@ -45,6 +47,7 @@ export function TimeEntry({
   hideTitle = false,
   hideTags = false,
   hideContinue = false,
+  overlap,
 }: TimeEntryProps) {
   const { t } = useTranslation();
   const duration = calculateDuration(entry.startTime, entry.endTime);
@@ -134,6 +137,16 @@ export function TimeEntry({
               </PopoverTrigger>
               <PopoverContent className="dark text-sm" data-testid="different-day-tooltip">
                 {t("timeLogs.differentDayWarning", { date: formatDate(entry.endTime!, locale) })}
+              </PopoverContent>
+            </Popover>
+          )}
+          {overlap && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <AlertCircle className="h-4 w-4 text-yellow-500 cursor-pointer" data-testid="overlap-warning" />
+              </PopoverTrigger>
+              <PopoverContent className="dark text-sm" data-testid="overlap-tooltip">
+                {t("timeLogs.overlapWarning", { title: overlap.overlappingEntryTitle })}
               </PopoverContent>
             </Popover>
           )}

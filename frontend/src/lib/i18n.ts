@@ -205,6 +205,7 @@ const resources = {
         weeklyTotal: "Weekly total",
         inProgress: "in progress",
         differentDayWarning: "This entry finishes on another day - {{date}}",
+        overlapWarning: "This entry overlaps with '{{title}}'",
         noEntries: "No time log entries for this week",
         timezoneHint: "Times shown in {{timezone}}",
         deleteDialog: {
@@ -611,6 +612,7 @@ const resources = {
         weeklyTotal: "Всього за тиждень",
         inProgress: "виконується",
         differentDayWarning: "Цей запис закінчується в інший день - {{date}}",
+        overlapWarning: "Цей запис перетинається з '{{title}}'",
         noEntries: "Немає записів часу для цього тижня",
         timezoneHint: "Час показано у {{timezone}}",
         deleteDialog: {
