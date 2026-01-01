@@ -63,10 +63,10 @@ export function useTimeLogEntryEvents(onEvent: (event: TimeLogEntryEvent) => voi
 
     eventSource.onerror = () => {
       // Close and cleanup on error
+      // Don't automatically reconnect to avoid infinite loops
       if (eventSource.readyState === EventSource.CLOSED) {
         console.log("[SSE] Connection closed");
         eventSourceRef.current = null;
-        // Don't automatically reconnect on error to avoid infinite loops in tests
       }
     };
 
