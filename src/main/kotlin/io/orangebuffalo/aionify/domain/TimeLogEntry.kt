@@ -21,4 +21,6 @@ data class TimeLogEntry(
     val ownerId: Long,
     @field:MappedProperty(type = DataType.STRING_ARRAY)
     val tags: Array<String> = emptyArray(),
+    @field:MappedProperty(type = DataType.JSON)
+    val metadata: Map<String, Any> = emptyMap(),
 )

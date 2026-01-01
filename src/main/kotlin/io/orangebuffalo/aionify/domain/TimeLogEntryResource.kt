@@ -92,7 +92,7 @@ open class TimeLogEntryResource(
             }
         }
 
-        val newEntry = timeLogEntryService.startEntry(currentUser.id, request.title, request.tags.toTypedArray())
+        val newEntry = timeLogEntryService.startEntry(currentUser.id, request.title, request.tags.toTypedArray(), request.metadata)
 
         return HttpResponse.created(newEntry.toDto())
     }
@@ -181,6 +181,7 @@ open class TimeLogEntryResource(
                     startTime = request.startTime,
                     endTime = endTime,
                     tags = request.tags.toTypedArray(),
+                    metadata = request.metadata,
                 ),
             )
 
@@ -220,6 +221,7 @@ open class TimeLogEntryResource(
             title = this.title,
             ownerId = this.ownerId,
             tags = this.tags.toList(),
+            metadata = this.metadata,
         )
 }
 
@@ -232,6 +234,7 @@ data class TimeLogEntryDto(
     val title: String,
     val ownerId: Long,
     val tags: List<String> = emptyList(),
+    val metadata: Map<String, Any> = emptyMap(),
 )
 
 @Serdeable
@@ -254,6 +257,7 @@ data class CreateTimeLogEntryRequest(
     val title: String,
     val stopActiveEntry: Boolean = false,
     val tags: List<String> = emptyList(),
+    val metadata: Map<String, Any> = emptyMap(),
 )
 
 @Serdeable
@@ -265,6 +269,7 @@ data class UpdateTimeLogEntryRequest(
     val startTime: Instant,
     val endTime: Instant? = null,
     val tags: List<String> = emptyList(),
+    val metadata: Map<String, Any> = emptyMap(),
 )
 
 @Serdeable

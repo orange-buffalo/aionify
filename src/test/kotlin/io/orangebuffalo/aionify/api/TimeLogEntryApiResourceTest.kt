@@ -121,9 +121,7 @@ class TimeLogEntryApiResourceTest {
             assertEquals(HttpStatus.OK, response.status)
             val responseBody = response.body()!!
             assertEquals("Working on API", responseBody.title)
-            assertNotNull(responseBody.id)
-            assertNotNull(responseBody.startTime)
-            assertEquals(emptyList<String>(), responseBody.tags)
+            assertEquals(emptyMap<String, Any>(), responseBody.metadata)
 
             // And: Entry is saved in database
             val activeEntry =
@@ -134,8 +132,7 @@ class TimeLogEntryApiResourceTest {
             assertEquals("Working on API", activeEntry?.title)
             assertEquals(testUser1.id, activeEntry?.ownerId)
             assertNull(activeEntry?.endTime)
-            assertEquals(responseBody.id, activeEntry?.id)
-            assertEquals(responseBody.startTime, activeEntry?.startTime)
+            assertEquals(emptyMap<String, Any>(), activeEntry?.metadata)
         }
 
         @Test
@@ -256,30 +253,31 @@ class TimeLogEntryApiResourceTest {
         }
 
         @Test
-        fun `should start entry with tags`() {
-            // When: Starting an entry with tags
+        fun `should start entry with metadata`() {
+            // When: Starting an entry with metadata
+            val metadata = mapOf("project" to "ProjectA", "task_id" to "TASK-123", "priority" to 1)
             val request =
                 HttpRequest
                     .POST(
                         "/api/time-log-entries/start",
-                        StartTimeLogEntryRequest(title = "Working on API", tags = listOf("backend", "api")),
+                        StartTimeLogEntryRequest(title = "Working on API", metadata = metadata),
                     ).bearerAuth(validToken1)
 
             val response = client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
 
-            // Then: Request succeeds with tags
+            // Then: Request succeeds with metadata
             assertEquals(HttpStatus.OK, response.status)
             val responseBody = response.body()!!
             assertEquals("Working on API", responseBody.title)
-            assertEquals(listOf("backend", "api"), responseBody.tags)
+            assertEquals(metadata, responseBody.metadata)
 
-            // And: Entry is saved with tags in database
+            // And: Entry is saved with metadata in database
             val activeEntry =
                 testDatabaseSupport.inTransaction {
                     timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(testUser1.id!!).orElse(null)
                 }
             assertNotNull(activeEntry)
-            assertEquals(listOf("backend", "api"), activeEntry?.tags?.toList())
+            assertEquals(metadata, activeEntry?.metadata)
         }
 
         @Test
@@ -436,19 +434,19 @@ class TimeLogEntryApiResourceTest {
     inner class GetActiveEndpoint {
         @Test
         fun `should get active entry`() {
-            // Given: User has an active entry
-            val savedEntry =
-                testDatabaseSupport.inTransaction {
-                    timeLogEntryRepository.save(
-                        TimeLogEntry(
-                            startTime = timeService.now(),
-                            endTime = null,
-                            title = "Active Entry",
-                            ownerId = testUser1.id!!,
-                            tags = arrayOf("tag1", "tag2"),
-                        ),
-                    )
-                }
+            // Given: User has an active entry with metadata
+            val metadata = mapOf("project" to "ProjectA", "priority" to 2)
+            testDatabaseSupport.inTransaction {
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = timeService.now(),
+                        endTime = null,
+                        title = "Active Entry",
+                        ownerId = testUser1.id!!,
+                        metadata = metadata,
+                    ),
+                )
+            }
 
             // When: Getting active entry
             val request =
@@ -462,9 +460,7 @@ class TimeLogEntryApiResourceTest {
             assertEquals(HttpStatus.OK, response.status)
             val responseBody = response.body()!!
             assertEquals("Active Entry", responseBody.title)
-            assertEquals(savedEntry.id, responseBody.id)
-            assertEquals(savedEntry.startTime, responseBody.startTime)
-            assertEquals(listOf("tag1", "tag2"), responseBody.tags)
+            assertEquals(metadata, responseBody.metadata)
         }
 
         @Test
