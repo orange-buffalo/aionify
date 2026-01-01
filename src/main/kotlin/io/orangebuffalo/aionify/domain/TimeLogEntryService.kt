@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory
 class TimeLogEntryService(
     private val timeLogEntryRepository: TimeLogEntryRepository,
     private val timeService: TimeService,
+    private val eventService: TimeLogEntryEventService,
 ) {
     private val log = LoggerFactory.getLogger(TimeLogEntryService::class.java)
 
@@ -32,9 +33,12 @@ class TimeLogEntryService(
         val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(userId).orElse(null)
         if (activeEntry != null) {
             log.debug("Stopping active entry before starting new one for user ID: {}", userId)
-            timeLogEntryRepository.update(
-                activeEntry.copy(endTime = timeService.now()),
-            )
+            val stoppedEntry =
+                timeLogEntryRepository.update(
+                    activeEntry.copy(endTime = timeService.now()),
+                )
+            // Emit event for stopped entry
+            eventService.emitEvent(userId, TimeLogEntryEventType.ENTRY_STOPPED, stoppedEntry)
         }
 
         // Create new entry
@@ -50,6 +54,10 @@ class TimeLogEntryService(
             )
 
         log.info("Time log entry started for user ID: {}, entry ID: {}", userId, newEntry.id)
+
+        // Emit event for started entry
+        eventService.emitEvent(userId, TimeLogEntryEventType.ENTRY_STARTED, newEntry)
+
         return newEntry
     }
 
@@ -68,6 +76,10 @@ class TimeLogEntryService(
                     activeEntry.copy(endTime = timeService.now()),
                 )
             log.info("Time log entry stopped for user ID: {}, entry ID: {}", userId, activeEntry.id)
+
+            // Emit event for stopped entry
+            eventService.emitEvent(userId, TimeLogEntryEventType.ENTRY_STOPPED, stoppedEntry)
+
             stoppedEntry
         } else {
             log.debug("No active time log entry to stop for user ID: {}", userId)
