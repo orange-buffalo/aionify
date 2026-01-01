@@ -10,6 +10,7 @@ import io.micronaut.http.annotation.Post
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule
 import io.micronaut.serde.annotation.Serdeable
+import io.swagger.v3.oas.annotations.Hidden
 import jakarta.transaction.Transactional
 import java.security.Principal
 import java.time.Instant
@@ -21,6 +22,7 @@ import java.time.format.DateTimeFormatter
 @Controller("/api-ui/import")
 @Secured(SecurityRule.IS_AUTHENTICATED)
 @Transactional
+@Hidden
 open class ImportResource(
     private val timeLogEntryRepository: TimeLogEntryRepository,
     private val userRepository: UserRepository,

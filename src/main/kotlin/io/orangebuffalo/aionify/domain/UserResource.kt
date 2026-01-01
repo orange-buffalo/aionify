@@ -11,6 +11,7 @@ import io.micronaut.http.annotation.Put
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule
 import io.micronaut.serde.annotation.Serdeable
+import io.swagger.v3.oas.annotations.Hidden
 import jakarta.transaction.Transactional
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
@@ -21,6 +22,7 @@ import java.util.Locale
 @Controller("/api-ui/users")
 @Secured(SecurityRule.IS_AUTHENTICATED)
 @Transactional
+@Hidden
 open class UserResource(
     private val userRepository: UserRepository,
     private val userService: UserService,

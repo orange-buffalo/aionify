@@ -23,6 +23,7 @@ dependencies {
     implementation("io.micronaut.serde:micronaut-serde-jackson") // Required for native image serialization
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("io.micronaut.reactor:micronaut-reactor") // For reactive filters
 
     // Database persistence with Micronaut Data JDBC
     implementation("io.micronaut.sql:micronaut-jdbc-hikari")
@@ -45,6 +46,10 @@ dependencies {
     // Validation
     implementation("io.micronaut.validation:micronaut-validation")
     implementation("jakarta.validation:jakarta.validation-api")
+
+    // OpenAPI / Swagger
+    implementation("io.micronaut.openapi:micronaut-openapi")
+    ksp("io.micronaut.openapi:micronaut-openapi")
 
     // Logging
     implementation("ch.qos.logback:logback-classic")
