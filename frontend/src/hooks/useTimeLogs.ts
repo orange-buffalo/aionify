@@ -5,6 +5,7 @@ import { getWeekStart, formatISODate, calculateDuration, weekDayToNumber } from 
 import { formatDate } from "@/lib/date-format";
 import { useDocumentTitle } from "./useDocumentTitle";
 import { useTimeLogEntryEvents } from "./useTimeLogEntryEvents";
+import { isTestEnvironment } from "@/lib/environment";
 import type { TimeEntry, TimeLogEntry, DayGroup } from "../components/time-logs/types";
 
 /**
@@ -146,7 +147,7 @@ export function useTimeLogs() {
 
   // Subscribe to SSE events for real-time updates
   // Disable SSE in test/automation environments (Playwright, etc.)
-  const sseEnabled = typeof window !== "undefined" && typeof navigator !== "undefined" && !navigator.webdriver;
+  const sseEnabled = !isTestEnvironment();
   useTimeLogEntryEvents(handleTimeLogEvent, sseEnabled);
 
   // Start a new time entry

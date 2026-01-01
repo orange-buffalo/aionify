@@ -21,13 +21,19 @@ class TimeLogEntryEventService {
 
     /**
      * Emits an event to all subscribers for the given user.
+     * If no sink exists for the user, a warning is logged and the event is dropped.
      */
     fun emitEvent(
         userId: Long,
         eventType: TimeLogEntryEventType,
         entry: TimeLogEntry? = null,
     ) {
-        val sink = userEventSinks[userId] ?: return
+        val sink = userEventSinks[userId]
+
+        if (sink == null) {
+            log.debug("No subscribers for user {}, event dropped: {}", userId, eventType)
+            return
+        }
 
         val event =
             TimeLogEntryEvent(
@@ -54,7 +60,8 @@ class TimeLogEntryEventService {
         val sink =
             userEventSinks.computeIfAbsent(userId) {
                 log.debug("Creating new event sink for user {}", userId)
-                Sinks.many().multicast().onBackpressureBuffer<Event<TimeLogEntryEvent>>()
+                // Limit buffer size to 100 events to prevent memory issues
+                Sinks.many().multicast().onBackpressureBuffer<Event<TimeLogEntryEvent>>(100, false)
             }
 
         return sink.asFlux()

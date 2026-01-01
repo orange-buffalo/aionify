@@ -56,7 +56,7 @@ class TimeLogsAutomaticUpdateTest : TimeLogsPageTestBase() {
         assertEquals(200, response.status.code)
 
         // Then: UI should automatically update within a few seconds (SSE notification + auto-reload)
-        // Note: In real-world SSE is disabled during Playwright tests (navigator.webdriver check),
+        // Note: In real-world usage, SSE is disabled during Playwright tests (navigator.webdriver check),
         // so we're testing the manual reload path which is triggered by user actions.
         // For true SSE testing, we'd need to remove the webdriver check or use real browsers.
 

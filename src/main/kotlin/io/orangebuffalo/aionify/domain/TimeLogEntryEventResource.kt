@@ -63,6 +63,11 @@ class TimeLogEntryEventResource(
 /**
  * HTTP filter that extracts JWT token from query parameter for SSE endpoints.
  * This is necessary because EventSource API doesn't support custom headers.
+ *
+ * Security Note: Passing JWT in URL query parameter exposes it in server logs
+ * and browser history. This is a known limitation of the EventSource API.
+ * The token is only used for the SSE endpoint and has the same expiration
+ * as regular JWT tokens. Consider using short-lived tokens for SSE connections.
  */
 @Filter("/api-ui/time-log-entries/events")
 @Singleton
