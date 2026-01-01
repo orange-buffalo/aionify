@@ -1,18 +1,14 @@
 package io.orangebuffalo.aionify.api
 
 import io.micronaut.core.annotation.Introspected
-import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
-import io.micronaut.security.authentication.Authentication
 import io.micronaut.serde.annotation.Serdeable
-import io.orangebuffalo.aionify.domain.CurrentUserService
-import io.orangebuffalo.aionify.domain.TimeLogEntry
-import io.orangebuffalo.aionify.domain.TimeLogEntryRepository
-import io.orangebuffalo.aionify.domain.TimeService
+import io.orangebuffalo.aionify.domain.TimeLogEntryService
+import io.orangebuffalo.aionify.domain.UserWithId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
@@ -30,12 +26,10 @@ import org.slf4j.LoggerFactory
  * All operations are scoped to the authenticated user's entries.
  */
 @Controller("/api/time-log-entries")
-@Tag(name = "Time Log Entries", description = "API for managing time log entries")
+@Tag(name = "Public API", description = "Public API endpoints")
 @Transactional
 open class TimeLogEntryApiResource(
-    private val timeLogEntryRepository: TimeLogEntryRepository,
-    private val timeService: TimeService,
-    private val currentUserService: CurrentUserService,
+    private val timeLogEntryService: TimeLogEntryService,
 ) {
     private val log = LoggerFactory.getLogger(TimeLogEntryApiResource::class.java)
 
@@ -69,34 +63,11 @@ open class TimeLogEntryApiResource(
     )
     open fun startEntry(
         @Valid @Body request: StartTimeLogEntryRequest,
-        httpRequest: HttpRequest<*>,
+        currentUser: UserWithId,
     ): HttpResponse<*> {
-        val authentication = httpRequest.getAttribute("micronaut.security.AUTHENTICATION", Authentication::class.java).orElseThrow()
-        val principal = java.security.Principal { authentication.name }
-        val currentUser = currentUserService.resolveUser(principal)
         log.debug("Starting time log entry for user: {}, title: {}", currentUser.user.userName, request.title)
 
-        // Stop any active entry first
-        val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(currentUser.id).orElse(null)
-        if (activeEntry != null) {
-            log.debug("Stopping active entry before starting new one for user: {}", currentUser.user.userName)
-            timeLogEntryRepository.update(
-                activeEntry.copy(endTime = timeService.now()),
-            )
-        }
-
-        // Create new entry
-        val newEntry =
-            timeLogEntryRepository.save(
-                TimeLogEntry(
-                    startTime = timeService.now(),
-                    endTime = null,
-                    title = request.title,
-                    ownerId = currentUser.id,
-                ),
-            )
-
-        log.info("Time log entry started for user: {}, id: {}", currentUser.user.userName, newEntry.id)
+        val newEntry = timeLogEntryService.startEntry(currentUser.id, request.title)
 
         return HttpResponse.ok(StartTimeLogEntryResponse(title = newEntry.title))
     }
@@ -124,24 +95,16 @@ open class TimeLogEntryApiResource(
         responseCode = "429",
         description = "Too Many Requests - IP blocked due to too many failed auth attempts",
     )
-    open fun stopEntry(httpRequest: HttpRequest<*>): HttpResponse<*> {
-        val authentication = httpRequest.getAttribute("micronaut.security.AUTHENTICATION", Authentication::class.java).orElseThrow()
-        val principal = java.security.Principal { authentication.name }
-        val currentUser = currentUserService.resolveUser(principal)
+    open fun stopEntry(currentUser: UserWithId): HttpResponse<*> {
         log.debug("Stopping active time log entry for user: {}", currentUser.user.userName)
 
-        val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(currentUser.id).orElse(null)
+        val stoppedEntry = timeLogEntryService.stopActiveEntry(currentUser.id)
 
-        if (activeEntry != null) {
-            timeLogEntryRepository.update(
-                activeEntry.copy(endTime = timeService.now()),
-            )
-            log.info("Time log entry stopped for user: {}, id: {}", currentUser.user.userName, activeEntry.id)
+        return if (stoppedEntry != null) {
+            HttpResponse.ok(StopTimeLogEntryResponse(message = "Entry stopped", stopped = true))
         } else {
-            log.debug("No active time log entry to stop for user: {}", currentUser.user.userName)
+            HttpResponse.ok(StopTimeLogEntryResponse(message = "No active entry", stopped = false))
         }
-
-        return HttpResponse.ok(StopTimeLogEntryResponse(message = "Success"))
     }
 
     @Get("/active")
@@ -172,19 +135,14 @@ open class TimeLogEntryApiResource(
         responseCode = "429",
         description = "Too Many Requests - IP blocked due to too many failed auth attempts",
     )
-    open fun getActiveEntry(httpRequest: HttpRequest<*>): HttpResponse<*> {
-        val authentication = httpRequest.getAttribute("micronaut.security.AUTHENTICATION", Authentication::class.java).orElseThrow()
-        val principal = java.security.Principal { authentication.name }
-        val currentUser = currentUserService.resolveUser(principal)
+    open fun getActiveEntry(currentUser: UserWithId): HttpResponse<*> {
         log.debug("Getting active time log entry for user: {}", currentUser.user.userName)
 
-        val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(currentUser.id).orElse(null)
+        val activeEntry = timeLogEntryService.getActiveEntry(currentUser.id)
 
         return if (activeEntry != null) {
-            log.trace("Found active time log entry for user: {}, id: {}", currentUser.user.userName, activeEntry.id)
             HttpResponse.ok(ActiveTimeLogEntryResponse(title = activeEntry.title))
         } else {
-            log.trace("No active time log entry for user: {}", currentUser.user.userName)
             HttpResponse
                 .notFound<TimeLogEntryApiErrorResponse>()
                 .body(TimeLogEntryApiErrorResponse(error = "No active time log entry", errorCode = "NO_ACTIVE_ENTRY"))
@@ -219,8 +177,10 @@ data class StartTimeLogEntryResponse(
 @Introspected
 @Schema(description = "Response after stopping a time log entry")
 data class StopTimeLogEntryResponse(
-    @field:Schema(description = "Success message", example = "Success")
+    @field:Schema(description = "Message describing the result", example = "Entry stopped")
     val message: String,
+    @field:Schema(description = "Whether an entry was stopped", example = "true")
+    val stopped: Boolean,
 )
 
 @Serdeable

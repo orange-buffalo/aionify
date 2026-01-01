@@ -17,20 +17,12 @@ import io.orangebuffalo.aionify.domain.UserRepository
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mindrot.jbcrypt.BCrypt
-import java.time.Instant
 
 /**
  * Tests for time log entry public API.
- *
- * Validates:
- * 1. POST /api/time-log-entries/start - Start new entry (auto-stops active)
- * 2. POST /api/time-log-entries/stop - Stop active entry
- * 3. GET /api/time-log-entries/active - Get active entry or 404
- * 4. All operations scoped to current user only
- * 5. Validation constraints (title required, max length)
- * 6. Authentication required
  */
 @MicronautTest(transactional = false)
 class TimeLogEntryApiResourceTest {
@@ -111,162 +103,307 @@ class TimeLogEntryApiResourceTest {
         apiRateLimitingService.clearAllAttempts()
     }
 
-    // ============================================================
-    // POST /api/time-log-entries/start tests
-    // ============================================================
+    @Nested
+    inner class StartEndpoint {
+        @Test
+        fun `should start a new time log entry`() {
+            // When: Starting a new entry
+            val request =
+                HttpRequest
+                    .POST(
+                        "/api/time-log-entries/start",
+                        StartTimeLogEntryRequest(title = "Working on API"),
+                    ).bearerAuth(validToken1)
 
-    @Test
-    fun `should start a new time log entry`() {
-        // When: Starting a new entry
-        val request =
-            HttpRequest
-                .POST(
-                    "/api/time-log-entries/start",
-                    StartTimeLogEntryRequest(title = "Working on API"),
-                ).bearerAuth(validToken1)
+            val response = client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
 
-        val response = client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
+            // Then: Request succeeds
+            assertEquals(HttpStatus.OK, response.status)
+            assertEquals("Working on API", response.body()?.title)
 
-        // Then: Request succeeds
-        assertEquals(HttpStatus.OK, response.status)
-        assertEquals("Working on API", response.body()?.title)
-
-        // And: Entry is saved in database
-        val activeEntry =
-            testDatabaseSupport.inTransaction {
-                timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(testUser1.id!!).orElse(null)
-            }
-        assertNotNull(activeEntry)
-        assertEquals("Working on API", activeEntry?.title)
-        assertEquals(testUser1.id, activeEntry?.ownerId)
-        assertNull(activeEntry?.endTime)
-    }
-
-    @Test
-    fun `should auto-stop active entry when starting a new one`() {
-        // Given: User has an active entry
-        testDatabaseSupport.inTransaction {
-            timeLogEntryRepository.save(
-                TimeLogEntry(
-                    startTime = timeService.now(),
-                    endTime = null,
-                    title = "Old Entry",
-                    ownerId = testUser1.id!!,
-                ),
-            )
+            // And: Entry is saved in database
+            val activeEntry =
+                testDatabaseSupport.inTransaction {
+                    timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(testUser1.id!!).orElse(null)
+                }
+            assertNotNull(activeEntry)
+            assertEquals("Working on API", activeEntry?.title)
+            assertEquals(testUser1.id, activeEntry?.ownerId)
+            assertNull(activeEntry?.endTime)
         }
 
-        // When: Starting a new entry
-        val request =
-            HttpRequest
-                .POST(
-                    "/api/time-log-entries/start",
-                    StartTimeLogEntryRequest(title = "New Entry"),
-                ).bearerAuth(validToken1)
-
-        val response = client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
-
-        // Then: Request succeeds
-        assertEquals(HttpStatus.OK, response.status)
-        assertEquals("New Entry", response.body()?.title)
-
-        // And: Old entry is stopped
-        val entries =
+        @Test
+        fun `should auto-stop active entry when starting a new one`() {
+            // Given: User has an active entry
             testDatabaseSupport.inTransaction {
-                timeLogEntryRepository.findAllOrderById()
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = timeService.now(),
+                        endTime = null,
+                        title = "Old Entry",
+                        ownerId = testUser1.id!!,
+                    ),
+                )
             }
-        assertEquals(2, entries.size)
-        val oldEntry = entries.first { it.title == "Old Entry" }
-        assertNotNull(oldEntry.endTime, "Old entry should be stopped")
 
-        // And: New entry is active
-        val newEntry = entries.first { it.title == "New Entry" }
-        assertNull(newEntry.endTime, "New entry should be active")
-    }
+            // When: Starting a new entry
+            val request =
+                HttpRequest
+                    .POST(
+                        "/api/time-log-entries/start",
+                        StartTimeLogEntryRequest(title = "New Entry"),
+                    ).bearerAuth(validToken1)
 
-    @Test
-    fun `should reject start request with blank title`() {
-        // When: Starting an entry with blank title
-        val request =
-            HttpRequest
-                .POST(
+            val response = client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
+
+            // Then: Request succeeds
+            assertEquals(HttpStatus.OK, response.status)
+            assertEquals("New Entry", response.body()?.title)
+
+            // And: Old entry is stopped
+            val entries =
+                testDatabaseSupport.inTransaction {
+                    timeLogEntryRepository.findAllOrderById()
+                }
+            assertEquals(2, entries.size)
+            val oldEntry = entries.first { it.title == "Old Entry" }
+            assertNotNull(oldEntry.endTime, "Old entry should be stopped")
+
+            // And: New entry is active
+            val newEntry = entries.first { it.title == "New Entry" }
+            assertNull(newEntry.endTime, "New entry should be active")
+        }
+
+        @Test
+        fun `should reject request with blank title`() {
+            // When: Starting an entry with blank title
+            val request =
+                HttpRequest
+                    .POST(
+                        "/api/time-log-entries/start",
+                        StartTimeLogEntryRequest(title = ""),
+                    ).bearerAuth(validToken1)
+
+            val exception =
+                assertThrows(HttpClientResponseException::class.java) {
+                    client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
+                }
+
+            // Then: Request is rejected with 400
+            assertEquals(HttpStatus.BAD_REQUEST, exception.status)
+        }
+
+        @Test
+        fun `should reject request with title exceeding max length`() {
+            // When: Starting an entry with title > 1000 characters
+            val longTitle = "x".repeat(1001)
+            val request =
+                HttpRequest
+                    .POST(
+                        "/api/time-log-entries/start",
+                        StartTimeLogEntryRequest(title = longTitle),
+                    ).bearerAuth(validToken1)
+
+            val exception =
+                assertThrows(HttpClientResponseException::class.java) {
+                    client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
+                }
+
+            // Then: Request is rejected with 400
+            assertEquals(HttpStatus.BAD_REQUEST, exception.status)
+        }
+
+        @Test
+        fun `should accept request with title at max length`() {
+            // When: Starting an entry with title = 1000 characters
+            val maxTitle = "x".repeat(1000)
+            val request =
+                HttpRequest
+                    .POST(
+                        "/api/time-log-entries/start",
+                        StartTimeLogEntryRequest(title = maxTitle),
+                    ).bearerAuth(validToken1)
+
+            val response = client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
+
+            // Then: Request succeeds
+            assertEquals(HttpStatus.OK, response.status)
+            assertEquals(maxTitle, response.body()?.title)
+        }
+
+        @Test
+        fun `should reject request without authentication`() {
+            // When: Starting an entry without token
+            val request =
+                HttpRequest.POST(
                     "/api/time-log-entries/start",
-                    StartTimeLogEntryRequest(title = ""),
-                ).bearerAuth(validToken1)
+                    StartTimeLogEntryRequest(title = "Test"),
+                )
 
-        val exception =
-            assertThrows(HttpClientResponseException::class.java) {
-                client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
+            val exception =
+                assertThrows(HttpClientResponseException::class.java) {
+                    client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
+                }
+
+            // Then: Request is rejected with 401
+            assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+        }
+
+        @Test
+        fun `should not affect other users entries`() {
+            // Given: User2 has an active entry
+            testDatabaseSupport.inTransaction {
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = timeService.now(),
+                        endTime = null,
+                        title = "User2 Active Entry",
+                        ownerId = testUser2.id!!,
+                    ),
+                )
             }
 
-        // Then: Request is rejected with 400
-        assertEquals(HttpStatus.BAD_REQUEST, exception.status)
+            // When: User1 starts a new entry
+            val request =
+                HttpRequest
+                    .POST(
+                        "/api/time-log-entries/start",
+                        StartTimeLogEntryRequest(title = "User1 Entry"),
+                    ).bearerAuth(validToken1)
+
+            client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
+
+            // Then: User2's entry is still active (not auto-stopped)
+            val user2ActiveEntry =
+                testDatabaseSupport.inTransaction {
+                    timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(testUser2.id!!).orElse(null)
+                }
+            assertNotNull(user2ActiveEntry)
+            assertEquals("User2 Active Entry", user2ActiveEntry?.title)
+            assertNull(user2ActiveEntry?.endTime, "User2's entry should still be active")
+        }
     }
 
-    @Test
-    fun `should reject start request with title exceeding max length`() {
-        // When: Starting an entry with title > 1000 characters
-        val longTitle = "x".repeat(1001)
-        val request =
-            HttpRequest
-                .POST(
-                    "/api/time-log-entries/start",
-                    StartTimeLogEntryRequest(title = longTitle),
-                ).bearerAuth(validToken1)
+    @Nested
+    inner class StopEndpoint {
+        @Test
+        fun `should stop active entry`() {
+            // Given: User has an active entry
+            val activeEntry =
+                testDatabaseSupport.inTransaction {
+                    timeLogEntryRepository.save(
+                        TimeLogEntry(
+                            startTime = timeService.now(),
+                            endTime = null,
+                            title = "Active Entry",
+                            ownerId = testUser1.id!!,
+                        ),
+                    )
+                }
 
-        val exception =
-            assertThrows(HttpClientResponseException::class.java) {
-                client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
+            // When: Stopping the entry
+            val request =
+                HttpRequest
+                    .POST<Any>("/api/time-log-entries/stop", null)
+                    .bearerAuth(validToken1)
+
+            val response = client.toBlocking().exchange(request, StopTimeLogEntryResponse::class.java)
+
+            // Then: Request succeeds with stopped=true
+            assertEquals(HttpStatus.OK, response.status)
+            assertTrue(response.body()?.stopped == true)
+
+            // And: Entry is stopped in database
+            val stoppedEntry =
+                testDatabaseSupport.inTransaction {
+                    timeLogEntryRepository.findById(activeEntry.id!!).orElse(null)
+                }
+            assertNotNull(stoppedEntry?.endTime, "Entry should be stopped")
+        }
+
+        @Test
+        fun `should succeed when no active entry exists`() {
+            // Given: User has no active entry
+
+            // When: Stopping (no active entry exists)
+            val request =
+                HttpRequest
+                    .POST<Any>("/api/time-log-entries/stop", null)
+                    .bearerAuth(validToken1)
+
+            val response = client.toBlocking().exchange(request, StopTimeLogEntryResponse::class.java)
+
+            // Then: Request succeeds with stopped=false
+            assertEquals(HttpStatus.OK, response.status)
+            assertFalse(response.body()?.stopped == true)
+        }
+
+        @Test
+        fun `should reject request without authentication`() {
+            // When: Stopping without token
+            val request = HttpRequest.POST<Any>("/api/time-log-entries/stop", null)
+
+            val exception =
+                assertThrows(HttpClientResponseException::class.java) {
+                    client.toBlocking().exchange(request, StopTimeLogEntryResponse::class.java)
+                }
+
+            // Then: Request is rejected with 401
+            assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+        }
+
+        @Test
+        fun `should not affect other users entries`() {
+            // Given: Both users have active entries
+            testDatabaseSupport.inTransaction {
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = timeService.now(),
+                        endTime = null,
+                        title = "User1 Active Entry",
+                        ownerId = testUser1.id!!,
+                    ),
+                )
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = timeService.now(),
+                        endTime = null,
+                        title = "User2 Active Entry",
+                        ownerId = testUser2.id!!,
+                    ),
+                )
             }
 
-        // Then: Request is rejected with 400
-        assertEquals(HttpStatus.BAD_REQUEST, exception.status)
+            // When: User1 stops their entry
+            val request =
+                HttpRequest
+                    .POST<Any>("/api/time-log-entries/stop", null)
+                    .bearerAuth(validToken1)
+
+            client.toBlocking().exchange(request, StopTimeLogEntryResponse::class.java)
+
+            // Then: User1's entry is stopped
+            val user1ActiveEntry =
+                testDatabaseSupport.inTransaction {
+                    timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(testUser1.id!!).orElse(null)
+                }
+            assertNull(user1ActiveEntry, "User1 should have no active entry")
+
+            // And: User2's entry is still active
+            val user2ActiveEntry =
+                testDatabaseSupport.inTransaction {
+                    timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(testUser2.id!!).orElse(null)
+                }
+            assertNotNull(user2ActiveEntry)
+            assertEquals("User2 Active Entry", user2ActiveEntry?.title)
+        }
     }
 
-    @Test
-    fun `should accept start request with title at max length`() {
-        // When: Starting an entry with title = 1000 characters
-        val maxTitle = "x".repeat(1000)
-        val request =
-            HttpRequest
-                .POST(
-                    "/api/time-log-entries/start",
-                    StartTimeLogEntryRequest(title = maxTitle),
-                ).bearerAuth(validToken1)
-
-        val response = client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
-
-        // Then: Request succeeds
-        assertEquals(HttpStatus.OK, response.status)
-        assertEquals(maxTitle, response.body()?.title)
-    }
-
-    @Test
-    fun `should reject start request without authentication`() {
-        // When: Starting an entry without token
-        val request =
-            HttpRequest.POST(
-                "/api/time-log-entries/start",
-                StartTimeLogEntryRequest(title = "Test"),
-            )
-
-        val exception =
-            assertThrows(HttpClientResponseException::class.java) {
-                client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
-            }
-
-        // Then: Request is rejected with 401
-        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
-    }
-
-    // ============================================================
-    // POST /api/time-log-entries/stop tests
-    // ============================================================
-
-    @Test
-    fun `should stop active time log entry`() {
-        // Given: User has an active entry
-        val activeEntry =
+    @Nested
+    inner class GetActiveEndpoint {
+        @Test
+        fun `should get active entry`() {
+            // Given: User has an active entry
             testDatabaseSupport.inTransaction {
                 timeLogEntryRepository.save(
                     TimeLogEntry(
@@ -278,307 +415,155 @@ class TimeLogEntryApiResourceTest {
                 )
             }
 
-        // When: Stopping the entry
-        val request =
-            HttpRequest
-                .POST<Any>("/api/time-log-entries/stop", null)
-                .bearerAuth(validToken1)
+            // When: Getting active entry
+            val request =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries/active")
+                    .bearerAuth(validToken1)
 
-        val response = client.toBlocking().exchange(request, StopTimeLogEntryResponse::class.java)
+            val response = client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
 
-        // Then: Request succeeds
-        assertEquals(HttpStatus.OK, response.status)
-        assertEquals("Success", response.body()?.message)
+            // Then: Request succeeds
+            assertEquals(HttpStatus.OK, response.status)
+            assertEquals("Active Entry", response.body()?.title)
+        }
 
-        // And: Entry is stopped in database
-        val stoppedEntry =
+        @Test
+        fun `should return 404 when no active entry exists`() {
+            // Given: User has no active entry
+
+            // When: Getting active entry
+            val request =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries/active")
+                    .bearerAuth(validToken1)
+
+            val exception =
+                assertThrows(HttpClientResponseException::class.java) {
+                    client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
+                }
+
+            // Then: Request returns 404
+            assertEquals(HttpStatus.NOT_FOUND, exception.status)
+        }
+
+        @Test
+        fun `should reject request without authentication`() {
+            // When: Getting active entry without token
+            val request = HttpRequest.GET<Any>("/api/time-log-entries/active")
+
+            val exception =
+                assertThrows(HttpClientResponseException::class.java) {
+                    client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
+                }
+
+            // Then: Request is rejected with 401
+            assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+        }
+
+        @Test
+        fun `should return only current user entry`() {
+            // Given: Both users have active entries
             testDatabaseSupport.inTransaction {
-                timeLogEntryRepository.findById(activeEntry.id!!).orElse(null)
-            }
-        assertNotNull(stoppedEntry?.endTime, "Entry should be stopped")
-    }
-
-    @Test
-    fun `should succeed when stopping with no active entry`() {
-        // Given: User has no active entry
-
-        // When: Stopping (no active entry exists)
-        val request =
-            HttpRequest
-                .POST<Any>("/api/time-log-entries/stop", null)
-                .bearerAuth(validToken1)
-
-        val response = client.toBlocking().exchange(request, StopTimeLogEntryResponse::class.java)
-
-        // Then: Request succeeds (does nothing)
-        assertEquals(HttpStatus.OK, response.status)
-        assertEquals("Success", response.body()?.message)
-    }
-
-    @Test
-    fun `should reject stop request without authentication`() {
-        // When: Stopping without token
-        val request = HttpRequest.POST<Any>("/api/time-log-entries/stop", null)
-
-        val exception =
-            assertThrows(HttpClientResponseException::class.java) {
-                client.toBlocking().exchange(request, StopTimeLogEntryResponse::class.java)
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = timeService.now(),
+                        endTime = null,
+                        title = "User1 Active Entry",
+                        ownerId = testUser1.id!!,
+                    ),
+                )
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = timeService.now(),
+                        endTime = null,
+                        title = "User2 Active Entry",
+                        ownerId = testUser2.id!!,
+                    ),
+                )
             }
 
-        // Then: Request is rejected with 401
-        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
-    }
+            // When: User1 gets their active entry
+            val request1 =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries/active")
+                    .bearerAuth(validToken1)
 
-    // ============================================================
-    // GET /api/time-log-entries/active tests
-    // ============================================================
+            val response1 = client.toBlocking().exchange(request1, ActiveTimeLogEntryResponse::class.java)
 
-    @Test
-    fun `should get active time log entry`() {
-        // Given: User has an active entry
-        testDatabaseSupport.inTransaction {
-            timeLogEntryRepository.save(
-                TimeLogEntry(
-                    startTime = timeService.now(),
-                    endTime = null,
-                    title = "Active Entry",
-                    ownerId = testUser1.id!!,
-                ),
-            )
+            // Then: User1 gets their own entry
+            assertEquals(HttpStatus.OK, response1.status)
+            assertEquals("User1 Active Entry", response1.body()?.title)
+
+            // When: User2 gets their active entry
+            val request2 =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries/active")
+                    .bearerAuth(validToken2)
+
+            val response2 = client.toBlocking().exchange(request2, ActiveTimeLogEntryResponse::class.java)
+
+            // Then: User2 gets their own entry
+            assertEquals(HttpStatus.OK, response2.status)
+            assertEquals("User2 Active Entry", response2.body()?.title)
         }
 
-        // When: Getting active entry
-        val request =
-            HttpRequest
-                .GET<Any>("/api/time-log-entries/active")
-                .bearerAuth(validToken1)
-
-        val response = client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
-
-        // Then: Request succeeds
-        assertEquals(HttpStatus.OK, response.status)
-        assertEquals("Active Entry", response.body()?.title)
-    }
-
-    @Test
-    fun `should return 404 when no active entry exists`() {
-        // Given: User has no active entry
-
-        // When: Getting active entry
-        val request =
-            HttpRequest
-                .GET<Any>("/api/time-log-entries/active")
-                .bearerAuth(validToken1)
-
-        val exception =
-            assertThrows(HttpClientResponseException::class.java) {
-                client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
-            }
-
-        // Then: Request returns 404
-        assertEquals(HttpStatus.NOT_FOUND, exception.status)
-    }
-
-    @Test
-    fun `should reject get active request without authentication`() {
-        // When: Getting active entry without token
-        val request = HttpRequest.GET<Any>("/api/time-log-entries/active")
-
-        val exception =
-            assertThrows(HttpClientResponseException::class.java) {
-                client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
-            }
-
-        // Then: Request is rejected with 401
-        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
-    }
-
-    // ============================================================
-    // User isolation tests
-    // ============================================================
-
-    @Test
-    fun `should only access current user entries - start should not affect other users`() {
-        // Given: User2 has an active entry
-        testDatabaseSupport.inTransaction {
-            timeLogEntryRepository.save(
-                TimeLogEntry(
-                    startTime = timeService.now(),
-                    endTime = null,
-                    title = "User2 Active Entry",
-                    ownerId = testUser2.id!!,
-                ),
-            )
-        }
-
-        // When: User1 starts a new entry
-        val request =
-            HttpRequest
-                .POST(
-                    "/api/time-log-entries/start",
-                    StartTimeLogEntryRequest(title = "User1 Entry"),
-                ).bearerAuth(validToken1)
-
-        client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
-
-        // Then: User2's entry is still active (not auto-stopped)
-        val user2ActiveEntry =
+        @Test
+        fun `should return 404 when other user has active entry`() {
+            // Given: User2 has an active entry, User1 does not
             testDatabaseSupport.inTransaction {
-                timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(testUser2.id!!).orElse(null)
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = timeService.now(),
+                        endTime = null,
+                        title = "User2 Active Entry",
+                        ownerId = testUser2.id!!,
+                    ),
+                )
             }
-        assertNotNull(user2ActiveEntry)
-        assertEquals("User2 Active Entry", user2ActiveEntry?.title)
-        assertNull(user2ActiveEntry?.endTime, "User2's entry should still be active")
-    }
 
-    @Test
-    fun `should only access current user entries - stop should not affect other users`() {
-        // Given: Both users have active entries
-        testDatabaseSupport.inTransaction {
-            timeLogEntryRepository.save(
-                TimeLogEntry(
-                    startTime = timeService.now(),
-                    endTime = null,
-                    title = "User1 Active Entry",
-                    ownerId = testUser1.id!!,
-                ),
-            )
-            timeLogEntryRepository.save(
-                TimeLogEntry(
-                    startTime = timeService.now(),
-                    endTime = null,
-                    title = "User2 Active Entry",
-                    ownerId = testUser2.id!!,
-                ),
-            )
+            // When: User1 gets their active entry
+            val request =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries/active")
+                    .bearerAuth(validToken1)
+
+            val exception =
+                assertThrows(HttpClientResponseException::class.java) {
+                    client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
+                }
+
+            // Then: User1 gets 404 (cannot see User2's entry)
+            assertEquals(HttpStatus.NOT_FOUND, exception.status)
         }
 
-        // When: User1 stops their entry
-        val request =
-            HttpRequest
-                .POST<Any>("/api/time-log-entries/stop", null)
-                .bearerAuth(validToken1)
-
-        client.toBlocking().exchange(request, StopTimeLogEntryResponse::class.java)
-
-        // Then: User1's entry is stopped
-        val user1ActiveEntry =
+        @Test
+        fun `should not return stopped entries`() {
+            // Given: User has a stopped entry
             testDatabaseSupport.inTransaction {
-                timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(testUser1.id!!).orElse(null)
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = timeService.now().minusSeconds(3600),
+                        endTime = timeService.now(),
+                        title = "Stopped Entry",
+                        ownerId = testUser1.id!!,
+                    ),
+                )
             }
-        assertNull(user1ActiveEntry, "User1 should have no active entry")
 
-        // And: User2's entry is still active
-        val user2ActiveEntry =
-            testDatabaseSupport.inTransaction {
-                timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(testUser2.id!!).orElse(null)
-            }
-        assertNotNull(user2ActiveEntry)
-        assertEquals("User2 Active Entry", user2ActiveEntry?.title)
-    }
+            // When: User1 gets their active entry
+            val request =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries/active")
+                    .bearerAuth(validToken1)
 
-    @Test
-    fun `should only access current user entries - get active returns only current user entry`() {
-        // Given: Both users have active entries
-        testDatabaseSupport.inTransaction {
-            timeLogEntryRepository.save(
-                TimeLogEntry(
-                    startTime = timeService.now(),
-                    endTime = null,
-                    title = "User1 Active Entry",
-                    ownerId = testUser1.id!!,
-                ),
-            )
-            timeLogEntryRepository.save(
-                TimeLogEntry(
-                    startTime = timeService.now(),
-                    endTime = null,
-                    title = "User2 Active Entry",
-                    ownerId = testUser2.id!!,
-                ),
-            )
+            val exception =
+                assertThrows(HttpClientResponseException::class.java) {
+                    client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
+                }
+
+            // Then: Returns 404 (stopped entry is not active)
+            assertEquals(HttpStatus.NOT_FOUND, exception.status)
         }
-
-        // When: User1 gets their active entry
-        val request1 =
-            HttpRequest
-                .GET<Any>("/api/time-log-entries/active")
-                .bearerAuth(validToken1)
-
-        val response1 = client.toBlocking().exchange(request1, ActiveTimeLogEntryResponse::class.java)
-
-        // Then: User1 gets their own entry
-        assertEquals(HttpStatus.OK, response1.status)
-        assertEquals("User1 Active Entry", response1.body()?.title)
-
-        // When: User2 gets their active entry
-        val request2 =
-            HttpRequest
-                .GET<Any>("/api/time-log-entries/active")
-                .bearerAuth(validToken2)
-
-        val response2 = client.toBlocking().exchange(request2, ActiveTimeLogEntryResponse::class.java)
-
-        // Then: User2 gets their own entry
-        assertEquals(HttpStatus.OK, response2.status)
-        assertEquals("User2 Active Entry", response2.body()?.title)
-    }
-
-    @Test
-    fun `should only access current user entries - get active returns 404 when other user has active entry`() {
-        // Given: User2 has an active entry, User1 does not
-        testDatabaseSupport.inTransaction {
-            timeLogEntryRepository.save(
-                TimeLogEntry(
-                    startTime = timeService.now(),
-                    endTime = null,
-                    title = "User2 Active Entry",
-                    ownerId = testUser2.id!!,
-                ),
-            )
-        }
-
-        // When: User1 gets their active entry
-        val request =
-            HttpRequest
-                .GET<Any>("/api/time-log-entries/active")
-                .bearerAuth(validToken1)
-
-        val exception =
-            assertThrows(HttpClientResponseException::class.java) {
-                client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
-            }
-
-        // Then: User1 gets 404 (cannot see User2's entry)
-        assertEquals(HttpStatus.NOT_FOUND, exception.status)
-    }
-
-    @Test
-    fun `should only access current user entries - stopped entries are not returned as active`() {
-        // Given: User has a stopped entry
-        testDatabaseSupport.inTransaction {
-            timeLogEntryRepository.save(
-                TimeLogEntry(
-                    startTime = timeService.now().minusSeconds(3600),
-                    endTime = timeService.now(),
-                    title = "Stopped Entry",
-                    ownerId = testUser1.id!!,
-                ),
-            )
-        }
-
-        // When: User1 gets their active entry
-        val request =
-            HttpRequest
-                .GET<Any>("/api/time-log-entries/active")
-                .bearerAuth(validToken1)
-
-        val exception =
-            assertThrows(HttpClientResponseException::class.java) {
-                client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
-            }
-
-        // Then: Returns 404 (stopped entry is not active)
-        assertEquals(HttpStatus.NOT_FOUND, exception.status)
     }
 }
