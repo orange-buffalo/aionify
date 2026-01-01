@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +38,6 @@ export function GroupedTimeEntry({
 }: GroupedTimeEntryProps) {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [, forceUpdate] = useState(0);
 
   const endTimeDisplay = groupedEntry.endTime ? formatTime(groupedEntry.endTime, locale) : t("timeLogs.inProgress");
 
@@ -47,17 +46,6 @@ export function GroupedTimeEntry({
 
   // Check if group contains an active entry
   const hasActiveEntry = groupedEntry.entries.some((e) => e.endTime == null);
-
-  // Update current time every second if there's an active entry
-  useEffect(() => {
-    if (!hasActiveEntry) return;
-
-    const interval = setInterval(() => {
-      forceUpdate((n) => n + 1); // Force re-render
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [hasActiveEntry]);
 
   // Calculate total duration dynamically for groups with active entries
   const totalDuration = hasActiveEntry

@@ -13,6 +13,7 @@ import io.micronaut.http.annotation.QueryValue
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule
 import io.micronaut.serde.annotation.Serdeable
+import io.swagger.v3.oas.annotations.Hidden
 import jakarta.transaction.Transactional
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
@@ -23,6 +24,7 @@ import java.time.Instant
 @Controller("/api-ui/time-log-entries")
 @Secured(SecurityRule.IS_AUTHENTICATED)
 @Transactional
+@Hidden
 open class TimeLogEntryResource(
     private val timeLogEntryRepository: TimeLogEntryRepository,
     private val userRepository: UserRepository,
