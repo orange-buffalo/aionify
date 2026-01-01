@@ -34,9 +34,14 @@ micronaut:
       - pattern: /api-ui/**
         access:
           - isAuthenticated()
+      - pattern: /api/schema
+        access:
+          - isAnonymous()
       - pattern: /**
         access:
           - isAnonymous()
+  openapi:
+    enabled: true
 
 datasources:
   default:

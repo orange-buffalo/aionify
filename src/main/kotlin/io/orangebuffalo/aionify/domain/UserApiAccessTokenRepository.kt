@@ -9,5 +9,7 @@ import java.util.Optional
 interface UserApiAccessTokenRepository : CrudRepository<UserApiAccessToken, Long> {
     fun findByUserId(userId: Long): Optional<UserApiAccessToken>
 
+    fun findByToken(token: String): Optional<UserApiAccessToken>
+
     fun deleteByUserId(userId: Long)
 }
