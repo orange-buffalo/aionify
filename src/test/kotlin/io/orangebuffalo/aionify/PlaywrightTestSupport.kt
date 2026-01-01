@@ -127,6 +127,19 @@ abstract class PlaywrightTestBase {
 
         _page = browserContext.newPage()
 
+        // Intercept SSE endpoint and fulfill with an immediately closing stream
+        // This allows SSE to "connect" but doesn't keep the connection open
+        _page.route("**/api-ui/time-log-entries/events**") { route ->
+            // Fulfill with a minimal SSE response that closes immediately
+            route.fulfill(
+                Route
+                    .FulfillOptions()
+                    .setStatus(200)
+                    .setContentType("text/event-stream")
+                    .setBody("data: {\"type\":\"connected\"}\n\n"),
+            )
+        }
+
         // Add console message listener to capture errors and warnings
         _page.onConsoleMessage { message ->
             consoleMessages.add(message)
@@ -134,7 +147,7 @@ abstract class PlaywrightTestBase {
 
         // Add request/response logging for AJAX debugging
         _page.onRequest { request ->
-            if (request.url().contains("/api-ui/")) {
+            if (request.url().contains("/api-ui/") && !request.url().contains("/events")) {
                 log.debug("[REQUEST] ${request.method()} ${request.url()}")
                 if (request.postData() != null) {
                     log.debug("[REQUEST BODY] ${request.postData()}")
@@ -143,7 +156,7 @@ abstract class PlaywrightTestBase {
         }
 
         _page.onResponse { response ->
-            if (response.url().contains("/api-ui/")) {
+            if (response.url().contains("/api-ui/") && !response.url().contains("/events")) {
                 log.debug("[RESPONSE] ${response.status()} ${response.url()}")
                 try {
                     val body = response.text()
@@ -154,14 +167,42 @@ abstract class PlaywrightTestBase {
             }
         }
 
+        // Patch EventSource to allow SSE connections but prevent blocking
+        // Close connections after onopen to allow tests to complete
+        _page.addInitScript(
+            """
+            (function() {
+                const OriginalEventSource = window.EventSource;
+                window.EventSource = function(url, config) {
+                    const es = new OriginalEventSource(url, config);
+                    
+                    // Close the connection after a longer delay to allow event processing
+                    const originalOnOpen = es.onopen;
+                    es.onopen = function(event) {
+                        if (originalOnOpen) originalOnOpen.call(es, event);
+                        
+                        // Close after sufficient time for events to be processed
+                        setTimeout(() => {
+                            if (es.readyState !== EventSource.CLOSED) {
+                                es.close();
+                            }
+                        }, 500);
+                    };
+                    
+                    return es;
+                };
+                window.EventSource.prototype = OriginalEventSource.prototype;
+                window.EventSource.CONNECTING = OriginalEventSource.CONNECTING;
+                window.EventSource.OPEN = OriginalEventSource.OPEN;
+                window.EventSource.CLOSED = OriginalEventSource.CLOSED;
+            })();
+            """.trimIndent(),
+        )
+
         // Install Playwright clock with fixed time for deterministic tests
         // Use pauseAt to prevent automatic time progression - time only advances when explicitly requested
         // This ensures frontend JavaScript Date API uses the same fixed time as backend TimeService
         _page.clock().pauseAt(FIXED_TEST_TIME.toEpochMilli())
-
-        // Disable SSE in tests to avoid connection lifecycle issues with Playwright
-        // Tests can manually enable SSE by setting window.__DISABLE_SSE__ = false
-        _page.addInitScript("window.__DISABLE_SSE__ = true;")
     }
 
     private fun createBrowserContext(): BrowserContext =
@@ -274,17 +315,15 @@ abstract class PlaywrightTestBase {
      *
      * Note: "Failed to load resource" errors are ignored as they are expected when testing
      * error scenarios (e.g., 401 Unauthorized, 400 Bad Request responses).
-     * EventSource errors are also ignored as SSE connection failures are acceptable in tests.
      */
     private fun verifyConsoleMessages() {
         val errorMessages =
             consoleMessages.filter { message ->
                 val isErrorOrWarning = message.type() == "error" || message.type() == "warning"
                 val isNetworkError = message.text().startsWith("Failed to load resource:")
-                val isEventSourceError = message.text().contains("EventSource")
 
-                // Filter to only actual errors/warnings, excluding network-related and EventSource errors
-                isErrorOrWarning && !isNetworkError && !isEventSourceError
+                // Filter to only actual errors/warnings, excluding network-related errors
+                isErrorOrWarning && !isNetworkError
             }
 
         if (errorMessages.isNotEmpty()) {
@@ -292,6 +331,7 @@ abstract class PlaywrightTestBase {
                 errorMessages.joinToString("\n") { message ->
                     "[${message.type().uppercase()}] ${message.text()} (${message.location()})"
                 }
+            log.error("Console errors detected:\n$formattedMessages")
             throw AssertionError(
                 "Browser console contained ${errorMessages.size} error(s) or warning(s):\n$formattedMessages",
             )

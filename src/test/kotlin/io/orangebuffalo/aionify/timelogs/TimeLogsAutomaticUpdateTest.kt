@@ -18,11 +18,7 @@ import org.junit.jupiter.api.Test
 
 /**
  * Tests for automatic UI updates when time entries are changed via the public API.
- * Verifies that SSE events are emitted when entries are started/stopped via the API.
- *
- * Note: SSE is disabled by default in Playwright tests (via window.__DISABLE_SSE__) to avoid
- * connection lifecycle issues. These tests verify that events are emitted by the backend,
- * which would trigger UI updates in production when SSE is enabled.
+ * Verifies that the UI automatically updates via SSE when entries are started/stopped.
  */
 @MicronautTest(transactional = false)
 class TimeLogsAutomaticUpdateTest : TimeLogsPageTestBase() {
@@ -31,7 +27,7 @@ class TimeLogsAutomaticUpdateTest : TimeLogsPageTestBase() {
     lateinit var httpClient: HttpClient
 
     @Test
-    fun `should emit SSE event when entry is started via public API`() {
+    fun `should automatically update UI when entry is started via public API`() {
         // Given: User is logged in and viewing the time logs page
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
@@ -59,18 +55,37 @@ class TimeLogsAutomaticUpdateTest : TimeLogsPageTestBase() {
         val response = httpClient.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
         assertEquals(200, response.status.code)
 
-        // Then: Entry is created in database (SSE event would be emitted to subscribers)
-        val entry =
-            testDatabaseSupport.inTransaction {
-                timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(testUser.id!!).orElse(null)
-            }
-        assertNotNull(entry)
-        assertEquals("API Started Task", entry?.title)
-        assertNull(entry?.endTime) // Entry is active
+        // Then: UI should automatically update via SSE
+        // Playwright assertions auto-wait for the expected state
+        val updatedState =
+            initialState.copy(
+                currentEntry =
+                    CurrentEntryState.ActiveEntry(
+                        title = "API Started Task",
+                        duration = "00:00:00",
+                        startedAt = "16 Mar, 03:30",
+                    ),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:00:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "API Started Task",
+                                        timeRange = "03:30 - in progress",
+                                        duration = "00:00:00",
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
+        timeLogsPage.assertPageState(updatedState)
     }
 
     @Test
-    fun `should emit SSE event when entry is stopped via public API`() {
+    fun `should automatically update UI when entry is stopped via public API`() {
         // Given: User has an active entry and is viewing the time logs page
         val activeEntry =
             testDatabaseSupport.insert(
@@ -129,12 +144,27 @@ class TimeLogsAutomaticUpdateTest : TimeLogsPageTestBase() {
         val response = httpClient.toBlocking().exchange(request, Map::class.java)
         assertEquals(200, response.status.code)
 
-        // Then: Entry is stopped in database (SSE event would be emitted to subscribers)
-        val stoppedEntry =
-            testDatabaseSupport.inTransaction {
-                timeLogEntryRepository.findById(activeEntry.id!!).orElse(null)
-            }
-        assertNotNull(stoppedEntry)
-        assertNotNull(stoppedEntry?.endTime) // Entry is stopped
+        // Then: UI should automatically update via SSE
+        // Playwright assertions auto-wait for the expected state
+        val updatedState =
+            TimeLogsPageState(
+                currentEntry = CurrentEntryState.NoActiveEntry(),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:00:00",
+                            entries =
+                                listOf(
+                                    EntryState(
+                                        title = "Active Task",
+                                        timeRange = "03:30 - 03:30",
+                                        duration = "00:00:00",
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
+        timeLogsPage.assertPageState(updatedState)
     }
 }

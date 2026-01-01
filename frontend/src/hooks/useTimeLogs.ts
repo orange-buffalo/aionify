@@ -145,9 +145,7 @@ export function useTimeLogs() {
   );
 
   // Subscribe to SSE events for real-time updates
-  // Check if SSE is disabled via window flag (used in tests)
-  const sseEnabled = typeof window !== "undefined" && !(window as any).__DISABLE_SSE__;
-  useTimeLogEntryEvents(handleTimeLogEvent, sseEnabled);
+  useTimeLogEntryEvents(handleTimeLogEvent, true);
 
   // Start a new time entry
   async function handleStart(title: string, tags: string[] = []) {
