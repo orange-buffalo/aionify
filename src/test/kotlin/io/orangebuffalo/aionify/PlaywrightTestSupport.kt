@@ -130,6 +130,7 @@ abstract class PlaywrightTestBase {
         // Add console message listener to capture errors and warnings
         _page.onConsoleMessage { message ->
             consoleMessages.add(message)
+            log.debug("[CONSOLE ${message.type().uppercase()}] ${message.text()} (${message.location()})")
         }
 
         // Add request/response logging for AJAX debugging
