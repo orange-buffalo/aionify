@@ -45,6 +45,23 @@ class ApiAccessTokenPlaywrightTest : PlaywrightTestBase() {
     }
 
     @Test
+    fun `should display OpenAPI schema link that opens in new tab`() {
+        navigateToSettingsViaToken()
+
+        // Verify OpenAPI schema link is present
+        val schemaLink = page.locator("[data-testid='openapi-schema-link']")
+        assertThat(schemaLink).isVisible()
+        assertThat(schemaLink).containsText("View OpenAPI Schema")
+
+        // Verify link has correct href
+        assertThat(schemaLink).hasAttribute("href", "/api/schema")
+
+        // Verify link opens in new tab
+        assertThat(schemaLink).hasAttribute("target", "_blank")
+        assertThat(schemaLink).hasAttribute("rel", "noopener noreferrer")
+    }
+
+    @Test
     fun `should show generate button when user has no API token`() {
         navigateToSettingsViaToken()
 
