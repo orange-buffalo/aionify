@@ -70,6 +70,7 @@ open class ImportResource(
 
                 if (existing.isEmpty) {
                     // Create new entry
+                    val importTime = Instant.now()
                     timeLogEntryRepository.save(
                         TimeLogEntry(
                             startTime = startInstant,
@@ -77,6 +78,11 @@ open class ImportResource(
                             title = togglEntry.description,
                             ownerId = currentUser.id,
                             tags = togglEntry.tags.toTypedArray(),
+                            metadata =
+                                arrayOf(
+                                    "importTime:$importTime",
+                                    "importSource:toggl",
+                                ),
                         ),
                     )
                     importedCount++
