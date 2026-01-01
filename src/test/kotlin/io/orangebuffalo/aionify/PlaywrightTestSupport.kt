@@ -199,8 +199,9 @@ abstract class PlaywrightTestBase {
     ) {
         val authData = testAuthSupport.generateAuthStorageData(user)
 
-        // Navigate to root to establish localStorage origin
-        page.navigate("/")
+        // Navigate to login page (which doesn't make authenticated API calls) to establish localStorage origin
+        // This prevents race conditions where API calls are made with stale tokens during user switching
+        page.navigate("/login")
 
         // Set localStorage items
         page.evaluate(
@@ -222,7 +223,7 @@ abstract class PlaywrightTestBase {
             ),
         )
 
-        // Navigate to the target page - this will cause i18n to re-initialize with localStorage values
+        // Navigate to the target page - localStorage will already be set and i18n will initialize with localStorage values
         page.navigate(targetPath)
     }
 
