@@ -9,7 +9,7 @@ import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.Filter
 import io.micronaut.http.filter.HttpServerFilter
 import io.micronaut.http.filter.ServerFilterChain
-import io.micronaut.security.authentication.Authentication
+import io.orangebuffalo.aionify.auth.AuthenticationHelper
 import io.orangebuffalo.aionify.domain.UserApiAccessTokenRepository
 import io.orangebuffalo.aionify.domain.UserRepository
 import org.reactivestreams.Publisher
@@ -101,9 +101,8 @@ class ApiAuthenticationFilter(
         // Clear failed attempts for this IP on successful authentication
         apiRateLimitingService.clearAttempts(ipAddress)
 
-        // Create authentication and add to request attributes
-        val roles = if (user.isAdmin) listOf("admin", "user") else listOf("user")
-        val authentication = Authentication.build(user.userName, roles)
+        // Create authentication using shared helper
+        val authentication = AuthenticationHelper.createAuthentication(user)
 
         log.trace("API authentication: Successful for user {} from IP {}", user.userName, ipAddress)
 

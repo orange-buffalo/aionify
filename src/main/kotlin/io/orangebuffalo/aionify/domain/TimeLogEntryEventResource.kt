@@ -14,6 +14,7 @@ import io.micronaut.http.sse.Event
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule
 import io.micronaut.serde.annotation.Serdeable
+import io.orangebuffalo.aionify.auth.AuthenticationHelper
 import io.swagger.v3.oas.annotations.Hidden
 import jakarta.inject.Singleton
 import org.reactivestreams.Publisher
@@ -126,21 +127,8 @@ class SseTokenFilter(
                 val user = userRepository.findById(userId).orElse(null)
 
                 if (user != null) {
-                    // Create authentication object for Micronaut Security
-                    val roles = if (user.isAdmin) listOf("admin", "user") else listOf("user")
-                    val attributes =
-                        mapOf(
-                            "userId" to requireNotNull(user.id) { "User ID must not be null" },
-                            "greeting" to user.greeting,
-                            "isAdmin" to user.isAdmin,
-                        )
-
-                    val authentication =
-                        io.micronaut.security.authentication.Authentication.build(
-                            user.userName,
-                            roles,
-                            attributes,
-                        )
+                    // Create authentication using shared helper
+                    val authentication = AuthenticationHelper.createAuthentication(user)
 
                     // Add authentication to request attributes for SecurityService
                     val modifiedRequest =

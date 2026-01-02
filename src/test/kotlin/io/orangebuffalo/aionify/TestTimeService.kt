@@ -4,6 +4,7 @@ import io.micronaut.context.annotation.Replaces
 import io.micronaut.context.annotation.Requires
 import io.orangebuffalo.aionify.domain.TimeService
 import jakarta.inject.Singleton
+import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -11,6 +12,8 @@ import java.time.ZonedDateTime
 /**
  * Test implementation of TimeService that returns a fixed time for deterministic tests.
  * This replaces the real TimeService in test contexts.
+ * 
+ * Supports advancing time for testing time-sensitive scenarios like token expiration.
  */
 @Singleton
 @Requires(env = ["test"])
@@ -29,7 +32,29 @@ class TestTimeService : TimeService() {
     }
 
     /**
-     * Returns the fixed test time instead of the current time.
+     * Current time offset from FIXED_TEST_TIME.
+     * This allows tests to advance time without affecting other tests.
      */
-    override fun now(): Instant = FIXED_TEST_TIME
+    private var timeOffset: Duration = Duration.ZERO
+
+    /**
+     * Returns the fixed test time plus any offset.
+     */
+    override fun now(): Instant = FIXED_TEST_TIME.plus(timeOffset)
+
+    /**
+     * Advances the test time by the given duration.
+     * This is useful for testing time-sensitive scenarios like token expiration.
+     */
+    fun advanceTime(duration: Duration) {
+        timeOffset = timeOffset.plus(duration)
+    }
+
+    /**
+     * Resets the time offset to zero.
+     * This is useful for ensuring tests start from a clean state.
+     */
+    fun resetTime() {
+        timeOffset = Duration.ZERO
+    }
 }

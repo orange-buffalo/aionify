@@ -1,15 +1,25 @@
 package io.orangebuffalo.aionify.domain
 
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import io.orangebuffalo.aionify.TestTimeService
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.lang.Thread.sleep
+import java.time.Duration
 
 @MicronautTest(transactional = false)
 class SseTokenServiceTest {
     @Inject
     lateinit var sseTokenService: SseTokenService
+
+    @Inject
+    lateinit var testTimeService: TestTimeService
+
+    @BeforeEach
+    fun resetTime() {
+        testTimeService.resetTime()
+    }
 
     @Test
     fun `should generate unique tokens`() {
@@ -39,14 +49,12 @@ class SseTokenServiceTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("This test takes 31 seconds to run - enable manually if needed")
     fun `should return null for expired token`() {
         val userId = 456L
         val token = sseTokenService.generateToken(userId)
 
-        // Wait for token to expire (30 seconds + buffer)
-        // Note: This test takes 31 seconds to run
-        sleep(31000)
+        // Advance time by 31 seconds to expire the token (TTL is 30 seconds)
+        testTimeService.advanceTime(Duration.ofSeconds(31))
 
         val validatedUserId = sseTokenService.validateToken(token)
 
@@ -80,5 +88,26 @@ class SseTokenServiceTest {
 
         assertEquals(userId, validated1, "Token 1 should still be valid")
         assertEquals(userId, validated2, "Token 2 should be valid")
+    }
+
+    @Test
+    fun `should cleanup expired tokens on generation`() {
+        val userId = 999L
+
+        // Generate a token
+        val token1 = sseTokenService.generateToken(userId)
+
+        // Verify it's valid
+        assertNotNull(sseTokenService.validateToken(token1), "Token should be valid initially")
+
+        // Advance time to expire the first token
+        testTimeService.advanceTime(Duration.ofSeconds(31))
+
+        // Generate a new token (this should trigger cleanup)
+        val token2 = sseTokenService.generateToken(userId)
+
+        // Verify the first token is now expired
+        assertNull(sseTokenService.validateToken(token1), "First token should be expired")
+        assertNotNull(sseTokenService.validateToken(token2), "Second token should be valid")
     }
 }

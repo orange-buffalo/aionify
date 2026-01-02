@@ -13,7 +13,9 @@ import java.util.concurrent.ConcurrentHashMap
  * compared to passing JWT tokens in URL query parameters.
  */
 @Singleton
-class SseTokenService {
+class SseTokenService(
+    private val timeService: TimeService,
+) {
     private val log = LoggerFactory.getLogger(SseTokenService::class.java)
     private val secureRandom = SecureRandom()
 
@@ -38,7 +40,7 @@ class SseTokenService {
         secureRandom.nextBytes(tokenBytes)
         val token = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes)
 
-        val expiresAt = Instant.now().plusSeconds(TOKEN_TTL_SECONDS)
+        val expiresAt = timeService.now().plusSeconds(TOKEN_TTL_SECONDS)
         tokens[token] = SseTokenData(userId, expiresAt)
 
         log.debug("Generated SSE token for user {} (expires at {})", userId, expiresAt)
@@ -52,7 +54,7 @@ class SseTokenService {
     fun validateToken(token: String): Long? {
         val tokenData = tokens[token] ?: return null
 
-        if (Instant.now().isAfter(tokenData.expiresAt)) {
+        if (timeService.now().isAfter(tokenData.expiresAt)) {
             log.debug("SSE token has expired")
             tokens.remove(token)
             return null
@@ -71,7 +73,7 @@ class SseTokenService {
      * like Caffeine.
      */
     private fun cleanupExpiredTokens() {
-        val now = Instant.now()
+        val now = timeService.now()
         val expiredTokens = tokens.filterValues { it.expiresAt.isBefore(now) }.keys
 
         if (expiredTokens.isNotEmpty()) {
