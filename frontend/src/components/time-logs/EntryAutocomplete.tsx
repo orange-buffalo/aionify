@@ -38,6 +38,7 @@ export function EntryAutocomplete({
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const justSelectedRef = useRef(false);
 
   // Debounced search function
   useEffect(() => {
@@ -87,10 +88,15 @@ export function EntryAutocomplete({
   };
 
   const handleSelectEntry = (entry: AutocompleteEntry) => {
+    justSelectedRef.current = true;
     onSelect(entry);
     setOpen(false);
     setSuggestions([]);
     setHighlightedIndex(-1);
+    // Clear the flag after a short delay
+    setTimeout(() => {
+      justSelectedRef.current = false;
+    }, 100);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -128,6 +134,10 @@ export function EntryAutocomplete({
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         onFocus={() => {
+          // Don't reopen if we just selected an entry
+          if (justSelectedRef.current) {
+            return;
+          }
           // Re-open if there are results and input has value
           if (value.trim() && (suggestions.length > 0 || showNoResults)) {
             setOpen(true);
@@ -140,7 +150,7 @@ export function EntryAutocomplete({
       />
       {(open || showNoResults) && (
         <div
-          className="absolute z-50 w-full mt-1 rounded-md border bg-popover p-2 text-popover-foreground shadow-md"
+          className="absolute z-50 w-full mt-1 rounded-md border border-input bg-popover p-2 text-popover-foreground shadow-md"
           data-testid="autocomplete-popover"
         >
           {loading ? (
@@ -164,7 +174,7 @@ export function EntryAutocomplete({
                   data-highlighted={highlightedIndex === index ? "true" : "false"}
                 >
                   <div className="font-medium text-foreground text-sm">{entry.title}</div>
-                  {entry.tags.length > 0 && (
+                  {entry.tags && entry.tags.length > 0 && (
                     <div className="flex gap-1 mt-1 flex-wrap">
                       {entry.tags.map((tag) => (
                         <Badge

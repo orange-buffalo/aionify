@@ -69,10 +69,7 @@ class TimeLogsAutocompleteTest : TimeLogsPageTestBase() {
         val input = page.locator("[data-testid='new-entry-input']")
         input.fill("team")
 
-        // Wait for debounce to complete (300ms + buffer)
-        page.waitForTimeout(500.0)
-
-        // Wait for autocomplete popover to appear
+        // Autocomplete popover should appear
         val popover = page.locator("[data-testid='autocomplete-popover']")
         assertThat(popover).isVisible()
 
@@ -158,11 +155,16 @@ class TimeLogsAutocompleteTest : TimeLogsPageTestBase() {
         // Input should be filled with the title
         assertThat(input).hasValue("Meeting with team")
 
-        // Tags should be selected
+        // Tags should be selected - verify by opening tag selector and checking selected tags
         val tagsButton = page.locator("[data-testid='new-entry-tags-button']")
-        // Button should be highlighted when tags are selected
-        val classAttr = tagsButton.getAttribute("class") ?: ""
-        assert(classAttr.contains("bg-teal-600")) { "Tag button should be highlighted when tags are selected" }
+        tagsButton.click()
+
+        // Verify the tags from the selected entry are checked
+        val tagItems = page.locator("[data-testid^='new-entry-tags-item-'] span")
+        assertThat(tagItems).containsText(arrayOf("work", "meeting"))
+
+        // Close the tag selector
+        page.keyboard().press("Escape")
 
         // Autocomplete popover should be closed
         assertThat(popover).not().isVisible()
@@ -254,32 +256,12 @@ class TimeLogsAutocompleteTest : TimeLogsPageTestBase() {
     }
 
     @Test
-    fun `should debounce API calls`() {
-        // Type quickly - fill will trigger debouncing
-        val input = page.locator("[data-testid='new-entry-input']")
-        input.fill("team")
-
-        // Wait for debounce to complete (300ms)
-        page.waitForTimeout(400.0)
-
-        // Popover should appear with results
-        val popover = page.locator("[data-testid='autocomplete-popover']")
-        assertThat(popover).isVisible()
-
-        val suggestions = page.locator("[data-testid^='autocomplete-item-']")
-        assertThat(suggestions).containsText(arrayOf("Meeting with team", "Team standup"))
-    }
-
-    @Test
     fun `should show no results message when no matches`() {
         // Type something that doesn't match
         val input = page.locator("[data-testid='new-entry-input']")
         input.fill("xyz123")
 
-        // Wait for debounce
-        page.waitForTimeout(400.0)
-
-        // Popover should appear
+        // Popover should appear with no results message
         val popover = page.locator("[data-testid='autocomplete-popover']")
         assertThat(popover).isVisible()
 
