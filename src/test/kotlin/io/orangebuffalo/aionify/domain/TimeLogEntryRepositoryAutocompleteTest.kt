@@ -25,7 +25,7 @@ class TimeLogEntryRepositoryAutocompleteTest {
 
     @BeforeEach
     fun setupTest() {
-        // Clean up is handled by @MicronautTest
+        testDatabaseSupport.truncateAllTables()
     }
 
     @Test
