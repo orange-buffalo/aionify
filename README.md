@@ -20,6 +20,8 @@ See [Development Guide](docs/development.md) for local development setup.
 - [Deployment Guide](docs/deployment.md) - How to deploy and configure the application
 - [Development Guide](docs/development.md) - How to set up a local development environment
 - [Internationalization Guide](docs/i18n.md) - How to work with translations
+- [Public API Guide](docs/public-api.md) - How to use the public API for programmatic access
+- [Browser Integrations Guide](docs/browser-integrations.md) - Tampermonkey scripts for GitHub and Jira integration
 
 ## License
 
