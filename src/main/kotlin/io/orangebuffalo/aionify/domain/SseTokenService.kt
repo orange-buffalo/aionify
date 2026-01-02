@@ -64,6 +64,11 @@ class SseTokenService {
 
     /**
      * Removes expired tokens from memory.
+     *
+     * Note: This simple cleanup approach is acceptable for the current use case where
+     * SSE connections are relatively infrequent (user actions). For high-traffic scenarios,
+     * consider implementing a scheduled cleanup task or using a time-based eviction cache
+     * like Caffeine.
      */
     private fun cleanupExpiredTokens() {
         val now = Instant.now()
