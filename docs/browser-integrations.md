@@ -49,6 +49,8 @@ Aionify provides Tampermonkey scripts that allow you to start and stop time trac
 3. Click **Install**
 4. Configure the script (see [Configuration](#configuration) section below)
 
+**Note:** The script works with both Jira Cloud (*.atlassian.net) and Jira Server instances.
+
 ## Configuration
 
 After installing a script, you need to configure it with your credentials:
@@ -151,11 +153,14 @@ This metadata is used to match time entries to the pages you're viewing.
 2. **Check you're on a supported page:**
    - For GitHub: must be an issue or pull request page
    - For Jira: must be an issue page (browse view)
+   - For Jira Cloud: URLs like `https://*.atlassian.net/browse/PROJ-123`
+   - For Jira Server: URLs like `https://yourcompany.com/jira/browse/PROJ-123`
 
 3. **Check browser console for errors:**
    - Press F12 to open developer tools
    - Click the "Console" tab
    - Look for error messages starting with "[Aionify]"
+   - **Note:** Debug logging is enabled by default to help with troubleshooting. Console will show API requests and responses.
 
 ### Button shows wrong state
 

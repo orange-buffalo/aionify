@@ -6,6 +6,7 @@
 // @author       Aionify Contributors
 // @license      Apache-2.0
 // @match        https://*.atlassian.net/browse/*
+// @match        https://*/jira/browse/*
 // @require      https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-engine.user.js
 // @downloadURL  https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-jira.user.js
 // @updateURL    https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-jira.user.js
@@ -30,9 +31,9 @@
 
     // Parse Jira URL to extract issue key
     function parseJiraUrl() {
-        // Match Jira issue keys (e.g., PROJ-123, proj-123, MULTI2-123)
-        // Jira keys start with a letter, can contain letters and numbers, followed by hyphen and number
-        const match = window.location.pathname.match(/\/browse\/([A-Z][A-Z0-9]*-\d+)/i);
+        // Match Jira issue keys (e.g., PROJ-123, proj-123, MULTI_KEY-123)
+        // Jira keys start with a letter, can contain letters, numbers, and underscores, followed by hyphen and number
+        const match = window.location.pathname.match(/\/browse\/([A-Z][A-Z0-9_]*-\d+)/i);
         if (!match) return null;
         
         return {
