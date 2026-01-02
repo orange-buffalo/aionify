@@ -1,6 +1,7 @@
 package io.orangebuffalo.aionify
 
 import com.microsoft.playwright.*
+import com.microsoft.playwright.options.WaitUntilState
 import io.micronaut.runtime.server.EmbeddedServer
 import io.orangebuffalo.aionify.domain.User
 import jakarta.inject.Inject
@@ -129,6 +130,7 @@ abstract class PlaywrightTestBase {
         // Add console message listener to capture errors and warnings
         _page.onConsoleMessage { message ->
             consoleMessages.add(message)
+            log.debug("[CONSOLE ${message.type().uppercase()}] ${message.text()} (${message.location()})")
         }
 
         // Add request/response logging for AJAX debugging
@@ -144,11 +146,14 @@ abstract class PlaywrightTestBase {
         _page.onResponse { response ->
             if (response.url().contains("/api-ui/")) {
                 log.debug("[RESPONSE] ${response.status()} ${response.url()}")
-                try {
-                    val body = response.text()
-                    log.debug("[RESPONSE BODY] $body")
-                } catch (e: Exception) {
-                    log.debug("[RESPONSE BODY] (unable to read: ${e.message})")
+                // Don't try to read SSE response bodies as they stream indefinitely
+                if (!response.url().contains("/events")) {
+                    try {
+                        val body = response.text()
+                        log.debug("[RESPONSE BODY] $body")
+                    } catch (e: Exception) {
+                        log.debug("[RESPONSE BODY] (unable to read: ${e.message})")
+                    }
                 }
             }
         }
@@ -224,7 +229,11 @@ abstract class PlaywrightTestBase {
         )
 
         // Navigate to the target page - localStorage will already be set and i18n will initialize with localStorage values
-        page.navigate(targetPath)
+        // Use waitUntil="domcontentloaded" to not wait for SSE connections to close
+        page.navigate(
+            targetPath,
+            Page.NavigateOptions().setWaitUntil(WaitUntilState.DOMCONTENTLOADED),
+        )
     }
 
     @AfterEach
@@ -281,6 +290,7 @@ abstract class PlaywrightTestBase {
                 errorMessages.joinToString("\n") { message ->
                     "[${message.type().uppercase()}] ${message.text()} (${message.location()})"
                 }
+            log.error("Console errors detected:\n$formattedMessages")
             throw AssertionError(
                 "Browser console contained ${errorMessages.size} error(s) or warning(s):\n$formattedMessages",
             )

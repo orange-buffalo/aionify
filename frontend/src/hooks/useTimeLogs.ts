@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
 import { getWeekStart, formatISODate, calculateDuration, weekDayToNumber } from "@/lib/time-utils";
 import { formatDate } from "@/lib/date-format";
 import { useDocumentTitle } from "./useDocumentTitle";
+import { useTimeLogEntryEvents } from "./useTimeLogEntryEvents";
 import type { TimeEntry, TimeLogEntry, DayGroup } from "../components/time-logs/types";
 
 /**
@@ -122,12 +123,29 @@ export function useTimeLogs() {
   // Load active entry
   async function loadActiveEntry() {
     try {
-      const response = await apiGet<{ entry: TimeLogEntry | null }>("/api-ui/time-log-entries/active");
-      setActiveEntry(response.entry);
+      const response = await apiGet<{ entry?: TimeLogEntry | null }>("/api-ui/time-log-entries/active");
+      setActiveEntry(response.entry ?? null);
     } catch (err: any) {
       console.error("Failed to load active entry:", err);
     }
   }
+
+  // Handle SSE events for time log entry changes
+  const handleTimeLogEvent = useCallback(
+    async (event: { type: "ENTRY_STARTED" | "ENTRY_STOPPED"; entryId: number; title: string }) => {
+      console.log("[useTimeLogs] Received SSE event:", event);
+
+      // Reload active entry to get the latest state
+      await loadActiveEntry();
+
+      // Reload time entries for the current week to update the list
+      await loadTimeEntries();
+    },
+    [weekStart] // Depend on weekStart so we reload the correct week
+  );
+
+  // Subscribe to SSE events for real-time updates
+  useTimeLogEntryEvents(handleTimeLogEvent, true);
 
   // Start a new time entry
   async function handleStart(title: string, tags: string[] = []) {
