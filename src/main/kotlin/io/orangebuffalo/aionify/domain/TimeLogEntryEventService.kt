@@ -1,8 +1,10 @@
 package io.orangebuffalo.aionify.domain
 
-import io.micronaut.core.annotation.Introspected
+import io.micronaut.context.event.ApplicationEventPublisher
 import io.micronaut.http.sse.Event
 import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.transaction.annotation.TransactionalEventListener
+import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import org.slf4j.LoggerFactory
 import reactor.core.publisher.Sinks
@@ -13,14 +15,17 @@ import java.util.concurrent.ConcurrentHashMap
  * Allows broadcasting events to subscribed clients when entries are started or stopped.
  */
 @Singleton
-class TimeLogEntryEventService {
+open class TimeLogEntryEventService {
     private val log = LoggerFactory.getLogger(TimeLogEntryEventService::class.java)
+
+    @Inject
+    lateinit var eventPublisher: ApplicationEventPublisher<Any>
 
     // Map of userId to Sink for broadcasting events to that user's subscribers
     private val userEventSinks = ConcurrentHashMap<Long, Sinks.Many<Event<TimeLogEntryEvent>>>()
 
     /**
-     * Emits an event to all subscribers for the given user.
+     * Emits an event to all subscribers for the given user after the current transaction commits.
      * If no sink exists for the user, a warning is logged and the event is dropped.
      */
     fun emitEvent(
@@ -28,27 +33,38 @@ class TimeLogEntryEventService {
         eventType: TimeLogEntryEventType,
         entry: TimeLogEntry,
     ) {
-        val sink = userEventSinks[userId]
+        eventPublisher.publishEvent(
+            TimeLogEntryEventToEmit(
+                userId = userId,
+                eventType = eventType,
+                entry = entry,
+            ),
+        )
+    }
+
+    @TransactionalEventListener(TransactionalEventListener.TransactionPhase.AFTER_COMMIT)
+    open fun onTimeLogEntryEventToEmit(event: TimeLogEntryEventToEmit) {
+        val sink = userEventSinks[event.userId]
 
         if (sink == null) {
-            log.debug("No subscribers for user {}, event dropped: {}", userId, eventType)
+            log.debug("No subscribers for user {}, event dropped: {}", event.userId, event.eventType)
             return
         }
 
-        val event =
+        val sseEvent =
             TimeLogEntryEvent(
-                type = eventType,
-                entryId = requireNotNull(entry.id) { "Entry ID must not be null" },
-                title = entry.title,
+                type = event.eventType,
+                entryId = requireNotNull(event.entry.id) { "Entry ID must not be null" },
+                title = event.entry.title,
             )
 
-        log.debug("Emitting event to user {}: {}", userId, event)
+        log.debug("Emitting event to user {}: {}", event.userId, sseEvent)
 
         try {
-            val sseEvent = Event.of(event)
-            sink.tryEmitNext(sseEvent)
+            val ev = Event.of(sseEvent)
+            sink.tryEmitNext(ev)
         } catch (e: Exception) {
-            log.error("Failed to emit event for user {}", userId, e)
+            log.error("Failed to emit event for user {}", event.userId, e)
         }
     }
 
@@ -93,4 +109,14 @@ data class TimeLogEntryEvent(
     val type: TimeLogEntryEventType,
     val entryId: Long,
     val title: String,
+)
+
+/**
+ * Event to be emitted after a time log entry is created or updated.
+ * This is used to trigger the sending of SSE events after the transaction commits.
+ */
+data class TimeLogEntryEventToEmit(
+    val userId: Long,
+    val eventType: TimeLogEntryEventType,
+    val entry: TimeLogEntry,
 )
