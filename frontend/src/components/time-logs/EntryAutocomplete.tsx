@@ -38,7 +38,7 @@ export function EntryAutocomplete({
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const selectedEntryTitleRef = useRef<string>("");
+  const selectedEntryTitleRef = useRef<string | null>(null);
 
   // Debounced search function
   useEffect(() => {
@@ -46,7 +46,7 @@ export function EntryAutocomplete({
       // If the current value matches the selected entry title, do not fetch suggestions
       return;
     }
-    selectedEntryTitleRef.current = "";
+    selectedEntryTitleRef.current = null;
 
     const query = value.trim();
 
