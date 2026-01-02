@@ -212,6 +212,31 @@ open class TimeLogEntryResource(
         return HttpResponse.ok(DeleteLogEntryResponse("Time log entry deleted successfully"))
     }
 
+    @Get("/autocomplete")
+    open fun autocomplete(
+        @QueryValue query: String,
+        currentUser: UserWithId,
+    ): HttpResponse<*> {
+        log.debug("Autocomplete search for user: {}, query: {}", currentUser.user.userName, query)
+
+        // Split query into tokens and filter empty ones
+        val searchTokens = query.trim()
+
+        if (searchTokens.isEmpty()) {
+            return HttpResponse.ok(AutocompleteResponse(entries = emptyList()))
+        }
+
+        val results = timeLogEntryRepository.searchByTitleTokens(currentUser.id, searchTokens)
+
+        log.trace("Found {} autocomplete results for user: {}", results.size, currentUser.user.userName)
+
+        return HttpResponse.ok(
+            AutocompleteResponse(
+                entries = results.map { it.toAutocompleteDto() },
+            ),
+        )
+    }
+
     private fun TimeLogEntry.toDto() =
         TimeLogEntryDto(
             id = requireNotNull(this.id) { "Log entry must have an ID" },
@@ -221,6 +246,12 @@ open class TimeLogEntryResource(
             ownerId = this.ownerId,
             tags = this.tags.toList(),
             metadata = this.metadata.toList(),
+        )
+
+    private fun TimeLogEntry.toAutocompleteDto() =
+        AutocompleteEntryDto(
+            title = this.title,
+            tags = this.tags.toList(),
         )
 }
 
@@ -280,4 +311,17 @@ data class DeleteLogEntryResponse(
 data class TimeLogEntryErrorResponse(
     val error: String,
     val errorCode: String,
+)
+
+@Serdeable
+@Introspected
+data class AutocompleteResponse(
+    val entries: List<AutocompleteEntryDto>,
+)
+
+@Serdeable
+@Introspected
+data class AutocompleteEntryDto(
+    val title: String,
+    val tags: List<String> = emptyList(),
 )
