@@ -8,6 +8,7 @@ import { apiGet, apiPost, apiPut, apiRequest } from "@/lib/api";
 import { Eye, Copy } from "lucide-react";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { copyToClipboard } from "@/lib/utils";
 
 interface ApiTokenStatus {
   exists: boolean;
@@ -78,7 +79,7 @@ export function ApiAccessTokenPanel() {
   const handleCopyToken = async () => {
     if (tokenValue) {
       await executeApiCall(async () => {
-        await navigator.clipboard.writeText(tokenValue);
+        await copyToClipboard(tokenValue);
         return t("settings.apiToken.tokenCopied");
       });
     }
