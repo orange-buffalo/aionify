@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
+import { apiPost } from "@/lib/api";
 
 export interface TimeLogEntryEvent {
   type: "ENTRY_STARTED" | "ENTRY_STOPPED";
@@ -22,7 +23,7 @@ export function useTimeLogEntryEvents(onEvent: (event: TimeLogEntryEvent) => voi
     onEventRef.current = onEvent;
   }, [onEvent]);
 
-  const connect = useCallback(() => {
+  const connect = useCallback(async () => {
     if (!enabled) return;
 
     // Don't create duplicate connections
@@ -32,49 +33,55 @@ export function useTimeLogEntryEvents(onEvent: (event: TimeLogEntryEvent) => voi
 
     console.log("[SSE] Connecting to time log entry events...");
 
-    // Get JWT token from localStorage
-    const token = localStorage.getItem("aionify_token");
-    if (!token) {
-      console.log("[SSE] No authentication token found, skipping connection");
-      return;
+    try {
+      // Generate a short-lived SSE token
+      const response = await apiPost<{ token: string }>("/api-ui/time-log-entries/sse-token", {});
+      if (!response.ok) {
+        console.error("[SSE] Failed to generate SSE token");
+        return;
+      }
+
+      const { token } = response.data;
+
+      // Pass token as query parameter since EventSource doesn't support custom headers
+      const url = `/api-ui/time-log-entries/events?token=${encodeURIComponent(token)}`;
+
+      const eventSource = new EventSource(url, {
+        withCredentials: true,
+      });
+
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data) as TimeLogEntryEvent;
+          console.log("[SSE] Received event:", data);
+          onEventRef.current(data);
+        } catch (error) {
+          console.debug("[SSE] Failed to parse event data:", error);
+        }
+      };
+
+      eventSource.addEventListener("heartbeat", () => {
+        // Heartbeat event to keep connection alive - no action needed
+        console.debug("[SSE] Heartbeat received");
+      });
+
+      eventSource.onerror = () => {
+        // Close and cleanup on error
+        // Don't automatically reconnect to avoid infinite loops
+        if (eventSource.readyState === EventSource.CLOSED) {
+          console.log("[SSE] Connection closed");
+          eventSourceRef.current = null;
+        }
+      };
+
+      eventSource.onopen = () => {
+        console.log("[SSE] Connection established");
+      };
+
+      eventSourceRef.current = eventSource;
+    } catch (error) {
+      console.error("[SSE] Failed to connect:", error);
     }
-
-    // Pass token as query parameter since EventSource doesn't support custom headers
-    const url = `/api-ui/time-log-entries/events?token=${encodeURIComponent(token)}`;
-
-    const eventSource = new EventSource(url, {
-      withCredentials: true,
-    });
-
-    eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data) as TimeLogEntryEvent;
-        console.log("[SSE] Received event:", data);
-        onEventRef.current(data);
-      } catch (error) {
-        console.debug("[SSE] Failed to parse event data:", error);
-      }
-    };
-
-    eventSource.addEventListener("heartbeat", () => {
-      // Heartbeat event to keep connection alive - no action needed
-      console.debug("[SSE] Heartbeat received");
-    });
-
-    eventSource.onerror = () => {
-      // Close and cleanup on error
-      // Don't automatically reconnect to avoid infinite loops
-      if (eventSource.readyState === EventSource.CLOSED) {
-        console.log("[SSE] Connection closed");
-        eventSourceRef.current = null;
-      }
-    };
-
-    eventSource.onopen = () => {
-      console.log("[SSE] Connection established");
-    };
-
-    eventSourceRef.current = eventSource;
   }, [enabled]);
 
   const disconnect = useCallback(() => {
