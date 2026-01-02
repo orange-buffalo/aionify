@@ -1,5 +1,6 @@
 package io.orangebuffalo.aionify.domain
 
+import io.micronaut.data.annotation.Query
 import io.micronaut.data.jdbc.annotation.JdbcRepository
 import io.micronaut.data.model.query.builder.sql.Dialect
 import io.micronaut.data.repository.CrudRepository
@@ -40,4 +41,26 @@ interface TimeLogEntryRepository : CrudRepository<TimeLogEntry, Long> {
         title: String,
         startTime: Instant,
     ): Optional<TimeLogEntry>
+
+    /**
+     * Search for entries by title tokens (case-insensitive).
+     * Returns distinct entries by title, taking the latest (by start time) for each duplicate.
+     * Results are ordered by start time descending (latest first).
+     * Searches for entries where the title contains all the provided tokens.
+     */
+    @Query(
+        """SELECT DISTINCT ON (title) *
+           FROM time_log_entry
+           WHERE owner_id = :ownerId
+           AND (:searchTokens = '' OR (
+               SELECT bool_and(LOWER(title) LIKE LOWER('%' || token || '%'))
+               FROM unnest(string_to_array(:searchTokens, ' ')) AS token
+               WHERE token != ''
+           ))
+           ORDER BY title, start_time DESC""",
+    )
+    fun searchByTitleTokens(
+        ownerId: Long,
+        searchTokens: String,
+    ): List<TimeLogEntry>
 }
