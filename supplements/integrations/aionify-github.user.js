@@ -11,7 +11,6 @@
 // @downloadURL  https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-github.user.js
 // @updateURL    https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-github.user.js
 // @grant        GM_xmlhttpRequest
-// @grant        GM_addStyle
 // ==/UserScript==
 
 (function() {
@@ -53,7 +52,7 @@
                 method: 'GET',
                 url: url,
                 headers: {
-                    'Authorization': `token ${GITHUB_TOKEN}`,
+                    'Authorization': `Bearer ${GITHUB_TOKEN}`,
                     'Accept': 'application/vnd.github.v3+json',
                     'User-Agent': 'Aionify-GitHub-Integration'
                 },
@@ -151,9 +150,9 @@
                 
                 // Initialize the time tracking button
                 const client = new window.Aionify.Client(AIONIFY_BASE_URL, AIONIFY_API_TOKEN);
-                const button = new window.Aionify.Button(client, config);
+                const timeTracker = new window.Aionify.Button(client, config);
                 
-                button.initialize((buttonElement) => {
+                timeTracker.initialize((buttonElement) => {
                     buttonWrapper.appendChild(buttonElement);
                 });
             }

@@ -8,7 +8,6 @@
 // @downloadURL  https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-engine.user.js
 // @updateURL    https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-engine.user.js
 // @grant        GM_xmlhttpRequest
-// @grant        GM_addStyle
 // ==/UserScript==
 
 (function() {

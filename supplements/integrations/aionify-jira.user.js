@@ -10,7 +10,6 @@
 // @downloadURL  https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-jira.user.js
 // @updateURL    https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-jira.user.js
 // @grant        GM_xmlhttpRequest
-// @grant        GM_addStyle
 // ==/UserScript==
 
 (function() {
@@ -172,9 +171,9 @@
                 
                 // Initialize the time tracking button
                 const client = new window.Aionify.Client(AIONIFY_BASE_URL, AIONIFY_API_TOKEN);
-                const button = new window.Aionify.Button(client, config);
+                const timeTracker = new window.Aionify.Button(client, config);
                 
-                button.initialize((buttonElement) => {
+                timeTracker.initialize((buttonElement) => {
                     buttonWrapper.appendChild(buttonElement);
                 });
             }
