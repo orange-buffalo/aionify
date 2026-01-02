@@ -21,13 +21,14 @@
     // ========================================
     const AIONIFY_BASE_URL = 'https://your-aionify-instance.com';  // Your Aionify URL (no trailing slash)
     const AIONIFY_API_TOKEN = 'your-aionify-api-token-here';       // Your Aionify API token from Settings
-    const JIRA_BASE_URL = 'https://your-company.atlassian.net';    // Your Jira instance URL (no trailing slash)
-    const JIRA_EMAIL = 'your-email@example.com';                    // Your Jira email
-    const JIRA_API_TOKEN = 'your-jira-api-token-here';              // Your Jira API token
     const POLL_INTERVAL = 10000;  // Poll interval in milliseconds (10 seconds)
     // ========================================
 
-    console.log('[Aionify Jira] Script loaded');
+    if (typeof console.debug === 'undefined') {
+        console.debug = console.log;
+    }
+
+    console.debug('[Aionify Jira] Script loaded');
 
     // Parse Jira URL to extract issue key
     function parseJiraUrl() {
@@ -41,41 +42,18 @@
         };
     }
 
-    // Fetch issue title from Jira API
-    async function fetchTitle(issueKey) {
-        return new Promise((resolve, reject) => {
-            const url = `${JIRA_BASE_URL}/rest/api/3/issue/${issueKey}?fields=summary`;
-            
-            console.log(`[Aionify Jira] Fetching title from ${url}`);
-            
-            // Create Basic Auth header
-            const auth = btoa(`${JIRA_EMAIL}:${JIRA_API_TOKEN}`);
-            
-            GM_xmlhttpRequest({
-                method: 'GET',
-                url: url,
-                headers: {
-                    'Authorization': `Basic ${auth}`,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                onload: function(response) {
-                    if (response.status === 200) {
-                        try {
-                            const data = JSON.parse(response.responseText);
-                            resolve(data.fields.summary);
-                        } catch (e) {
-                            reject(new Error('Failed to parse Jira API response'));
-                        }
-                    } else {
-                        reject(new Error(`Jira API returned ${response.status}`));
-                    }
-                },
-                onerror: function() {
-                    reject(new Error('Jira API request failed'));
-                }
-            });
-        });
+    // Parse title from Jira page DOM
+    function parseTitleFromPage() {
+        // Try multiple selectors for different Jira UI versions
+        const titleElement = document.querySelector('[data-testid="issue.views.issue-base.foundation.summary.heading"]') ||
+                           document.querySelector('#summary-val') ||
+                           document.querySelector('[data-test-id="issue.views.field.rich-text.heading"]');
+        
+        if (titleElement) {
+            return titleElement.textContent.trim();
+        }
+        
+        return null;
     }
 
     // Configuration for the time tracking button
@@ -95,30 +73,16 @@
                 throw new Error('Failed to parse Jira URL');
             }
             
-            try {
-                // Try to fetch title from Jira API
-                const title = await fetchTitle(info.issueKey);
-                return `${info.issueKey} ${title}`;
-            } catch (error) {
-                console.error('[Aionify Jira] Failed to fetch title from API:', error);
-                
-                // Fallback: try to get title from the page
-                const titleElement = document.querySelector('[data-testid="issue.views.issue-base.foundation.summary.heading"]');
-                if (titleElement) {
-                    const pageTitle = titleElement.textContent.trim();
-                    return `${info.issueKey} ${pageTitle}`;
-                }
-                
-                // Alternative selector for classic Jira
-                const classicTitleElement = document.querySelector('#summary-val');
-                if (classicTitleElement) {
-                    const pageTitle = classicTitleElement.textContent.trim();
-                    return `${info.issueKey} ${pageTitle}`;
-                }
-                
-                // Last resort: just use the issue key
-                return info.issueKey;
+            // Get title from the page DOM
+            const pageTitle = parseTitleFromPage();
+            
+            if (pageTitle) {
+                return `${info.issueKey} ${pageTitle}`;
             }
+            
+            // Fallback: just use the issue key
+            console.debug('[Aionify Jira] Could not find title on page, using issue key only');
+            return info.issueKey;
         }
     };
 
@@ -126,11 +90,11 @@
     function initialize() {
         const info = parseJiraUrl();
         if (!info) {
-            console.log('[Aionify Jira] Not on an issue page');
+            console.debug('[Aionify Jira] Not on an issue page');
             return;
         }
         
-        console.log(`[Aionify Jira] Detected issue: ${info.issueKey}`);
+        console.debug(`[Aionify Jira] Detected issue: ${info.issueKey}`);
         
         // Wait for the page header to load
         const observer = new MutationObserver(() => {

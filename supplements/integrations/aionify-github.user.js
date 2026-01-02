@@ -21,11 +21,14 @@
     // ========================================
     const AIONIFY_BASE_URL = 'https://your-aionify-instance.com';  // Your Aionify URL (no trailing slash)
     const AIONIFY_API_TOKEN = 'your-aionify-api-token-here';       // Your Aionify API token from Settings
-    const GITHUB_TOKEN = 'your-github-token-here';                  // Your GitHub personal access token
     const POLL_INTERVAL = 10000;  // Poll interval in milliseconds (10 seconds)
     // ========================================
 
-    console.log('[Aionify GitHub] Script loaded');
+    if (typeof console.debug === 'undefined') {
+        console.debug = console.log;
+    }
+
+    console.debug('[Aionify GitHub] Script loaded');
 
     // Parse GitHub URL to extract owner, repo, and number
     function parseGitHubUrl() {
@@ -40,39 +43,18 @@
         };
     }
 
-    // Fetch issue/PR title from GitHub API
-    async function fetchTitle(owner, repo, type, number) {
-        return new Promise((resolve, reject) => {
-            const endpoint = type === 'issues' ? 'issues' : 'pulls';
-            const url = `https://api.github.com/repos/${owner}/${repo}/${endpoint}/${number}`;
-            
-            console.log(`[Aionify GitHub] Fetching title from ${url}`);
-            
-            GM_xmlhttpRequest({
-                method: 'GET',
-                url: url,
-                headers: {
-                    'Authorization': `Bearer ${GITHUB_TOKEN}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'User-Agent': 'Aionify-GitHub-Integration'
-                },
-                onload: function(response) {
-                    if (response.status === 200) {
-                        try {
-                            const data = JSON.parse(response.responseText);
-                            resolve(data.title);
-                        } catch (e) {
-                            reject(new Error('Failed to parse GitHub API response'));
-                        }
-                    } else {
-                        reject(new Error(`GitHub API returned ${response.status}`));
-                    }
-                },
-                onerror: function() {
-                    reject(new Error('GitHub API request failed'));
-                }
-            });
-        });
+    // Parse title from GitHub page DOM
+    function parseTitleFromPage() {
+        // Try multiple selectors for different GitHub UI versions
+        const titleElement = document.querySelector('.js-issue-title') ||
+                           document.querySelector('[data-testid="issue-title"]') ||
+                           document.querySelector('bdi.js-issue-title');
+        
+        if (titleElement) {
+            return titleElement.textContent.trim();
+        }
+        
+        return null;
     }
 
     // Configuration for the time tracking button
@@ -95,26 +77,17 @@
                 throw new Error('Failed to parse GitHub URL');
             }
             
-            try {
-                // Try to fetch title from GitHub API
-                const title = await fetchTitle(info.owner, info.repo, info.type, info.number);
-                const identifier = `${info.owner}/${info.repo}/${info.number}`;
-                return `${identifier} ${title}`;
-            } catch (error) {
-                console.error('[Aionify GitHub] Failed to fetch title from API:', error);
-                
-                // Fallback: try to get title from the page
-                const titleElement = document.querySelector('.js-issue-title');
-                if (titleElement) {
-                    const pageTitle = titleElement.textContent.trim();
-                    const identifier = `${info.owner}/${info.repo}/${info.number}`;
-                    return `${identifier} ${pageTitle}`;
-                }
-                
-                // Last resort: just use the identifier
-                const identifier = `${info.owner}/${info.repo}/${info.number}`;
-                return identifier;
+            // Get title from the page DOM
+            const pageTitle = parseTitleFromPage();
+            const identifier = `${info.owner}/${info.repo}/${info.number}`;
+            
+            if (pageTitle) {
+                return `${identifier} ${pageTitle}`;
             }
+            
+            // Fallback: just use the identifier
+            console.debug('[Aionify GitHub] Could not find title on page, using identifier only');
+            return identifier;
         }
     };
 
@@ -122,11 +95,11 @@
     function initialize() {
         const info = parseGitHubUrl();
         if (!info) {
-            console.log('[Aionify GitHub] Not on an issue or PR page');
+            console.debug('[Aionify GitHub] Not on an issue or PR page');
             return;
         }
         
-        console.log(`[Aionify GitHub] Detected ${info.type === 'issues' ? 'issue' : 'PR'}: ${info.owner}/${info.repo}/${info.number}`);
+        console.debug(`[Aionify GitHub] Detected ${info.type === 'issues' ? 'issue' : 'PR'}: ${info.owner}/${info.repo}/${info.number}`);
         
         // Wait for the page header to load
         const observer = new MutationObserver(() => {

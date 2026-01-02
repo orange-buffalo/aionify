@@ -20,19 +20,6 @@ Aionify provides Tampermonkey scripts that allow you to start and stop time trac
 
 2. **Aionify API token** - see [Public API Guide](./public-api.md) for instructions on generating your token
 
-3. **GitHub Personal Access Token** (for GitHub integration only):
-   - Go to [GitHub Settings > Developer settings > Personal access tokens > Tokens (classic)](https://github.com/settings/tokens)
-   - Click "Generate new token (classic)"
-   - Give it a descriptive name (e.g., "Aionify Integration")
-   - Select scopes: `repo` (for private repositories) or `public_repo` (for public repositories only)
-   - Click "Generate token" and copy it
-
-4. **Jira API Token** (for Jira integration only):
-   - Go to [Atlassian Account Settings > Security > API tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
-   - Click "Create API token"
-   - Give it a label (e.g., "Aionify Integration")
-   - Click "Create" and copy the token
-
 ## Installation
 
 ### GitHub Integration
@@ -68,7 +55,6 @@ After installing a script, you need to configure it with your credentials:
 // Configuration - Update these values
 const AIONIFY_BASE_URL = 'https://your-aionify-instance.com';  // Your Aionify URL (no trailing slash)
 const AIONIFY_API_TOKEN = 'your-aionify-api-token-here';       // Your Aionify API token
-const GITHUB_TOKEN = 'your-github-token-here';                  // Your GitHub personal access token
 ```
 
 ### Jira Script Configuration
@@ -77,9 +63,6 @@ const GITHUB_TOKEN = 'your-github-token-here';                  // Your GitHub p
 // Configuration - Update these values
 const AIONIFY_BASE_URL = 'https://your-aionify-instance.com';  // Your Aionify URL (no trailing slash)
 const AIONIFY_API_TOKEN = 'your-aionify-api-token-here';       // Your Aionify API token
-const JIRA_BASE_URL = 'https://your-company.atlassian.net';    // Your Jira instance URL (no trailing slash)
-const JIRA_EMAIL = 'your-email@example.com';                    // Your Jira email
-const JIRA_API_TOKEN = 'your-jira-api-token-here';              // Your Jira API token
 ```
 
 7. Click **File > Save** (or press Ctrl+S / Cmd+S)
@@ -120,7 +103,7 @@ The scripts are configured to automatically check for updates from the GitHub re
 2. You'll see a notification in the Tampermonkey menu
 3. Click **Update** to install the latest version
 
-Your configuration (API tokens, URLs) will be preserved during updates.
+Your configuration (API tokens, URLs) will be preserved during updates as Tampermonkey stores user modifications separately from the script code.
 
 ### Manual Update Check
 
@@ -160,7 +143,7 @@ This metadata is used to match time entries to the pages you're viewing.
    - Press F12 to open developer tools
    - Click the "Console" tab
    - Look for error messages starting with "[Aionify]"
-   - **Note:** Debug logging is enabled by default to help with troubleshooting. Console will show API requests and responses.
+   - **Note:** Debug logging is enabled to help with troubleshooting. Enable "Verbose" level in console to see debug messages.
 
 ### Button shows wrong state
 
@@ -184,37 +167,25 @@ This metadata is used to match time entries to the pages you're viewing.
    - If you see HTTP 429 errors, you may have hit the rate limit
    - Wait 10 minutes and try again
 
-### Title fetching fails
+### Title not showing correctly
 
-**For GitHub:**
-1. **Check GitHub token permissions:**
-   - Ensure your token has `repo` or `public_repo` scope
-   - Regenerate the token if needed
+The scripts extract issue/PR titles directly from the page. If the title is not appearing:
 
-2. **Check rate limits:**
-   - GitHub API has rate limits (5000 requests/hour for authenticated users)
-   - Check your rate limit status: https://api.github.com/rate_limit
-
-**For Jira:**
-1. **Check Jira credentials:**
-   - Ensure `JIRA_EMAIL` matches your Atlassian account email
-   - Ensure `JIRA_API_TOKEN` is valid
-   - Ensure `JIRA_BASE_URL` is correct (no trailing slash)
-
-2. **Check Jira permissions:**
-   - Ensure you have permission to view the issue
-   - Try accessing the issue in the Jira web interface
+1. **Refresh the page** - the title element may not have loaded yet
+2. **Wait a few seconds** - the script polls every 10 seconds and will retry
+3. **Check browser console** - look for debug messages about title extraction
+4. **Report an issue** - if the GitHub/Jira UI has changed, the selectors may need updating
 
 ## Security Considerations
 
-**Important:** The Tampermonkey scripts store your API tokens in plain text in the browser. Follow these security best practices:
+**Important:** The Tampermonkey scripts store your Aionify API token in plain text in the browser. Follow these security best practices:
 
 1. **Only install scripts from trusted sources** - verify the script source before installation
 2. **Keep tokens secure** - don't share your configured scripts with others
-3. **Use dedicated API tokens** - create separate tokens for browser integrations
-4. **Rotate tokens regularly** - regenerate tokens periodically
-5. **Revoke unused tokens** - remove tokens when you stop using the integration
-6. **Use HTTPS only** - ensure both Aionify and external APIs use HTTPS
+3. **Use dedicated API tokens** - create a separate Aionify token for browser integrations
+4. **Rotate tokens regularly** - regenerate your Aionify token periodically
+5. **Revoke unused tokens** - delete the token when you stop using the integration
+6. **Use HTTPS only** - ensure your Aionify instance uses HTTPS
 
 ## Advanced Customization
 
@@ -245,8 +216,7 @@ To remove a script:
 3. Find the script you want to remove
 4. Click the **trash icon** (🗑️)
 5. Confirm deletion
-
-Your API tokens will be removed along with the script.
+Your Aionify API token will be removed along with the script.
 
 ## Further Reading
 

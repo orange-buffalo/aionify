@@ -13,6 +13,11 @@
 (function() {
     'use strict';
 
+    // Polyfill console.debug if not available
+    if (typeof console.debug === 'undefined') {
+        console.debug = console.log;
+    }
+
     // Aionify favicon SVG (base64 encoded)
     const AIONIFY_ICON = 'data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogIDwhLS0gT3V0ZXIgYmx1ZSBjaXJjbGUgLS0+CiAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiM3NmFhZDUiLz4KICA8IS0tIElubmVyIGNsb2NrIGZhY2UgKGRhcmsgYWNjZW50KSAtLT4KICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxNCIgZmlsbD0iIzM1MzY0OCIvPgogIDwhLS0gQ2xvY2sgaGFuZHMgLS0+CiAgPGxpbmUgeDE9IjE2IiB5MT0iMTYiIHgyPSIxMiIgeTI9IjEwIiBzdHJva2U9IiMzN2EyZWEiIHN0cm9rZS13aWR0aD0iMi4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8bGluZSB4MT0iMTYiIHkxPSIxNiIgeDI9IjIyIiB5Mj0iMTAiIHN0cm9rZT0iIzQ3OTdkOSIgc3Ryb2tlLXdpZHRoPSIyLjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDwhLS0gQ2VudGVyIGRvdCAtLT4KICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxLjciIGZpbGw9IiNGRkYiIC8+Cjwvc3ZnPg==';
 
@@ -31,7 +36,7 @@
                     'Content-Type': 'application/json'
                 };
 
-                console.log(`[Aionify] ${method} ${url}`);
+                console.debug(`[Aionify] ${method} ${url}`);
 
                 GM_xmlhttpRequest({
                     method: method,
@@ -39,7 +44,7 @@
                     headers: headers,
                     data: body ? JSON.stringify(body) : null,
                     onload: function(response) {
-                        console.log(`[Aionify] Response ${response.status}: ${response.responseText.substring(0, 200)}`);
+                        console.debug(`[Aionify] Response ${response.status}: ${response.responseText.substring(0, 200)}`);
                         if (response.status >= 200 && response.status < 300) {
                             try {
                                 const data = response.responseText ? JSON.parse(response.responseText) : {};
@@ -143,12 +148,12 @@
             this.updateButton(false);
             
             try {
-                console.log('[Aionify] Starting time entry...');
+                console.debug('[Aionify] Starting time entry...');
                 const title = await this.config.getTitleForCurrentPage();
                 const metadata = this.config.getMetadataForCurrentPage();
                 
                 await this.aionifyClient.startEntry(title, metadata);
-                console.log('[Aionify] Time entry started successfully');
+                console.debug('[Aionify] Time entry started successfully');
                 
                 // Force immediate poll to update button state
                 await this.poll();
@@ -167,9 +172,9 @@
             this.updateButton(true);
             
             try {
-                console.log('[Aionify] Stopping time entry...');
+                console.debug('[Aionify] Stopping time entry...');
                 await this.aionifyClient.stopEntry();
-                console.log('[Aionify] Time entry stopped successfully');
+                console.debug('[Aionify] Time entry stopped successfully');
                 
                 // Force immediate poll to update button state
                 await this.poll();
@@ -212,7 +217,7 @@
             // Start polling interval
             this.pollInterval = setInterval(() => this.poll(), this.config.pollInterval || 10000);
             
-            console.log('[Aionify] Time tracking button initialized');
+            console.debug('[Aionify] Time tracking button initialized');
         }
 
         destroy() {
@@ -234,5 +239,5 @@
         ICON: AIONIFY_ICON
     };
 
-    console.log('[Aionify] Engine loaded');
+    console.debug('[Aionify] Engine loaded');
 })();
