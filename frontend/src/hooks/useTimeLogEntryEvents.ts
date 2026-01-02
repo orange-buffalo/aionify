@@ -35,13 +35,7 @@ export function useTimeLogEntryEvents(onEvent: (event: TimeLogEntryEvent) => voi
 
     try {
       // Generate a short-lived SSE token
-      const response = await apiPost<{ token: string }>("/api-ui/time-log-entries/sse-token", {});
-      if (!response.ok) {
-        console.error("[SSE] Failed to generate SSE token");
-        return;
-      }
-
-      const { token } = response.data;
+      const { token } = await apiPost<{ token: string }>("/api-ui/time-log-entries/sse-token", {});
 
       // Pass token as query parameter since EventSource doesn't support custom headers
       const url = `/api-ui/time-log-entries/events?token=${encodeURIComponent(token)}`;

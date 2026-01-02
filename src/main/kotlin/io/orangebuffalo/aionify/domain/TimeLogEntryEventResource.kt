@@ -50,8 +50,12 @@ class TimeLogEntryEventResource(
     /**
      * SSE endpoint that streams time log entry events to the authenticated user.
      * Keeps connection alive with periodic heartbeat events.
+     * 
+     * Note: This endpoint uses custom authentication via SseTokenFilter and is marked
+     * as anonymous to prevent Micronaut Security from interfering with the SSE stream.
      */
     @Get(uri = "/events", produces = [MediaType.TEXT_EVENT_STREAM])
+    @Secured(SecurityRule.IS_ANONYMOUS)
     fun streamEvents(currentUser: UserWithId): Flux<Event<*>> {
         val userId = currentUser.id
         log.debug("User {} subscribing to time log entry events", userId)
@@ -98,8 +102,10 @@ data class SseTokenResponse(
 class SseTokenFilter(
     private val sseTokenService: SseTokenService,
     private val userRepository: UserRepository,
-) : HttpServerFilter {
+) : HttpServerFilter, io.micronaut.core.order.Ordered {
     private val log = LoggerFactory.getLogger(SseTokenFilter::class.java)
+
+    override fun getOrder(): Int = io.micronaut.core.order.Ordered.HIGHEST_PRECEDENCE
 
     override fun doFilter(
         request: HttpRequest<*>,
