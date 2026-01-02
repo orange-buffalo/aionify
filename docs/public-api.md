@@ -23,14 +23,12 @@ All API endpoints (except `/api/schema`) require authentication using Bearer tok
 3. Scroll down to the **API Access Token** section
 4. Click the **Generate Token** button (or **Regenerate Token** if you already have one)
 
-<!-- ![API Token Generation](./images/api-token-generation.png) -->
+![API Token Generation](./images/api-token-generation.png)
 
 5. Click the **eye icon** (👁️) to reveal the token
 6. Click the **copy icon** (📋) to copy the token to your clipboard
 
-<!-- ![API Token Display](./images/api-token-display.png) -->
-
-> **Note:** Screenshots will be added in a future update. For now, follow the text instructions above.
+![API Token Display](./images/api-token-display.png)
 
 **Important:**
 - Store the token securely - it provides full access to your account
