@@ -38,7 +38,6 @@ export function EntryAutocomplete({
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const justSelectedRef = useRef(false);
 
   // Debounced search function
   useEffect(() => {
@@ -88,18 +87,22 @@ export function EntryAutocomplete({
   };
 
   const handleSelectEntry = (entry: AutocompleteEntry) => {
-    justSelectedRef.current = true;
     onSelect(entry);
     setOpen(false);
     setSuggestions([]);
     setHighlightedIndex(-1);
-    // Clear the flag after a short delay
-    setTimeout(() => {
-      justSelectedRef.current = false;
-    }, 100);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Handle Escape key to close popover (works for both results and no-results)
+    if (e.key === "Escape" && (open || showNoResults)) {
+      e.preventDefault();
+      setOpen(false);
+      setHighlightedIndex(-1);
+      return;
+    }
+
+    // If no suggestions, pass through to parent handler
     if (!open || suggestions.length === 0) {
       onKeyDown?.(e);
       return;
@@ -114,10 +117,6 @@ export function EntryAutocomplete({
     } else if (e.key === "Enter" && highlightedIndex >= 0) {
       e.preventDefault();
       handleSelectEntry(suggestions[highlightedIndex]);
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      setOpen(false);
-      setHighlightedIndex(-1);
     } else {
       onKeyDown?.(e);
     }
@@ -134,14 +133,18 @@ export function EntryAutocomplete({
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         onFocus={() => {
-          // Don't reopen if we just selected an entry
-          if (justSelectedRef.current) {
-            return;
-          }
           // Re-open if there are results and input has value
           if (value.trim() && (suggestions.length > 0 || showNoResults)) {
             setOpen(true);
           }
+        }}
+        onBlur={() => {
+          // Close the popover when input loses focus
+          // Use a small delay to allow click events on suggestions to fire first
+          setTimeout(() => {
+            setOpen(false);
+            setHighlightedIndex(-1);
+          }, 200);
         }}
         placeholder={placeholder}
         disabled={disabled}
@@ -165,6 +168,10 @@ export function EntryAutocomplete({
                 <button
                   key={index}
                   type="button"
+                  onMouseDown={(e) => {
+                    // Prevent blur event on input when clicking suggestion
+                    e.preventDefault();
+                  }}
                   onClick={() => handleSelectEntry(entry)}
                   className={cn(
                     "w-full text-left px-3 py-2 rounded-sm hover:bg-accent cursor-pointer transition-colors",
