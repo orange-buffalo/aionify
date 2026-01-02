@@ -217,3 +217,20 @@ User types (admin/regular user) cannot be changed after creation. To change a us
 4. Share the activation link with the user
 
 **Important**: This will require the user to set up their account again with a new password.
+
+## API Access
+
+Users can generate API tokens for programmatic access to Aionify. See the [Public API Guide](./public-api.md) for details on:
+
+- How to generate and manage API tokens
+- Available API endpoints
+- Authentication and security
+- Browser integrations for GitHub and Jira
+
+API tokens provide full access to a user's account, so users should:
+- Keep tokens secure and never share them
+- Rotate tokens regularly
+- Delete unused tokens
+- Use HTTPS only when making API requests
+
+See [Browser Integrations Guide](./browser-integrations.md) for Tampermonkey scripts that enable time tracking from GitHub and Jira web pages.
