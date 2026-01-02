@@ -38,9 +38,16 @@ export function EntryAutocomplete({
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const selectedEntryTitleRef = useRef<string>("");
 
   // Debounced search function
   useEffect(() => {
+    if (value === selectedEntryTitleRef.current) {
+      // If the current value matches the selected entry title, do not fetch suggestions
+      return;
+    }
+    selectedEntryTitleRef.current = "";
+
     const query = value.trim();
 
     // Clear suggestions if input is empty
@@ -91,6 +98,12 @@ export function EntryAutocomplete({
     setOpen(false);
     setSuggestions([]);
     setHighlightedIndex(-1);
+    selectedEntryTitleRef.current = entry.title;
+    // Switch focus to the start button
+    const startButton = document.querySelector('[data-testid="start-button"]') as HTMLElement;
+    if (startButton) {
+      startButton.focus();
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
