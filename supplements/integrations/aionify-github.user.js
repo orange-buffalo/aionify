@@ -139,10 +139,16 @@
             }
             
             if (actionsContainer) {
+                // Check if we've already inserted the button
+                if (document.querySelector('#aionify-button-wrapper')) {
+                    return;
+                }
+                
                 observer.disconnect();
                 
                 // Create a wrapper for our button
                 const buttonWrapper = document.createElement('div');
+                buttonWrapper.id = 'aionify-button-wrapper';
                 buttonWrapper.style.cssText = 'display: inline-block; margin-left: 8px;';
                 
                 // Insert the wrapper into the actions container
