@@ -30,9 +30,9 @@
 
     // Parse Jira URL to extract issue key
     function parseJiraUrl() {
-        // Match Jira issue keys (e.g., PROJ-123, proj-123, MULTI-WORD-123)
-        // Jira keys can contain letters (any case) and numbers, followed by hyphen and number
-        const match = window.location.pathname.match(/\/browse\/([A-Z]+[A-Z0-9]*-\d+)/i);
+        // Match Jira issue keys (e.g., PROJ-123, proj-123, MULTI2-123)
+        // Jira keys start with a letter, can contain letters and numbers, followed by hyphen and number
+        const match = window.location.pathname.match(/\/browse\/([A-Z][A-Z0-9]*-\d+)/i);
         if (!match) return null;
         
         return {

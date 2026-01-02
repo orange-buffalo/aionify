@@ -104,7 +104,7 @@
                 console.error('[Aionify GitHub] Failed to fetch title from API:', error);
                 
                 // Fallback: try to get title from the page
-                const titleElement = document.querySelector('.js-issue-title, .gh-header-title .js-issue-title');
+                const titleElement = document.querySelector('.js-issue-title');
                 if (titleElement) {
                     const pageTitle = titleElement.textContent.trim();
                     const identifier = `${info.owner}/${info.repo}/${info.number}`;
