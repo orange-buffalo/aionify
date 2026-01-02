@@ -22,6 +22,8 @@ export async function copyToClipboard(text: string): Promise<void> {
   }
 
   // Fallback for non-secure contexts (HTTP)
+  // Note: document.execCommand('copy') is deprecated but necessary for HTTP contexts
+  // where the Clipboard API is unavailable. This provides a graceful fallback.
   const textArea = document.createElement("textarea");
   textArea.value = text;
 
@@ -47,6 +49,7 @@ export async function copyToClipboard(text: string): Promise<void> {
       throw new Error("Copy command was unsuccessful");
     }
   } finally {
-    document.body.removeChild(textArea);
+    // Use .remove() for safer element removal
+    textArea.remove();
   }
 }
