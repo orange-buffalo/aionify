@@ -69,6 +69,9 @@ class TimeLogsAutocompleteTest : TimeLogsPageTestBase() {
         val input = page.locator("[data-testid='new-entry-input']")
         input.fill("team")
 
+        // Wait for debounce to complete (300ms + buffer)
+        page.waitForTimeout(500.0)
+
         // Wait for autocomplete popover to appear
         val popover = page.locator("[data-testid='autocomplete-popover']")
         assertThat(popover).isVisible()
