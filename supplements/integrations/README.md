@@ -78,7 +78,6 @@ To add support for a new platform:
    // @downloadURL  https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-platform.user.js
    // @updateURL    https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-platform.user.js
    // @grant        GM_xmlhttpRequest
-   // @grant        GM_addStyle
    // ==/UserScript==
    ```
 3. Implement the configuration object:
