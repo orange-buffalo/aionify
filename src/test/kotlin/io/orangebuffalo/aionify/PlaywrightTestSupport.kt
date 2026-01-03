@@ -109,7 +109,7 @@ abstract class PlaywrightTestBase {
         playwright = Playwright.create()
         browser =
             playwright.chromium().launch(
-                BrowserType.LaunchOptions().setHeadless(true).setTimeout(10_000.0),
+                BrowserType.LaunchOptions().setHeadless(false).setTimeout(10_000.0),
             )
 
         // Create context with base URL for simpler navigation
