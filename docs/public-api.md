@@ -55,19 +55,7 @@ To protect against brute force attacks, the API implements rate limiting:
 
 ## API Endpoints
 
-The complete API reference is available in the OpenAPI schema at `/api/schema`. Below is a brief overview:
-
-### Available Endpoints
-
-- **GET /api/time-log-entries/active** - Get the currently active time log entry
-- **POST /api/time-log-entries/start** - Start a new time log entry
-- **POST /api/time-log-entries/stop** - Stop the currently active time log entry
-
-For detailed request/response formats, error codes, and examples, see the OpenAPI schema at:
-
-```
-https://your-aionify-instance.com/api/schema
-```
+The complete API reference is available in the OpenAPI schema at `/api/schema`.
 
 ## Metadata Format
 

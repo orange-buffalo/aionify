@@ -2,52 +2,7 @@
 
 This directory contains Tampermonkey scripts for integrating Aionify time tracking with popular web applications.
 
-## Available Scripts
-
-### aionify-engine.user.js
-
-The core engine that provides common functionality for all Aionify integrations:
-
-- API client for communicating with Aionify
-- Button management and state synchronization
-- Polling mechanism for active time entries
-- Shared UI components
-
-This script is automatically loaded by the integration scripts via `@require` directive.
-
-### aionify-github.user.js
-
-Integration for GitHub issues and pull requests:
-
-- Automatically detects GitHub issue and PR pages
-- Adds a Start/Stop button to the GitHub UI
-- Fetches issue/PR titles from GitHub API
-- Tracks time with metadata: `gitHubIssue=owner/repo/number` or `gitHubPR=owner/repo/number`
-
-**Configuration required:**
-- `AIONIFY_BASE_URL` - Your Aionify instance URL
-- `AIONIFY_API_TOKEN` - Your Aionify API token
-- `GITHUB_TOKEN` - GitHub personal access token (for API access)
-
-### aionify-jira.user.js
-
-Integration for Jira Cloud issues:
-
-- Automatically detects Jira issue pages
-- Adds a Start/Stop button to the Jira UI
-- Fetches issue titles from Jira API
-- Tracks time with metadata: `jiraIssue=ISSUE-KEY`
-
-**Configuration required:**
-- `AIONIFY_BASE_URL` - Your Aionify instance URL
-- `AIONIFY_API_TOKEN` - Your Aionify API token
-- `JIRA_BASE_URL` - Your Jira instance URL
-- `JIRA_EMAIL` - Your Jira account email
-- `JIRA_API_TOKEN` - Jira API token
-
-## Installation
-
-See the [Browser Integrations Guide](../../docs/browser-integrations.md) for detailed installation and configuration instructions.
+See [browser-integrations.md](../../docs/browser-integrations.md) for detailed installation and configuration instructions.
 
 ## Development
 
