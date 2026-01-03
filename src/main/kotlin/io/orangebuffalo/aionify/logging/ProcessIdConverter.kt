@@ -6,7 +6,7 @@ import io.micronaut.core.annotation.ReflectiveAccess
 
 /**
  * Logback converter that outputs the current process ID.
- * Usage in logback.xml: <conversionRule conversionWord="pid" converterClass="io.orangebuffalo.aionify.logging.ProcessIdConverter" />
+ * Usage in logback.xml: <conversionRule conversionWord="pid" class="io.orangebuffalo.aionify.logging.ProcessIdConverter" />
  * Then use %pid in the pattern.
  */
 @ReflectiveAccess

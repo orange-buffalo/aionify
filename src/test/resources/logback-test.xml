@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <conversionRule conversionWord="pid" converterClass="io.orangebuffalo.aionify.logging.ProcessIdConverter" />
+    <conversionRule conversionWord="pid" class="io.orangebuffalo.aionify.logging.ProcessIdConverter" />
     
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
