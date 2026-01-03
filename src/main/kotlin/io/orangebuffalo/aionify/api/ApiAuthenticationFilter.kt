@@ -101,11 +101,8 @@ class ApiAuthenticationFilter(
         // Clear failed attempts for this IP on successful authentication
         apiRateLimitingService.clearAttempts(ipAddress)
 
-        // Create authentication using shared helper
-        val authentication = AuthenticationHelper.createAuthentication(user)
-
         log.trace("API authentication: Successful for user {} from IP {}", user.userName, ipAddress)
 
-        return chain.proceed(request.setAttribute("micronaut.security.AUTHENTICATION", authentication))
+        return chain.proceed(AuthenticationHelper.setAuthentication(request, user))
     }
 }

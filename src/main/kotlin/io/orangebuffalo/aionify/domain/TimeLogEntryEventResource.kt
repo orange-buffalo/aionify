@@ -127,17 +127,8 @@ class SseTokenFilter(
                 val user = userRepository.findById(userId).orElse(null)
 
                 if (user != null) {
-                    // Create authentication using shared helper
-                    val authentication = AuthenticationHelper.createAuthentication(user)
-
-                    // Add authentication to request attributes for SecurityService
-                    val modifiedRequest =
-                        request
-                            .mutate()
-                            .setAttribute("micronaut.security.AUTHENTICATION", authentication)
-
                     log.trace("SSE token validated for user {}", userId)
-                    chain.proceed(modifiedRequest)
+                    chain.proceed(AuthenticationHelper.setAuthentication(request, user))
                 } else {
                     log.debug("User {} not found for valid SSE token", userId)
                     chain.proceed(request)

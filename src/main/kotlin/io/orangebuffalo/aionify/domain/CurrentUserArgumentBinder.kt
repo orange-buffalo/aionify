@@ -5,8 +5,8 @@ import io.micronaut.core.convert.ArgumentConversionContext
 import io.micronaut.core.type.Argument
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.bind.binders.TypedRequestArgumentBinder
-import io.micronaut.security.authentication.Authentication
 import io.micronaut.security.utils.SecurityService
+import io.orangebuffalo.aionify.auth.AuthenticationHelper
 import jakarta.inject.Singleton
 import java.util.Optional
 
@@ -34,7 +34,7 @@ class CurrentUserArgumentBinder(
 
         // If not found, check request attributes (for API bearer token auth)
         if (authentication == null) {
-            authentication = source.getAttribute("micronaut.security.AUTHENTICATION", Authentication::class.java).orElse(null)
+            authentication = AuthenticationHelper.getAuthenticationOrNull(source)
         }
 
         val principal = authentication?.let { java.security.Principal { it.name } }

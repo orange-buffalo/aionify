@@ -26,15 +26,12 @@ class SseTokenAuthenticationTest {
         // When: Attempting to connect to SSE endpoint without a token
         val request = HttpRequest.GET<Any>("/api-ui/time-log-entries/events")
 
-        // Then: Should fail with a client error (400 or 500)
+        // Then: Should return 401 UNAUTHORIZED
         try {
             httpClient.toBlocking().exchange(request, String::class.java)
             fail("Expected request to fail without authentication")
         } catch (e: HttpClientResponseException) {
-            // Expected - the request should fail when no authentication is present
-            assert(e.status.code >= 400) {
-                "Expected 4xx or 5xx status, got ${e.status}"
-            }
+            assertEquals(HttpStatus.UNAUTHORIZED, e.status, "Expected 401 UNAUTHORIZED")
         }
     }
 
@@ -43,21 +40,12 @@ class SseTokenAuthenticationTest {
         // When: Attempting to connect with an invalid token
         val request = HttpRequest.GET<Any>("/api-ui/time-log-entries/events?token=invalid-token-xyz")
 
-        // Then: Should fail with a client error (400 or 500)
+        // Then: Should return 401 UNAUTHORIZED
         try {
             httpClient.toBlocking().exchange(request, String::class.java)
             fail("Expected request to fail with invalid token")
         } catch (e: HttpClientResponseException) {
-            // Expected - the request should fail when invalid token is provided
-            assert(e.status.code >= 400) {
-                "Expected 4xx or 5xx status, got ${e.status}"
-            }
+            assertEquals(HttpStatus.UNAUTHORIZED, e.status, "Expected 401 UNAUTHORIZED")
         }
-    }
-
-    @Test
-    fun `should reject SSE connection with expired token`() {
-        // This is tested in SseTokenServiceTest with mocked time
-        // Here we just document that expired tokens are handled
     }
 }

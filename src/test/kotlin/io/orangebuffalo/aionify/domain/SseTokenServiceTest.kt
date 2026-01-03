@@ -3,8 +3,8 @@ package io.orangebuffalo.aionify.domain
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.TestTimeService
 import jakarta.inject.Inject
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Duration
 
@@ -16,7 +16,7 @@ class SseTokenServiceTest {
     @Inject
     lateinit var testTimeService: TestTimeService
 
-    @BeforeEach
+    @AfterEach
     fun resetTime() {
         testTimeService.resetTime()
     }
