@@ -2,7 +2,7 @@ version: 2
 enable-beta-ecosystems: true
 updates:
   # Frontend dependencies (npm)
-  - package-ecosystem: "npm"
+  - package-ecosystem: "bun"
     directory: "/frontend"
     schedule:
       interval: "daily"
