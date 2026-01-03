@@ -17,13 +17,25 @@ export interface TimeLogEntryEvent {
 export function useTimeLogEntryEvents(onEvent: (event: TimeLogEntryEvent) => void, enabled: boolean = true) {
   const eventSourceRef = useRef<EventSource | null>(null);
   const onEventRef = useRef(onEvent);
-  const reconnectAttemptsRef = useRef(0);
-  const maxReconnectAttempts = 3;
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectDelayMs = 5000; // 5 seconds
 
   // Keep callback ref up to date
   useEffect(() => {
     onEventRef.current = onEvent;
   }, [onEvent]);
+
+  const scheduleReconnect = useCallback(() => {
+    // Clear any existing reconnect timeout
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+    }
+
+    console.log(`[SSE] Scheduling reconnection in ${reconnectDelayMs / 1000} seconds...`);
+    reconnectTimeoutRef.current = setTimeout(() => {
+      connect();
+    }, reconnectDelayMs);
+  }, []);
 
   const connect = useCallback(async () => {
     if (!enabled) return;
@@ -70,40 +82,36 @@ export function useTimeLogEntryEvents(onEvent: (event: TimeLogEntryEvent) => voi
         eventSource.close();
         eventSourceRef.current = null;
 
-        // Try to reconnect with a new token if we haven't exceeded retry limit
-        if (reconnectAttemptsRef.current < maxReconnectAttempts) {
-          reconnectAttemptsRef.current += 1;
-          console.log(`[SSE] Reconnecting (attempt ${reconnectAttemptsRef.current}/${maxReconnectAttempts})...`);
-
-          // Reconnect after a short delay to avoid rapid reconnection loops
-          setTimeout(() => {
-            connect();
-          }, 1000 * reconnectAttemptsRef.current); // Exponential backoff
-        } else {
-          console.error("[SSE] Max reconnection attempts reached");
-        }
+        // Schedule reconnection with a new token
+        scheduleReconnect();
       };
 
       eventSource.onopen = () => {
         console.log("[SSE] Connection established");
-        // Reset reconnect attempts on successful connection
-        reconnectAttemptsRef.current = 0;
       };
 
       eventSourceRef.current = eventSource;
     } catch (error) {
-      console.error("[SSE] Failed to connect:", error);
+      // Token fetch failed (e.g., server is down)
+      console.error("[SSE] Failed to fetch token:", error);
+
+      // Schedule reconnection to try again later
+      scheduleReconnect();
     }
-  }, [enabled]);
+  }, [enabled, scheduleReconnect]);
 
   const disconnect = useCallback(() => {
+    // Clear any pending reconnect timeout
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+
     if (eventSourceRef.current) {
       console.log("[SSE] Disconnecting from events");
       eventSourceRef.current.close();
       eventSourceRef.current = null;
     }
-    // Reset reconnect attempts when explicitly disconnecting
-    reconnectAttemptsRef.current = 0;
   }, []);
 
   // Connect on mount, disconnect on unmount
