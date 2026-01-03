@@ -7,6 +7,8 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 1
+    commit-message:
+      prefix: "chore(deps): "
     groups:
       # Group React and React DOM with their TypeScript types
       react:
@@ -46,6 +48,8 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 1
+    commit-message:
+      prefix: "chore(deps): "
     groups:
       # Group Micronaut core dependencies
       micronaut:
@@ -77,6 +81,8 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 1
+    commit-message:
+      prefix: "chore(deps): "
     labels:
       - "dependencies"
       - "github-actions"
