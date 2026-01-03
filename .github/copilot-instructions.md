@@ -84,6 +84,12 @@ To run a specific test class:
 ./gradlew test --tests "io.orangebuffalo.aionify.FrontendPlaywrightTest"
 ```
 
+### Pull Request Guidelines
+
+**CRITICAL: All pull request titles and commit messages MUST follow Conventional Commits format.**
+
+Conventional Commits provide a standardized way to communicate the nature of changes.
+
 ## Project Structure
 
 - `src/main/kotlin/io/orangebuffalo/aionify/` - Main Kotlin application code
