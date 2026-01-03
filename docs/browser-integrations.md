@@ -69,31 +69,37 @@ const AIONIFY_API_TOKEN = 'your-aionify-api-token-here';       // Your Aionify A
 
 ## Usage
 
-Once installed and configured, the scripts will automatically add a button to GitHub and Jira pages:
+Once installed and configured, the scripts will automatically add menu commands when you visit GitHub or Jira pages:
+
+### Accessing the Menu
+
+1. Navigate to a GitHub issue/PR or Jira issue page
+2. Click the **Tampermonkey icon** in your browser toolbar
+3. Look for the menu item: **"⏱️ Start Time Tracking"** or **"⏱️ Stop Time Tracking"**
 
 ### GitHub
 
-The button appears on:
+The menu command appears on:
 - **Issue pages** (e.g., `https://github.com/owner/repo/issues/123`)
 - **Pull request pages** (e.g., `https://github.com/owner/repo/pull/456`)
 
 ### Jira
 
-The button appears on:
+The menu command appears on:
 - **Issue pages** (e.g., `https://your-company.atlassian.net/browse/PROJ-123`)
 
-### Button Behavior
+### Menu Behavior
 
-- **Start button** (⏱️ Start): Click to start tracking time on the current issue/PR
-  - Automatically fetches the issue/PR title
+- **⏱️ Start Time Tracking** - Click to start tracking time on the current issue/PR
+  - Automatically fetches the issue/PR title from the page
   - Creates a time entry with metadata matching the current page
   - If another entry is active, it will be stopped first
 
-- **Stop button** (⏱️ Stop): Click to stop tracking time on the current issue/PR
+- **⏱️ Stop Time Tracking** - Click to stop tracking time on the current issue/PR
   - Only appears when you're actively tracking the current issue/PR
   - Stops the active time entry
 
-The button automatically updates every 10 seconds to reflect your current tracking state.
+The menu command automatically updates every 10 seconds to reflect your current tracking state.
 
 ## Automatic Updates
 
@@ -126,7 +132,7 @@ This metadata is used to match time entries to the pages you're viewing.
 
 ## Troubleshooting
 
-### Button doesn't appear
+### Menu command doesn't appear
 
 1. **Check Tampermonkey is enabled:**
    - Click the Tampermonkey icon
@@ -139,13 +145,21 @@ This metadata is used to match time entries to the pages you're viewing.
    - For Jira Cloud: URLs like `https://*.atlassian.net/browse/PROJ-123`
    - For Jira Server: URLs like `https://yourcompany.com/jira/browse/PROJ-123`
 
-3. **Check browser console for errors:**
+3. **Refresh the page:**
+   - The script may need a page refresh to initialize
+   - Try reloading the page (F5 or Ctrl+R / Cmd+R)
+
+3. **Refresh the page:**
+   - The script may need a page refresh to initialize
+   - Try reloading the page (F5 or Ctrl+R / Cmd+R)
+
+4. **Check browser console for errors:**
    - Press F12 to open developer tools
    - Click the "Console" tab
    - Look for error messages starting with "[Aionify]"
    - **Note:** Debug logging is enabled to help with troubleshooting. Enable "Verbose" level in console to see debug messages.
 
-### Button shows wrong state
+### Menu shows wrong state
 
 1. **Wait 10 seconds** - the script polls every 10 seconds for updates
 2. **Check your configuration:**
@@ -191,20 +205,11 @@ The scripts extract issue/PR titles directly from the page. If the title is not 
 
 ### Changing poll interval
 
-To change how often the button updates (default is 10 seconds):
+To change how often the menu updates (default is 10 seconds):
 
 1. Edit the script in Tampermonkey dashboard
 2. Find the `POLL_INTERVAL` constant (around line 15)
 3. Change the value (in milliseconds): `const POLL_INTERVAL = 10000;`
-4. Save the script
-
-### Custom button styling
-
-The button uses inline CSS for maximum compatibility. To customize the appearance:
-
-1. Edit the script in Tampermonkey dashboard
-2. Find the `createButton()` function
-3. Modify the `style` attribute in the button creation code
 4. Save the script
 
 ## Uninstallation

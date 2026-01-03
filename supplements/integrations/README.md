@@ -12,9 +12,9 @@ Each integration script follows this pattern:
 
 1. **Configuration section** - User-editable constants for API credentials
 2. **URL parsing** - Extracts relevant information from the current page
-3. **API integration** - Fetches additional data (titles) from external APIs
+3. **Title parsing** - Fetches titles from page DOM
 4. **Configuration object** - Implements the interface expected by the engine
-5. **Initialization** - Waits for page load and injects the button
+5. **Initialization** - Registers menu commands with Tampermonkey
 
 ### Adding a New Integration
 
@@ -33,6 +33,7 @@ To add support for a new platform:
    // @downloadURL  https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-platform.user.js
    // @updateURL    https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-platform.user.js
    // @grant        GM_xmlhttpRequest
+   // @grant        GM_registerMenuCommand
    // ==/UserScript==
    ```
 3. Implement the configuration object:
@@ -49,13 +50,11 @@ To add support for a new platform:
        }
    };
    ```
-4. Initialize the button:
+4. Initialize the menu:
    ```javascript
    const client = new window.Aionify.Client(BASE_URL, API_TOKEN);
-   const button = new window.Aionify.Button(client, config);
-   button.initialize((buttonElement) => {
-       // Insert button into DOM
-   });
+   const menu = new window.Aionify.Menu(client, config);
+   menu.initialize();
    ```
 5. Update the documentation
 
@@ -92,11 +91,12 @@ When making changes:
 - Verify the `@match` patterns are correct
 - Check browser console for errors
 
-### Button not appearing
+### Menu command not appearing
 
 - Verify you're on a supported page
 - Check the console for initialization messages
-- Ensure the page DOM structure hasn't changed
+- Refresh the page if the script was just installed
+- Ensure the page DOM structure matches expected selectors
 
 ### API requests failing
 

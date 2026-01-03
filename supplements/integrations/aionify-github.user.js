@@ -11,6 +11,7 @@
 // @downloadURL  https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-github.user.js
 // @updateURL    https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-github.user.js
 // @grant        GM_xmlhttpRequest
+// @grant        GM_registerMenuCommand
 // ==/UserScript==
 
 (function() {
@@ -91,7 +92,7 @@
         }
     };
 
-    // Initialize when page is ready
+    // Initialize menu
     function initialize() {
         const info = parseGitHubUrl();
         if (!info) {
@@ -101,49 +102,11 @@
         
         console.debug(`[Aionify GitHub] Detected ${info.type === 'issues' ? 'issue' : 'PR'}: ${info.owner}/${info.repo}/${info.number}`);
         
-        // Wait for the page header to load
-        const observer = new MutationObserver(() => {
-            // Try to find the header actions area
-            let actionsContainer = document.querySelector('.gh-header-actions');
-            
-            if (!actionsContainer) {
-                // Fallback: try alternative selectors
-                actionsContainer = document.querySelector('.timeline-comment-actions');
-            }
-            
-            if (actionsContainer) {
-                // Check if we've already inserted the button
-                if (document.querySelector('#aionify-button-wrapper')) {
-                    return;
-                }
-                
-                observer.disconnect();
-                
-                // Create a wrapper for our button
-                const buttonWrapper = document.createElement('div');
-                buttonWrapper.id = 'aionify-button-wrapper';
-                buttonWrapper.style.cssText = 'display: inline-block; margin-left: 8px;';
-                
-                // Insert the wrapper into the actions container
-                actionsContainer.insertBefore(buttonWrapper, actionsContainer.firstChild);
-                
-                // Initialize the time tracking button
-                const client = new window.Aionify.Client(AIONIFY_BASE_URL, AIONIFY_API_TOKEN);
-                const timeTracker = new window.Aionify.Button(client, config);
-                
-                timeTracker.initialize((buttonElement) => {
-                    buttonWrapper.appendChild(buttonElement);
-                });
-            }
-        });
+        // Initialize the time tracking menu
+        const client = new window.Aionify.Client(AIONIFY_BASE_URL, AIONIFY_API_TOKEN);
+        const menu = new window.Aionify.Menu(client, config);
         
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-        
-        // Timeout after 10 seconds if header not found
-        setTimeout(() => observer.disconnect(), 10000);
+        menu.initialize();
     }
 
     // Wait for the Aionify engine to load

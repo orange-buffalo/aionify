@@ -8,6 +8,7 @@
 // @downloadURL  https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-engine.user.js
 // @updateURL    https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-engine.user.js
 // @grant        GM_xmlhttpRequest
+// @grant        GM_registerMenuCommand
 // ==/UserScript==
 
 (function() {
@@ -17,9 +18,6 @@
     if (typeof console.debug === 'undefined') {
         console.debug = console.log;
     }
-
-    // Aionify favicon SVG (base64 encoded)
-    const AIONIFY_ICON = 'data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogIDwhLS0gT3V0ZXIgYmx1ZSBjaXJjbGUgLS0+CiAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiM3NmFhZDUiLz4KICA8IS0tIElubmVyIGNsb2NrIGZhY2UgKGRhcmsgYWNjZW50KSAtLT4KICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxNCIgZmlsbD0iIzM1MzY0OCIvPgogIDwhLS0gQ2xvY2sgaGFuZHMgLS0+CiAgPGxpbmUgeDE9IjE2IiB5MT0iMTYiIHgyPSIxMiIgeTI9IjEwIiBzdHJva2U9IiMzN2EyZWEiIHN0cm9rZS13aWR0aD0iMi4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8bGluZSB4MT0iMTYiIHkxPSIxNiIgeDI9IjIyIiB5Mj0iMTAiIHN0cm9rZT0iIzQ3OTdkOSIgc3Ryb2tlLXdpZHRoPSIyLjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDwhLS0gQ2VudGVyIGRvdCAtLT4KICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxLjciIGZpbGw9IiNGRkYiIC8+Cjwvc3ZnPg==';
 
     // Aionify API client
     class AionifyClient {
@@ -83,69 +81,34 @@
         }
     }
 
-    // Time tracking button manager
-    class TimeTrackingButton {
+    // Time tracking menu manager
+    class TimeTrackingMenu {
         constructor(aionifyClient, config) {
             this.aionifyClient = aionifyClient;
             this.config = config;
-            this.button = null;
+            this.menuCommandId = null;
             this.pollInterval = null;
             this.isProcessing = false;
+            this.isActiveEntry = false;
         }
 
-        createButton() {
-            const button = document.createElement('button');
-            button.style.cssText = `
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-                padding: 6px 12px;
-                background-color: #76aad5;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                font-size: 14px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: background-color 0.2s;
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            `;
-            button.onmouseover = () => button.style.backgroundColor = '#5a8fb8';
-            button.onmouseout = () => button.style.backgroundColor = '#76aad5';
-            
-            const icon = document.createElement('img');
-            icon.src = AIONIFY_ICON;
-            icon.style.cssText = 'width: 16px; height: 16px;';
-            button.appendChild(icon);
-            
-            const text = document.createElement('span');
-            button.appendChild(text);
-            
-            return button;
-        }
-
-        updateButton(isActive) {
-            if (!this.button) return;
-            
-            const text = this.button.querySelector('span');
-            if (isActive) {
-                text.textContent = 'Stop';
-                this.button.onclick = () => this.handleStop();
-            } else {
-                text.textContent = 'Start';
-                this.button.onclick = () => this.handleStart();
+        updateMenuCommand() {
+            // Remove old menu command if it exists
+            if (this.menuCommandId !== null && typeof GM_unregisterMenuCommand !== 'undefined') {
+                GM_unregisterMenuCommand(this.menuCommandId);
             }
             
-            this.button.disabled = this.isProcessing;
-            this.button.style.opacity = this.isProcessing ? '0.6' : '1';
-            this.button.style.cursor = this.isProcessing ? 'not-allowed' : 'pointer';
+            // Register new menu command with current state
+            const menuText = this.isActiveEntry ? '⏱️ Stop Time Tracking' : '⏱️ Start Time Tracking';
+            const handler = this.isActiveEntry ? () => this.handleStop() : () => this.handleStart();
+            
+            this.menuCommandId = GM_registerMenuCommand(menuText, handler);
         }
 
         async handleStart() {
             if (this.isProcessing) return;
             
             this.isProcessing = true;
-            this.updateButton(false);
             
             try {
                 console.debug('[Aionify] Starting time entry...');
@@ -155,7 +118,7 @@
                 await this.aionifyClient.startEntry(title, metadata);
                 console.debug('[Aionify] Time entry started successfully');
                 
-                // Force immediate poll to update button state
+                // Force immediate poll to update menu state
                 await this.poll();
             } catch (error) {
                 console.error('[Aionify] Failed to start time entry:', error);
@@ -169,14 +132,13 @@
             if (this.isProcessing) return;
             
             this.isProcessing = true;
-            this.updateButton(true);
             
             try {
                 console.debug('[Aionify] Stopping time entry...');
                 await this.aionifyClient.stopEntry();
                 console.debug('[Aionify] Time entry stopped successfully');
                 
-                // Force immediate poll to update button state
+                // Force immediate poll to update menu state
                 await this.poll();
             } catch (error) {
                 console.error('[Aionify] Failed to stop time entry:', error);
@@ -200,24 +162,24 @@
                     );
                 }
                 
-                this.updateButton(isMatchingEntry);
+                // Update menu if state changed
+                if (this.isActiveEntry !== isMatchingEntry) {
+                    this.isActiveEntry = isMatchingEntry;
+                    this.updateMenuCommand();
+                }
             } catch (error) {
                 console.error('[Aionify] Polling failed:', error);
             }
         }
 
-        async initialize(insertButton) {
-            // Create and insert button
-            this.button = this.createButton();
-            insertButton(this.button);
-            
+        async initialize() {
             // Initial poll
             await this.poll();
             
             // Start polling interval
             this.pollInterval = setInterval(() => this.poll(), this.config.pollInterval || 10000);
             
-            console.debug('[Aionify] Time tracking button initialized');
+            console.debug('[Aionify] Time tracking menu initialized');
         }
 
         destroy() {
@@ -225,9 +187,9 @@
                 clearInterval(this.pollInterval);
                 this.pollInterval = null;
             }
-            if (this.button) {
-                this.button.remove();
-                this.button = null;
+            if (this.menuCommandId !== null && typeof GM_unregisterMenuCommand !== 'undefined') {
+                GM_unregisterMenuCommand(this.menuCommandId);
+                this.menuCommandId = null;
             }
         }
     }
@@ -235,8 +197,7 @@
     // Export for use in integration scripts
     window.Aionify = {
         Client: AionifyClient,
-        Button: TimeTrackingButton,
-        ICON: AIONIFY_ICON
+        Menu: TimeTrackingMenu
     };
 
     console.debug('[Aionify] Engine loaded');

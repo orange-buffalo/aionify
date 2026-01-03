@@ -11,6 +11,7 @@
 // @downloadURL  https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-jira.user.js
 // @updateURL    https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-jira.user.js
 // @grant        GM_xmlhttpRequest
+// @grant        GM_registerMenuCommand
 // ==/UserScript==
 
 (function() {
@@ -86,7 +87,7 @@
         }
     };
 
-    // Initialize when page is ready
+    // Initialize menu
     function initialize() {
         const info = parseJiraUrl();
         if (!info) {
@@ -96,63 +97,11 @@
         
         console.debug(`[Aionify Jira] Detected issue: ${info.issueKey}`);
         
-        // Wait for the page header to load
-        const observer = new MutationObserver(() => {
-            // Try to find the header actions area (new Jira UI)
-            let actionsContainer = document.querySelector('[data-testid="issue.views.issue-base.foundation.quick-add.quick-add-item.container"]');
-            
-            if (!actionsContainer) {
-                // Fallback for classic Jira UI
-                actionsContainer = document.querySelector('.issue-header-actions');
-            }
-            
-            if (!actionsContainer) {
-                // Another fallback: find any suitable header element
-                const issueHeader = document.querySelector('[data-testid="issue.views.issue-base.foundation.summary.heading"]');
-                if (issueHeader) {
-                    actionsContainer = issueHeader.parentElement;
-                }
-            }
-            
-            if (actionsContainer) {
-                // Check if we've already inserted the button
-                if (document.querySelector('#aionify-button-wrapper')) {
-                    return;
-                }
-                
-                observer.disconnect();
-                
-                // Create a wrapper for our button
-                const buttonWrapper = document.createElement('div');
-                buttonWrapper.id = 'aionify-button-wrapper';
-                buttonWrapper.style.cssText = 'display: inline-block; margin-left: 8px; margin-right: 8px;';
-                
-                // Insert the wrapper into the actions container
-                if (actionsContainer.tagName === 'H1') {
-                    // If it's a heading, insert after it
-                    actionsContainer.parentElement.insertBefore(buttonWrapper, actionsContainer.nextSibling);
-                } else {
-                    // Otherwise, insert at the beginning
-                    actionsContainer.insertBefore(buttonWrapper, actionsContainer.firstChild);
-                }
-                
-                // Initialize the time tracking button
-                const client = new window.Aionify.Client(AIONIFY_BASE_URL, AIONIFY_API_TOKEN);
-                const timeTracker = new window.Aionify.Button(client, config);
-                
-                timeTracker.initialize((buttonElement) => {
-                    buttonWrapper.appendChild(buttonElement);
-                });
-            }
-        });
+        // Initialize the time tracking menu
+        const client = new window.Aionify.Client(AIONIFY_BASE_URL, AIONIFY_API_TOKEN);
+        const menu = new window.Aionify.Menu(client, config);
         
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-        
-        // Timeout after 10 seconds if header not found
-        setTimeout(() => observer.disconnect(), 10000);
+        menu.initialize();
     }
 
     // Wait for the Aionify engine to load
