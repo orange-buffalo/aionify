@@ -7,11 +7,13 @@
 // @license      Apache-2.0
 // @match        https://*.atlassian.net/browse/*
 // @match        https://*/jira/browse/*
+// @match        https://*.atlassian.net/jira/software/c/projects/*/issues*
 // @require      https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-engine.user.js
 // @downloadURL  https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-jira.user.js
 // @updateURL    https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-jira.user.js
 // @grant        GM_xmlhttpRequest
 // @grant        GM_registerMenuCommand
+// @grant        GM_unregisterMenuCommand
 // ==/UserScript==
 
 (function() {
@@ -33,14 +35,25 @@
 
     // Parse Jira URL to extract issue key
     function parseJiraUrl() {
-        // Match Jira issue keys (e.g., PROJ-123, proj-123, MULTI_KEY-123)
-        // Jira keys start with a letter, can contain letters, numbers, and underscores, followed by hyphen and number
-        const match = window.location.pathname.match(/\/browse\/([A-Z][A-Z0-9_]*-\d+)/i);
-        if (!match) return null;
+        // First, try to get issue key from URL path (e.g., /browse/PROJ-123)
+        const pathMatch = window.location.pathname.match(/\/browse\/([A-Z][A-Z0-9_]*-\d+)/i);
+        if (pathMatch) {
+            return {
+                issueKey: pathMatch[1]
+            };
+        }
         
-        return {
-            issueKey: match[1]
-        };
+        // Second, try to get issue key from selectedIssue query parameter
+        // (e.g., ?selectedIssue=HHH-20027)
+        const urlParams = new URLSearchParams(window.location.search);
+        const selectedIssue = urlParams.get('selectedIssue');
+        if (selectedIssue && /^[A-Z][A-Z0-9_]*-\d+$/i.test(selectedIssue)) {
+            return {
+                issueKey: selectedIssue
+            };
+        }
+        
+        return null;
     }
 
     // Parse title from Jira page DOM

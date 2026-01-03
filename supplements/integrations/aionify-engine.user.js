@@ -9,6 +9,7 @@
 // @updateURL    https://raw.githubusercontent.com/orange-buffalo/aionify/main/supplements/integrations/aionify-engine.user.js
 // @grant        GM_xmlhttpRequest
 // @grant        GM_registerMenuCommand
+// @grant        GM_unregisterMenuCommand
 // ==/UserScript==
 
 (function() {
@@ -94,7 +95,7 @@
 
         updateMenuCommand() {
             // Remove old menu command if it exists
-            if (this.menuCommandId !== null && typeof GM_unregisterMenuCommand !== 'undefined') {
+            if (this.menuCommandId !== null) {
                 GM_unregisterMenuCommand(this.menuCommandId);
             }
             
@@ -162,11 +163,9 @@
                     );
                 }
                 
-                // Update menu if state changed
-                if (this.isActiveEntry !== isMatchingEntry) {
-                    this.isActiveEntry = isMatchingEntry;
-                    this.updateMenuCommand();
-                }
+                // Always update menu to ensure it's registered and in correct state
+                this.isActiveEntry = isMatchingEntry;
+                this.updateMenuCommand();
             } catch (error) {
                 console.error('[Aionify] Polling failed:', error);
             }
@@ -187,7 +186,7 @@
                 clearInterval(this.pollInterval);
                 this.pollInterval = null;
             }
-            if (this.menuCommandId !== null && typeof GM_unregisterMenuCommand !== 'undefined') {
+            if (this.menuCommandId !== null) {
                 GM_unregisterMenuCommand(this.menuCommandId);
                 this.menuCommandId = null;
             }
