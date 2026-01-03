@@ -34,6 +34,7 @@ Configure the application using environment variables:
 | `AIONIFY_DB_URL` | JDBC connection URL for PostgreSQL | Yes |
 | `AIONIFY_DB_USERNAME` | Database username | Yes |
 | `AIONIFY_DB_PASSWORD` | Database password | Yes |
+| `AIONIFY_JWT_SECRET` | Signing secret for JWT (HS256). Must be provided; empty values will cause token generation to fail. Provide a strong base64-encoded secret (32+ bytes / 256 bits) for production. | Yes |
 
 ### Database URL Format
 
@@ -46,6 +47,26 @@ Example:
 jdbc:postgresql://db.example.com:5432/aionify
 ```
 
+### JWT signing key
+
+Aionify requires a JWT signing secret. You must provide a non-empty secret via the `AIONIFY_JWT_SECRET` environment variable; an empty value is not supported and will cause token generation to fail. Choose a secret with sufficient entropy (we recommend at least 32 bytes / 256 bits, encoded as base64).
+
+Generate a secure secret locally:
+
+```bash
+# OpenSSL: 32 bytes -> base64
+openssl rand -base64 32
+
+# Or from /dev/urandom
+head -c 32 /dev/urandom | base64
+```
+
+Set the variable in your environment, container runtime, or orchestration platform. The examples in the "Running with Docker" and "Running with Docker Compose" sections below show where to provide `AIONIFY_JWT_SECRET`.
+
+Security notes:
+- Store `AIONIFY_JWT_SECRET` in a secrets manager (Vault, AWS Secrets Manager, etc.) and avoid committing it to version control.
+- Rotating the secret will invalidate all existing tokens; plan rotations carefully.
+
 ## Running with Docker
 
 ```bash
@@ -55,6 +76,7 @@ docker run -d \
   -e AIONIFY_DB_URL="jdbc:postgresql://db.example.com:5432/aionify" \
   -e AIONIFY_DB_USERNAME="aionify" \
   -e AIONIFY_DB_PASSWORD="your-secure-password" \
+  -e AIONIFY_JWT_SECRET="your-base64-encoded-32-byte-secret" \
   ghcr.io/orange-buffalo/aionify:main
 ```
 
@@ -64,14 +86,13 @@ The application will be available at `http://localhost:8080`.
 
 A reference Docker Compose configuration is available in the repository at [`src/test/resources/docker-compose-e2e.yml`](https://github.com/orange-buffalo/aionify/blob/main/src/test/resources/docker-compose-e2e.yml).
 
-For production use, copy the reference file and set the `AIONIFY_IMAGE` environment variable:
+For production use, copy the reference file and set the environment variables before starting the stack:
 
 ```bash
-# Set the image
+# Set the image and the JWT secret in the environment, then run compose
+export AIONIFY_JWT_SECRET="your-base64-encoded-32-byte-secret"
 export AIONIFY_IMAGE=ghcr.io/orange-buffalo/aionify:main
-
-# Or inline with the command
-AIONIFY_IMAGE=ghcr.io/orange-buffalo/aionify:main docker compose -f docker-compose-e2e.yml up -d
+AIONIFY_IMAGE=$AIONIFY_IMAGE docker compose -f docker-compose-e2e.yml up -d
 ```
 
 **Important**: 
@@ -84,10 +105,9 @@ Aionify uses Flyway for database migrations. Migrations are applied automaticall
 
 ## Authentication
 
-Aionify uses JWT (JSON Web Tokens) for authentication. JWT signing keys are automatically generated at application startup, which means:
+Aionify uses JWT (JSON Web Tokens) for authentication. The application requires a valid, non-empty JWT signing secret provided via `AIONIFY_JWT_SECRET`. If the secret is not provided or is empty, token generation and authentication will fail. Ensure `AIONIFY_JWT_SECRET` is set before starting the application in production.
 
-- Users will need to log in again after the application restarts
-- The application is designed for single-instance deployments
+If you want tokens to remain valid across restarts (or run multiple instances), set `AIONIFY_JWT_SECRET` to a stable, high-entropy secret as described above.
 
 ## User Administration
 
