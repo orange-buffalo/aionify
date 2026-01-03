@@ -1,0 +1,103 @@
+version: 2
+
+updates:
+  # Frontend dependencies (npm)
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    groups:
+      # Group React and React DOM with their TypeScript types
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      # Group all Radix UI components together
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"
+      # Group i18n libraries together
+      i18n:
+        patterns:
+          - "i18next"
+          - "react-i18next"
+          - "iso-639-1"
+      # Group Tailwind CSS packages
+      tailwind:
+        patterns:
+          - "tailwindcss"
+          - "@tailwindcss/*"
+          - "tailwind-merge"
+      # Group development tools
+      dev-tools:
+        patterns:
+          - "typescript"
+          - "prettier"
+    labels:
+      - "dependencies"
+      - "frontend"
+
+  # Backend dependencies (Gradle)
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    groups:
+      # Group Micronaut core dependencies
+      micronaut-core:
+        patterns:
+          - "io.micronaut:*"
+          - "io.micronaut.kotlin:*"
+      # Group Micronaut Data dependencies
+      micronaut-data:
+        patterns:
+          - "io.micronaut.data:*"
+          - "io.micronaut.sql:*"
+      # Group Micronaut Security dependencies
+      micronaut-security:
+        patterns:
+          - "io.micronaut.security:*"
+      # Group Micronaut plugins
+      micronaut-plugins:
+        patterns:
+          - "io.micronaut.application"
+          - "io.micronaut.docker"
+      # Group database dependencies
+      database:
+        patterns:
+          - "org.postgresql:*"
+          - "io.micronaut.flyway:*"
+          - "org.flywaydb:*"
+      # Group test dependencies
+      test:
+        patterns:
+          - "org.junit.jupiter:*"
+          - "io.micronaut.test:*"
+          - "org.testcontainers:*"
+          - "com.microsoft.playwright:*"
+          - "io.rest-assured:*"
+      # Group Kotlin dependencies
+      kotlin:
+        patterns:
+          - "org.jetbrains.kotlin:*"
+          - "org.jetbrains.kotlin.*"
+    labels:
+      - "dependencies"
+      - "backend"
+
+  # GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
