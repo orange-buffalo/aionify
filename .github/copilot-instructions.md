@@ -8,8 +8,12 @@ This document provides instructions for GitHub Copilot when working on this repo
 
 Project documentation is organized as follows:
 - `README.md` - Brief project overview and links to detailed docs
+- `docs/administration.md` - User administration guide
+- `docs/browser-integrations.md` - Browser integrations guide (Tampermonkey scripts for GitHub and Jira)
 - `docs/deployment.md` - Production deployment guide (configuration, Docker, admin setup)
-- `docs/development.md` - Local development setup guide
+- `docs/i18n.md` - Internationalization guide
+- `docs/public-api.md` - Public API guide
+- `docs/images/` - Images used in documentation
 - `.github/copilot-instructions.md` - This file, containing coding guidelines and conventions
 
 **When making changes that affect deployment or development workflows, update the corresponding documentation files.**
