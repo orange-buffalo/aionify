@@ -1,0 +1,82 @@
+version: 2
+enable-beta-ecosystems: true
+updates:
+  # Frontend dependencies (npm)
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 1
+    groups:
+      # Group React and React DOM with their TypeScript types
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      # Group all Radix UI components together
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"
+      # Group i18n libraries together
+      i18n:
+        patterns:
+          - "i18next"
+          - "react-i18next"
+          - "iso-639-1"
+      # Group Tailwind CSS packages
+      tailwind:
+        patterns:
+          - "tailwindcss"
+          - "@tailwindcss/*"
+          - "tailwind-merge"
+      # Group development tools
+      dev-tools:
+        patterns:
+          - "typescript"
+          - "prettier"
+    labels:
+      - "dependencies"
+      - "frontend"
+
+  # Backend dependencies (Gradle)
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 1
+    groups:
+      # Group Micronaut core dependencies
+      micronaut:
+        patterns:
+          - "io.micronaut*:*"
+      # Group database dependencies
+      database:
+        patterns:
+          - "org.postgresql:*"
+          - "org.flywaydb:*"
+      # Group test dependencies
+      test:
+        patterns:
+          - "org.junit.jupiter:*"
+          - "org.testcontainers:*"
+          - "com.microsoft.playwright:*"
+          - "io.rest-assured:*"
+      # Group Kotlin dependencies
+      kotlin:
+        patterns:
+          - "org.jetbrains.kotlin:*"
+    labels:
+      - "dependencies"
+      - "backend"
+
+  # GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 1
+    labels:
+      - "dependencies"
+      - "github-actions"
