@@ -62,9 +62,9 @@ dependencies {
     testImplementation("io.micronaut:micronaut-http-client")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.rest-assured:kotlin-extensions")
-    testImplementation("org.testcontainers:testcontainers:1.21.4")
-    testImplementation("org.testcontainers:postgresql:1.21.4")
-    testImplementation("org.testcontainers:junit-jupiter:1.21.4")
+    testImplementation("org.testcontainers:testcontainers:2.0.3")
+    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.3")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.3")
 }
 
 // E2E tests source set
@@ -87,8 +87,8 @@ val e2eTestImplementation by configurations.getting {
 }
 
 dependencies {
-    e2eTestImplementation("org.testcontainers:testcontainers:1.21.4")
-    e2eTestImplementation("org.testcontainers:junit-jupiter:1.21.4")
+    e2eTestImplementation("org.testcontainers:testcontainers:2.0.3")
+    e2eTestImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.3")
     e2eTestImplementation("com.microsoft.playwright:playwright:1.57.0")
     e2eTestImplementation("org.junit.jupiter:junit-jupiter:6.0.1")
 }
