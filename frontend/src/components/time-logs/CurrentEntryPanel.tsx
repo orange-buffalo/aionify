@@ -2,12 +2,12 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Play, Square, Pencil } from "lucide-react";
 import { formatDateTime } from "@/lib/date-format";
 import { formatDuration } from "@/lib/time-utils";
 import { EditEntryForm } from "./EditEntryForm";
 import { TagSelector } from "./TagSelector";
+import { EntryAutocomplete } from "./EntryAutocomplete";
 import type { TimeEntry } from "./types";
 
 interface CurrentEntryPanelProps {
@@ -144,18 +144,21 @@ export function CurrentEntryPanel({
           )
         ) : (
           <div className="flex items-center gap-2">
-            <Input
+            <EntryAutocomplete
               value={newEntryTitle}
-              onChange={(e) => setNewEntryTitle(e.target.value)}
+              onChange={setNewEntryTitle}
+              onSelect={(entry) => {
+                setNewEntryTitle(entry.title);
+                setSelectedTags(entry.tags);
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && newEntryTitle.trim()) {
                   handleStart();
                 }
               }}
               placeholder={t("timeLogs.currentEntry.placeholder")}
-              className="flex-1 text-foreground"
-              data-testid="new-entry-input"
               disabled={isStarting}
+              testId="new-entry-input"
             />
             <TagSelector
               selectedTags={selectedTags}
