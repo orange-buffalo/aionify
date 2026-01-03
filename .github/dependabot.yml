@@ -66,8 +66,8 @@ updates:
       # Group Micronaut plugins
       micronaut-plugins:
         patterns:
-          - "io.micronaut.application"
-          - "io.micronaut.docker"
+          - "io.micronaut.application:*"
+          - "io.micronaut.docker:*"
       # Group database dependencies
       database:
         patterns:
@@ -86,7 +86,7 @@ updates:
       kotlin:
         patterns:
           - "org.jetbrains.kotlin:*"
-          - "org.jetbrains.kotlin.*"
+          - "org.jetbrains.kotlin*:*"
     labels:
       - "dependencies"
       - "backend"
