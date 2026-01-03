@@ -86,13 +86,16 @@ The application will be available at `http://localhost:8080`.
 
 A reference Docker Compose configuration is available in the repository at [`src/test/resources/docker-compose-e2e.yml`](https://github.com/orange-buffalo/aionify/blob/main/src/test/resources/docker-compose-e2e.yml).
 
-For production use, copy the reference file and set the environment variables before starting the stack:
+For production use, copy the reference file, uncomment relevant parts, and set the environment variables before starting the stack:
 
 ```bash
-# Set the image and the JWT secret in the environment, then run compose
+# Set the environment variables, then run compose
+export AIONIFY_DB_URL="jdbc:postgresql://db.example.com:5432/aionify"
+export AIONIFY_DB_USERNAME="aionify"
+export AIONIFY_DB_PASSWORD="your-secure-password"
 export AIONIFY_JWT_SECRET="your-base64-encoded-32-byte-secret"
 export AIONIFY_IMAGE=ghcr.io/orange-buffalo/aionify:main
-AIONIFY_IMAGE=$AIONIFY_IMAGE docker compose -f docker-compose-e2e.yml up -d
+docker compose -f docker-compose.yml up -d
 ```
 
 **Important**: 
