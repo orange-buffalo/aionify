@@ -104,6 +104,7 @@ To run a specific test class:
 - Follow Kotlin naming conventions (camelCase for functions/properties)
 - All DTOs used in REST endpoints must have `@Introspected` annotation for serialization/validation
 - **CRITICAL: All error responses MUST include an `errorCode` field** for frontend internationalization (see UserResource.kt and UserAdminResource.kt for examples)
+- **CRITICAL: Always use `TimeService.now()` instead of `Instant.now()`** for testability and consistency
 
 ### Public API (`/api/**`)
 
