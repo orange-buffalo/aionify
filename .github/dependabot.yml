@@ -86,7 +86,6 @@ updates:
       kotlin:
         patterns:
           - "org.jetbrains.kotlin:*"
-          - "org.jetbrains.kotlin*:*"
     labels:
       - "dependencies"
       - "backend"
