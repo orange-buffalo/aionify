@@ -4,7 +4,7 @@ import java.time.Duration
 plugins {
     kotlin("jvm") version "2.1.0"
     kotlin("plugin.allopen") version "2.1.0"
-    id("com.google.devtools.ksp") version "2.1.0-1.0.29"
+    id("com.google.devtools.ksp") version "2.3.4"
     id("io.micronaut.application") version "4.6.1"
     id("io.micronaut.docker") version "4.6.1"
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
