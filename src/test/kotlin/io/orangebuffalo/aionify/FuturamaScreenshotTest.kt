@@ -16,7 +16,7 @@ import java.util.Locale
 /**
  * Test to generate demo screenshots for the README using Futurama theme.
  * Creates users "Fry" (regular user) and "Farnsworth" (admin) with demo data.
- * Uses a larger viewport (1280x2261) to prevent screenshot clipping.
+ * Uses content-based viewport sizing for optimal screenshot display.
  */
 @MicronautTest(transactional = false)
 class FuturamaScreenshotTest : PlaywrightTestBase() {
@@ -29,10 +29,6 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupDemoData() {
-        // Set larger viewport to prevent screenshot clipping
-        // Height = largest screenshot (2161px) + 100px buffer = 2261px
-        page.setViewportSize(1280, 2261)
-
         // Create Fry as regular user
         fry =
             testDatabaseSupport.insert(
@@ -210,6 +206,7 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
         // Wait for page to be fully rendered
         page.waitForTimeout(500.0)
 
+        // Keep default viewport (1280x720) for login page to center the card vertically
         // Take screenshot
         page.screenshot(
             Page
@@ -234,6 +231,10 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
 
         // Wait for page to be fully rendered
         page.waitForTimeout(500.0)
+
+        // Get actual content height and set viewport accordingly
+        val contentHeight = page.evaluate("document.documentElement.scrollHeight") as Int
+        page.setViewportSize(1280, contentHeight)
 
         // Take screenshot
         page.screenshot(
@@ -272,19 +273,23 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
         // Wait for page to be fully rendered
         page.waitForTimeout(500.0)
 
-        // Take full page screenshot to show all entries grouped by days
+        // Get actual content height and set viewport accordingly
+        val contentHeight = page.evaluate("document.documentElement.scrollHeight") as Int
+        page.setViewportSize(1280, contentHeight)
+
+        // Take screenshot
         page.screenshot(
             Page
                 .ScreenshotOptions()
                 .setPath(
                     java.nio.file.Paths
                         .get("docs/images/time-logs-page.png"),
-                ).setFullPage(true),
+                ).setFullPage(false),
         )
     }
 
     @Test
-    fun `generate settings page screenshot with tags statistics`() {
+    fun `generate settings page screenshot`() {
         // Login as Fry and navigate to settings page
         loginViaToken("/portal/settings", fry, testAuthSupport)
 
@@ -298,31 +303,6 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
         val tagsTable = page.locator("[data-testid='tags-table']")
         com.microsoft.playwright.assertions.PlaywrightAssertions
             .assertThat(tagsTable)
-            .isVisible()
-
-        // Wait for page to be fully rendered
-        page.waitForTimeout(500.0)
-
-        // Take full page screenshot to show tags statistics and API token section
-        page.screenshot(
-            Page
-                .ScreenshotOptions()
-                .setPath(
-                    java.nio.file.Paths
-                        .get("docs/images/settings-page-tags.png"),
-                ).setFullPage(true),
-        )
-    }
-
-    @Test
-    fun `generate settings page screenshot with API token shown`() {
-        // Login as Fry and navigate to settings page
-        loginViaToken("/portal/settings", fry, testAuthSupport)
-
-        // Wait for settings page to load
-        val settingsPage = page.locator("[data-testid='settings-page']")
-        com.microsoft.playwright.assertions.PlaywrightAssertions
-            .assertThat(settingsPage)
             .isVisible()
 
         // Wait for API token section to load
@@ -345,14 +325,18 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
         // Wait for page to be fully rendered
         page.waitForTimeout(500.0)
 
-        // Take screenshot focusing on API token section
+        // Get actual content height and set viewport accordingly
+        val contentHeight = page.evaluate("document.documentElement.scrollHeight") as Int
+        page.setViewportSize(1280, contentHeight)
+
+        // Take screenshot showing both tags statistics and API token
         page.screenshot(
             Page
                 .ScreenshotOptions()
                 .setPath(
                     java.nio.file.Paths
-                        .get("docs/images/settings-page-api-token.png"),
-                ).setFullPage(true),
+                        .get("docs/images/settings-page.png"),
+                ).setFullPage(false),
         )
     }
 
@@ -376,6 +360,10 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
         // Wait for page to be fully rendered
         page.waitForTimeout(500.0)
 
+        // Get actual content height and set viewport accordingly
+        val contentHeight = page.evaluate("document.documentElement.scrollHeight") as Int
+        page.setViewportSize(1280, contentHeight)
+
         // Take screenshot
         page.screenshot(
             Page
@@ -383,7 +371,7 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
                 .setPath(
                     java.nio.file.Paths
                         .get("docs/images/profile-page.png"),
-                ).setFullPage(true),
+                ).setFullPage(false),
         )
     }
 }
