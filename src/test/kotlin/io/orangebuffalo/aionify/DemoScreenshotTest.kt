@@ -1,6 +1,5 @@
 package io.orangebuffalo.aionify
 
-import com.microsoft.playwright.Browser
 import com.microsoft.playwright.Page
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.domain.TimeLogEntry
@@ -8,18 +7,21 @@ import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserApiAccessToken
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mindrot.jbcrypt.BCrypt
-import java.time.Instant
 import java.util.Locale
 
 /**
  * Test to generate demo screenshots for the README using Futurama theme.
  * Creates users "Fry" (regular user) and "Farnsworth" (admin) with demo data.
  * Uses content-based viewport sizing for optimal screenshot display.
+ *
+ * Enable and run manually when demo screenshots need to be updated.
  */
+@Disabled("Enable and run manually when demo screenshots need to be updated")
 @MicronautTest(transactional = false)
-class FuturamaScreenshotTest : PlaywrightTestBase() {
+class DemoScreenshotTest : PlaywrightTestBase() {
     @Inject
     lateinit var testAuthSupport: TestAuthSupport
 
@@ -77,7 +79,7 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
                 endTime = monday.minusSeconds(2 * 3600),
                 title = "Package sorting at Planet Express",
                 ownerId = fryId,
-                tags = arrayOf("delivery", "office"),
+                tags = arrayOf("delivery"),
             ),
         )
 
@@ -89,7 +91,7 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
                 endTime = tuesday.minusSeconds(6 * 3600),
                 title = "Delivery to Omicron Persei 8",
                 ownerId = fryId,
-                tags = arrayOf("delivery", "space-travel", "aliens"),
+                tags = arrayOf("delivery", "space-travel"),
             ),
         )
         testDatabaseSupport.insert(
@@ -98,7 +100,7 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
                 endTime = tuesday.minusSeconds(4 * 3600),
                 title = "Fuel the ship",
                 ownerId = fryId,
-                tags = arrayOf("maintenance", "ship"),
+                tags = arrayOf("maintenance"),
             ),
         )
 
@@ -110,7 +112,7 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
                 endTime = wednesday.minusSeconds(7 * 3600),
                 title = "Attend crew meeting",
                 ownerId = fryId,
-                tags = arrayOf("meeting", "office"),
+                tags = arrayOf("meeting", "delivery"),
             ),
         )
         testDatabaseSupport.insert(
@@ -119,7 +121,7 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
                 endTime = wednesday.minusSeconds(3 * 3600 + 1800),
                 title = "Help Bender with brewery plans",
                 ownerId = fryId,
-                tags = arrayOf("side-project", "bender"),
+                tags = arrayOf("learning", "break"),
             ),
         )
 
@@ -131,7 +133,7 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
                 endTime = thursday.minusSeconds(5 * 3600),
                 title = "Study holophonor",
                 ownerId = fryId,
-                tags = arrayOf("learning", "music"),
+                tags = arrayOf("learning"),
             ),
         )
         testDatabaseSupport.insert(
@@ -140,7 +142,7 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
                 endTime = thursday.minusSeconds(2 * 3600 + 1800),
                 title = "Watch TV with Bender",
                 ownerId = fryId,
-                tags = arrayOf("break", "bender"),
+                tags = arrayOf("break"),
             ),
         )
 
@@ -152,7 +154,7 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
                 endTime = friday.minusSeconds(6 * 3600),
                 title = "Emergency delivery to Mars Vegas",
                 ownerId = fryId,
-                tags = arrayOf("delivery", "space-travel", "urgent"),
+                tags = arrayOf("delivery", "space-travel"),
             ),
         )
         testDatabaseSupport.insert(
@@ -161,7 +163,7 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
                 endTime = friday.minusSeconds(3 * 3600),
                 title = "Ship repairs after crash",
                 ownerId = fryId,
-                tags = arrayOf("maintenance", "ship", "urgent"),
+                tags = arrayOf("maintenance"),
             ),
         )
 
@@ -172,7 +174,7 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
                 endTime = FIXED_TEST_TIME.minusSeconds(1 * 3600),
                 title = "Morning coffee with Leela",
                 ownerId = fryId,
-                tags = arrayOf("break", "leela"),
+                tags = arrayOf("break"),
             ),
         )
 
