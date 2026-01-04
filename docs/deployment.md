@@ -4,10 +4,10 @@ This guide explains how to deploy Aionify in a production environment.
 
 ## Container Image
 
-Aionify is distributed as a container image available from GitHub Container Registry:
+Aionify is distributed as a container image available from [GitHub Container Registry](https://github.com/orange-buffalo/aionify/pkgs/container/aionify/versions):
 
 ```
-ghcr.io/orange-buffalo/aionify:main
+ghcr.io/orange-buffalo/aionify:<latest stable version>
 ```
 
 ## Prerequisites
@@ -77,7 +77,7 @@ docker run -d \
   -e AIONIFY_DB_USERNAME="aionify" \
   -e AIONIFY_DB_PASSWORD="your-secure-password" \
   -e AIONIFY_JWT_SECRET="your-base64-encoded-32-byte-secret" \
-  ghcr.io/orange-buffalo/aionify:main
+  ghcr.io/orange-buffalo/aionify:0.1.0
 ```
 
 The application will be available at `http://localhost:8080`.
@@ -94,7 +94,7 @@ export AIONIFY_DB_URL="jdbc:postgresql://db.example.com:5432/aionify"
 export AIONIFY_DB_USERNAME="aionify"
 export AIONIFY_DB_PASSWORD="your-secure-password"
 export AIONIFY_JWT_SECRET="your-base64-encoded-32-byte-secret"
-export AIONIFY_IMAGE=ghcr.io/orange-buffalo/aionify:main
+export AIONIFY_IMAGE=ghcr.io/orange-buffalo/aionify:0.1.0
 docker compose -f docker-compose.yml up -d
 ```
 
