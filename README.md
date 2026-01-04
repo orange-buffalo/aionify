@@ -5,7 +5,7 @@ Self-hosted time tracking application for individuals and teams.
 ## Screenshots
 
 ### Login
-![Login Page](docs/images/login-page-fry.png)
+![Login Page](docs/images/login-page.png)
 
 ### Time Tracking
 Track your time with an intuitive interface showing active tasks and weekly view grouped by days.

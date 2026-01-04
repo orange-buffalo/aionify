@@ -1,5 +1,6 @@
 package io.orangebuffalo.aionify
 
+import com.microsoft.playwright.Browser
 import com.microsoft.playwright.Page
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.domain.TimeLogEntry
@@ -15,6 +16,7 @@ import java.util.Locale
 /**
  * Test to generate demo screenshots for the README using Futurama theme.
  * Creates users "Fry" (regular user) and "Farnsworth" (admin) with demo data.
+ * Uses a larger viewport (1280x2261) to prevent screenshot clipping.
  */
 @MicronautTest(transactional = false)
 class FuturamaScreenshotTest : PlaywrightTestBase() {
@@ -27,6 +29,10 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupDemoData() {
+        // Set larger viewport to prevent screenshot clipping
+        // Height = largest screenshot (2161px) + 100px buffer = 2261px
+        page.setViewportSize(1280, 2261)
+
         // Create Fry as regular user
         fry =
             testDatabaseSupport.insert(
@@ -195,10 +201,10 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
     }
 
     @Test
-    fun `generate login page screenshot for Fry`() {
+    fun `generate login page screenshot`() {
         page.navigate("/login")
 
-        // Fill in Fry's username to show the login form with a username
+        // Fill in username to show the login form populated
         page.locator("[data-testid='username-input']").fill("fry")
 
         // Wait for page to be fully rendered
@@ -210,28 +216,7 @@ class FuturamaScreenshotTest : PlaywrightTestBase() {
                 .ScreenshotOptions()
                 .setPath(
                     java.nio.file.Paths
-                        .get("docs/images/login-page-fry.png"),
-                ).setFullPage(false),
-        )
-    }
-
-    @Test
-    fun `generate login page screenshot for Farnsworth`() {
-        page.navigate("/login")
-
-        // Fill in Farnsworth's username
-        page.locator("[data-testid='username-input']").fill("farnsworth")
-
-        // Wait for page to be fully rendered
-        page.waitForTimeout(500.0)
-
-        // Take screenshot
-        page.screenshot(
-            Page
-                .ScreenshotOptions()
-                .setPath(
-                    java.nio.file.Paths
-                        .get("docs/images/login-page-farnsworth.png"),
+                        .get("docs/images/login-page.png"),
                 ).setFullPage(false),
         )
     }
