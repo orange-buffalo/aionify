@@ -137,6 +137,9 @@ jobs:
           detailed_summary: true
           fail_on_failure: true
 
+      - name: Debug
+        run: git status
+
       - name: Log in to Container registry
         uses: docker/login-action@v3
         if: ${{ github.ref == 'refs/heads/main' }}
