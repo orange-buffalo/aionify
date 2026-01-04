@@ -29,11 +29,11 @@
     "tailwind-merge": "^3.0.2"
   },
   "devDependencies": {
-    "@tailwindcss/cli": "^4.1.7",
+    "@tailwindcss/cli": "^4.1.18",
     "@types/react": "^19.1.5",
     "@types/react-dom": "^19.1.5",
     "prettier": "^3.7.4",
-    "tailwindcss": "^4.1.7",
+    "tailwindcss": "^4.1.18",
     "typescript": "^5.8.3"
   }
 }
