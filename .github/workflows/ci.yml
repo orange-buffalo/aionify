@@ -26,7 +26,7 @@ jobs:
           mkdir -p build/thread-dumps
           
           # Create thread dump collection script
-          cat > collect-thread-dumps.sh << 'EOF'
+          cat > /tmp/collect-thread-dumps.sh << 'EOF'
           #!/bin/bash
           DUMP_DIR="build/thread-dumps"
           INTERVAL=30  # Collect thread dumps every 30 seconds
@@ -50,8 +50,8 @@ jobs:
           done
           EOF
           
-          chmod +x collect-thread-dumps.sh
-          ./collect-thread-dumps.sh &
+          chmod +x /tmp/collect-thread-dumps.sh
+          /tmp/collect-thread-dumps.sh &
           echo $! > thread-dump-collector.pid
           echo "Thread dump collector started with PID: $(cat thread-dump-collector.pid)"
 
@@ -137,9 +137,6 @@ jobs:
           detailed_summary: true
           fail_on_failure: true
 
-      - name: Debug
-        run: git status
-
       - name: Log in to Container registry
         uses: docker/login-action@v3
         if: ${{ github.ref == 'refs/heads/main' }}
@@ -152,4 +149,6 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' }}
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.AIONIFY_MAINTENANCE_TOKEN }}
-        run: ./gradlew dockerPushNative jreleaserFullRelease --console=plain
+        run: |
+          git status
+          ./gradlew dockerPushNative jreleaserFullRelease --console=plain
