@@ -91,6 +91,7 @@ dependencies {
     e2eTestImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.3")
     e2eTestImplementation("com.microsoft.playwright:playwright:1.57.0")
     e2eTestImplementation("org.junit.jupiter:junit-jupiter:6.0.1")
+    e2eTestImplementation("org.junit.platform:junit-platform-launcher:6.0.1")
 }
 
 group = "io.orange-buffalo"
