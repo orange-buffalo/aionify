@@ -176,3 +176,9 @@ jobs:
           summary: true
           detailed_summary: true
           fail_on_failure: true
+
+      - name: "Publish (Pre-) Release"
+        if: ${{ github.ref == 'refs/heads/main' }}
+        env:
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.AIONIFY_MAINTENANCE_TOKEN }}
+        run: ./gradlew jreleaserFullRelease --console=plain

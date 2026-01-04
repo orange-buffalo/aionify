@@ -74,6 +74,9 @@ updates:
     labels:
       - "dependencies"
       - "backend"
+    ignore:
+      # until JReleaser migrates to JGit 7x: https://github.com/jreleaser/jreleaser/issues/1846
+      - dependency-name: "com.github.jmongard.git-semver-plugin"
 
   # GitHub Actions dependencies
   - package-ecosystem: "github-actions"
