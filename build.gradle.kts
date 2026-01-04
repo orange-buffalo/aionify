@@ -1,4 +1,5 @@
 import java.time.Duration
+import org.jreleaser.model.Active
 
 plugins {
     kotlin("jvm") version "2.1.0"
@@ -7,9 +8,22 @@ plugins {
     id("io.micronaut.application") version "4.6.1"
     id("io.micronaut.docker") version "4.6.1"
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
+    id("com.github.jmongard.git-semver-plugin") version "0.13.0"
+    id("org.jreleaser") version "1.22.0"
 }
 
 val micronautVersion: String by project
+
+group = "io.orange-buffalo"
+
+semver {
+    // tags managed by jreleaser
+    createReleaseTag = false
+}
+val ver = semver.version
+allprojects {
+    version = ver
+}
 
 repositories {
     mavenCentral()
@@ -93,9 +107,6 @@ dependencies {
     e2eTestImplementation("org.junit.jupiter:junit-jupiter:6.0.1")
     e2eTestImplementation("org.junit.platform:junit-platform-launcher:6.0.1")
 }
-
-group = "io.orange-buffalo"
-version = "1.0.0-SNAPSHOT"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
@@ -318,5 +329,36 @@ val e2eTest by tasks.registering(Test::class) {
 
     testLogging {
         events("passed", "skipped", "failed", "standardOut", "standardError")
+    }
+}
+
+jreleaser {
+    gitRootSearch = true
+    release {
+        github {
+            dryrun = project.version.get().endsWith("-SNAPSHOT")
+
+            uploadAssets = Active.NEVER
+            prerelease {
+                enabled = true
+            }
+            changelog {
+                formatted = Active.ALWAYS
+                preset = "conventional-commits"
+                skipMergeCommits = true
+                hide {
+                    uncategorized = true
+                    contributor("[bot]")
+                    contributor("orange-buffalo")
+                    contributor("GitHub")
+                }
+            }
+        }
+    }
+    signing {
+        active = Active.NEVER
+    }
+    deploy {
+        active = Active.NEVER
     }
 }
