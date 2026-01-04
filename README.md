@@ -2,6 +2,36 @@
 
 Self-hosted time tracking application for individuals and teams.
 
+## Screenshots
+
+### Login
+![Login Page](docs/images/login-page-fry.png)
+
+### Time Tracking
+Track your time with an intuitive interface showing active tasks and weekly view grouped by days.
+
+![Time Logs Page](docs/images/time-logs-page.png)
+
+### User Management (Admin)
+Manage users, create accounts, and handle activation tokens.
+
+![User Management](docs/images/user-management-page.png)
+
+### Settings - Tags Statistics
+View your tag usage statistics to understand how you spend your time.
+
+![Settings - Tags Statistics](docs/images/settings-page-tags.png)
+
+### Settings - API Access
+Generate and manage your personal API access token for programmatic access.
+
+![Settings - API Token](docs/images/settings-page-api-token.png)
+
+### User Profile
+Manage your profile, language preferences, and password.
+
+![Profile Page](docs/images/profile-page.png)
+
 ## Features
 
 ### For Regular Users
