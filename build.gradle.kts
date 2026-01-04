@@ -1,5 +1,5 @@
-import java.time.Duration
 import org.jreleaser.model.Active
+import java.time.Duration
 
 plugins {
     kotlin("jvm") version "2.1.0"
