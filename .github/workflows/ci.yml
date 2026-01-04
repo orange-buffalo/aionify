@@ -17,6 +17,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          # Ensure full git history is available for JReleaser
+          fetch-depth: 0
 
       - name: Setup environment
         uses: ./.github/actions/setup-environment
