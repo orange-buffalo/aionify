@@ -55,7 +55,6 @@ class DockerLoginE2ETest {
                         APP_PORT,
                         Wait.forLogMessage(".*?Startup completed in.*", 1),
                     ).withStartupTimeout(Duration.ofMinutes(2))
-                    .withLocalCompose(true)
                     .withLogConsumer(APP_SERVICE, Slf4jLogConsumer(log))
 
             try {
