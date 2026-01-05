@@ -5,6 +5,7 @@ import io.orangebuffalo.aionify.*
 import io.orangebuffalo.aionify.domain.TimeLogEntry
 import io.orangebuffalo.aionify.domain.TimeLogEntryRepository
 import jakarta.inject.Inject
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 /**
@@ -12,9 +13,6 @@ import org.junit.jupiter.api.Test
  * Verifies that users can edit title and tags of all entries in a group at once.
  */
 class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
-    @Inject
-    lateinit var timeLogEntryRepository: TimeLogEntryRepository
-
     @Test
     fun `should allow editing title and tags of grouped entries`() {
         // Create three entries with same title and tags
@@ -65,20 +63,24 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
         assertThat(page.locator("[data-testid='edit-grouped-entry-title-input']")).isVisible()
         assertThat(page.locator("[data-testid='edit-grouped-entry-title-input']")).hasValue("Original Title")
 
-        // Verify tags are shown
-        assertThat(page.locator("[data-testid='edit-grouped-entry-tags-selected-tag-backend']")).isVisible()
-        assertThat(page.locator("[data-testid='edit-grouped-entry-tags-selected-tag-urgent']")).isVisible()
-
         // Edit the title
         page.locator("[data-testid='edit-grouped-entry-title-input']").fill("Updated Title")
 
-        // Remove "urgent" tag
-        page.locator("[data-testid='edit-grouped-entry-tags-selected-tag-urgent']").click()
-
-        // Add "frontend" tag
+        // Remove "urgent" tag - open the tag selector
         page.locator("[data-testid='edit-grouped-entry-tags-button']").click()
-        page.locator("[data-testid='edit-grouped-entry-tags-input']").fill("frontend")
-        page.locator("[data-testid='edit-grouped-entry-tags-input']").press("Enter")
+
+        // Wait for popover to appear
+        assertThat(page.locator("[data-testid='edit-grouped-entry-tags-popover']")).isVisible()
+
+        // Uncheck "urgent" tag
+        page.locator("[data-testid='edit-grouped-entry-tags-checkbox-urgent']").click()
+
+        // Add "frontend" tag by typing in the input
+        page.locator("[data-testid='edit-grouped-entry-tags-new-tag-input']").fill("frontend")
+        page.locator("[data-testid='edit-grouped-entry-tags-new-tag-input']").press("Enter")
+
+        // Close popover
+        page.locator("[data-testid='edit-grouped-entry-tags-button']").click()
 
         // Save the changes
         page.locator("[data-testid='save-edit-grouped-entry-button']").click()
@@ -100,22 +102,22 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
             val updatedEntry3 = timeLogEntryRepository.findById(requireNotNull(entry3.id)).orElseThrow()
 
             // Verify title was updated for all entries
-            assertThat(updatedEntry1.title).isEqualTo("Updated Title")
-            assertThat(updatedEntry2.title).isEqualTo("Updated Title")
-            assertThat(updatedEntry3.title).isEqualTo("Updated Title")
+            assertEquals("Updated Title", updatedEntry1.title)
+            assertEquals("Updated Title", updatedEntry2.title)
+            assertEquals("Updated Title", updatedEntry3.title)
 
             // Verify tags were updated for all entries
-            assertThat(updatedEntry1.tags.toSet()).isEqualTo(setOf("backend", "frontend"))
-            assertThat(updatedEntry2.tags.toSet()).isEqualTo(setOf("backend", "frontend"))
-            assertThat(updatedEntry3.tags.toSet()).isEqualTo(setOf("backend", "frontend"))
+            assertEquals(setOf("backend", "frontend"), updatedEntry1.tags.toSet())
+            assertEquals(setOf("backend", "frontend"), updatedEntry2.tags.toSet())
+            assertEquals(setOf("backend", "frontend"), updatedEntry3.tags.toSet())
 
             // CRITICAL: Verify start and end times were NOT changed
-            assertThat(updatedEntry1.startTime).isEqualTo(entry1.startTime)
-            assertThat(updatedEntry1.endTime).isEqualTo(entry1.endTime)
-            assertThat(updatedEntry2.startTime).isEqualTo(entry2.startTime)
-            assertThat(updatedEntry2.endTime).isEqualTo(entry2.endTime)
-            assertThat(updatedEntry3.startTime).isEqualTo(entry3.startTime)
-            assertThat(updatedEntry3.endTime).isEqualTo(entry3.endTime)
+            assertEquals(entry1.startTime, updatedEntry1.startTime)
+            assertEquals(entry1.endTime, updatedEntry1.endTime)
+            assertEquals(entry2.startTime, updatedEntry2.startTime)
+            assertEquals(entry2.endTime, updatedEntry2.endTime)
+            assertEquals(entry3.startTime, updatedEntry3.startTime)
+            assertEquals(entry3.endTime, updatedEntry3.endTime)
         }
     }
 
@@ -175,11 +177,11 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
             val notUpdated = timeLogEntryRepository.findById(requireNotNull(separateEntry.id)).orElseThrow()
 
             // Grouped entries should be updated
-            assertThat(updated1.title).isEqualTo("Group A Updated")
-            assertThat(updated2.title).isEqualTo("Group A Updated")
+            assertEquals("Group A Updated", updated1.title)
+            assertEquals("Group A Updated", updated2.title)
 
             // Separate entry should NOT be changed
-            assertThat(notUpdated.title).isEqualTo("Different Entry")
+            assertEquals("Different Entry", notUpdated.title)
         }
     }
 
