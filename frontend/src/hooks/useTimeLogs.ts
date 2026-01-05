@@ -339,6 +339,32 @@ export function useTimeLogs() {
     }
   }
 
+  // Save edited grouped entry
+  async function handleSaveGroupEdit(entryIds: number[], title: string, tags: string[]) {
+    try {
+      setIsSaving(true);
+      setError(null);
+
+      await apiPut(`/api-ui/time-log-entries/bulk-update`, {
+        entryIds,
+        title,
+        tags,
+      });
+
+      await loadTimeEntries();
+    } catch (err: any) {
+      const errorCode = err.errorCode;
+      if (errorCode) {
+        setError(t(`errorCodes.${errorCode}`));
+      } else {
+        setError(err.message || t("common.error"));
+      }
+      throw err;
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   // Navigate to previous week
   function handlePreviousWeek() {
     const newWeekStart = new Date(weekStart);
@@ -456,6 +482,7 @@ export function useTimeLogs() {
     handleEditEntry,
     handleCancelEditEntry,
     handleSaveStoppedEntry,
+    handleSaveGroupEdit,
     handlePreviousWeek,
     handleNextWeek,
     getWeekRangeDisplay,

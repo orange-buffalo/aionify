@@ -18,6 +18,7 @@ interface DayGroupProps {
   onEdit: (entry: TimeLogEntry) => void;
   onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string, tags: string[]) => Promise<void>;
   onCancelEdit: () => void;
+  onSaveGroupEdit: (entryIds: number[], title: string, tags: string[]) => Promise<void>;
 }
 
 export function DayGroup({
@@ -31,6 +32,7 @@ export function DayGroup({
   onEdit,
   onSaveEdit,
   onCancelEdit,
+  onSaveGroupEdit,
 }: DayGroupProps) {
   const { t } = useTranslation();
 
@@ -69,6 +71,7 @@ export function DayGroup({
                   onEdit={onEdit}
                   onSaveEdit={onSaveEdit}
                   onCancelEdit={onCancelEdit}
+                  onSaveGroupEdit={onSaveGroupEdit}
                   overlaps={overlaps}
                 />
               );
