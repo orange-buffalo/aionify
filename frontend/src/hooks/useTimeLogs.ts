@@ -291,10 +291,14 @@ export function useTimeLogs() {
   // Start editing active entry
   function handleEditActiveEntry() {
     setIsEditingActive(true);
+    // Clear any stopped entry edits when editing active entry
+    setEditingEntryIds(new Set());
   }
 
   // Start editing a stopped entry
   function handleEditEntry(entry: TimeEntry) {
+    // Clear active entry editing when editing a stopped entry
+    setIsEditingActive(false);
     setEditingEntryIds((prev) => {
       const next = new Set(prev);
       next.add(entry.id);
