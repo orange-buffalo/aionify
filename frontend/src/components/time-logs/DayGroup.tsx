@@ -11,13 +11,13 @@ interface DayGroupProps {
   group: DayGroupType;
   locale: string;
   startOfWeek: number;
-  editingEntryId: number | null;
+  editingEntryIds: Set<number>;
   isSaving: boolean;
   onContinue: (entry: TimeLogEntry) => void;
   onDelete: (entry: TimeLogEntry) => void;
   onEdit: (entry: TimeLogEntry) => void;
   onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string, tags: string[]) => Promise<void>;
-  onCancelEdit: () => void;
+  onCancelEdit: (entryId: number) => void;
   onSaveGroupEdit: (entryIds: number[], title: string, tags: string[]) => Promise<void>;
 }
 
@@ -25,7 +25,7 @@ export function DayGroup({
   group,
   locale,
   startOfWeek,
-  editingEntryId,
+  editingEntryIds,
   isSaving,
   onContinue,
   onDelete,
@@ -64,7 +64,7 @@ export function DayGroup({
                   groupedEntry={item}
                   locale={locale}
                   startOfWeek={startOfWeek}
-                  editingEntryId={editingEntryId}
+                  editingEntryIds={editingEntryIds}
                   isSaving={isSaving}
                   onContinue={onContinue}
                   onDelete={onDelete}
@@ -83,7 +83,7 @@ export function DayGroup({
                   entry={item}
                   locale={locale}
                   startOfWeek={startOfWeek}
-                  isEditing={editingEntryId === item.id}
+                  isEditing={editingEntryIds.has(item.id)}
                   isSaving={isSaving}
                   onContinue={onContinue}
                   onDelete={onDelete}

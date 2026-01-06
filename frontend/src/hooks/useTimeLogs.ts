@@ -28,7 +28,7 @@ export function useTimeLogs() {
   const [isSaving, setIsSaving] = useState(false);
   const [userLocale, setUserLocale] = useState<string | null>(null);
   const [startOfWeek, setStartOfWeek] = useState<number>(1); // Default to Monday
-  const [editingEntryId, setEditingEntryId] = useState<number | null>(null);
+  const [editingEntryIds, setEditingEntryIds] = useState<Set<number>>(new Set());
   const [isEditingActive, setIsEditingActive] = useState(false);
   const [weeklyTotal, setWeeklyTotal] = useState<number>(0);
 
@@ -291,18 +291,24 @@ export function useTimeLogs() {
   // Start editing active entry
   function handleEditActiveEntry() {
     setIsEditingActive(true);
-    setEditingEntryId(null);
   }
 
   // Start editing a stopped entry
   function handleEditEntry(entry: TimeEntry) {
-    setEditingEntryId(entry.id);
-    setIsEditingActive(false);
+    setEditingEntryIds(prev => {
+      const next = new Set(prev);
+      next.add(entry.id);
+      return next;
+    });
   }
 
   // Cancel editing stopped entry
-  function handleCancelEditEntry() {
-    setEditingEntryId(null);
+  function handleCancelEditEntry(entryId: number) {
+    setEditingEntryIds(prev => {
+      const next = new Set(prev);
+      next.delete(entryId);
+      return next;
+    });
   }
 
   // Save edited stopped entry
@@ -324,7 +330,11 @@ export function useTimeLogs() {
         tags,
       });
 
-      setEditingEntryId(null);
+      setEditingEntryIds(prev => {
+        const next = new Set(prev);
+        next.delete(entry.id);
+        return next;
+      });
       await loadTimeEntries();
     } catch (err: any) {
       const errorCode = err.errorCode;
@@ -470,7 +480,7 @@ export function useTimeLogs() {
     isSaving,
     userLocale,
     startOfWeek,
-    editingEntryId,
+    editingEntryIds,
     isEditingActive,
     handleStart,
     handleStop,

@@ -26,7 +26,7 @@ interface TimeEntryProps {
   onDelete: (entry: TimeLogEntry) => void;
   onEdit: (entry: TimeLogEntry) => void;
   onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string, tags: string[]) => Promise<void>;
-  onCancelEdit: () => void;
+  onCancelEdit: (entryId: number) => void;
   hideTitle?: boolean;
   hideTags?: boolean;
   hideContinue?: boolean;
@@ -76,7 +76,7 @@ export function TimeEntry({
     setEditStartDateTime(new Date(entry.startTime));
     setEditEndDateTime(new Date(entry.endTime || new Date()));
     setEditTags(entry.tags || []);
-    onCancelEdit();
+    onCancelEdit(entry.id);
   };
 
   // Check if entry spans to a different day

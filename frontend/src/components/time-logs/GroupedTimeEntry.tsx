@@ -14,13 +14,13 @@ interface GroupedTimeEntryProps {
   groupedEntry: GroupedTimeLogEntry;
   locale: string;
   startOfWeek: number;
-  editingEntryId: number | null;
+  editingEntryIds: Set<number>;
   isSaving: boolean;
   onContinue: (entry: TimeLogEntry) => void;
   onDelete: (entry: TimeLogEntry) => void;
   onEdit: (entry: TimeLogEntry) => void;
   onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string, tags: string[]) => Promise<void>;
-  onCancelEdit: () => void;
+  onCancelEdit: (entryId: number) => void;
   onSaveGroupEdit: (entryIds: number[], title: string, tags: string[]) => Promise<void>;
   overlaps: Map<number, EntryOverlap>;
 }
@@ -29,7 +29,7 @@ export function GroupedTimeEntry({
   groupedEntry,
   locale,
   startOfWeek,
-  editingEntryId,
+  editingEntryIds,
   isSaving,
   onContinue,
   onDelete,
@@ -183,7 +183,7 @@ export function GroupedTimeEntry({
                 entry={entry}
                 locale={locale}
                 startOfWeek={startOfWeek}
-                isEditing={editingEntryId === entry.id}
+                isEditing={editingEntryIds.has(entry.id)}
                 isSaving={isSaving}
                 onContinue={onContinue}
                 onDelete={onDelete}
