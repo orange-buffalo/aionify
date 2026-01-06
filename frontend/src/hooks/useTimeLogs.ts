@@ -457,7 +457,7 @@ export function useTimeLogs() {
 
     // Add active entry duration if there's an active entry
     return totalFromStoppedEntries + activeDuration;
-  }, [entries, activeDuration, calculateDuration]);
+  }, [entries, activeDuration]);
 
   return {
     activeEntry,
