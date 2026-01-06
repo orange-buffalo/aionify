@@ -2,12 +2,13 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Play } from "lucide-react";
+import { Play, Pencil } from "lucide-react";
 import { formatTime } from "@/lib/date-format";
 import { calculateDuration, formatDuration } from "@/lib/time-utils";
 import type { EntryOverlap } from "@/lib/overlap-detection";
 import type { GroupedTimeLogEntry, TimeLogEntry } from "@/components/time-logs/types";
 import { TimeEntry } from "./TimeEntry";
+import { EditGroupedEntryForm } from "./EditGroupedEntryForm";
 
 interface GroupedTimeEntryProps {
   groupedEntry: GroupedTimeLogEntry;
@@ -20,6 +21,7 @@ interface GroupedTimeEntryProps {
   onEdit: (entry: TimeLogEntry) => void;
   onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string, tags: string[]) => Promise<void>;
   onCancelEdit: () => void;
+  onSaveGroupEdit: (entryIds: number[], title: string, tags: string[]) => Promise<void>;
   overlaps: Map<number, EntryOverlap>;
 }
 
@@ -34,10 +36,14 @@ export function GroupedTimeEntry({
   onEdit,
   onSaveEdit,
   onCancelEdit,
+  onSaveGroupEdit,
   overlaps,
 }: GroupedTimeEntryProps) {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isEditingGroup, setIsEditingGroup] = useState(false);
+  const [editTitle, setEditTitle] = useState(groupedEntry.title);
+  const [editTags, setEditTags] = useState<string[]>(groupedEntry.tags || []);
 
   const endTimeDisplay = groupedEntry.endTime ? formatTime(groupedEntry.endTime, locale) : t("timeLogs.inProgress");
 
@@ -54,6 +60,39 @@ export function GroupedTimeEntry({
         return sum + duration;
       }, 0)
     : groupedEntry.totalDuration;
+
+  const handleEditClick = () => {
+    setEditTitle(groupedEntry.title);
+    setEditTags(groupedEntry.tags || []);
+    setIsEditingGroup(true);
+  };
+
+  const handleSaveGroupEdit = async () => {
+    if (!editTitle.trim()) return;
+    const entryIds = groupedEntry.entries.map((e) => e.id);
+    await onSaveGroupEdit(entryIds, editTitle.trim(), editTags);
+    setIsEditingGroup(false);
+  };
+
+  const handleCancelGroupEdit = () => {
+    setEditTitle(groupedEntry.title);
+    setEditTags(groupedEntry.tags || []);
+    setIsEditingGroup(false);
+  };
+
+  if (isEditingGroup) {
+    return (
+      <EditGroupedEntryForm
+        title={editTitle}
+        tags={editTags}
+        isSaving={isSaving}
+        onTitleChange={setEditTitle}
+        onTagsChange={setEditTags}
+        onSave={handleSaveGroupEdit}
+        onCancel={handleCancelGroupEdit}
+      />
+    );
+  }
 
   return (
     <div data-testid="grouped-time-entry">
@@ -118,6 +157,16 @@ export function GroupedTimeEntry({
               title={t("timeLogs.startFromEntry")}
             >
               <Play className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleEditClick}
+              data-testid="edit-grouped-entry-button"
+              className="text-foreground"
+              title={t("timeLogs.edit")}
+            >
+              <Pencil className="h-4 w-4" />
             </Button>
           </div>
         </div>

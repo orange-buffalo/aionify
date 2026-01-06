@@ -36,6 +36,7 @@ export function TimeLogsPage() {
     handleEditEntry,
     handleCancelEditEntry,
     handleSaveStoppedEntry,
+    handleSaveGroupEdit,
     handlePreviousWeek,
     handleNextWeek,
     getWeekRangeDisplay,
@@ -120,6 +121,7 @@ export function TimeLogsPage() {
                   onEdit={handleEditEntry}
                   onSaveEdit={handleSaveStoppedEntry}
                   onCancelEdit={handleCancelEditEntry}
+                  onSaveGroupEdit={handleSaveGroupEdit}
                 />
               ))}
             </div>

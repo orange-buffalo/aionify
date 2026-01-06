@@ -189,6 +189,55 @@ open class TimeLogEntryResource(
         return HttpResponse.ok(updatedEntry.toDto())
     }
 
+    @Put("/bulk-update")
+    open fun bulkUpdateEntries(
+        @Valid @Body request: BulkUpdateTimeLogEntriesRequest,
+        currentUser: UserWithId,
+    ): HttpResponse<*> {
+        log.debug("Bulk updating {} time log entries for user: {}", request.entryIds.size, currentUser.user.userName)
+
+        if (request.entryIds.isEmpty()) {
+            log.debug("Bulk update failed: no entry IDs provided")
+            return HttpResponse.badRequest(
+                TimeLogEntryErrorResponse("No entry IDs provided", "NO_ENTRY_IDS"),
+            )
+        }
+
+        // Fetch all entries and verify ownership
+        val entries =
+            request.entryIds.mapNotNull { id ->
+                timeLogEntryRepository.findByIdAndOwnerId(id, currentUser.id).orElse(null)
+            }
+
+        // Verify all entries were found
+        if (entries.size != request.entryIds.size) {
+            log.debug("Bulk update failed: some entries not found or not owned by user")
+            return HttpResponse
+                .notFound<TimeLogEntryErrorResponse>()
+                .body(TimeLogEntryErrorResponse("One or more time log entries not found", "ENTRIES_NOT_FOUND"))
+        }
+
+        // Update each entry - only title and tags, preserve start and end times
+        val updatedEntries =
+            entries.map { entry ->
+                timeLogEntryRepository.update(
+                    entry.copy(
+                        title = request.title,
+                        tags = request.tags.toTypedArray(),
+                    ),
+                )
+            }
+
+        log.info("Bulk updated {} time log entries for user: {}", updatedEntries.size, currentUser.user.userName)
+
+        return HttpResponse.ok(
+            BulkUpdateTimeLogEntriesResponse(
+                updatedCount = updatedEntries.size,
+                entries = updatedEntries.map { it.toDto() },
+            ),
+        )
+    }
+
     @Delete("/{id}")
     open fun deleteEntry(
         @PathVariable id: Long,
@@ -324,4 +373,21 @@ data class AutocompleteResponse(
 data class AutocompleteEntryDto(
     val title: String,
     val tags: List<String> = emptyList(),
+)
+
+@Serdeable
+@Introspected
+data class BulkUpdateTimeLogEntriesRequest(
+    @field:NotBlank(message = "Title cannot be blank")
+    @field:Size(max = 1000, message = "Title cannot exceed 1000 characters")
+    val title: String,
+    val tags: List<String> = emptyList(),
+    val entryIds: List<Long>,
+)
+
+@Serdeable
+@Introspected
+data class BulkUpdateTimeLogEntriesResponse(
+    val updatedCount: Int,
+    val entries: List<TimeLogEntryDto>,
 )
