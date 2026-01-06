@@ -179,7 +179,7 @@ export function GroupedTimeEntry({
             const overlap = overlaps.get(entry.id);
             return (
               <TimeEntry
-                key={entry.id}
+                key={`${entry.id}-${entry.startTime}`}
                 entry={entry}
                 locale={locale}
                 startOfWeek={startOfWeek}

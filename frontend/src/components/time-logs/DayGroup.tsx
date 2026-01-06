@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDuration } from "@/lib/time-utils";
@@ -37,11 +36,11 @@ export function DayGroup({
 }: DayGroupProps) {
   const { t } = useTranslation();
 
-  // Memoize overlap detection to avoid recalculating on every render
-  const overlaps = useMemo(() => detectOverlaps(group.entries), [group.entries]);
+  // Detect overlaps within this day group
+  const overlaps = detectOverlaps(group.entries);
 
-  // Memoize entry grouping to avoid recreating array on every render
-  const groupedEntries = useMemo(() => groupEntriesByTitleAndTags(group.entries), [group.entries]);
+  // Group entries by title and tags
+  const groupedEntries = groupEntriesByTitleAndTags(group.entries);
 
   return (
     <Card className="border-none shadow-md" data-testid="day-group">
@@ -80,7 +79,7 @@ export function DayGroup({
               const overlap = overlaps.get(item.id);
               return (
                 <TimeEntry
-                  key={item.id}
+                  key={`${item.id}-${item.startTime}`}
                   entry={item}
                   locale={locale}
                   startOfWeek={startOfWeek}

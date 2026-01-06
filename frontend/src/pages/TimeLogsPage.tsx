@@ -1,47 +1,44 @@
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { PortalLayout } from "@/components/layout/PortalLayout";
-import { FormMessage } from "@/components/ui/form-message";
-import { CurrentEntryPanel } from "@/components/time-logs/CurrentEntryPanel";
+import { CurrentEntryPanelContainer } from "@/components/time-logs/CurrentEntryPanelContainer";
 import { WeekNavigation } from "@/components/time-logs/WeekNavigation";
-import { DayGroup } from "@/components/time-logs/DayGroup";
-import { DeleteConfirmationDialog } from "@/components/time-logs/DeleteConfirmationDialog";
-import { useTimeLogs } from "@/hooks/useTimeLogs";
+import { StoppedEntriesList } from "@/components/time-logs/StoppedEntriesList";
+import { apiGet } from "@/lib/api";
+import { getWeekStart, weekDayToNumber } from "@/lib/time-utils";
 
+/**
+ * Time Logs Page - Refactored for optimal rendering performance.
+ *
+ * This component only manages shared state (user settings, week navigation).
+ * Child components manage their own state independently:
+ * - CurrentEntryPanelContainer: manages active entry and its operations
+ * - StoppedEntriesList: manages stopped entries list and its operations
+ *
+ * This ensures that:
+ * - Stopping active entry only re-renders CurrentEntryPanelContainer
+ * - Editing stopped entry only re-renders StoppedEntriesList
+ * - Scroll position is preserved during unrelated operations
+ */
 export function TimeLogsPage() {
   const { t, i18n } = useTranslation();
-  const {
-    activeEntry,
-    activeDuration,
-    dayGroups,
-    weeklyTotal,
-    loading,
-    isStarting,
-    isStopping,
-    error,
-    deleteDialogOpen,
-    entryToDelete,
-    isDeleting,
-    isSaving,
-    userLocale,
-    startOfWeek,
-    editingEntryId,
-    isEditingActive,
-    handleStart,
-    handleStop,
-    handleContinue,
-    handleDeleteClick,
-    handleDelete,
-    handleSaveEdit,
-    handleEditActiveEntry,
-    handleEditEntry,
-    handleCancelEditEntry,
-    handleSaveStoppedEntry,
-    handleSaveGroupEdit,
-    handlePreviousWeek,
-    handleNextWeek,
-    getWeekRangeDisplay,
-    setDeleteDialogOpen,
-  } = useTimeLogs();
+  const [userLocale, setUserLocale] = useState<string | null>(null);
+  const [startOfWeek, setStartOfWeek] = useState<number>(1); // Default to Monday
+  const [weekStart, setWeekStart] = useState<Date>(getWeekStart(new Date()));
+  const [editingEntryId, setEditingEntryId] = useState<number | null>(null);
+
+  // Load user's locale and settings on mount
+  useEffect(() => {
+    async function loadUserProfile() {
+      const profile = await apiGet<{ locale: string; startOfWeek: string }>("/api-ui/users/profile");
+      setUserLocale(profile.locale);
+      const startOfWeekNum = weekDayToNumber(profile.startOfWeek);
+      setStartOfWeek(startOfWeekNum);
+      // Update week start with the user's preference
+      setWeekStart(getWeekStart(new Date(), startOfWeekNum));
+    }
+    loadUserProfile();
+  }, []);
 
   // Don't render page elements until we have the user locale
   if (!userLocale) {
@@ -59,6 +56,31 @@ export function TimeLogsPage() {
   const locale = userLocale || i18n.language || "en";
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+  // Navigate to previous week
+  const handlePreviousWeek = () => {
+    const newWeekStart = new Date(weekStart);
+    newWeekStart.setDate(newWeekStart.getDate() - 7);
+    setWeekStart(newWeekStart);
+  };
+
+  // Navigate to next week
+  const handleNextWeek = () => {
+    const newWeekStart = new Date(weekStart);
+    newWeekStart.setDate(newWeekStart.getDate() + 7);
+    setWeekStart(newWeekStart);
+  };
+
+  // Get week range display
+  const getWeekRangeDisplay = (): string => {
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+
+    const startStr = weekStart.toLocaleDateString(locale, { month: "short", day: "numeric" });
+    const endStr = weekEnd.toLocaleDateString(locale, { month: "short", day: "numeric" });
+
+    return `${startStr} - ${endStr}`;
+  };
+
   return (
     <PortalLayout testId="time-logs-page">
       <div className="p-8">
@@ -71,61 +93,23 @@ export function TimeLogsPage() {
             <div className="text-muted-foreground">{t("timeLogs.subtitle")}</div>
           </div>
 
-          {/* Error Message */}
-          {error && <FormMessage type="error" message={error} testId="time-logs-error" />}
-
-          {/* Current Entry Panel */}
-          <CurrentEntryPanel
-            activeEntry={activeEntry}
-            activeDuration={activeDuration}
+          {/* Current Entry Panel - Self-contained */}
+          <CurrentEntryPanelContainer
             locale={locale}
             startOfWeek={startOfWeek}
-            isStarting={isStarting}
-            isStopping={isStopping}
-            isSaving={isSaving}
             isEditingStoppedEntry={editingEntryId !== null}
-            onStart={handleStart}
-            onStop={handleStop}
-            onSaveEdit={handleSaveEdit}
-            onEditStart={handleEditActiveEntry}
           />
 
-          {/* Week Navigation */}
-          <WeekNavigation
-            weekRange={getWeekRangeDisplay()}
-            weeklyTotal={weeklyTotal}
+          {/* Stopped Entries List - Self-contained, includes week navigation */}
+          <StoppedEntriesList
+            weekStart={weekStart}
             locale={locale}
+            startOfWeek={startOfWeek}
+            userLocale={userLocale}
+            weekRange={getWeekRangeDisplay()}
             onPreviousWeek={handlePreviousWeek}
             onNextWeek={handleNextWeek}
           />
-
-          {/* Time Entries List */}
-          {loading ? (
-            <div className="text-center py-8 text-foreground">{t("common.loading")}</div>
-          ) : dayGroups.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground" data-testid="no-entries">
-              {t("timeLogs.noEntries")}
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {dayGroups.map((group) => (
-                <DayGroup
-                  key={group.date}
-                  group={group}
-                  locale={locale}
-                  startOfWeek={startOfWeek}
-                  editingEntryId={editingEntryId}
-                  isSaving={isSaving}
-                  onContinue={handleContinue}
-                  onDelete={handleDeleteClick}
-                  onEdit={handleEditEntry}
-                  onSaveEdit={handleSaveStoppedEntry}
-                  onCancelEdit={handleCancelEditEntry}
-                  onSaveGroupEdit={handleSaveGroupEdit}
-                />
-              ))}
-            </div>
-          )}
 
           {/* Timezone Hint */}
           <div className="mt-8 text-right text-xs text-muted-foreground">
@@ -133,16 +117,6 @@ export function TimeLogsPage() {
           </div>
         </div>
       </div>
-
-      {/* Delete Confirmation Dialog */}
-      <DeleteConfirmationDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        entry={entryToDelete}
-        locale={locale}
-        isDeleting={isDeleting}
-        onConfirm={handleDelete}
-      />
     </PortalLayout>
   );
 }
