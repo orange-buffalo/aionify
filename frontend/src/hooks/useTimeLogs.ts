@@ -295,7 +295,7 @@ export function useTimeLogs() {
 
   // Start editing a stopped entry
   function handleEditEntry(entry: TimeEntry) {
-    setEditingEntryIds(prev => {
+    setEditingEntryIds((prev) => {
       const next = new Set(prev);
       next.add(entry.id);
       return next;
@@ -304,7 +304,7 @@ export function useTimeLogs() {
 
   // Cancel editing stopped entry
   function handleCancelEditEntry(entryId: number) {
-    setEditingEntryIds(prev => {
+    setEditingEntryIds((prev) => {
       const next = new Set(prev);
       next.delete(entryId);
       return next;
@@ -330,7 +330,7 @@ export function useTimeLogs() {
         tags,
       });
 
-      setEditingEntryIds(prev => {
+      setEditingEntryIds((prev) => {
         const next = new Set(prev);
         next.delete(entry.id);
         return next;

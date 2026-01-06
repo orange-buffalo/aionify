@@ -300,23 +300,45 @@ class TimeLogsEditStoppedEntryTest : TimeLogsPageTestBase() {
         assertThat(page.locator("[data-testid='time-entry-edit']")).hasCount(2)
 
         // Verify we can edit both simultaneously
-        page.locator("[data-testid='time-entry-edit']").nth(0).locator("[data-testid='stopped-entry-edit-title-input']").fill("Updated Second Task")
-        page.locator("[data-testid='time-entry-edit']").nth(1).locator("[data-testid='stopped-entry-edit-title-input']").fill("Updated First Task")
+        page
+            .locator(
+                "[data-testid='time-entry-edit']",
+            ).nth(0)
+            .locator("[data-testid='stopped-entry-edit-title-input']")
+            .fill("Updated Second Task")
+        page
+            .locator(
+                "[data-testid='time-entry-edit']",
+            ).nth(1)
+            .locator("[data-testid='stopped-entry-edit-title-input']")
+            .fill("Updated First Task")
 
         // Cancel both edits to verify independence
-        page.locator("[data-testid='time-entry-edit']").nth(0).locator("[data-testid='cancel-stopped-entry-edit-button']").click()
+        page
+            .locator("[data-testid='time-entry-edit']")
+            .nth(0)
+            .locator("[data-testid='cancel-stopped-entry-edit-button']")
+            .click()
         assertThat(page.locator("[data-testid='time-entry-edit']")).hasCount(1)
 
         page.locator("[data-testid='cancel-stopped-entry-edit-button']").click()
         assertThat(page.locator("[data-testid='time-entry-edit']")).hasCount(0)
 
         // Verify original titles are preserved
-        assertThat(page.locator("[data-testid='entry-title']").filter(
-            com.microsoft.playwright.Locator.FilterOptions().setHasText("First Task")
-        )).isVisible()
-        assertThat(page.locator("[data-testid='entry-title']").filter(
-            com.microsoft.playwright.Locator.FilterOptions().setHasText("Second Task")
-        )).isVisible()
+        assertThat(
+            page.locator("[data-testid='entry-title']").filter(
+                com.microsoft.playwright.Locator
+                    .FilterOptions()
+                    .setHasText("First Task"),
+            ),
+        ).isVisible()
+        assertThat(
+            page.locator("[data-testid='entry-title']").filter(
+                com.microsoft.playwright.Locator
+                    .FilterOptions()
+                    .setHasText("Second Task"),
+            ),
+        ).isVisible()
     }
 
     @Test
