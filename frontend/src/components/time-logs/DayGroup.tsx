@@ -1,4 +1,4 @@
-import { useMemo, memo } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDuration } from "@/lib/time-utils";
@@ -22,7 +22,7 @@ interface DayGroupProps {
   onSaveGroupEdit: (entryIds: number[], title: string, tags: string[]) => Promise<void>;
 }
 
-export const DayGroup = memo(function DayGroup({
+export function DayGroup({
   group,
   locale,
   startOfWeek,
@@ -100,4 +100,4 @@ export const DayGroup = memo(function DayGroup({
       </CardContent>
     </Card>
   );
-});
+}

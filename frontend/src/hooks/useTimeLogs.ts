@@ -146,28 +146,31 @@ export function useTimeLogs() {
   useTimeLogEntryEvents(handleTimeLogEvent, true);
 
   // Start a new time entry
-  const handleStart = useCallback(async (title: string, tags: string[] = []) => {
-    try {
-      setIsStarting(true);
-      setError(null);
+  const handleStart = useCallback(
+    async (title: string, tags: string[] = []) => {
+      try {
+        setIsStarting(true);
+        setError(null);
 
-      const entry = await apiPost<TimeEntry>("/api-ui/time-log-entries", { title, tags });
+        const entry = await apiPost<TimeEntry>("/api-ui/time-log-entries", { title, tags });
 
-      setActiveEntry(entry);
-      setSuccess(t("timeLogs.success.started"));
-      await loadTimeEntries();
-    } catch (err: any) {
-      const errorCode = (err as any).errorCode;
-      if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`));
-      } else {
-        setError(err.message || t("common.error"));
+        setActiveEntry(entry);
+        setSuccess(t("timeLogs.success.started"));
+        await loadTimeEntries();
+      } catch (err: any) {
+        const errorCode = (err as any).errorCode;
+        if (errorCode) {
+          setError(t(`errorCodes.${errorCode}`));
+        } else {
+          setError(err.message || t("common.error"));
+        }
+        throw err;
+      } finally {
+        setIsStarting(false);
       }
-      throw err;
-    } finally {
-      setIsStarting(false);
-    }
-  }, [t, loadTimeEntries]);
+    },
+    [t, loadTimeEntries]
+  );
 
   // Stop the active time entry
   const handleStop = useCallback(async () => {
@@ -195,30 +198,33 @@ export function useTimeLogs() {
   }, [activeEntry, t, loadTimeEntries]);
 
   // Continue with an existing entry's title
-  const handleContinue = useCallback(async (entry: TimeEntry) => {
-    try {
-      setIsStarting(true);
-      setError(null);
+  const handleContinue = useCallback(
+    async (entry: TimeEntry) => {
+      try {
+        setIsStarting(true);
+        setError(null);
 
-      const newEntry = await apiPost<TimeEntry>("/api-ui/time-log-entries", {
-        title: entry.title,
-        tags: entry.tags,
-        stopActiveEntry: true,
-      });
+        const newEntry = await apiPost<TimeEntry>("/api-ui/time-log-entries", {
+          title: entry.title,
+          tags: entry.tags,
+          stopActiveEntry: true,
+        });
 
-      setActiveEntry(newEntry);
-      await loadTimeEntries();
-    } catch (err: any) {
-      const errorCode = (err as any).errorCode;
-      if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`));
-      } else {
-        setError(err.message || t("common.error"));
+        setActiveEntry(newEntry);
+        await loadTimeEntries();
+      } catch (err: any) {
+        const errorCode = (err as any).errorCode;
+        if (errorCode) {
+          setError(t(`errorCodes.${errorCode}`));
+        } else {
+          setError(err.message || t("common.error"));
+        }
+      } finally {
+        setIsStarting(false);
       }
-    } finally {
-      setIsStarting(false);
-    }
-  }, [t, loadTimeEntries]);
+    },
+    [t, loadTimeEntries]
+  );
 
   // Open delete confirmation dialog
   const handleDeleteClick = useCallback((entry: TimeEntry) => {
@@ -257,34 +263,37 @@ export function useTimeLogs() {
   }, [entryToDelete, activeEntry, t, loadTimeEntries]);
 
   // Save edited entry
-  const handleSaveEdit = useCallback(async (title: string, startTimeISO: string, tags: string[]) => {
-    if (!activeEntry) return;
+  const handleSaveEdit = useCallback(
+    async (title: string, startTimeISO: string, tags: string[]) => {
+      if (!activeEntry) return;
 
-    try {
-      setIsSaving(true);
-      setError(null);
+      try {
+        setIsSaving(true);
+        setError(null);
 
-      const updatedEntry = await apiPut<TimeEntry>(`/api-ui/time-log-entries/${activeEntry.id}`, {
-        title,
-        startTime: startTimeISO,
-        tags,
-      });
+        const updatedEntry = await apiPut<TimeEntry>(`/api-ui/time-log-entries/${activeEntry.id}`, {
+          title,
+          startTime: startTimeISO,
+          tags,
+        });
 
-      setActiveEntry(updatedEntry);
-      setIsEditingActive(false);
-      await loadTimeEntries();
-    } catch (err: any) {
-      const errorCode = err.errorCode;
-      if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`));
-      } else {
-        setError(err.message || t("common.error"));
+        setActiveEntry(updatedEntry);
+        setIsEditingActive(false);
+        await loadTimeEntries();
+      } catch (err: any) {
+        const errorCode = err.errorCode;
+        if (errorCode) {
+          setError(t(`errorCodes.${errorCode}`));
+        } else {
+          setError(err.message || t("common.error"));
+        }
+        throw err;
+      } finally {
+        setIsSaving(false);
       }
-      throw err;
-    } finally {
-      setIsSaving(false);
-    }
-  }, [activeEntry, t, loadTimeEntries]);
+    },
+    [activeEntry, t, loadTimeEntries]
+  );
 
   // Start editing active entry
   const handleEditActiveEntry = useCallback(() => {
@@ -304,64 +313,64 @@ export function useTimeLogs() {
   }, []);
 
   // Save edited stopped entry
-  const handleSaveStoppedEntry = useCallback(async (
-    entry: TimeEntry,
-    title: string,
-    startTimeISO: string,
-    endTimeISO: string,
-    tags: string[]
-  ) => {
-    try {
-      setIsSaving(true);
-      setError(null);
+  const handleSaveStoppedEntry = useCallback(
+    async (entry: TimeEntry, title: string, startTimeISO: string, endTimeISO: string, tags: string[]) => {
+      try {
+        setIsSaving(true);
+        setError(null);
 
-      await apiPut<TimeEntry>(`/api-ui/time-log-entries/${entry.id}`, {
-        title,
-        startTime: startTimeISO,
-        endTime: endTimeISO,
-        tags,
-      });
+        await apiPut<TimeEntry>(`/api-ui/time-log-entries/${entry.id}`, {
+          title,
+          startTime: startTimeISO,
+          endTime: endTimeISO,
+          tags,
+        });
 
-      setEditingEntryId(null);
-      await loadTimeEntries();
-    } catch (err: any) {
-      const errorCode = err.errorCode;
-      if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`));
-      } else {
-        setError(err.message || t("common.error"));
+        setEditingEntryId(null);
+        await loadTimeEntries();
+      } catch (err: any) {
+        const errorCode = err.errorCode;
+        if (errorCode) {
+          setError(t(`errorCodes.${errorCode}`));
+        } else {
+          setError(err.message || t("common.error"));
+        }
+        throw err;
+      } finally {
+        setIsSaving(false);
       }
-      throw err;
-    } finally {
-      setIsSaving(false);
-    }
-  }, [t, loadTimeEntries]);
+    },
+    [t, loadTimeEntries]
+  );
 
   // Save edited grouped entry
-  const handleSaveGroupEdit = useCallback(async (entryIds: number[], title: string, tags: string[]) => {
-    try {
-      setIsSaving(true);
-      setError(null);
+  const handleSaveGroupEdit = useCallback(
+    async (entryIds: number[], title: string, tags: string[]) => {
+      try {
+        setIsSaving(true);
+        setError(null);
 
-      await apiPut(`/api-ui/time-log-entries/bulk-update`, {
-        entryIds,
-        title,
-        tags,
-      });
+        await apiPut(`/api-ui/time-log-entries/bulk-update`, {
+          entryIds,
+          title,
+          tags,
+        });
 
-      await loadTimeEntries();
-    } catch (err: any) {
-      const errorCode = err.errorCode;
-      if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`));
-      } else {
-        setError(err.message || t("common.error"));
+        await loadTimeEntries();
+      } catch (err: any) {
+        const errorCode = err.errorCode;
+        if (errorCode) {
+          setError(t(`errorCodes.${errorCode}`));
+        } else {
+          setError(err.message || t("common.error"));
+        }
+        throw err;
+      } finally {
+        setIsSaving(false);
       }
-      throw err;
-    } finally {
-      setIsSaving(false);
-    }
-  }, [t, loadTimeEntries]);
+    },
+    [t, loadTimeEntries]
+  );
 
   // Navigate to previous week
   const handlePreviousWeek = useCallback(() => {
@@ -429,16 +438,26 @@ export function useTimeLogs() {
     return entries.reduce((sum, entry) => sum + calculateDuration(entry.startTime, entry.endTime), 0);
   }, []);
 
-  // Memoize day groups to avoid recalculating on every render
+  // Memoize day groups - recalculate when entries OR activeDuration changes
+  // This ensures active entry durations are updated in the UI
   const dayGroups = useMemo(() => {
     const locale = userLocale || i18n.language || "en";
     return groupEntriesByDay(entries, locale);
-  }, [entries, userLocale, i18n.language]);
+  }, [entries, userLocale, i18n.language, activeDuration]);
 
-  // Memoize weekly total calculation
+  // Memoize weekly total calculation - includes active entry duration
   const weeklyTotal = useMemo(() => {
-    return calculateWeeklyTotal(entries);
-  }, [entries, calculateWeeklyTotal]);
+    const totalFromStoppedEntries = entries.reduce((sum, entry) => {
+      // Only count stopped entries in the base total
+      if (entry.endTime) {
+        return sum + calculateDuration(entry.startTime, entry.endTime);
+      }
+      return sum;
+    }, 0);
+
+    // Add active entry duration if there's an active entry
+    return totalFromStoppedEntries + activeDuration;
+  }, [entries, activeDuration, calculateDuration]);
 
   return {
     activeEntry,

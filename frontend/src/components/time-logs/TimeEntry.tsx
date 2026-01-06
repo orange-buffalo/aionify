@@ -1,4 +1,4 @@
-import { useState, memo } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,7 +33,7 @@ interface TimeEntryProps {
   overlap?: EntryOverlap;
 }
 
-export const TimeEntry = memo(function TimeEntry({
+export function TimeEntry({
   entry,
   locale,
   startOfWeek,
@@ -197,4 +197,4 @@ export const TimeEntry = memo(function TimeEntry({
       </div>
     </div>
   );
-});
+}
