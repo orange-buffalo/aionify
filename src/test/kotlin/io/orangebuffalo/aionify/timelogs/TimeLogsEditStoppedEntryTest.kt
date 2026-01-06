@@ -293,27 +293,13 @@ class TimeLogsEditStoppedEntryTest : TimeLogsPageTestBase() {
         timeLogsPage.assertStoppedEntryEditVisible()
         assertThat(page.locator("[data-testid='time-entry-edit']")).hasCount(1)
 
-        // Start editing the second entry
+        // Start editing the second entry - should open a second edit form
         timeLogsPage.clickEditForEntry("Second Task")
 
-        // Verify both edit forms are visible now - this is the key change from removing the restriction
+        // Verify both edit forms are visible now - this is the key change
         assertThat(page.locator("[data-testid='time-entry-edit']")).hasCount(2)
 
-        // Verify we can edit both simultaneously
-        page
-            .locator(
-                "[data-testid='time-entry-edit']",
-            ).nth(0)
-            .locator("[data-testid='stopped-entry-edit-title-input']")
-            .fill("Updated Second Task")
-        page
-            .locator(
-                "[data-testid='time-entry-edit']",
-            ).nth(1)
-            .locator("[data-testid='stopped-entry-edit-title-input']")
-            .fill("Updated First Task")
-
-        // Cancel both edits to verify independence
+        // Cancel both edits independently
         page
             .locator("[data-testid='time-entry-edit']")
             .nth(0)

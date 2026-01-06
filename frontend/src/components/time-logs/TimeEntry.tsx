@@ -20,13 +20,10 @@ interface TimeEntryProps {
   entry: TimeLogEntry;
   locale: string;
   startOfWeek: number;
-  isEditing: boolean;
   isSaving: boolean;
   onContinue: (entry: TimeLogEntry) => void;
   onDelete: (entry: TimeLogEntry) => void;
-  onEdit: (entry: TimeLogEntry) => void;
   onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string, tags: string[]) => Promise<void>;
-  onCancelEdit: (entryId: number) => void;
   hideTitle?: boolean;
   hideTags?: boolean;
   hideContinue?: boolean;
@@ -37,13 +34,10 @@ export function TimeEntry({
   entry,
   locale,
   startOfWeek,
-  isEditing,
   isSaving,
   onContinue,
   onDelete,
-  onEdit,
   onSaveEdit,
-  onCancelEdit,
   hideTitle = false,
   hideTags = false,
   hideContinue = false,
@@ -51,6 +45,7 @@ export function TimeEntry({
 }: TimeEntryProps) {
   const { t } = useTranslation();
   const duration = calculateDuration(entry.startTime, entry.endTime);
+  const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(entry.title);
   const [editStartDateTime, setEditStartDateTime] = useState<Date>(new Date(entry.startTime));
   const [editEndDateTime, setEditEndDateTime] = useState<Date>(new Date(entry.endTime || new Date()));
@@ -61,7 +56,7 @@ export function TimeEntry({
     setEditStartDateTime(new Date(entry.startTime));
     setEditEndDateTime(new Date(entry.endTime || new Date()));
     setEditTags(entry.tags || []);
-    onEdit(entry);
+    setIsEditing(true);
   };
 
   const handleSaveEdit = async () => {
@@ -69,6 +64,7 @@ export function TimeEntry({
     const startTimeISO = editStartDateTime.toISOString();
     const endTimeISO = editEndDateTime.toISOString();
     await onSaveEdit(entry, editTitle.trim(), startTimeISO, endTimeISO, editTags);
+    setIsEditing(false);
   };
 
   const handleCancelEdit = () => {
@@ -76,7 +72,7 @@ export function TimeEntry({
     setEditStartDateTime(new Date(entry.startTime));
     setEditEndDateTime(new Date(entry.endTime || new Date()));
     setEditTags(entry.tags || []);
-    onCancelEdit(entry.id);
+    setIsEditing(false);
   };
 
   // Check if entry spans to a different day
