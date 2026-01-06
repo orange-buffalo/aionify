@@ -95,6 +95,9 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
         val tags = groupedEntry.locator("[data-testid='entry-tags']").locator("[data-testid^='entry-tag-']")
         assertThat(tags).containsText(arrayOf("backend", "frontend"))
 
+        // Ensure request is processed before checking the database
+        assertThat(page.locator("[data-testid='edit-grouped-entry-title-input']")).not().isVisible()
+
         // Verify all entries in the database were updated
         testDatabaseSupport.inTransaction {
             val updatedEntry1 = timeLogEntryRepository.findById(requireNotNull(entry1.id)).orElseThrow()
