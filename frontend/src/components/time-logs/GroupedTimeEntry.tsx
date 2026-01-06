@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +25,7 @@ interface GroupedTimeEntryProps {
   overlaps: Map<number, EntryOverlap>;
 }
 
-export function GroupedTimeEntry({
+export const GroupedTimeEntry = memo(function GroupedTimeEntry({
   groupedEntry,
   locale,
   startOfWeek,
@@ -179,7 +179,7 @@ export function GroupedTimeEntry({
             const overlap = overlaps.get(entry.id);
             return (
               <TimeEntry
-                key={`${entry.id}-${entry.startTime}`}
+                key={entry.id}
                 entry={entry}
                 locale={locale}
                 startOfWeek={startOfWeek}
@@ -201,4 +201,4 @@ export function GroupedTimeEntry({
       )}
     </div>
   );
-}
+});

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
 import { getWeekStart, formatISODate, calculateDuration, weekDayToNumber } from "@/lib/time-utils";
@@ -16,7 +16,6 @@ export function useTimeLogs() {
   const [activeDuration, setActiveDuration] = useState<number>(0);
   const [weekStart, setWeekStart] = useState<Date>(getWeekStart(new Date()));
   const [entries, setEntries] = useState<TimeEntry[]>([]);
-  const [dayGroups, setDayGroups] = useState<DayGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [isStarting, setIsStarting] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
@@ -30,7 +29,6 @@ export function useTimeLogs() {
   const [startOfWeek, setStartOfWeek] = useState<number>(1); // Default to Monday
   const [editingEntryId, setEditingEntryId] = useState<number | null>(null);
   const [isEditingActive, setIsEditingActive] = useState(false);
-  const [weeklyTotal, setWeeklyTotal] = useState<number>(0);
 
   // Update browser tab title based on active entry
   useDocumentTitle(activeEntry?.title || null);
@@ -94,7 +92,7 @@ export function useTimeLogs() {
   }
 
   // Load time entries for the current week
-  async function loadTimeEntries() {
+  const loadTimeEntries = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -118,17 +116,17 @@ export function useTimeLogs() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [weekStart, t]);
 
   // Load active entry
-  async function loadActiveEntry() {
+  const loadActiveEntry = useCallback(async () => {
     try {
       const response = await apiGet<{ entry?: TimeLogEntry | null }>("/api-ui/time-log-entries/active");
       setActiveEntry(response.entry ?? null);
     } catch (err: any) {
       console.error("Failed to load active entry:", err);
     }
-  }
+  }, []);
 
   // Handle SSE events for time log entry changes
   const handleTimeLogEvent = useCallback(
@@ -148,7 +146,7 @@ export function useTimeLogs() {
   useTimeLogEntryEvents(handleTimeLogEvent, true);
 
   // Start a new time entry
-  async function handleStart(title: string, tags: string[] = []) {
+  const handleStart = useCallback(async (title: string, tags: string[] = []) => {
     try {
       setIsStarting(true);
       setError(null);
@@ -169,10 +167,10 @@ export function useTimeLogs() {
     } finally {
       setIsStarting(false);
     }
-  }
+  }, [t, loadTimeEntries]);
 
   // Stop the active time entry
-  async function handleStop() {
+  const handleStop = useCallback(async () => {
     if (!activeEntry) return;
 
     try {
@@ -194,10 +192,10 @@ export function useTimeLogs() {
     } finally {
       setIsStopping(false);
     }
-  }
+  }, [activeEntry, t, loadTimeEntries]);
 
   // Continue with an existing entry's title
-  async function handleContinue(entry: TimeEntry) {
+  const handleContinue = useCallback(async (entry: TimeEntry) => {
     try {
       setIsStarting(true);
       setError(null);
@@ -220,16 +218,16 @@ export function useTimeLogs() {
     } finally {
       setIsStarting(false);
     }
-  }
+  }, [t, loadTimeEntries]);
 
   // Open delete confirmation dialog
-  function handleDeleteClick(entry: TimeEntry) {
+  const handleDeleteClick = useCallback((entry: TimeEntry) => {
     setEntryToDelete(entry);
     setDeleteDialogOpen(true);
-  }
+  }, []);
 
   // Delete a time entry
-  async function handleDelete() {
+  const handleDelete = useCallback(async () => {
     if (!entryToDelete) return;
 
     try {
@@ -256,10 +254,10 @@ export function useTimeLogs() {
     } finally {
       setIsDeleting(false);
     }
-  }
+  }, [entryToDelete, activeEntry, t, loadTimeEntries]);
 
   // Save edited entry
-  async function handleSaveEdit(title: string, startTimeISO: string, tags: string[]) {
+  const handleSaveEdit = useCallback(async (title: string, startTimeISO: string, tags: string[]) => {
     if (!activeEntry) return;
 
     try {
@@ -286,33 +284,33 @@ export function useTimeLogs() {
     } finally {
       setIsSaving(false);
     }
-  }
+  }, [activeEntry, t, loadTimeEntries]);
 
   // Start editing active entry
-  function handleEditActiveEntry() {
+  const handleEditActiveEntry = useCallback(() => {
     setIsEditingActive(true);
     setEditingEntryId(null);
-  }
+  }, []);
 
   // Start editing a stopped entry
-  function handleEditEntry(entry: TimeEntry) {
+  const handleEditEntry = useCallback((entry: TimeEntry) => {
     setEditingEntryId(entry.id);
     setIsEditingActive(false);
-  }
+  }, []);
 
   // Cancel editing stopped entry
-  function handleCancelEditEntry() {
+  const handleCancelEditEntry = useCallback(() => {
     setEditingEntryId(null);
-  }
+  }, []);
 
   // Save edited stopped entry
-  async function handleSaveStoppedEntry(
+  const handleSaveStoppedEntry = useCallback(async (
     entry: TimeEntry,
     title: string,
     startTimeISO: string,
     endTimeISO: string,
     tags: string[]
-  ) {
+  ) => {
     try {
       setIsSaving(true);
       setError(null);
@@ -337,10 +335,10 @@ export function useTimeLogs() {
     } finally {
       setIsSaving(false);
     }
-  }
+  }, [t, loadTimeEntries]);
 
   // Save edited grouped entry
-  async function handleSaveGroupEdit(entryIds: number[], title: string, tags: string[]) {
+  const handleSaveGroupEdit = useCallback(async (entryIds: number[], title: string, tags: string[]) => {
     try {
       setIsSaving(true);
       setError(null);
@@ -363,24 +361,24 @@ export function useTimeLogs() {
     } finally {
       setIsSaving(false);
     }
-  }
+  }, [t, loadTimeEntries]);
 
   // Navigate to previous week
-  function handlePreviousWeek() {
+  const handlePreviousWeek = useCallback(() => {
     const newWeekStart = new Date(weekStart);
     newWeekStart.setDate(newWeekStart.getDate() - 7);
     setWeekStart(newWeekStart);
-  }
+  }, [weekStart]);
 
   // Navigate to next week
-  function handleNextWeek() {
+  const handleNextWeek = useCallback(() => {
     const newWeekStart = new Date(weekStart);
     newWeekStart.setDate(newWeekStart.getDate() + 7);
     setWeekStart(newWeekStart);
-  }
+  }, [weekStart]);
 
   // Get week range display
-  function getWeekRangeDisplay(): string {
+  const getWeekRangeDisplay = useCallback((): string => {
     const locale = userLocale || i18n.language || "en";
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekEnd.getDate() + 6);
@@ -389,7 +387,7 @@ export function useTimeLogs() {
     const endStr = weekEnd.toLocaleDateString(locale, { month: "short", day: "numeric" });
 
     return `${startStr} - ${endStr}`;
-  }
+  }, [weekStart, userLocale, i18n.language]);
 
   // Load data on mount and when week changes
   useEffect(() => {
@@ -427,31 +425,20 @@ export function useTimeLogs() {
   }, [activeEntry?.id, activeEntry?.startTime]);
 
   // Calculate weekly total from entries
-  function calculateWeeklyTotal(entries: TimeLogEntry[]): number {
+  const calculateWeeklyTotal = useCallback((entries: TimeLogEntry[]): number => {
     return entries.reduce((sum, entry) => sum + calculateDuration(entry.startTime, entry.endTime), 0);
-  }
+  }, []);
 
-  // Recalculate day groups when entries change or when there's an active entry
-  useEffect(() => {
+  // Memoize day groups to avoid recalculating on every render
+  const dayGroups = useMemo(() => {
     const locale = userLocale || i18n.language || "en";
-    const groups = groupEntriesByDay(entries, locale);
-    setDayGroups(groups);
+    return groupEntriesByDay(entries, locale);
+  }, [entries, userLocale, i18n.language]);
 
-    // Calculate weekly total from all entries
-    setWeeklyTotal(calculateWeeklyTotal(entries));
-
-    if (!activeEntry) return;
-
-    const interval = setInterval(() => {
-      const updatedGroups = groupEntriesByDay(entries, locale);
-      setDayGroups(updatedGroups);
-
-      // Recalculate weekly total with active entry duration
-      setWeeklyTotal(calculateWeeklyTotal(entries));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [entries, activeEntry, i18n.language, userLocale]);
+  // Memoize weekly total calculation
+  const weeklyTotal = useMemo(() => {
+    return calculateWeeklyTotal(entries);
+  }, [entries, calculateWeeklyTotal]);
 
   return {
     activeEntry,

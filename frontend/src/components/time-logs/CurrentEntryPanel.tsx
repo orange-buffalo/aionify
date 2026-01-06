@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ interface CurrentEntryPanelProps {
   onEditStart: () => void;
 }
 
-export function CurrentEntryPanel({
+export const CurrentEntryPanel = memo(function CurrentEntryPanel({
   activeEntry,
   activeDuration,
   locale,
@@ -179,4 +179,4 @@ export function CurrentEntryPanel({
       </CardContent>
     </Card>
   );
-}
+});
