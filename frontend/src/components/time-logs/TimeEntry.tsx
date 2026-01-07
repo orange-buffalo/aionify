@@ -13,6 +13,7 @@ import { Play, MoreVertical, Trash2, Pencil, AlertCircle } from "lucide-react";
 import { formatTime, formatTimeWithWeekday, formatDate } from "@/lib/date-format";
 import { calculateDuration, formatDuration, isDifferentDay } from "@/lib/time-utils";
 import { apiDelete } from "@/lib/api";
+import { useApiExecutor } from "@/hooks/useApiExecutor";
 import { EditEntryForm } from "./EditEntryForm";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 import type { EntryOverlap } from "@/lib/overlap-detection";
@@ -46,6 +47,7 @@ export function TimeEntry({
   overlap,
 }: TimeEntryProps) {
   const { t } = useTranslation();
+  const { executeApiCall, apiCallInProgress, formMessage } = useApiExecutor("delete-entry");
   const duration = calculateDuration(entry.startTime, entry.endTime);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(entry.title);
@@ -55,7 +57,6 @@ export function TimeEntry({
 
   // Deletion state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleEditClick = () => {
     setEditTitle(entry.title);
@@ -86,17 +87,12 @@ export function TimeEntry({
   };
 
   const handleDelete = async () => {
-    try {
-      setIsDeleting(true);
+    await executeApiCall(async () => {
       await apiDelete(`/api-ui/time-log-entries/${entry.id}`);
       setDeleteDialogOpen(false);
       await onDataChange();
-    } catch (err: any) {
-      // Error handling is done at the page level through onDataChange
-      console.error("Failed to delete entry:", err);
-    } finally {
-      setIsDeleting(false);
-    }
+      return t("timeLogs.success.deleted");
+    });
   };
 
   // Check if entry spans to a different day
@@ -222,8 +218,9 @@ export function TimeEntry({
         onOpenChange={setDeleteDialogOpen}
         entry={entry}
         locale={locale}
-        isDeleting={isDeleting}
+        isDeleting={apiCallInProgress}
         onConfirm={handleDelete}
+        formMessage={formMessage}
       />
     </div>
   );

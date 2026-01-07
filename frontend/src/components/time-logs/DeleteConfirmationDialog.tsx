@@ -11,6 +11,7 @@ interface DeleteConfirmationDialogProps {
   locale: string;
   isDeleting: boolean;
   onConfirm: () => Promise<void>;
+  formMessage?: React.ReactNode;
 }
 
 export function DeleteConfirmationDialog({
@@ -20,6 +21,7 @@ export function DeleteConfirmationDialog({
   locale,
   isDeleting,
   onConfirm,
+  formMessage,
 }: DeleteConfirmationDialogProps) {
   const { t } = useTranslation();
 
@@ -35,6 +37,7 @@ export function DeleteConfirmationDialog({
       isConfirming={isDeleting}
       confirmTestId="confirm-delete-button"
     >
+      {formMessage}
       {entry && (
         <div className="mt-2 p-2 bg-muted rounded text-foreground">
           <div className="font-semibold">{entry.title}</div>
