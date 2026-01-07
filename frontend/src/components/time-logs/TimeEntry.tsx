@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Play, MoreVertical, Trash2, Pencil, AlertCircle } from "lucide-react";
 import { formatTime, formatTimeWithWeekday, formatDate } from "@/lib/date-format";
 import { calculateDuration, formatDuration, isDifferentDay } from "@/lib/time-utils";
-import { apiDelete, apiPost } from "@/lib/api";
+import { apiDelete, apiPost, apiPut } from "@/lib/api";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
 import { EditEntryForm } from "./EditEntryForm";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
@@ -23,9 +23,7 @@ interface TimeEntryProps {
   entry: TimeLogEntry;
   locale: string;
   startOfWeek: number;
-  isSaving: boolean;
   onDataChange: () => Promise<void>;
-  onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string, tags: string[]) => Promise<void>;
   hideTitle?: boolean;
   hideTags?: boolean;
   hideContinue?: boolean;
@@ -71,10 +69,18 @@ export function TimeEntry({
 
   const handleSaveEdit = async () => {
     if (!editTitle.trim()) return;
-    const startTimeISO = editStartDateTime.toISOString();
-    const endTimeISO = editEndDateTime.toISOString();
-    await onSaveEdit(entry, editTitle.trim(), startTimeISO, endTimeISO, editTags);
-    setIsEditing(false);
+    await executeEditCall(async () => {
+      const startTimeISO = editStartDateTime.toISOString();
+      const endTimeISO = editEndDateTime.toISOString();
+      await apiPut<TimeEntry>(`/api-ui/time-log-entries/${entry.id}`, {
+        title: editTitle.trim(),
+        startTime: startTimeISO,
+        endTime: endTimeISO,
+        tags: editTags,
+      });
+      await onDataChange();
+      setIsEditing(false);
+    });
   };
 
   const handleCancelEdit = () => {
@@ -120,6 +126,7 @@ export function TimeEntry({
   if (isEditing) {
     return (
       <div className="p-3 border border-border rounded-md" data-testid="time-entry-edit">
+        {editFormMessage}
         <EditEntryForm
           title={editTitle}
           startDateTime={editStartDateTime}

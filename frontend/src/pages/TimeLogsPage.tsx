@@ -14,13 +14,11 @@ export function TimeLogsPage() {
     dayGroups,
     weeklyTotal,
     isInitializing,
-    isSaving,
     userLocale,
     startOfWeek,
     isEditingActive,
     handleSaveEdit,
     handleEditActiveEntry,
-    handleSaveStoppedEntry,
     handleSaveGroupEdit,
     handlePreviousWeek,
     handleNextWeek,
@@ -62,7 +60,6 @@ export function TimeLogsPage() {
             activeDuration={activeDuration}
             locale={locale}
             startOfWeek={startOfWeek}
-            isSaving={isSaving}
             isEditingStoppedEntry={false}
             onDataChange={reloadData}
             onSaveEdit={handleSaveEdit}
@@ -93,9 +90,7 @@ export function TimeLogsPage() {
                   group={group}
                   locale={locale}
                   startOfWeek={startOfWeek}
-                  isSaving={isSaving}
                   onDataChange={reloadData}
-                  onSaveEdit={handleSaveStoppedEntry}
                   onSaveGroupEdit={handleSaveGroupEdit}
                 />
               ))}

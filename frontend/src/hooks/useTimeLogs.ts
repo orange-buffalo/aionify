@@ -19,7 +19,6 @@ export function useTimeLogs() {
   const [dayGroups, setDayGroups] = useState<DayGroup[]>([]);
   const [isInitializing, setIsInitializing] = useState(true);
   const [hasCurrentWeekLoaded, setHasCurrentWeekLoaded] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [userLocale, setUserLocale] = useState<string | null>(null);
   const [startOfWeek, setStartOfWeek] = useState<number>(1); // Default to Monday
   const [isEditingActive, setIsEditingActive] = useState(false);
@@ -158,9 +157,6 @@ export function useTimeLogs() {
     if (!activeEntry) return;
 
     try {
-      setIsSaving(true);
-      setError(null);
-
       const updatedEntry = await apiPut<TimeEntry>(`/api-ui/time-log-entries/${activeEntry.id}`, {
         title,
         startTime: startTimeISO,
@@ -171,15 +167,8 @@ export function useTimeLogs() {
       setIsEditingActive(false);
       await loadTimeEntries();
     } catch (err: any) {
-      const errorCode = err.errorCode;
-      if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`));
-      } else {
-        setError(err.message || t("common.error"));
-      }
+      console.error("Failed to save edited entry:", err);
       throw err;
-    } finally {
-      setIsSaving(false);
     }
   }
 
@@ -188,45 +177,9 @@ export function useTimeLogs() {
     setIsEditingActive(true);
   }
 
-  // Save edited stopped entry
-  async function handleSaveStoppedEntry(
-    entry: TimeEntry,
-    title: string,
-    startTimeISO: string,
-    endTimeISO: string,
-    tags: string[]
-  ) {
-    try {
-      setIsSaving(true);
-      setError(null);
-
-      await apiPut<TimeEntry>(`/api-ui/time-log-entries/${entry.id}`, {
-        title,
-        startTime: startTimeISO,
-        endTime: endTimeISO,
-        tags,
-      });
-
-      await loadTimeEntries();
-    } catch (err: any) {
-      const errorCode = err.errorCode;
-      if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`));
-      } else {
-        setError(err.message || t("common.error"));
-      }
-      throw err;
-    } finally {
-      setIsSaving(false);
-    }
-  }
-
   // Save edited grouped entry
   async function handleSaveGroupEdit(entryIds: number[], title: string, tags: string[]) {
     try {
-      setIsSaving(true);
-      setError(null);
-
       await apiPut(`/api-ui/time-log-entries/bulk-update`, {
         entryIds,
         title,
@@ -235,15 +188,8 @@ export function useTimeLogs() {
 
       await loadTimeEntries();
     } catch (err: any) {
-      const errorCode = err.errorCode;
-      if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`));
-      } else {
-        setError(err.message || t("common.error"));
-      }
+      console.error("Failed to save group edit:", err);
       throw err;
-    } finally {
-      setIsSaving(false);
     }
   }
 
@@ -344,13 +290,11 @@ export function useTimeLogs() {
     dayGroups,
     weeklyTotal,
     isInitializing,
-    isSaving,
     userLocale,
     startOfWeek,
     isEditingActive,
     handleSaveEdit,
     handleEditActiveEntry,
-    handleSaveStoppedEntry,
     handleSaveGroupEdit,
     handlePreviousWeek,
     handleNextWeek,

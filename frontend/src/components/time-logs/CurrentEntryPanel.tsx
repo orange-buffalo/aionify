@@ -17,7 +17,6 @@ interface CurrentEntryPanelProps {
   activeDuration: number;
   locale: string;
   startOfWeek: number;
-  isSaving: boolean;
   isEditingStoppedEntry: boolean;
   onDataChange: () => Promise<void>;
   onSaveEdit: (title: string, startTime: string, tags: string[]) => Promise<void>;
@@ -29,7 +28,6 @@ export function CurrentEntryPanel({
   activeDuration,
   locale,
   startOfWeek,
-  isSaving,
   isEditingStoppedEntry,
   onDataChange,
   onSaveEdit,
@@ -46,6 +44,11 @@ export function CurrentEntryPanel({
     apiCallInProgress: isStopping,
     formMessage: stopFormMessage,
   } = useApiExecutor("stop-entry");
+  const {
+    executeApiCall: executeEditCall,
+    apiCallInProgress: isSaving,
+    formMessage: editFormMessage,
+  } = useApiExecutor("edit-entry");
   const [newEntryTitle, setNewEntryTitle] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -83,9 +86,11 @@ export function CurrentEntryPanel({
 
   const handleSaveEdit = async () => {
     if (!activeEntry || !editTitle.trim()) return;
-    const startTimeISO = editDateTime.toISOString();
-    await onSaveEdit(editTitle.trim(), startTimeISO, editTags);
-    setIsEditMode(false);
+    await executeEditCall(async () => {
+      const startTimeISO = editDateTime.toISOString();
+      await onSaveEdit(editTitle.trim(), startTimeISO, editTags);
+      setIsEditMode(false);
+    });
   };
 
   const handleCancelEdit = () => {
@@ -113,6 +118,7 @@ export function CurrentEntryPanel({
       <CardContent>
         {startFormMessage}
         {stopFormMessage}
+        {editFormMessage}
         {activeEntry ? (
           isEditMode ? (
             /* Edit Mode */

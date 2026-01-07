@@ -16,9 +16,7 @@ interface GroupedTimeEntryProps {
   groupedEntry: GroupedTimeLogEntry;
   locale: string;
   startOfWeek: number;
-  isSaving: boolean;
   onDataChange: () => Promise<void>;
-  onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string, tags: string[]) => Promise<void>;
   onSaveGroupEdit: (entryIds: number[], title: string, tags: string[]) => Promise<void>;
   overlaps: Map<number, EntryOverlap>;
 }
@@ -27,9 +25,7 @@ export function GroupedTimeEntry({
   groupedEntry,
   locale,
   startOfWeek,
-  isSaving,
   onDataChange,
-  onSaveEdit,
   onSaveGroupEdit,
   overlaps,
 }: GroupedTimeEntryProps) {
@@ -37,6 +33,7 @@ export function GroupedTimeEntry({
   const { executeApiCall: executeContinueCall, apiCallInProgress: isContinuing } = useApiExecutor("continue-entry");
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingGroup, setIsEditingGroup] = useState(false);
+  const [isSavingGroup, setIsSavingGroup] = useState(false);
   const [editTitle, setEditTitle] = useState(groupedEntry.title);
   const [editTags, setEditTags] = useState<string[]>(groupedEntry.tags || []);
 
@@ -64,9 +61,14 @@ export function GroupedTimeEntry({
 
   const handleSaveGroupEdit = async () => {
     if (!editTitle.trim()) return;
-    const entryIds = groupedEntry.entries.map((e) => e.id);
-    await onSaveGroupEdit(entryIds, editTitle.trim(), editTags);
-    setIsEditingGroup(false);
+    setIsSavingGroup(true);
+    try {
+      const entryIds = groupedEntry.entries.map((e) => e.id);
+      await onSaveGroupEdit(entryIds, editTitle.trim(), editTags);
+      setIsEditingGroup(false);
+    } finally {
+      setIsSavingGroup(false);
+    }
   };
 
   const handleCancelGroupEdit = () => {
@@ -92,7 +94,7 @@ export function GroupedTimeEntry({
       <EditGroupedEntryForm
         title={editTitle}
         tags={editTags}
-        isSaving={isSaving}
+        isSaving={isSavingGroup}
         onTitleChange={setEditTitle}
         onTagsChange={setEditTags}
         onSave={handleSaveGroupEdit}
@@ -191,9 +193,7 @@ export function GroupedTimeEntry({
                 entry={entry}
                 locale={locale}
                 startOfWeek={startOfWeek}
-                isSaving={isSaving}
                 onDataChange={onDataChange}
-                onSaveEdit={onSaveEdit}
                 hideTitle={false}
                 hideTags={true}
                 hideContinue={true}
