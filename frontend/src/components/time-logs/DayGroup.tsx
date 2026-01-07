@@ -11,21 +11,10 @@ interface DayGroupProps {
   group: DayGroupType;
   locale: string;
   startOfWeek: number;
-  isSaving: boolean;
   onDataChange: () => Promise<void>;
-  onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string, tags: string[]) => Promise<void>;
-  onSaveGroupEdit: (entryIds: number[], title: string, tags: string[]) => Promise<void>;
 }
 
-export function DayGroup({
-  group,
-  locale,
-  startOfWeek,
-  isSaving,
-  onDataChange,
-  onSaveEdit,
-  onSaveGroupEdit,
-}: DayGroupProps) {
+export function DayGroup({ group, locale, startOfWeek, onDataChange }: DayGroupProps) {
   const { t } = useTranslation();
 
   // Detect overlaps within this day group
@@ -56,10 +45,7 @@ export function DayGroup({
                   groupedEntry={item}
                   locale={locale}
                   startOfWeek={startOfWeek}
-                  isSaving={isSaving}
                   onDataChange={onDataChange}
-                  onSaveEdit={onSaveEdit}
-                  onSaveGroupEdit={onSaveGroupEdit}
                   overlaps={overlaps}
                 />
               );
@@ -71,9 +57,7 @@ export function DayGroup({
                   entry={item}
                   locale={locale}
                   startOfWeek={startOfWeek}
-                  isSaving={isSaving}
                   onDataChange={onDataChange}
-                  onSaveEdit={onSaveEdit}
                   overlap={overlap}
                 />
               );

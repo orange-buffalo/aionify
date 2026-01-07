@@ -19,8 +19,6 @@ interface CurrentEntryPanelProps {
   startOfWeek: number;
   isEditingStoppedEntry: boolean;
   onDataChange: () => Promise<void>;
-  onSaveEdit: (title: string, startTime: string, tags: string[]) => Promise<void>;
-  onEditStart: () => void;
 }
 
 export function CurrentEntryPanel({
@@ -30,8 +28,6 @@ export function CurrentEntryPanel({
   startOfWeek,
   isEditingStoppedEntry,
   onDataChange,
-  onSaveEdit,
-  onEditStart,
 }: CurrentEntryPanelProps) {
   const { t } = useTranslation();
   const {
@@ -80,14 +76,17 @@ export function CurrentEntryPanel({
     setEditDateTime(new Date(activeEntry.startTime));
     setEditTags(activeEntry.tags || []);
     setIsEditMode(true);
-    onEditStart();
   };
 
   const handleSaveEdit = async () => {
     if (!activeEntry || !editTitle.trim()) return;
     await executeEditCall(async () => {
       const startTimeISO = editDateTime.toISOString();
-      await onSaveEdit(editTitle.trim(), startTimeISO, editTags);
+      await apiPut<TimeEntry>(`/api-ui/time-log-entries/${activeEntry.id}`, {
+        title: editTitle.trim(),
+        startTime: startTimeISO,
+        tags: editTags,
+      });
       await onDataChange();
       setIsEditMode(false);
     });
