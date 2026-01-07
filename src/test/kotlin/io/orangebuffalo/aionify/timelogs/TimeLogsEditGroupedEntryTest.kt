@@ -173,6 +173,9 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
         // Save
         page.locator("[data-testid='save-edit-grouped-entry-button']").click()
 
+        // Wait for edit form to close (indicating save completed)
+        assertThat(page.locator("[data-testid='edit-grouped-entry-form']")).not().isVisible()
+
         // Verify only the grouped entries were updated
         testDatabaseSupport.inTransaction {
             val updated1 = timeLogEntryRepository.findById(requireNotNull(groupEntry1.id)).orElseThrow()
