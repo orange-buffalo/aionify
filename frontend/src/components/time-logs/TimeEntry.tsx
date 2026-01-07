@@ -12,7 +12,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Play, MoreVertical, Trash2, Pencil, AlertCircle } from "lucide-react";
 import { formatTime, formatTimeWithWeekday, formatDate } from "@/lib/date-format";
 import { calculateDuration, formatDuration, isDifferentDay } from "@/lib/time-utils";
+import { apiDelete } from "@/lib/api";
 import { EditEntryForm } from "./EditEntryForm";
+import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 import type { EntryOverlap } from "@/lib/overlap-detection";
 import type { TimeLogEntry } from "./types";
 
@@ -22,7 +24,7 @@ interface TimeEntryProps {
   startOfWeek: number;
   isSaving: boolean;
   onContinue: (entry: TimeLogEntry) => void;
-  onDelete: (entry: TimeLogEntry) => void;
+  onDataChange: () => Promise<void>;
   onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string, tags: string[]) => Promise<void>;
   hideTitle?: boolean;
   hideTags?: boolean;
@@ -36,7 +38,7 @@ export function TimeEntry({
   startOfWeek,
   isSaving,
   onContinue,
-  onDelete,
+  onDataChange,
   onSaveEdit,
   hideTitle = false,
   hideTags = false,
@@ -50,6 +52,10 @@ export function TimeEntry({
   const [editStartDateTime, setEditStartDateTime] = useState<Date>(new Date(entry.startTime));
   const [editEndDateTime, setEditEndDateTime] = useState<Date>(new Date(entry.endTime || new Date()));
   const [editTags, setEditTags] = useState<string[]>(entry.tags || []);
+
+  // Deletion state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleEditClick = () => {
     setEditTitle(entry.title);
@@ -73,6 +79,24 @@ export function TimeEntry({
     setEditEndDateTime(new Date(entry.endTime || new Date()));
     setEditTags(entry.tags || []);
     setIsEditing(false);
+  };
+
+  const handleDeleteClick = () => {
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      await apiDelete(`/api-ui/time-log-entries/${entry.id}`);
+      setDeleteDialogOpen(false);
+      await onDataChange();
+    } catch (err: any) {
+      // Error handling is done at the page level through onDataChange
+      console.error("Failed to delete entry:", err);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // Check if entry spans to a different day
@@ -180,7 +204,7 @@ export function TimeEntry({
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem
-                onClick={() => onDelete(entry)}
+                onClick={handleDeleteClick}
                 data-testid="delete-menu-item"
                 className="text-destructive focus:text-destructive"
               >
@@ -191,6 +215,16 @@ export function TimeEntry({
           </DropdownMenu>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        entry={entry}
+        locale={locale}
+        isDeleting={isDeleting}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

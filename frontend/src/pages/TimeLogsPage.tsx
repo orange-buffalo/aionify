@@ -4,7 +4,6 @@ import { FormMessage } from "@/components/ui/form-message";
 import { CurrentEntryPanel } from "@/components/time-logs/CurrentEntryPanel";
 import { WeekNavigation } from "@/components/time-logs/WeekNavigation";
 import { DayGroup } from "@/components/time-logs/DayGroup";
-import { DeleteConfirmationDialog } from "@/components/time-logs/DeleteConfirmationDialog";
 import { useTimeLogs } from "@/hooks/useTimeLogs";
 
 export function TimeLogsPage() {
@@ -18,9 +17,6 @@ export function TimeLogsPage() {
     isStarting,
     isStopping,
     error,
-    deleteDialogOpen,
-    entryToDelete,
-    isDeleting,
     isSaving,
     userLocale,
     startOfWeek,
@@ -28,8 +24,6 @@ export function TimeLogsPage() {
     handleStart,
     handleStop,
     handleContinue,
-    handleDeleteClick,
-    handleDelete,
     handleSaveEdit,
     handleEditActiveEntry,
     handleSaveStoppedEntry,
@@ -37,7 +31,7 @@ export function TimeLogsPage() {
     handlePreviousWeek,
     handleNextWeek,
     getWeekRangeDisplay,
-    setDeleteDialogOpen,
+    reloadData,
   } = useTimeLogs();
 
   // Don't render page elements until we have the user locale
@@ -113,7 +107,7 @@ export function TimeLogsPage() {
                   startOfWeek={startOfWeek}
                   isSaving={isSaving}
                   onContinue={handleContinue}
-                  onDelete={handleDeleteClick}
+                  onDataChange={reloadData}
                   onSaveEdit={handleSaveStoppedEntry}
                   onSaveGroupEdit={handleSaveGroupEdit}
                 />
@@ -127,16 +121,6 @@ export function TimeLogsPage() {
           </div>
         </div>
       </div>
-
-      {/* Delete Confirmation Dialog */}
-      <DeleteConfirmationDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        entry={entryToDelete}
-        locale={locale}
-        isDeleting={isDeleting}
-        onConfirm={handleDelete}
-      />
     </PortalLayout>
   );
 }

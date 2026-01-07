@@ -13,7 +13,7 @@ interface DayGroupProps {
   startOfWeek: number;
   isSaving: boolean;
   onContinue: (entry: TimeLogEntry) => void;
-  onDelete: (entry: TimeLogEntry) => void;
+  onDataChange: () => Promise<void>;
   onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string, tags: string[]) => Promise<void>;
   onSaveGroupEdit: (entryIds: number[], title: string, tags: string[]) => Promise<void>;
 }
@@ -24,7 +24,7 @@ export function DayGroup({
   startOfWeek,
   isSaving,
   onContinue,
-  onDelete,
+  onDataChange,
   onSaveEdit,
   onSaveGroupEdit,
 }: DayGroupProps) {
@@ -60,7 +60,7 @@ export function DayGroup({
                   startOfWeek={startOfWeek}
                   isSaving={isSaving}
                   onContinue={onContinue}
-                  onDelete={onDelete}
+                  onDataChange={onDataChange}
                   onSaveEdit={onSaveEdit}
                   onSaveGroupEdit={onSaveGroupEdit}
                   overlaps={overlaps}
@@ -76,7 +76,7 @@ export function DayGroup({
                   startOfWeek={startOfWeek}
                   isSaving={isSaving}
                   onContinue={onContinue}
-                  onDelete={onDelete}
+                  onDataChange={onDataChange}
                   onSaveEdit={onSaveEdit}
                   overlap={overlap}
                 />
