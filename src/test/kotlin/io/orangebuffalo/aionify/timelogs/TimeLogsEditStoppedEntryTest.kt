@@ -365,8 +365,8 @@ class TimeLogsEditStoppedEntryTest : TimeLogsPageTestBase() {
         timeLogsPage.clickSaveStoppedEntryEdit()
 
         // Verify error message is shown
-        assertThat(page.locator("[data-testid='time-logs-error']")).isVisible()
-        assertThat(page.locator("[data-testid='time-logs-error']")).containsText("End time must be after start time")
+        assertThat(page.locator("[data-testid='edit-stopped-entry-error']")).isVisible()
+        assertThat(page.locator("[data-testid='edit-stopped-entry-error']")).containsText("End time must be after start time")
 
         // Verify we're still in edit mode with all controls visible
         timeLogsPage.assertStoppedEntryEditVisible()

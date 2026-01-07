@@ -23,9 +23,7 @@ interface TimeEntryProps {
   entry: TimeLogEntry;
   locale: string;
   startOfWeek: number;
-  isSaving: boolean;
   onDataChange: () => Promise<void>;
-  onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string, tags: string[]) => Promise<void>;
   hideTitle?: boolean;
   hideTags?: boolean;
   hideContinue?: boolean;
@@ -36,9 +34,7 @@ export function TimeEntry({
   entry,
   locale,
   startOfWeek,
-  isSaving,
   onDataChange,
-  onSaveEdit,
   hideTitle = false,
   hideTags = false,
   hideContinue = false,
@@ -51,6 +47,11 @@ export function TimeEntry({
     formMessage: deleteFormMessage,
   } = useApiExecutor("delete-entry");
   const { executeApiCall: executeContinueCall, apiCallInProgress: isContinuing } = useApiExecutor("continue-entry");
+  const {
+    executeApiCall: executeEditCall,
+    apiCallInProgress: isSaving,
+    formMessage: editFormMessage,
+  } = useApiExecutor("edit-stopped-entry");
   const duration = calculateDuration(entry.startTime, entry.endTime);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(entry.title);
@@ -71,10 +72,18 @@ export function TimeEntry({
 
   const handleSaveEdit = async () => {
     if (!editTitle.trim()) return;
-    const startTimeISO = editStartDateTime.toISOString();
-    const endTimeISO = editEndDateTime.toISOString();
-    await onSaveEdit(entry, editTitle.trim(), startTimeISO, endTimeISO, editTags);
-    setIsEditing(false);
+    await executeEditCall(async () => {
+      const startTimeISO = editStartDateTime.toISOString();
+      const endTimeISO = editEndDateTime.toISOString();
+      await apiPut<TimeEntry>(`/api-ui/time-log-entries/${entry.id}`, {
+        title: editTitle.trim(),
+        startTime: startTimeISO,
+        endTime: endTimeISO,
+        tags: editTags,
+      });
+      await onDataChange();
+      setIsEditing(false);
+    });
   };
 
   const handleCancelEdit = () => {
@@ -119,6 +128,7 @@ export function TimeEntry({
   if (isEditing) {
     return (
       <div className="p-3 border border-border rounded-md" data-testid="time-entry-edit">
+        {editFormMessage}
         <EditEntryForm
           title={editTitle}
           startDateTime={editStartDateTime}
