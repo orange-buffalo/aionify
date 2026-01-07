@@ -261,55 +261,70 @@ class TimeLogsEditStoppedEntryTest : TimeLogsPageTestBase() {
     }
 
     @Test
-    fun `should enforce mutual exclusion between active and stopped entry editing`() {
-        // Create an active entry
+    fun `should allow editing multiple stopped entries simultaneously`() {
+        // Create two stopped entries
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(1800),
-                endTime = null,
-                title = "Active Task",
+                startTime = FIXED_TEST_TIME.minusSeconds(5400),
+                endTime = FIXED_TEST_TIME.minusSeconds(3600),
+                title = "First Task",
                 ownerId = requireNotNull(testUser.id),
             ),
         )
 
-        // Create a stopped entry
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(2700),
-                title = "Stopped Task",
+                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                title = "Second Task",
                 ownerId = requireNotNull(testUser.id),
             ),
         )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
-        // Start editing the active entry
-        timeLogsPage.clickEditEntry()
+        // Verify both entries are visible
+        assertThat(page.locator("[data-testid='entry-title']")).hasCount(2)
 
-        // Verify active entry edit form is visible
-        assertThat(page.locator("[data-testid='edit-title-input']")).isVisible()
+        // Start editing the first entry
+        timeLogsPage.clickEditForEntry("First Task")
 
-        // Start editing a stopped entry
-        timeLogsPage.clickEditForEntry("Stopped Task")
-
-        // Verify active entry edit form is no longer visible (cancelled)
-        assertThat(page.locator("[data-testid='edit-title-input']")).not().isVisible()
-
-        // Verify stopped entry edit form is visible with all controls
+        // Verify first entry edit form is visible
         timeLogsPage.assertStoppedEntryEditVisible()
+        assertThat(page.locator("[data-testid='time-entry-edit']")).hasCount(1)
 
-        // Cancel stopped entry edit
-        timeLogsPage.clickCancelStoppedEntryEdit()
+        // Start editing the second entry - should open a second edit form
+        timeLogsPage.clickEditForEntry("Second Task")
 
-        // Verify stopped entry edit form is hidden with all controls
-        timeLogsPage.assertStoppedEntryEditHidden()
+        // Verify both edit forms are visible now - this is the key change
+        assertThat(page.locator("[data-testid='time-entry-edit']")).hasCount(2)
 
-        // Start editing the active entry again
-        timeLogsPage.clickEditEntry()
+        // Cancel both edits independently
+        page
+            .locator("[data-testid='time-entry-edit']")
+            .nth(0)
+            .locator("[data-testid='cancel-stopped-entry-edit-button']")
+            .click()
+        assertThat(page.locator("[data-testid='time-entry-edit']")).hasCount(1)
 
-        // Verify active entry edit form is visible
-        assertThat(page.locator("[data-testid='edit-title-input']")).isVisible()
+        page.locator("[data-testid='cancel-stopped-entry-edit-button']").click()
+        assertThat(page.locator("[data-testid='time-entry-edit']")).hasCount(0)
+
+        // Verify original titles are preserved
+        assertThat(
+            page.locator("[data-testid='entry-title']").filter(
+                com.microsoft.playwright.Locator
+                    .FilterOptions()
+                    .setHasText("First Task"),
+            ),
+        ).isVisible()
+        assertThat(
+            page.locator("[data-testid='entry-title']").filter(
+                com.microsoft.playwright.Locator
+                    .FilterOptions()
+                    .setHasText("Second Task"),
+            ),
+        ).isVisible()
     }
 
     @Test

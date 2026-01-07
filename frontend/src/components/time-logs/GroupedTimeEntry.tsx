@@ -14,13 +14,10 @@ interface GroupedTimeEntryProps {
   groupedEntry: GroupedTimeLogEntry;
   locale: string;
   startOfWeek: number;
-  editingEntryId: number | null;
   isSaving: boolean;
   onContinue: (entry: TimeLogEntry) => void;
   onDelete: (entry: TimeLogEntry) => void;
-  onEdit: (entry: TimeLogEntry) => void;
   onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string, tags: string[]) => Promise<void>;
-  onCancelEdit: () => void;
   onSaveGroupEdit: (entryIds: number[], title: string, tags: string[]) => Promise<void>;
   overlaps: Map<number, EntryOverlap>;
 }
@@ -29,13 +26,10 @@ export function GroupedTimeEntry({
   groupedEntry,
   locale,
   startOfWeek,
-  editingEntryId,
   isSaving,
   onContinue,
   onDelete,
-  onEdit,
   onSaveEdit,
-  onCancelEdit,
   onSaveGroupEdit,
   overlaps,
 }: GroupedTimeEntryProps) {
@@ -183,13 +177,10 @@ export function GroupedTimeEntry({
                 entry={entry}
                 locale={locale}
                 startOfWeek={startOfWeek}
-                isEditing={editingEntryId === entry.id}
                 isSaving={isSaving}
                 onContinue={onContinue}
                 onDelete={onDelete}
-                onEdit={onEdit}
                 onSaveEdit={onSaveEdit}
-                onCancelEdit={onCancelEdit}
                 hideTitle={false}
                 hideTags={true}
                 hideContinue={true}

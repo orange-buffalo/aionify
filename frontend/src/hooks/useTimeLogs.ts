@@ -28,7 +28,6 @@ export function useTimeLogs() {
   const [isSaving, setIsSaving] = useState(false);
   const [userLocale, setUserLocale] = useState<string | null>(null);
   const [startOfWeek, setStartOfWeek] = useState<number>(1); // Default to Monday
-  const [editingEntryId, setEditingEntryId] = useState<number | null>(null);
   const [isEditingActive, setIsEditingActive] = useState(false);
   const [weeklyTotal, setWeeklyTotal] = useState<number>(0);
 
@@ -291,18 +290,6 @@ export function useTimeLogs() {
   // Start editing active entry
   function handleEditActiveEntry() {
     setIsEditingActive(true);
-    setEditingEntryId(null);
-  }
-
-  // Start editing a stopped entry
-  function handleEditEntry(entry: TimeEntry) {
-    setEditingEntryId(entry.id);
-    setIsEditingActive(false);
-  }
-
-  // Cancel editing stopped entry
-  function handleCancelEditEntry() {
-    setEditingEntryId(null);
   }
 
   // Save edited stopped entry
@@ -324,7 +311,6 @@ export function useTimeLogs() {
         tags,
       });
 
-      setEditingEntryId(null);
       await loadTimeEntries();
     } catch (err: any) {
       const errorCode = err.errorCode;
@@ -470,7 +456,6 @@ export function useTimeLogs() {
     isSaving,
     userLocale,
     startOfWeek,
-    editingEntryId,
     isEditingActive,
     handleStart,
     handleStop,
@@ -479,8 +464,6 @@ export function useTimeLogs() {
     handleDelete,
     handleSaveEdit,
     handleEditActiveEntry,
-    handleEditEntry,
-    handleCancelEditEntry,
     handleSaveStoppedEntry,
     handleSaveGroupEdit,
     handlePreviousWeek,

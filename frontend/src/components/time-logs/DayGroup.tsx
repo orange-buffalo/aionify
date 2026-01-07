@@ -11,13 +11,10 @@ interface DayGroupProps {
   group: DayGroupType;
   locale: string;
   startOfWeek: number;
-  editingEntryId: number | null;
   isSaving: boolean;
   onContinue: (entry: TimeLogEntry) => void;
   onDelete: (entry: TimeLogEntry) => void;
-  onEdit: (entry: TimeLogEntry) => void;
   onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string, tags: string[]) => Promise<void>;
-  onCancelEdit: () => void;
   onSaveGroupEdit: (entryIds: number[], title: string, tags: string[]) => Promise<void>;
 }
 
@@ -25,13 +22,10 @@ export function DayGroup({
   group,
   locale,
   startOfWeek,
-  editingEntryId,
   isSaving,
   onContinue,
   onDelete,
-  onEdit,
   onSaveEdit,
-  onCancelEdit,
   onSaveGroupEdit,
 }: DayGroupProps) {
   const { t } = useTranslation();
@@ -64,13 +58,10 @@ export function DayGroup({
                   groupedEntry={item}
                   locale={locale}
                   startOfWeek={startOfWeek}
-                  editingEntryId={editingEntryId}
                   isSaving={isSaving}
                   onContinue={onContinue}
                   onDelete={onDelete}
-                  onEdit={onEdit}
                   onSaveEdit={onSaveEdit}
-                  onCancelEdit={onCancelEdit}
                   onSaveGroupEdit={onSaveGroupEdit}
                   overlaps={overlaps}
                 />
@@ -83,13 +74,10 @@ export function DayGroup({
                   entry={item}
                   locale={locale}
                   startOfWeek={startOfWeek}
-                  isEditing={editingEntryId === item.id}
                   isSaving={isSaving}
                   onContinue={onContinue}
                   onDelete={onDelete}
-                  onEdit={onEdit}
                   onSaveEdit={onSaveEdit}
-                  onCancelEdit={onCancelEdit}
                   overlap={overlap}
                 />
               );
