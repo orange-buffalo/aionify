@@ -19,6 +19,7 @@ export function useTimeLogs() {
   const [dayGroups, setDayGroups] = useState<DayGroup[]>([]);
   const [isInitializing, setIsInitializing] = useState(true);
   const [hasCurrentWeekLoaded, setHasCurrentWeekLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [userLocale, setUserLocale] = useState<string | null>(null);
   const [startOfWeek, setStartOfWeek] = useState<number>(1); // Default to Monday
   const [isEditingActive, setIsEditingActive] = useState(false);
@@ -93,6 +94,7 @@ export function useTimeLogs() {
       if (isInitialLoad) {
         setIsInitializing(true);
       }
+      setError(null);
 
       const weekStartTime = new Date(weekStart);
       weekStartTime.setHours(0, 0, 0, 0);
@@ -110,7 +112,7 @@ export function useTimeLogs() {
       setEntries(response.entries || []);
       setHasCurrentWeekLoaded(true);
     } catch (err: any) {
-      console.error("Failed to load time entries:", err);
+      setError(err.message || t("common.error"));
     } finally {
       if (isInitialLoad) {
         setIsInitializing(false);
@@ -290,6 +292,7 @@ export function useTimeLogs() {
     dayGroups,
     weeklyTotal,
     isInitializing,
+    error,
     userLocale,
     startOfWeek,
     isEditingActive,

@@ -111,7 +111,6 @@ export function TimeEntry({
         stopActiveEntry: true,
       });
       await onDataChange();
-      return t("timeLogs.success.started");
     });
   };
 

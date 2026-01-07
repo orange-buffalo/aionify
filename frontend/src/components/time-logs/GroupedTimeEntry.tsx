@@ -65,6 +65,7 @@ export function GroupedTimeEntry({
     try {
       const entryIds = groupedEntry.entries.map((e) => e.id);
       await onSaveGroupEdit(entryIds, editTitle.trim(), editTags);
+      await onDataChange();
       setIsEditingGroup(false);
     } finally {
       setIsSavingGroup(false);
@@ -85,7 +86,6 @@ export function GroupedTimeEntry({
         stopActiveEntry: true,
       });
       await onDataChange();
-      return t("timeLogs.success.started");
     });
   };
 

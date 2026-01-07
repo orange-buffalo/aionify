@@ -14,6 +14,7 @@ export function TimeLogsPage() {
     dayGroups,
     weeklyTotal,
     isInitializing,
+    error,
     userLocale,
     startOfWeek,
     isEditingActive,
@@ -53,6 +54,9 @@ export function TimeLogsPage() {
             </h1>
             <div className="text-muted-foreground">{t("timeLogs.subtitle")}</div>
           </div>
+
+          {/* Error Message */}
+          {error && <FormMessage type="error" message={error} testId="time-logs-error" />}
 
           {/* Current Entry Panel */}
           <CurrentEntryPanel

@@ -71,7 +71,6 @@ export function CurrentEntryPanel({
       await onDataChange();
       setNewEntryTitle("");
       setSelectedTags([]);
-      return t("timeLogs.success.started");
     });
   };
 
@@ -89,6 +88,7 @@ export function CurrentEntryPanel({
     await executeEditCall(async () => {
       const startTimeISO = editDateTime.toISOString();
       await onSaveEdit(editTitle.trim(), startTimeISO, editTags);
+      await onDataChange();
       setIsEditMode(false);
     });
   };
