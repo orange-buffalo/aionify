@@ -12,19 +12,18 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Play, MoreVertical, Trash2, Pencil, AlertCircle } from "lucide-react";
 import { formatTime, formatTimeWithWeekday, formatDate } from "@/lib/date-format";
 import { calculateDuration, formatDuration, isDifferentDay } from "@/lib/time-utils";
-import { apiDelete } from "@/lib/api";
+import { apiDelete, apiPost } from "@/lib/api";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
 import { EditEntryForm } from "./EditEntryForm";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 import type { EntryOverlap } from "@/lib/overlap-detection";
-import type { TimeLogEntry } from "./types";
+import type { TimeLogEntry, TimeEntry } from "./types";
 
 interface TimeEntryProps {
   entry: TimeLogEntry;
   locale: string;
   startOfWeek: number;
   isSaving: boolean;
-  onContinue: (entry: TimeLogEntry) => void;
   onDataChange: () => Promise<void>;
   onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string, tags: string[]) => Promise<void>;
   hideTitle?: boolean;
@@ -38,7 +37,6 @@ export function TimeEntry({
   locale,
   startOfWeek,
   isSaving,
-  onContinue,
   onDataChange,
   onSaveEdit,
   hideTitle = false,
@@ -47,7 +45,12 @@ export function TimeEntry({
   overlap,
 }: TimeEntryProps) {
   const { t } = useTranslation();
-  const { executeApiCall, apiCallInProgress, formMessage } = useApiExecutor("delete-entry");
+  const {
+    executeApiCall: executeDeleteCall,
+    apiCallInProgress: isDeleting,
+    formMessage: deleteFormMessage,
+  } = useApiExecutor("delete-entry");
+  const { executeApiCall: executeContinueCall, apiCallInProgress: isContinuing } = useApiExecutor("continue-entry");
   const duration = calculateDuration(entry.startTime, entry.endTime);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(entry.title);
@@ -87,10 +90,22 @@ export function TimeEntry({
   };
 
   const handleDelete = async () => {
-    await executeApiCall(async () => {
+    await executeDeleteCall(async () => {
       await apiDelete(`/api-ui/time-log-entries/${entry.id}`);
       await onDataChange();
       setDeleteDialogOpen(false);
+    });
+  };
+
+  const handleContinue = async () => {
+    await executeContinueCall(async () => {
+      await apiPost<TimeEntry>("/api-ui/time-log-entries", {
+        title: entry.title,
+        tags: entry.tags,
+        stopActiveEntry: true,
+      });
+      await onDataChange();
+      return t("timeLogs.success.started");
     });
   };
 
@@ -177,7 +192,8 @@ export function TimeEntry({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onContinue(entry)}
+              onClick={handleContinue}
+              disabled={isContinuing}
               data-testid="continue-button"
               className="text-foreground"
               title={t("timeLogs.startFromEntry")}
@@ -217,9 +233,9 @@ export function TimeEntry({
         onOpenChange={setDeleteDialogOpen}
         entry={entry}
         locale={locale}
-        isDeleting={apiCallInProgress}
+        isDeleting={isDeleting}
         onConfirm={handleDelete}
-        formMessage={formMessage}
+        formMessage={deleteFormMessage}
       />
     </div>
   );

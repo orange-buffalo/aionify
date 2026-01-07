@@ -19,10 +19,6 @@ export function useTimeLogs() {
   const [dayGroups, setDayGroups] = useState<DayGroup[]>([]);
   const [isInitializing, setIsInitializing] = useState(true);
   const [hasCurrentWeekLoaded, setHasCurrentWeekLoaded] = useState(false);
-  const [isStarting, setIsStarting] = useState(false);
-  const [isStopping, setIsStopping] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [userLocale, setUserLocale] = useState<string | null>(null);
   const [startOfWeek, setStartOfWeek] = useState<number>(1); // Default to Monday
@@ -98,7 +94,6 @@ export function useTimeLogs() {
       if (isInitialLoad) {
         setIsInitializing(true);
       }
-      setError(null);
 
       const weekStartTime = new Date(weekStart);
       weekStartTime.setHours(0, 0, 0, 0);
@@ -116,7 +111,7 @@ export function useTimeLogs() {
       setEntries(response.entries || []);
       setHasCurrentWeekLoaded(true);
     } catch (err: any) {
-      setError(err.message || t("common.error"));
+      console.error("Failed to load time entries:", err);
     } finally {
       if (isInitialLoad) {
         setIsInitializing(false);
@@ -150,81 +145,6 @@ export function useTimeLogs() {
 
   // Subscribe to SSE events for real-time updates
   useTimeLogEntryEvents(handleTimeLogEvent, true);
-
-  // Start a new time entry
-  async function handleStart(title: string, tags: string[] = []) {
-    try {
-      setIsStarting(true);
-      setError(null);
-
-      const entry = await apiPost<TimeEntry>("/api-ui/time-log-entries", { title, tags });
-
-      setActiveEntry(entry);
-      setSuccess(t("timeLogs.success.started"));
-      await loadTimeEntries();
-    } catch (err: any) {
-      const errorCode = (err as any).errorCode;
-      if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`));
-      } else {
-        setError(err.message || t("common.error"));
-      }
-      throw err;
-    } finally {
-      setIsStarting(false);
-    }
-  }
-
-  // Stop the active time entry
-  async function handleStop() {
-    if (!activeEntry) return;
-
-    try {
-      setIsStopping(true);
-      setError(null);
-
-      await apiPut(`/api-ui/time-log-entries/${activeEntry.id}/stop`, {});
-
-      setActiveEntry(null);
-      setActiveDuration(0);
-      await loadTimeEntries();
-    } catch (err: any) {
-      const errorCode = (err as any).errorCode;
-      if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`));
-      } else {
-        setError(err.message || t("common.error"));
-      }
-    } finally {
-      setIsStopping(false);
-    }
-  }
-
-  // Continue with an existing entry's title
-  async function handleContinue(entry: TimeEntry) {
-    try {
-      setIsStarting(true);
-      setError(null);
-
-      const newEntry = await apiPost<TimeEntry>("/api-ui/time-log-entries", {
-        title: entry.title,
-        tags: entry.tags,
-        stopActiveEntry: true,
-      });
-
-      setActiveEntry(newEntry);
-      await loadTimeEntries();
-    } catch (err: any) {
-      const errorCode = (err as any).errorCode;
-      if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`));
-      } else {
-        setError(err.message || t("common.error"));
-      }
-    } finally {
-      setIsStarting(false);
-    }
-  }
 
   // Reload both active entry and time entries data
   // This is called by components after they make changes (e.g., after deletion)
@@ -424,17 +344,10 @@ export function useTimeLogs() {
     dayGroups,
     weeklyTotal,
     isInitializing,
-    isStarting,
-    isStopping,
-    error,
-    success,
     isSaving,
     userLocale,
     startOfWeek,
     isEditingActive,
-    handleStart,
-    handleStop,
-    handleContinue,
     handleSaveEdit,
     handleEditActiveEntry,
     handleSaveStoppedEntry,
