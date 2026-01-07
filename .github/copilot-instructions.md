@@ -142,6 +142,7 @@ Conventional Commits provide a standardized way to communicate the nature of cha
 - **Always use the `apiRequest`, `apiGet`, `apiPost`, `apiPut` helpers from `@/lib/api` for API calls** instead of manual `fetch` calls
 - **Use the `FormMessage` component from `@/components/ui/form-message`** for displaying error and success messages
 - **CRITICAL: Always translate error messages using `errorCode` from API responses** - check for `errorCode` on error object and translate with `t(\`errorCodes.\${errorCode}\`)` (see EditUserPage.tsx for example)
+- **CRITICAL: Never silently log errors with `console.error()` and ignore them** - always propagate errors to the user via state (e.g., `setError()`) or re-throw them. Errors should be handled at the appropriate level (component or page) and displayed to the user.
 - **CRITICAL: Always ensure dark mode compatibility for all UI elements**:
   - Add `text-foreground` class to all text elements (headings, labels, spans, paragraphs, loading text, etc.)
   - Add `text-foreground` class to Inputs via className prop

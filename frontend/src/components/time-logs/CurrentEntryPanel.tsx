@@ -8,6 +8,8 @@ import { formatDuration } from "@/lib/time-utils";
 import { EditEntryForm } from "./EditEntryForm";
 import { TagSelector } from "./TagSelector";
 import { EntryAutocomplete } from "./EntryAutocomplete";
+import { apiPost, apiPut } from "@/lib/api";
+import { useApiExecutor } from "@/hooks/useApiExecutor";
 import type { TimeEntry } from "./types";
 
 interface CurrentEntryPanelProps {
@@ -15,12 +17,8 @@ interface CurrentEntryPanelProps {
   activeDuration: number;
   locale: string;
   startOfWeek: number;
-  isStarting: boolean;
-  isStopping: boolean;
-  isSaving: boolean;
   isEditingStoppedEntry: boolean;
-  onStart: (title: string, tags?: string[]) => Promise<void>;
-  onStop: () => Promise<void>;
+  onDataChange: () => Promise<void>;
   onSaveEdit: (title: string, startTime: string, tags: string[]) => Promise<void>;
   onEditStart: () => void;
 }
@@ -30,16 +28,27 @@ export function CurrentEntryPanel({
   activeDuration,
   locale,
   startOfWeek,
-  isStarting,
-  isStopping,
-  isSaving,
   isEditingStoppedEntry,
-  onStart,
-  onStop,
+  onDataChange,
   onSaveEdit,
   onEditStart,
 }: CurrentEntryPanelProps) {
   const { t } = useTranslation();
+  const {
+    executeApiCall: executeStartCall,
+    apiCallInProgress: isStarting,
+    formMessage: startFormMessage,
+  } = useApiExecutor("start-entry");
+  const {
+    executeApiCall: executeStopCall,
+    apiCallInProgress: isStopping,
+    formMessage: stopFormMessage,
+  } = useApiExecutor("stop-entry");
+  const {
+    executeApiCall: executeEditCall,
+    apiCallInProgress: isSaving,
+    formMessage: editFormMessage,
+  } = useApiExecutor("edit-entry");
   const [newEntryTitle, setNewEntryTitle] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -54,9 +63,15 @@ export function CurrentEntryPanel({
 
   const handleStart = async () => {
     if (!newEntryTitle.trim()) return;
-    await onStart(newEntryTitle.trim(), selectedTags);
-    setNewEntryTitle("");
-    setSelectedTags([]);
+    await executeStartCall(async () => {
+      await apiPost<TimeEntry>("/api-ui/time-log-entries", {
+        title: newEntryTitle.trim(),
+        tags: selectedTags,
+      });
+      await onDataChange();
+      setNewEntryTitle("");
+      setSelectedTags([]);
+    });
   };
 
   const handleEditClick = () => {
@@ -70,9 +85,12 @@ export function CurrentEntryPanel({
 
   const handleSaveEdit = async () => {
     if (!activeEntry || !editTitle.trim()) return;
-    const startTimeISO = editDateTime.toISOString();
-    await onSaveEdit(editTitle.trim(), startTimeISO, editTags);
-    setIsEditMode(false);
+    await executeEditCall(async () => {
+      const startTimeISO = editDateTime.toISOString();
+      await onSaveEdit(editTitle.trim(), startTimeISO, editTags);
+      await onDataChange();
+      setIsEditMode(false);
+    });
   };
 
   const handleCancelEdit = () => {
@@ -80,6 +98,14 @@ export function CurrentEntryPanel({
     setEditTitle("");
     setEditDateTime(new Date());
     setEditTags([]);
+  };
+
+  const handleStop = async () => {
+    if (!activeEntry) return;
+    await executeStopCall(async () => {
+      await apiPut(`/api-ui/time-log-entries/${activeEntry.id}/stop`, {});
+      await onDataChange();
+    });
   };
 
   return (
@@ -90,6 +116,9 @@ export function CurrentEntryPanel({
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {startFormMessage}
+        {stopFormMessage}
+        {editFormMessage}
         {activeEntry ? (
           isEditMode ? (
             /* Edit Mode */
@@ -132,7 +161,7 @@ export function CurrentEntryPanel({
                   {formatDuration(activeDuration)}
                 </div>
                 <Button
-                  onClick={onStop}
+                  onClick={handleStop}
                   disabled={isStopping}
                   data-testid="stop-button"
                   className="bg-teal-600 hover:bg-teal-700"

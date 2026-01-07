@@ -5,9 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Play, Pencil } from "lucide-react";
 import { formatTime } from "@/lib/date-format";
 import { calculateDuration, formatDuration } from "@/lib/time-utils";
+import { apiPost } from "@/lib/api";
+import { useApiExecutor } from "@/hooks/useApiExecutor";
 import type { EntryOverlap } from "@/lib/overlap-detection";
-import type { GroupedTimeLogEntry, TimeLogEntry } from "@/components/time-logs/types";
-import { TimeEntry } from "./TimeEntry";
+import type { GroupedTimeLogEntry, TimeLogEntry, TimeEntry } from "@/components/time-logs/types";
+import { TimeEntry as TimeEntryComponent } from "./TimeEntry";
 import { EditGroupedEntryForm } from "./EditGroupedEntryForm";
 
 interface GroupedTimeEntryProps {
@@ -15,7 +17,6 @@ interface GroupedTimeEntryProps {
   locale: string;
   startOfWeek: number;
   isSaving: boolean;
-  onContinue: (entry: TimeLogEntry) => void;
   onDataChange: () => Promise<void>;
   onSaveEdit: (entry: TimeLogEntry, title: string, startTime: string, endTime: string, tags: string[]) => Promise<void>;
   onSaveGroupEdit: (entryIds: number[], title: string, tags: string[]) => Promise<void>;
@@ -27,15 +28,16 @@ export function GroupedTimeEntry({
   locale,
   startOfWeek,
   isSaving,
-  onContinue,
   onDataChange,
   onSaveEdit,
   onSaveGroupEdit,
   overlaps,
 }: GroupedTimeEntryProps) {
   const { t } = useTranslation();
+  const { executeApiCall: executeContinueCall, apiCallInProgress: isContinuing } = useApiExecutor("continue-entry");
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingGroup, setIsEditingGroup] = useState(false);
+  const [isSavingGroup, setIsSavingGroup] = useState(false);
   const [editTitle, setEditTitle] = useState(groupedEntry.title);
   const [editTags, setEditTags] = useState<string[]>(groupedEntry.tags || []);
 
@@ -63,9 +65,15 @@ export function GroupedTimeEntry({
 
   const handleSaveGroupEdit = async () => {
     if (!editTitle.trim()) return;
-    const entryIds = groupedEntry.entries.map((e) => e.id);
-    await onSaveGroupEdit(entryIds, editTitle.trim(), editTags);
-    setIsEditingGroup(false);
+    setIsSavingGroup(true);
+    try {
+      const entryIds = groupedEntry.entries.map((e) => e.id);
+      await onSaveGroupEdit(entryIds, editTitle.trim(), editTags);
+      await onDataChange();
+      setIsEditingGroup(false);
+    } finally {
+      setIsSavingGroup(false);
+    }
   };
 
   const handleCancelGroupEdit = () => {
@@ -74,12 +82,23 @@ export function GroupedTimeEntry({
     setIsEditingGroup(false);
   };
 
+  const handleContinue = async () => {
+    await executeContinueCall(async () => {
+      await apiPost<TimeEntry>("/api-ui/time-log-entries", {
+        title: firstEntry.title,
+        tags: firstEntry.tags,
+        stopActiveEntry: true,
+      });
+      await onDataChange();
+    });
+  };
+
   if (isEditingGroup) {
     return (
       <EditGroupedEntryForm
         title={editTitle}
         tags={editTags}
-        isSaving={isSaving}
+        isSaving={isSavingGroup}
         onTitleChange={setEditTitle}
         onTagsChange={setEditTags}
         onSave={handleSaveGroupEdit}
@@ -145,7 +164,8 @@ export function GroupedTimeEntry({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onContinue(firstEntry)}
+              onClick={handleContinue}
+              disabled={isContinuing}
               data-testid="continue-button"
               className="text-foreground"
               title={t("timeLogs.startFromEntry")}
@@ -172,13 +192,12 @@ export function GroupedTimeEntry({
           {groupedEntry.entries.map((entry) => {
             const overlap = overlaps.get(entry.id);
             return (
-              <TimeEntry
+              <TimeEntryComponent
                 key={`${entry.id}-${entry.startTime}`}
                 entry={entry}
                 locale={locale}
                 startOfWeek={startOfWeek}
                 isSaving={isSaving}
-                onContinue={onContinue}
                 onDataChange={onDataChange}
                 onSaveEdit={onSaveEdit}
                 hideTitle={false}
