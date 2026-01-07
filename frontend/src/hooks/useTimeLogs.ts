@@ -18,7 +18,7 @@ export function useTimeLogs() {
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [dayGroups, setDayGroups] = useState<DayGroup[]>([]);
   const [isInitializing, setIsInitializing] = useState(true);
-  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
+  const [hasCurrentWeekLoaded, setHasCurrentWeekLoaded] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,7 +96,7 @@ export function useTimeLogs() {
   // Load time entries for the current week
   async function loadTimeEntries() {
     // Only show loading state on initial load, not on reloads (e.g., after edits)
-    const wasInitiallyLoading = !hasInitiallyLoaded;
+    const wasInitiallyLoading = !hasCurrentWeekLoaded;
     try {
       if (wasInitiallyLoading) {
         setIsInitializing(true);
@@ -117,7 +117,7 @@ export function useTimeLogs() {
       );
 
       setEntries(response.entries || []);
-      setHasInitiallyLoaded(true);
+      setHasCurrentWeekLoaded(true);
     } catch (err: any) {
       setError(err.message || t("common.error"));
     } finally {
@@ -387,8 +387,8 @@ export function useTimeLogs() {
 
   // Load data on mount and when week changes
   useEffect(() => {
-    // Reset the initial load flag when week changes to show loading state
-    setHasInitiallyLoaded(false);
+    // Reset the flag when week changes to show loading state for the new week
+    setHasCurrentWeekLoaded(false);
     loadTimeEntries();
     loadActiveEntry();
   }, [weekStart]);
