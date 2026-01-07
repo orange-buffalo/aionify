@@ -89,9 +89,8 @@ export function TimeEntry({
   const handleDelete = async () => {
     await executeApiCall(async () => {
       await apiDelete(`/api-ui/time-log-entries/${entry.id}`);
-      setDeleteDialogOpen(false);
       await onDataChange();
-      return t("timeLogs.success.deleted");
+      setDeleteDialogOpen(false);
     });
   };
 
