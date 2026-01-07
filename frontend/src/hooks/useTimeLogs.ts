@@ -126,7 +126,12 @@ export function useTimeLogs() {
       const response = await apiGet<{ entry?: TimeLogEntry | null }>("/api-ui/time-log-entries/active");
       setActiveEntry(response.entry ?? null);
     } catch (err: any) {
-      console.error("Failed to load active entry:", err);
+      const errorCode = err.errorCode;
+      if (errorCode) {
+        setError(t(`errorCodes.${errorCode}`));
+      } else {
+        setError(err.message || t("common.error"));
+      }
     }
   }
 
@@ -169,7 +174,12 @@ export function useTimeLogs() {
       setIsEditingActive(false);
       await loadTimeEntries();
     } catch (err: any) {
-      console.error("Failed to save edited entry:", err);
+      const errorCode = err.errorCode;
+      if (errorCode) {
+        setError(t(`errorCodes.${errorCode}`));
+      } else {
+        setError(err.message || t("common.error"));
+      }
       throw err;
     }
   }
@@ -190,7 +200,12 @@ export function useTimeLogs() {
 
       await loadTimeEntries();
     } catch (err: any) {
-      console.error("Failed to save group edit:", err);
+      const errorCode = err.errorCode;
+      if (errorCode) {
+        setError(t(`errorCodes.${errorCode}`));
+      } else {
+        setError(err.message || t("common.error"));
+      }
       throw err;
     }
   }
