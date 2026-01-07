@@ -23,9 +23,6 @@ export function useTimeLogs() {
   const [isStopping, setIsStopping] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [entryToDelete, setEntryToDelete] = useState<TimeEntry | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [userLocale, setUserLocale] = useState<string | null>(null);
   const [startOfWeek, setStartOfWeek] = useState<number>(1); // Default to Monday
@@ -229,40 +226,11 @@ export function useTimeLogs() {
     }
   }
 
-  // Open delete confirmation dialog
-  function handleDeleteClick(entry: TimeEntry) {
-    setEntryToDelete(entry);
-    setDeleteDialogOpen(true);
-  }
-
-  // Delete a time entry
-  async function handleDelete() {
-    if (!entryToDelete) return;
-
-    try {
-      setIsDeleting(true);
-      setError(null);
-
-      await apiDelete(`/api-ui/time-log-entries/${entryToDelete.id}`);
-
-      setIsDeleting(false);
-      setDeleteDialogOpen(false);
-      setEntryToDelete(null);
-      await loadTimeEntries();
-
-      if (activeEntry && activeEntry.id === entryToDelete.id) {
-        setActiveEntry(null);
-      }
-    } catch (err: any) {
-      const errorCode = (err as any).errorCode;
-      if (errorCode) {
-        setError(t(`errorCodes.${errorCode}`));
-      } else {
-        setError(err.message || t("common.error"));
-      }
-    } finally {
-      setIsDeleting(false);
-    }
+  // Reload both active entry and time entries data
+  // This is called by components after they make changes (e.g., after deletion)
+  async function reloadData() {
+    await loadActiveEntry();
+    await loadTimeEntries();
   }
 
   // Save edited entry
@@ -460,9 +428,6 @@ export function useTimeLogs() {
     isStopping,
     error,
     success,
-    deleteDialogOpen,
-    entryToDelete,
-    isDeleting,
     isSaving,
     userLocale,
     startOfWeek,
@@ -470,8 +435,6 @@ export function useTimeLogs() {
     handleStart,
     handleStop,
     handleContinue,
-    handleDeleteClick,
-    handleDelete,
     handleSaveEdit,
     handleEditActiveEntry,
     handleSaveStoppedEntry,
@@ -479,6 +442,6 @@ export function useTimeLogs() {
     handlePreviousWeek,
     handleNextWeek,
     getWeekRangeDisplay,
-    setDeleteDialogOpen,
+    reloadData,
   };
 }
