@@ -36,7 +36,9 @@ export function TimeEntry({
   entry,
   locale,
   startOfWeek,
+  isSaving,
   onDataChange,
+  onSaveEdit,
   hideTitle = false,
   hideTags = false,
   hideContinue = false,
@@ -49,11 +51,6 @@ export function TimeEntry({
     formMessage: deleteFormMessage,
   } = useApiExecutor("delete-entry");
   const { executeApiCall: executeContinueCall, apiCallInProgress: isContinuing } = useApiExecutor("continue-entry");
-  const {
-    executeApiCall: executeEditCall,
-    apiCallInProgress: isSaving,
-    formMessage: editFormMessage,
-  } = useApiExecutor("edit-entry");
   const duration = calculateDuration(entry.startTime, entry.endTime);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(entry.title);
