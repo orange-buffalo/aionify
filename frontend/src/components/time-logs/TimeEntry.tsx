@@ -47,7 +47,11 @@ export function TimeEntry({
     formMessage: deleteFormMessage,
   } = useApiExecutor("delete-entry");
   const { executeApiCall: executeContinueCall, apiCallInProgress: isContinuing } = useApiExecutor("continue-entry");
-  const { executeApiCall: executeEditCall, apiCallInProgress: isSaving } = useApiExecutor("edit-stopped-entry");
+  const {
+    executeApiCall: executeEditCall,
+    apiCallInProgress: isSaving,
+    formMessage: editFormMessage,
+  } = useApiExecutor("edit-stopped-entry");
   const duration = calculateDuration(entry.startTime, entry.endTime);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(entry.title);
@@ -124,6 +128,7 @@ export function TimeEntry({
   if (isEditing) {
     return (
       <div className="p-3 border border-border rounded-md" data-testid="time-entry-edit">
+        {editFormMessage}
         <EditEntryForm
           title={editTitle}
           startDateTime={editStartDateTime}
