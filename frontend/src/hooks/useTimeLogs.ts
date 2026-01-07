@@ -96,9 +96,9 @@ export function useTimeLogs() {
   // Load time entries for the current week
   async function loadTimeEntries() {
     // Only show loading state on initial load, not on reloads (e.g., after edits)
-    const wasInitiallyLoading = !hasCurrentWeekLoaded;
+    const isInitialLoad = !hasCurrentWeekLoaded;
     try {
-      if (wasInitiallyLoading) {
+      if (isInitialLoad) {
         setIsInitializing(true);
       }
       setError(null);
@@ -121,7 +121,7 @@ export function useTimeLogs() {
     } catch (err: any) {
       setError(err.message || t("common.error"));
     } finally {
-      if (wasInitiallyLoading) {
+      if (isInitialLoad) {
         setIsInitializing(false);
       }
     }
