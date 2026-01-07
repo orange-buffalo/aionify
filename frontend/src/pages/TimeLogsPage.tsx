@@ -14,7 +14,7 @@ export function TimeLogsPage() {
     activeDuration,
     dayGroups,
     weeklyTotal,
-    loading,
+    isInitializing,
     isStarting,
     isStopping,
     error,
@@ -97,7 +97,7 @@ export function TimeLogsPage() {
           />
 
           {/* Time Entries List */}
-          {loading ? (
+          {isInitializing ? (
             <div className="text-center py-8 text-foreground">{t("common.loading")}</div>
           ) : dayGroups.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground" data-testid="no-entries">
