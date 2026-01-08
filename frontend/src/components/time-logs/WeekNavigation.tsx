@@ -19,10 +19,8 @@ export function WeekNavigation({ dayGroups, locale, startOfWeek, onTimeRangeChan
 
   // Initialize week start when startOfWeek is available
   useEffect(() => {
-    if (startOfWeek !== undefined && !weekStart) {
-      const initialWeekStart = getWeekStart(new Date(), startOfWeek);
-      setWeekStart(initialWeekStart);
-    }
+    const initialWeekStart = getWeekStart(new Date(), startOfWeek);
+    setWeekStart(initialWeekStart);
   }, [startOfWeek]);
 
   // Notify parent when week changes
