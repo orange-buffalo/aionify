@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { PortalLayout } from "@/components/layout/PortalLayout";
 import { FormMessage } from "@/components/ui/form-message";
@@ -5,6 +6,8 @@ import { CurrentEntryPanel } from "@/components/time-logs/CurrentEntryPanel";
 import { WeekNavigation } from "@/components/time-logs/WeekNavigation";
 import { DayGroup } from "@/components/time-logs/DayGroup";
 import { useTimeLogs } from "@/hooks/useTimeLogs";
+import { apiGet } from "@/lib/api";
+import { weekDayToNumber } from "@/lib/time-utils";
 
 export function TimeLogsPage() {
   const { t, i18n } = useTranslation();
@@ -12,16 +15,24 @@ export function TimeLogsPage() {
     activeEntry,
     activeDuration,
     dayGroups,
-    weeklyTotal,
     isInitializing,
     error,
     userLocale,
-    startOfWeek,
-    handlePreviousWeek,
-    handleNextWeek,
-    getWeekRangeDisplay,
+    updateDisplayedDataTimeRange,
     reloadData,
   } = useTimeLogs();
+
+  const [startOfWeek, setStartOfWeek] = useState<number>(1); // Default to Monday
+
+  // Load user's start of week preference on mount
+  useEffect(() => {
+    async function loadStartOfWeek() {
+      const profile = await apiGet<{ startOfWeek: string }>("/api-ui/users/profile");
+      const startOfWeekNum = weekDayToNumber(profile.startOfWeek);
+      setStartOfWeek(startOfWeekNum);
+    }
+    loadStartOfWeek();
+  }, []);
 
   // Don't render page elements until we have the user locale
   if (!userLocale) {
@@ -66,11 +77,10 @@ export function TimeLogsPage() {
 
           {/* Week Navigation */}
           <WeekNavigation
-            weekRange={getWeekRangeDisplay()}
-            weeklyTotal={weeklyTotal}
+            dayGroups={dayGroups}
             locale={locale}
-            onPreviousWeek={handlePreviousWeek}
-            onNextWeek={handleNextWeek}
+            startOfWeek={startOfWeek}
+            onTimeRangeChange={updateDisplayedDataTimeRange}
           />
 
           {/* Time Entries List */}

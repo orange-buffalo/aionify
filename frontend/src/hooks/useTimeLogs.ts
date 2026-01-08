@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { apiGet } from "@/lib/api";
-import { getWeekStart, formatISODate, calculateDuration, weekDayToNumber } from "@/lib/time-utils";
+import { formatISODate, calculateDuration } from "@/lib/time-utils";
 import { formatDate } from "@/lib/date-format";
 import { useDocumentTitle } from "./useDocumentTitle";
 import { useTimeLogEntryEvents } from "./useTimeLogEntryEvents";
@@ -9,20 +9,19 @@ import type { TimeEntry, TimeLogEntry, DayGroup } from "../components/time-logs/
 
 /**
  * Hook for managing time log entries and related state.
+ * This hook is responsible for fetching and managing time log data within a given time range.
  */
 export function useTimeLogs() {
   const { t, i18n } = useTranslation();
   const [activeEntry, setActiveEntry] = useState<TimeEntry | null>(null);
   const [activeDuration, setActiveDuration] = useState<number>(0);
-  const [weekStart, setWeekStart] = useState<Date>(getWeekStart(new Date()));
+  const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | null>(null);
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [dayGroups, setDayGroups] = useState<DayGroup[]>([]);
   const [isInitializing, setIsInitializing] = useState(true);
-  const [hasCurrentWeekLoaded, setHasCurrentWeekLoaded] = useState(false);
+  const [hasDataLoaded, setHasDataLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userLocale, setUserLocale] = useState<string | null>(null);
-  const [startOfWeek, setStartOfWeek] = useState<number>(1); // Default to Monday
-  const [weeklyTotal, setWeeklyTotal] = useState<number>(0);
 
   // Update browser tab title based on active entry
   useDocumentTitle(activeEntry?.title || null);
@@ -85,31 +84,32 @@ export function useTimeLogs() {
       });
   }
 
-  // Load time entries for the current week
+  // Load time entries for the current date range
   async function loadTimeEntries() {
+    if (!dateRange) return;
+
     // Only show loading state on initial load, not on reloads (e.g., after edits)
-    const isInitialLoad = !hasCurrentWeekLoaded;
+    const isInitialLoad = !hasDataLoaded;
     try {
       if (isInitialLoad) {
         setIsInitializing(true);
       }
       setError(null);
 
-      const weekStartTime = new Date(weekStart);
-      weekStartTime.setHours(0, 0, 0, 0);
-      const weekEndTime = new Date(weekStart);
-      weekEndTime.setDate(weekEndTime.getDate() + 7);
-      weekEndTime.setHours(0, 0, 0, 0);
+      const startTime = new Date(dateRange.from);
+      startTime.setHours(0, 0, 0, 0);
+      const endTime = new Date(dateRange.to);
+      endTime.setHours(0, 0, 0, 0);
 
-      const startTimeStr = weekStartTime.toISOString();
-      const endTimeStr = weekEndTime.toISOString();
+      const startTimeStr = startTime.toISOString();
+      const endTimeStr = endTime.toISOString();
 
       const response = await apiGet<{ entries: TimeLogEntry[] }>(
         `/api-ui/time-log-entries?startTime=${encodeURIComponent(startTimeStr)}&endTime=${encodeURIComponent(endTimeStr)}`
       );
 
       setEntries(response.entries || []);
-      setHasCurrentWeekLoaded(true);
+      setHasDataLoaded(true);
     } catch (err: any) {
       setError(err.message || t("common.error"));
     } finally {
@@ -142,10 +142,10 @@ export function useTimeLogs() {
       // Reload active entry to get the latest state
       await loadActiveEntry();
 
-      // Reload time entries for the current week to update the list
+      // Reload time entries for the current date range to update the list
       await loadTimeEntries();
     },
-    [weekStart] // Depend on weekStart so we reload the correct week
+    [dateRange] // Depend on dateRange so we reload the correct range
   );
 
   // Subscribe to SSE events for real-time updates
@@ -158,49 +158,27 @@ export function useTimeLogs() {
     await loadTimeEntries();
   }
 
-  // Navigate to previous week
-  function handlePreviousWeek() {
-    const newWeekStart = new Date(weekStart);
-    newWeekStart.setDate(newWeekStart.getDate() - 7);
-    setWeekStart(newWeekStart);
-  }
+  // Update the displayed data time range
+  // This is the main callback that components use to change what data is displayed
+  const updateDisplayedDataTimeRange = useCallback((from: Date, to: Date) => {
+    setDateRange({ from, to });
+    // Reset the loaded flag when range changes to show loading state
+    setHasDataLoaded(false);
+  }, []);
 
-  // Navigate to next week
-  function handleNextWeek() {
-    const newWeekStart = new Date(weekStart);
-    newWeekStart.setDate(newWeekStart.getDate() + 7);
-    setWeekStart(newWeekStart);
-  }
-
-  // Get week range display
-  function getWeekRangeDisplay(): string {
-    const locale = userLocale || i18n.language || "en";
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekEnd.getDate() + 6);
-
-    const startStr = weekStart.toLocaleDateString(locale, { month: "short", day: "numeric" });
-    const endStr = weekEnd.toLocaleDateString(locale, { month: "short", day: "numeric" });
-
-    return `${startStr} - ${endStr}`;
-  }
-
-  // Load data on mount and when week changes
+  // Load data when date range changes
   useEffect(() => {
-    // Reset the flag when week changes to show loading state for the new week
-    setHasCurrentWeekLoaded(false);
-    loadTimeEntries();
-    loadActiveEntry();
-  }, [weekStart]);
+    if (dateRange) {
+      loadTimeEntries();
+      loadActiveEntry();
+    }
+  }, [dateRange]);
 
-  // Load user's locale and settings on mount
+  // Load user's locale on mount
   useEffect(() => {
     async function loadUserProfile() {
       const profile = await apiGet<{ locale: string; startOfWeek: string }>("/api-ui/users/profile");
       setUserLocale(profile.locale);
-      const startOfWeekNum = weekDayToNumber(profile.startOfWeek);
-      setStartOfWeek(startOfWeekNum);
-      // Update week start with the user's preference
-      setWeekStart(getWeekStart(new Date(), startOfWeekNum));
     }
     loadUserProfile();
   }, []);
@@ -221,28 +199,17 @@ export function useTimeLogs() {
     return () => clearInterval(interval);
   }, [activeEntry?.id, activeEntry?.startTime]);
 
-  // Calculate weekly total from entries
-  function calculateWeeklyTotal(entries: TimeLogEntry[]): number {
-    return entries.reduce((sum, entry) => sum + calculateDuration(entry.startTime, entry.endTime), 0);
-  }
-
   // Recalculate day groups when entries change or when there's an active entry
   useEffect(() => {
     const locale = userLocale || i18n.language || "en";
     const groups = groupEntriesByDay(entries, locale);
     setDayGroups(groups);
 
-    // Calculate weekly total from all entries
-    setWeeklyTotal(calculateWeeklyTotal(entries));
-
     if (!activeEntry) return;
 
     const interval = setInterval(() => {
       const updatedGroups = groupEntriesByDay(entries, locale);
       setDayGroups(updatedGroups);
-
-      // Recalculate weekly total with active entry duration
-      setWeeklyTotal(calculateWeeklyTotal(entries));
     }, 1000);
 
     return () => clearInterval(interval);
@@ -251,16 +218,11 @@ export function useTimeLogs() {
   return {
     activeEntry,
     activeDuration,
-    weekStart,
     dayGroups,
-    weeklyTotal,
     isInitializing,
     error,
     userLocale,
-    startOfWeek,
-    handlePreviousWeek,
-    handleNextWeek,
-    getWeekRangeDisplay,
+    updateDisplayedDataTimeRange,
     reloadData,
   };
 }
