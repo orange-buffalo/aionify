@@ -6,6 +6,7 @@ import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Delete
 import io.micronaut.http.annotation.Get
+import io.micronaut.http.annotation.Patch
 import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.Post
 import io.micronaut.http.annotation.Put
@@ -32,6 +33,23 @@ open class TimeLogEntryResource(
     private val timeService: TimeService,
 ) {
     private val log = org.slf4j.LoggerFactory.getLogger(TimeLogEntryResource::class.java)
+
+    /**
+     * Helper method to find a time log entry and verify ownership.
+     * Returns null if the entry doesn't exist or doesn't belong to the user.
+     */
+    private fun findEntryAndVerifyOwnership(
+        id: Long,
+        currentUser: UserWithId,
+    ): TimeLogEntry? = timeLogEntryRepository.findByIdAndOwnerId(id, currentUser.id).orElse(null)
+
+    /**
+     * Helper method to return a 404 Not Found response for a missing entry.
+     */
+    private fun entryNotFoundResponse(): HttpResponse<TimeLogEntryErrorResponse> =
+        HttpResponse
+            .notFound<TimeLogEntryErrorResponse>()
+            .body(TimeLogEntryErrorResponse("Time log entry not found", "ENTRY_NOT_FOUND"))
 
     @Get
     open fun listEntries(
@@ -104,14 +122,11 @@ open class TimeLogEntryResource(
     ): HttpResponse<*> {
         log.debug("Stopping time log entry: {} for user: {}", id, currentUser.user.userName)
 
-        // Find the log entry and verify ownership
-        val entry = timeLogEntryRepository.findByIdAndOwnerId(id, currentUser.id).orElse(null)
-        if (entry == null) {
-            log.debug("Stop entry failed: entry not found: {}", id)
-            return HttpResponse
-                .notFound<TimeLogEntryErrorResponse>()
-                .body(TimeLogEntryErrorResponse("Time log entry not found", "ENTRY_NOT_FOUND"))
-        }
+        val entry =
+            findEntryAndVerifyOwnership(id, currentUser) ?: run {
+                log.debug("Stop entry failed: entry not found: {}", id)
+                return entryNotFoundResponse()
+            }
 
         // Check if already stopped
         if (entry.endTime != null) {
@@ -139,14 +154,11 @@ open class TimeLogEntryResource(
     ): HttpResponse<*> {
         log.debug("Updating time log entry: {} for user: {}", id, currentUser.user.userName)
 
-        // Find the log entry and verify ownership
-        val entry = timeLogEntryRepository.findByIdAndOwnerId(id, currentUser.id).orElse(null)
-        if (entry == null) {
-            log.debug("Update entry failed: entry not found: {}", id)
-            return HttpResponse
-                .notFound<TimeLogEntryErrorResponse>()
-                .body(TimeLogEntryErrorResponse("Time log entry not found", "ENTRY_NOT_FOUND"))
-        }
+        val entry =
+            findEntryAndVerifyOwnership(id, currentUser) ?: run {
+                log.debug("Update entry failed: entry not found: {}", id)
+                return entryNotFoundResponse()
+            }
 
         // For stopped entries, validate end time if provided
         val endTime =
@@ -238,6 +250,30 @@ open class TimeLogEntryResource(
         )
     }
 
+    @Patch("/{id}/title")
+    open fun updateEntryTitle(
+        @PathVariable id: Long,
+        @Valid @Body request: UpdateTimeLogEntryTitleRequest,
+        currentUser: UserWithId,
+    ): HttpResponse<*> {
+        log.debug("Updating time log entry title: {} for user: {}", id, currentUser.user.userName)
+
+        val entry =
+            findEntryAndVerifyOwnership(id, currentUser) ?: run {
+                log.debug("Update title failed: entry not found: {}", id)
+                return entryNotFoundResponse()
+            }
+
+        val updatedEntry =
+            timeLogEntryRepository.update(
+                entry.copy(title = request.title),
+            )
+
+        log.info("Time log entry title updated: {} for user: {}", id, currentUser.user.userName)
+
+        return HttpResponse.ok(updatedEntry.toDto())
+    }
+
     @Delete("/{id}")
     open fun deleteEntry(
         @PathVariable id: Long,
@@ -245,14 +281,11 @@ open class TimeLogEntryResource(
     ): HttpResponse<*> {
         log.debug("Deleting time log entry: {} for user: {}", id, currentUser.user.userName)
 
-        // Find the log entry and verify ownership
-        val entry = timeLogEntryRepository.findByIdAndOwnerId(id, currentUser.id).orElse(null)
-        if (entry == null) {
-            log.debug("Delete entry failed: entry not found: {}", id)
-            return HttpResponse
-                .notFound<TimeLogEntryErrorResponse>()
-                .body(TimeLogEntryErrorResponse("Time log entry not found", "ENTRY_NOT_FOUND"))
-        }
+        val entry =
+            findEntryAndVerifyOwnership(id, currentUser) ?: run {
+                log.debug("Delete entry failed: entry not found: {}", id)
+                return entryNotFoundResponse()
+            }
 
         timeLogEntryRepository.delete(entry)
 
@@ -282,6 +315,52 @@ open class TimeLogEntryResource(
         return HttpResponse.ok(
             AutocompleteResponse(
                 entries = results.map { it.toAutocompleteDto() },
+            ),
+        )
+    }
+
+    @Patch("/bulk-update-title")
+    open fun bulkUpdateEntriesTitle(
+        @Valid @Body request: BulkUpdateTimeLogEntriesTitleRequest,
+        currentUser: UserWithId,
+    ): HttpResponse<*> {
+        log.debug("Bulk updating title for {} time log entries for user: {}", request.entryIds.size, currentUser.user.userName)
+
+        if (request.entryIds.isEmpty()) {
+            log.debug("Bulk update title failed: no entry IDs provided")
+            return HttpResponse.badRequest(
+                TimeLogEntryErrorResponse("No entry IDs provided", "NO_ENTRY_IDS"),
+            )
+        }
+
+        // Fetch all entries and verify ownership
+        val entries =
+            request.entryIds.mapNotNull { id ->
+                timeLogEntryRepository.findByIdAndOwnerId(id, currentUser.id).orElse(null)
+            }
+
+        // Verify all entries were found
+        if (entries.size != request.entryIds.size) {
+            log.debug("Bulk update title failed: some entries not found or not owned by user")
+            return HttpResponse
+                .notFound<TimeLogEntryErrorResponse>()
+                .body(TimeLogEntryErrorResponse("One or more time log entries not found", "ENTRIES_NOT_FOUND"))
+        }
+
+        // Update each entry - only title, preserve everything else
+        val updatedEntries =
+            entries.map { entry ->
+                timeLogEntryRepository.update(
+                    entry.copy(title = request.title),
+                )
+            }
+
+        log.info("Bulk updated title for {} time log entries for user: {}", updatedEntries.size, currentUser.user.userName)
+
+        return HttpResponse.ok(
+            BulkUpdateTimeLogEntriesResponse(
+                updatedCount = updatedEntries.size,
+                entries = updatedEntries.map { it.toDto() },
             ),
         )
     }
@@ -390,4 +469,21 @@ data class BulkUpdateTimeLogEntriesRequest(
 data class BulkUpdateTimeLogEntriesResponse(
     val updatedCount: Int,
     val entries: List<TimeLogEntryDto>,
+)
+
+@Serdeable
+@Introspected
+data class UpdateTimeLogEntryTitleRequest(
+    @field:NotBlank(message = "Title cannot be blank")
+    @field:Size(max = 1000, message = "Title cannot exceed 1000 characters")
+    val title: String,
+)
+
+@Serdeable
+@Introspected
+data class BulkUpdateTimeLogEntriesTitleRequest(
+    @field:NotBlank(message = "Title cannot be blank")
+    @field:Size(max = 1000, message = "Title cannot exceed 1000 characters")
+    val title: String,
+    val entryIds: List<Long>,
 )

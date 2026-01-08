@@ -34,6 +34,7 @@ Manage users, create accounts, and handle activation tokens.
 - **Time Tracking**
   - Start, stop, and continue time entries
   - Edit existing time entries (title, start/end times, tags)
+  - Inline title editing with popover
   - Delete time entries
   - View current active entry with live duration
   - Automatic prevention of overlapping entries

@@ -5,8 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { Play, Pencil } from "lucide-react";
 import { formatTime } from "@/lib/date-format";
 import { calculateDuration, formatDuration } from "@/lib/time-utils";
-import { apiPost, apiPut } from "@/lib/api";
+import { apiPost, apiPut, apiPatch } from "@/lib/api";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
+import { InlineTitleEdit } from "./InlineTitleEdit";
 import type { EntryOverlap } from "@/lib/overlap-detection";
 import type { GroupedTimeLogEntry, TimeLogEntry, TimeEntry } from "@/components/time-logs/types";
 import { TimeEntry as TimeEntryComponent } from "./TimeEntry";
@@ -83,6 +84,15 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
     });
   };
 
+  const handleInlineTitleUpdate = async (newTitle: string) => {
+    const entryIds = groupedEntry.entries.map((e) => e.id);
+    await apiPatch(`/api-ui/time-log-entries/bulk-update-title`, {
+      entryIds,
+      title: newTitle,
+    });
+    await onDataChange();
+  };
+
   if (isEditingGroup) {
     return (
       <EditGroupedEntryForm
@@ -127,9 +137,13 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
             >
               {groupedEntry.entries.length}
             </button>
-            <p className="font-medium text-foreground" data-testid="entry-title">
-              {groupedEntry.title}
-            </p>
+            <div data-testid="entry-title">
+              <InlineTitleEdit
+                currentTitle={groupedEntry.title}
+                onSave={handleInlineTitleUpdate}
+                testIdPrefix="grouped-entry-inline-title"
+              />
+            </div>
           </div>
           {groupedEntry.tags && groupedEntry.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1.5" data-testid="entry-tags">

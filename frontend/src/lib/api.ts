@@ -75,6 +75,16 @@ export async function apiPut<T>(url: string, body: unknown): Promise<T> {
 }
 
 /**
+ * PATCH request helper
+ */
+export async function apiPatch<T>(url: string, body: unknown): Promise<T> {
+  return apiRequest<T>(url, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+/**
  * DELETE request helper
  */
 export async function apiDelete<T>(url: string): Promise<T> {

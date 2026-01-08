@@ -12,10 +12,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Play, MoreVertical, Trash2, Pencil, AlertCircle } from "lucide-react";
 import { formatTime, formatTimeWithWeekday, formatDate } from "@/lib/date-format";
 import { calculateDuration, formatDuration, isDifferentDay } from "@/lib/time-utils";
-import { apiDelete, apiPost, apiPut } from "@/lib/api";
+import { apiDelete, apiPost, apiPut, apiPatch } from "@/lib/api";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
 import { EditEntryForm } from "./EditEntryForm";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
+import { InlineTitleEdit } from "./InlineTitleEdit";
 import type { EntryOverlap } from "@/lib/overlap-detection";
 import type { TimeLogEntry, TimeEntry } from "./types";
 
@@ -117,6 +118,13 @@ export function TimeEntry({
     });
   };
 
+  const handleInlineTitleUpdate = async (newTitle: string) => {
+    await apiPatch<TimeEntry>(`/api-ui/time-log-entries/${entry.id}/title`, {
+      title: newTitle,
+    });
+    await onDataChange();
+  };
+
   // Check if entry spans to a different day
   const spansDifferentDay = entry.endTime && isDifferentDay(entry.startTime, entry.endTime);
   const endTimeDisplay = entry.endTime
@@ -153,9 +161,13 @@ export function TimeEntry({
     <div className="flex items-center justify-between p-3 border border-border rounded-md" data-testid="time-entry">
       <div className="flex-1">
         {!hideTitle && (
-          <p className="font-medium text-foreground" data-testid="entry-title">
-            {entry.title}
-          </p>
+          <div data-testid="entry-title">
+            <InlineTitleEdit
+              currentTitle={entry.title}
+              onSave={handleInlineTitleUpdate}
+              testIdPrefix="time-entry-inline-title"
+            />
+          </div>
         )}
         {!hideTags && entry.tags && entry.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-1.5" data-testid="entry-tags">
