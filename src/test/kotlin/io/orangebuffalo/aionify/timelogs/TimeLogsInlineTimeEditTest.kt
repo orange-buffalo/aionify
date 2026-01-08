@@ -3,7 +3,7 @@ package io.orangebuffalo.aionify.timelogs
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.TimeLogEntry
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import java.time.Instant
 
@@ -53,9 +53,10 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         // Verify database was updated
         testDatabaseSupport.inTransaction {
             val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
-            // The time part should be updated to 13:45
-            // Compare Instants directly to avoid timezone issues
-            assertNotEquals(entry.startTime, updatedEntry.startTime, "Start time should have changed")
+            // The time should be updated to 13:45 UTC (same date, updated time)
+            // Original: 2024-03-15T13:30:00Z, Expected: 2024-03-15T13:45:00Z
+            val expectedStartTime = Instant.parse("2024-03-15T13:45:00Z")
+            assertEquals(expectedStartTime, updatedEntry.startTime, "Start time should be updated to 13:45 UTC")
 
             // Ensure other fields were not changed
             assertEquals(entry.endTime, updatedEntry.endTime)
@@ -98,9 +99,10 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         // Verify database was updated
         testDatabaseSupport.inTransaction {
             val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
-            // The time part should be updated
-            // Compare Instants directly to avoid timezone issues
-            assertNotEquals(entry.endTime, updatedEntry.endTime, "End time should have changed")
+            // The time should be updated to 14:45 UTC (same date, updated time)
+            // Original: 2024-03-15T14:00:00Z, Expected: 2024-03-15T14:45:00Z
+            val expectedEndTime = Instant.parse("2024-03-15T14:45:00Z")
+            assertEquals(expectedEndTime, updatedEntry.endTime, "End time should be updated to 14:45 UTC")
 
             // Ensure other fields were not changed
             assertEquals(entry.startTime, updatedEntry.startTime)
@@ -165,12 +167,13 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         // Click the save button
         page.locator("[data-testid='time-entry-inline-start-time-save-button']").click()
 
-        // Verify database was updated to the 5th of the month
+        // Verify database was updated to the 5th of March
         testDatabaseSupport.inTransaction {
             val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
-            // The date should change to the 5th
-            // Compare Instants directly - we know the date changed
-            assertNotEquals(entry.startTime, updatedEntry.startTime, "Start time should have changed")
+            // The date should change to the 5th, time should remain at 13:30
+            // Original: 2024-03-15T13:30:00Z, Expected: 2024-03-05T13:30:00Z
+            val expectedStartTime = Instant.parse("2024-03-05T13:30:00Z")
+            assertEquals(expectedStartTime, updatedEntry.startTime, "Start time should be 5th March at 13:30 UTC")
         }
     }
 
@@ -230,11 +233,14 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         // Verify popover closed
         assertThat(page.locator("[data-testid='time-entry-inline-start-time-popover']")).not().isVisible()
 
-        // Verify database was updated for this specific entry
+        // Verify database was updated for the first entry in the list
         testDatabaseSupport.inTransaction {
-            val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry1.id)).orElseThrow()
-            // Compare Instants directly
-            assertNotEquals(entry1.startTime, updatedEntry.startTime, "Start time should have changed")
+            // The first visible entry should be the most recent one (entry2)
+            // Find which entry was updated by checking for the new time
+            val entries = timeLogEntryRepository.findAll()
+            val updatedEntry =
+                entries.find { it.startTime == Instant.parse("2024-03-15T10:00:00Z") }
+            assertNotNull(updatedEntry, "One entry should have start time updated to 10:00 UTC")
         }
     }
 
@@ -351,8 +357,10 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         // Verify database was updated
         testDatabaseSupport.inTransaction {
             val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
-            // End time should have changed
-            assertNotEquals(entry.endTime, updatedEntry.endTime, "End time should have changed")
+            // The time should be updated to 15:30 UTC on March 16
+            // Original: 2024-03-16T14:30:00Z, Expected: 2024-03-16T15:30:00Z
+            val expectedEndTime = Instant.parse("2024-03-16T15:30:00Z")
+            assertEquals(expectedEndTime, updatedEntry.endTime, "End time should be updated to 16 March at 15:30 UTC")
 
             // Ensure other fields were not changed
             assertEquals(entry.startTime, updatedEntry.startTime)

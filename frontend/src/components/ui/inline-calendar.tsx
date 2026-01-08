@@ -15,23 +15,23 @@ export function InlineCalendar({
   startOfWeek,
   testIdPrefix = "calendar",
 }: InlineCalendarProps) {
-  // Generate calendar days for current month
+  // Generate calendar days for current month - use UTC to avoid timezone issues
   const generateCalendar = (date: Date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
+    const year = date.getUTCFullYear();
+    const month = date.getUTCMonth();
+    const firstDay = new Date(Date.UTC(year, month, 1));
     const startDate = new Date(firstDay);
     // Adjust to start from the configured start of week
-    const dayOfWeek = firstDay.getDay();
+    const dayOfWeek = firstDay.getUTCDay();
     const diff = (dayOfWeek - startOfWeek + 7) % 7;
-    startDate.setDate(startDate.getDate() - diff);
+    startDate.setUTCDate(firstDay.getUTCDate() - diff);
 
     const days: Date[] = [];
     const current = new Date(startDate);
 
     for (let i = 0; i < 42; i++) {
       days.push(new Date(current));
-      current.setDate(current.getDate() + 1);
+      current.setUTCDate(current.getUTCDate() + 1);
     }
 
     return { days, month, year };
@@ -41,7 +41,10 @@ export function InlineCalendar({
 
   // Get localized month name using Intl API
   const getMonthName = (monthIndex: number) => {
-    return new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(year, monthIndex, 1));
+    // Use UTC to avoid timezone-related month shifts
+    return new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(
+      new Date(Date.UTC(year, monthIndex, 1))
+    );
   };
 
   // Get localized day names using Intl API starting from the configured start of week
@@ -60,48 +63,50 @@ export function InlineCalendar({
 
   const handleDateClick = (day: Date) => {
     const newDate = new Date(value);
-    newDate.setFullYear(day.getFullYear(), day.getMonth(), day.getDate());
+    // Use UTC methods to preserve the time portion correctly
+    newDate.setUTCFullYear(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate());
     onChange(newDate);
   };
 
   const isToday = (date: Date) => {
     const today = new Date();
     return (
-      date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear()
+      date.getUTCDate() === today.getUTCDate() &&
+      date.getUTCMonth() === today.getUTCMonth() &&
+      date.getUTCFullYear() === today.getUTCFullYear()
     );
   };
 
   const isSelected = (date: Date) => {
-    // Normalize both dates to midnight local time for comparison
-    const dateNormalized = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const valueNormalized = new Date(value.getFullYear(), value.getMonth(), value.getDate());
-
-    return dateNormalized.getTime() === valueNormalized.getTime();
+    // Compare UTC dates
+    return (
+      date.getUTCDate() === value.getUTCDate() &&
+      date.getUTCMonth() === value.getUTCMonth() &&
+      date.getUTCFullYear() === value.getUTCFullYear()
+    );
   };
 
   const prevMonth = () => {
-    const targetMonth = value.getMonth() - 1;
-    const targetYear = value.getFullYear();
+    const targetMonth = value.getUTCMonth() - 1;
+    const targetYear = value.getUTCFullYear();
     // Get the last day of the target month
-    const lastDayOfTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+    const lastDayOfTargetMonth = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
     // Use the smaller of current day or last day of target month
-    const day = Math.min(value.getDate(), lastDayOfTargetMonth);
+    const day = Math.min(value.getUTCDate(), lastDayOfTargetMonth);
     const newDate = new Date(value);
-    newDate.setFullYear(targetYear, targetMonth, day);
+    newDate.setUTCFullYear(targetYear, targetMonth, day);
     onChange(newDate);
   };
 
   const nextMonth = () => {
-    const targetMonth = value.getMonth() + 1;
-    const targetYear = value.getFullYear();
+    const targetMonth = value.getUTCMonth() + 1;
+    const targetYear = value.getUTCFullYear();
     // Get the last day of the target month
-    const lastDayOfTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+    const lastDayOfTargetMonth = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
     // Use the smaller of current day or last day of target month
-    const day = Math.min(value.getDate(), lastDayOfTargetMonth);
+    const day = Math.min(value.getUTCDate(), lastDayOfTargetMonth);
     const newDate = new Date(value);
-    newDate.setFullYear(targetYear, targetMonth, day);
+    newDate.setUTCFullYear(targetYear, targetMonth, day);
     onChange(newDate);
   };
 
@@ -135,7 +140,7 @@ export function InlineCalendar({
           {Array.from({ length: 6 }, (_, weekIdx) => (
             <tr key={weekIdx}>
               {days.slice(weekIdx * 7, weekIdx * 7 + 7).map((day, dayIdx) => {
-                const isCurrentMonth = day.getMonth() === month;
+                const isCurrentMonth = day.getUTCMonth() === month;
                 const todayDate = isToday(day);
                 const selected = isSelected(day);
 
@@ -152,7 +157,7 @@ export function InlineCalendar({
                       `}
                       onClick={() => handleDateClick(day)}
                     >
-                      {day.getDate()}
+                      {day.getUTCDate()}
                     </Button>
                   </td>
                 );
