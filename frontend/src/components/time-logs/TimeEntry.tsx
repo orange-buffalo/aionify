@@ -226,17 +226,14 @@ export function TimeEntry({
             />
             {" - "}
             {entry.endTime ? (
-              spansDifferentDay ? (
-                <span>{formatTimeWithWeekday(entry.endTime, locale)}</span>
-              ) : (
-                <InlineTimeEdit
-                  currentDateTime={entry.endTime}
-                  onSave={handleInlineEndTimeUpdate}
-                  locale={locale}
-                  startOfWeek={startOfWeek}
-                  testIdPrefix="time-entry-inline-end-time"
-                />
-              )
+              <InlineTimeEdit
+                currentDateTime={entry.endTime}
+                onSave={handleInlineEndTimeUpdate}
+                locale={locale}
+                startOfWeek={startOfWeek}
+                showWeekday={spansDifferentDay}
+                testIdPrefix="time-entry-inline-end-time"
+              />
             ) : (
               <span>{t("timeLogs.inProgress")}</span>
             )}
