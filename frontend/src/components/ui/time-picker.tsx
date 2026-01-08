@@ -96,7 +96,7 @@ export function TimePicker({ value, onChange, disabled, locale, testIdPrefix }: 
     const parsed = parseTime(inputValue);
     if (parsed !== null) {
       const newDate = new Date(value);
-      newDate.setHours(parsed.hours, parsed.minutes, 0, 0);
+      newDate.setUTCHours(parsed.hours, parsed.minutes, 0, 0);
       setInputValue(formatTimeForInput(newDate));
     } else {
       // Reset to current value if invalid
