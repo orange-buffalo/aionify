@@ -22,11 +22,6 @@ export function InlineTitleEdit({ currentTitle, onSave, testIdPrefix = "inline-t
   useEffect(() => {
     if (isOpen) {
       setTitle(currentTitle);
-      // Focus input after popover opens
-      setTimeout(() => {
-        inputRef.current?.focus();
-        inputRef.current?.select();
-      }, 0);
     }
   }, [isOpen, currentTitle]);
 
@@ -56,10 +51,7 @@ export function InlineTitleEdit({ currentTitle, onSave, testIdPrefix = "inline-t
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <span
-          className="font-medium text-foreground cursor-pointer hover:underline"
-          data-testid={`${testIdPrefix}-trigger`}
-        >
+        <span className="font-medium text-foreground cursor-pointer" data-testid={`${testIdPrefix}-trigger`}>
           {currentTitle}
         </span>
       </PopoverTrigger>
@@ -68,7 +60,14 @@ export function InlineTitleEdit({ currentTitle, onSave, testIdPrefix = "inline-t
         align="start"
         side="bottom"
         data-testid={`${testIdPrefix}-popover`}
-        onOpenAutoFocus={(e) => e.preventDefault()}
+        onOpenAutoFocus={(e) => {
+          e.preventDefault();
+          // Focus the input after the popover opens
+          setTimeout(() => {
+            inputRef.current?.focus();
+            inputRef.current?.select();
+          }, 0);
+        }}
       >
         <div className="flex items-center gap-2">
           <Input
