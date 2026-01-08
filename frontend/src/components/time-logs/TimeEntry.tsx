@@ -17,6 +17,7 @@ import { useApiExecutor } from "@/hooks/useApiExecutor";
 import { EditEntryForm } from "./EditEntryForm";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 import { InlineTitleEdit } from "./InlineTitleEdit";
+import { InlineTimeEdit } from "./InlineTimeEdit";
 import type { EntryOverlap } from "@/lib/overlap-detection";
 import type { TimeLogEntry, TimeEntry } from "./types";
 
@@ -125,6 +126,20 @@ export function TimeEntry({
     await onDataChange();
   };
 
+  const handleInlineStartTimeUpdate = async (newDateTime: Date) => {
+    await apiPatch<TimeEntry>(`/api-ui/time-log-entries/${entry.id}/start-time`, {
+      startTime: newDateTime.toISOString(),
+    });
+    await onDataChange();
+  };
+
+  const handleInlineEndTimeUpdate = async (newDateTime: Date) => {
+    await apiPatch<TimeEntry>(`/api-ui/time-log-entries/${entry.id}/end-time`, {
+      endTime: newDateTime.toISOString(),
+    });
+    await onDataChange();
+  };
+
   // Check if entry spans to a different day
   const spansDifferentDay = entry.endTime && isDifferentDay(entry.startTime, entry.endTime);
   const endTimeDisplay = entry.endTime
@@ -202,7 +217,29 @@ export function TimeEntry({
             </Popover>
           )}
           <span>
-            {formatTime(entry.startTime, locale)} - {endTimeDisplay}
+            <InlineTimeEdit
+              currentDateTime={entry.startTime}
+              onSave={handleInlineStartTimeUpdate}
+              locale={locale}
+              startOfWeek={startOfWeek}
+              testIdPrefix="time-entry-inline-start-time"
+            />
+            {" - "}
+            {entry.endTime ? (
+              spansDifferentDay ? (
+                <span>{formatTimeWithWeekday(entry.endTime, locale)}</span>
+              ) : (
+                <InlineTimeEdit
+                  currentDateTime={entry.endTime}
+                  onSave={handleInlineEndTimeUpdate}
+                  locale={locale}
+                  startOfWeek={startOfWeek}
+                  testIdPrefix="time-entry-inline-end-time"
+                />
+              )
+            ) : (
+              <span>{t("timeLogs.inProgress")}</span>
+            )}
           </span>
         </div>
         <div className="font-mono font-semibold text-foreground min-w-[70px] text-right" data-testid="entry-duration">

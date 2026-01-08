@@ -274,6 +274,78 @@ open class TimeLogEntryResource(
         return HttpResponse.ok(updatedEntry.toDto())
     }
 
+    @Patch("/{id}/start-time")
+    open fun updateEntryStartTime(
+        @PathVariable id: Long,
+        @Valid @Body request: UpdateTimeLogEntryStartTimeRequest,
+        currentUser: UserWithId,
+    ): HttpResponse<*> {
+        log.debug("Updating time log entry start time: {} for user: {}", id, currentUser.user.userName)
+
+        val entry =
+            findEntryAndVerifyOwnership(id, currentUser) ?: run {
+                log.debug("Update start time failed: entry not found: {}", id)
+                return entryNotFoundResponse()
+            }
+
+        // Validate that if the entry has an end time, start time must be before it
+        if (entry.endTime != null && (request.startTime.isAfter(entry.endTime) || request.startTime == entry.endTime)) {
+            log.debug("Update start time failed: start time after or equal to end time for entry: {}", id)
+            return HttpResponse.badRequest(
+                TimeLogEntryErrorResponse("Start time must be before end time", "START_TIME_AFTER_END_TIME"),
+            )
+        }
+
+        val updatedEntry =
+            timeLogEntryRepository.update(
+                entry.copy(startTime = request.startTime),
+            )
+
+        log.info("Time log entry start time updated: {} for user: {}", id, currentUser.user.userName)
+
+        return HttpResponse.ok(updatedEntry.toDto())
+    }
+
+    @Patch("/{id}/end-time")
+    open fun updateEntryEndTime(
+        @PathVariable id: Long,
+        @Valid @Body request: UpdateTimeLogEntryEndTimeRequest,
+        currentUser: UserWithId,
+    ): HttpResponse<*> {
+        log.debug("Updating time log entry end time: {} for user: {}", id, currentUser.user.userName)
+
+        val entry =
+            findEntryAndVerifyOwnership(id, currentUser) ?: run {
+                log.debug("Update end time failed: entry not found: {}", id)
+                return entryNotFoundResponse()
+            }
+
+        // Only allow updating end time for entries that already have an end time (stopped entries)
+        if (entry.endTime == null) {
+            log.debug("Update end time failed: entry is still active: {}", id)
+            return HttpResponse.badRequest(
+                TimeLogEntryErrorResponse("Cannot update end time for active entry", "ENTRY_IS_ACTIVE"),
+            )
+        }
+
+        // Validate end time is after start time
+        if (request.endTime.isBefore(entry.startTime) || request.endTime == entry.startTime) {
+            log.debug("Update end time failed: end time before or equal to start time for entry: {}", id)
+            return HttpResponse.badRequest(
+                TimeLogEntryErrorResponse("End time must be after start time", "END_TIME_BEFORE_START_TIME"),
+            )
+        }
+
+        val updatedEntry =
+            timeLogEntryRepository.update(
+                entry.copy(endTime = request.endTime),
+            )
+
+        log.info("Time log entry end time updated: {} for user: {}", id, currentUser.user.userName)
+
+        return HttpResponse.ok(updatedEntry.toDto())
+    }
+
     @Delete("/{id}")
     open fun deleteEntry(
         @PathVariable id: Long,
@@ -486,4 +558,16 @@ data class BulkUpdateTimeLogEntriesTitleRequest(
     @field:Size(max = 1000, message = "Title cannot exceed 1000 characters")
     val title: String,
     val entryIds: List<Long>,
+)
+
+@Serdeable
+@Introspected
+data class UpdateTimeLogEntryStartTimeRequest(
+    val startTime: Instant,
+)
+
+@Serdeable
+@Introspected
+data class UpdateTimeLogEntryEndTimeRequest(
+    val endTime: Instant,
 )
