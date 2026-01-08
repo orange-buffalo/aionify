@@ -3,19 +3,21 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { formatDuration, getWeekStart } from "@/lib/time-utils";
-import type { DayGroup } from "./types";
+import { formatDuration, getWeekStart, calculateDuration } from "@/lib/time-utils";
+import type { TimeLogEntry, TimeEntry } from "./types";
 
 interface WeekNavigationProps {
-  dayGroups: DayGroup[];
+  entries: TimeLogEntry[];
+  activeEntry: TimeEntry | null;
   locale: string;
   startOfWeek: number;
   onTimeRangeChange: (from: Date, to: Date) => void;
 }
 
-export function WeekNavigation({ dayGroups, locale, startOfWeek, onTimeRangeChange }: WeekNavigationProps) {
+export function WeekNavigation({ entries, activeEntry, locale, startOfWeek, onTimeRangeChange }: WeekNavigationProps) {
   const { t } = useTranslation();
   const [weekStart, setWeekStart] = useState<Date | null>(null);
+  const [weeklyTotal, setWeeklyTotal] = useState<number>(0);
 
   // Initialize week start when startOfWeek is available
   useEffect(() => {
@@ -60,10 +62,25 @@ export function WeekNavigation({ dayGroups, locale, startOfWeek, onTimeRangeChan
     return `${startStr} - ${endStr}`;
   }
 
-  // Calculate weekly total from day groups
+  // Calculate weekly total from entries
   function calculateWeeklyTotal(): number {
-    return dayGroups.reduce((sum, group) => sum + group.totalDuration, 0);
+    return entries.reduce((sum, entry) => sum + calculateDuration(entry.startTime, entry.endTime), 0);
   }
+
+  // Recalculate weekly total when entries change or when there's an active entry
+  useEffect(() => {
+    const total = calculateWeeklyTotal();
+    setWeeklyTotal(total);
+
+    if (!activeEntry) return;
+
+    const interval = setInterval(() => {
+      const updatedTotal = calculateWeeklyTotal();
+      setWeeklyTotal(updatedTotal);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [entries, activeEntry]);
 
   // Don't render until weekStart is initialized
   if (!weekStart) {
@@ -71,7 +88,6 @@ export function WeekNavigation({ dayGroups, locale, startOfWeek, onTimeRangeChan
   }
 
   const weekRange = getWeekRangeDisplay();
-  const weeklyTotal = calculateWeeklyTotal();
 
   return (
     <Card className="border-none shadow-md mb-6">
