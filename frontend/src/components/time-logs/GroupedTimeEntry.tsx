@@ -7,7 +7,7 @@ import { formatTime } from "@/lib/date-format";
 import { calculateDuration, formatDuration } from "@/lib/time-utils";
 import { apiPost, apiPut, apiPatch } from "@/lib/api";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
-import { QuickTitleEdit } from "./QuickTitleEdit";
+import { InlineTitleEdit } from "./InlineTitleEdit";
 import type { EntryOverlap } from "@/lib/overlap-detection";
 import type { GroupedTimeLogEntry, TimeLogEntry, TimeEntry } from "@/components/time-logs/types";
 import { TimeEntry as TimeEntryComponent } from "./TimeEntry";
@@ -84,7 +84,7 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
     });
   };
 
-  const handleQuickTitleUpdate = async (newTitle: string) => {
+  const handleInlineTitleUpdate = async (newTitle: string) => {
     const entryIds = groupedEntry.entries.map((e) => e.id);
     await apiPatch(`/api-ui/time-log-entries/bulk-update-title`, {
       entryIds,
@@ -138,10 +138,10 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
               {groupedEntry.entries.length}
             </button>
             <div data-testid="entry-title">
-              <QuickTitleEdit
+              <InlineTitleEdit
                 currentTitle={groupedEntry.title}
-                onSave={handleQuickTitleUpdate}
-                testIdPrefix="grouped-entry-quick-title"
+                onSave={handleInlineTitleUpdate}
+                testIdPrefix="grouped-entry-inline-title"
               />
             </div>
           </div>

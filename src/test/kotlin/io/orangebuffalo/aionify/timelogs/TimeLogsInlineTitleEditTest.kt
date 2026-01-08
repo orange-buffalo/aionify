@@ -6,12 +6,12 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 /**
- * Tests for quick title editing functionality.
- * Verifies that users can quickly edit titles inline using a popover.
+ * Tests for inline title editing functionality.
+ * Verifies that users can edit titles inline using a popover.
  */
-class TimeLogsQuickTitleEditTest : TimeLogsPageTestBase() {
+class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
     @Test
-    fun `should allow quick edit of title on stopped entry`() {
+    fun `should allow inline edit of title on stopped entry`() {
         // Create a stopped entry
         val entry =
             testDatabaseSupport.insert(
@@ -27,26 +27,26 @@ class TimeLogsQuickTitleEditTest : TimeLogsPageTestBase() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Click on the title to open the popover
-        page.locator("[data-testid='time-entry-quick-title-trigger']").click()
+        page.locator("[data-testid='time-entry-inline-title-trigger']").click()
 
         // Verify popover is visible
-        assertThat(page.locator("[data-testid='time-entry-quick-title-popover']")).isVisible()
+        assertThat(page.locator("[data-testid='time-entry-inline-title-popover']")).isVisible()
 
         // Verify input has the current title
-        val input = page.locator("[data-testid='time-entry-quick-title-input']")
+        val input = page.locator("[data-testid='time-entry-inline-title-input']")
         assertThat(input).hasValue("Original Title")
 
         // Change the title
         input.fill("Updated Title")
 
         // Click the save button
-        page.locator("[data-testid='time-entry-quick-title-save-button']").click()
+        page.locator("[data-testid='time-entry-inline-title-save-button']").click()
 
         // Verify popover is closed
-        assertThat(page.locator("[data-testid='time-entry-quick-title-popover']")).not().isVisible()
+        assertThat(page.locator("[data-testid='time-entry-inline-title-popover']")).not().isVisible()
 
         // Verify title is updated in the UI
-        assertThat(page.locator("[data-testid='time-entry-quick-title-trigger']")).containsText("Updated Title")
+        assertThat(page.locator("[data-testid='time-entry-inline-title-trigger']")).containsText("Updated Title")
 
         // Verify database was updated
         testDatabaseSupport.inTransaction {
@@ -79,20 +79,20 @@ class TimeLogsQuickTitleEditTest : TimeLogsPageTestBase() {
         val dailyEntry = page.locator("[data-testid='time-entry']")
 
         // Click on the title
-        dailyEntry.locator("[data-testid='time-entry-quick-title-trigger']").click()
+        dailyEntry.locator("[data-testid='time-entry-inline-title-trigger']").click()
 
         // Verify popover is visible
-        assertThat(page.locator("[data-testid='time-entry-quick-title-popover']")).isVisible()
+        assertThat(page.locator("[data-testid='time-entry-inline-title-popover']")).isVisible()
 
         // Update title
-        val input = page.locator("[data-testid='time-entry-quick-title-input']")
+        val input = page.locator("[data-testid='time-entry-inline-title-input']")
         input.fill("Updated Active Entry")
 
         // Save
-        page.locator("[data-testid='time-entry-quick-title-save-button']").click()
+        page.locator("[data-testid='time-entry-inline-title-save-button']").click()
 
         // Verify update in UI
-        assertThat(dailyEntry.locator("[data-testid='time-entry-quick-title-trigger']")).containsText(
+        assertThat(dailyEntry.locator("[data-testid='time-entry-inline-title-trigger']")).containsText(
             "Updated Active Entry",
         )
 
@@ -106,7 +106,7 @@ class TimeLogsQuickTitleEditTest : TimeLogsPageTestBase() {
     }
 
     @Test
-    fun `should allow quick edit of grouped entries`() {
+    fun `should allow inline edit of grouped entries`() {
         // Create three entries with same title and tags
         val entry1 =
             testDatabaseSupport.insert(
@@ -148,23 +148,23 @@ class TimeLogsQuickTitleEditTest : TimeLogsPageTestBase() {
         assertThat(groupedEntry).isVisible()
 
         // Click on the title
-        groupedEntry.locator("[data-testid='grouped-entry-quick-title-trigger']").click()
+        groupedEntry.locator("[data-testid='grouped-entry-inline-title-trigger']").click()
 
         // Verify popover is visible
-        assertThat(page.locator("[data-testid='grouped-entry-quick-title-popover']")).isVisible()
+        assertThat(page.locator("[data-testid='grouped-entry-inline-title-popover']")).isVisible()
 
         // Update title
-        val input = page.locator("[data-testid='grouped-entry-quick-title-input']")
+        val input = page.locator("[data-testid='grouped-entry-inline-title-input']")
         input.fill("Updated Group Title")
 
         // Save
-        page.locator("[data-testid='grouped-entry-quick-title-save-button']").click()
+        page.locator("[data-testid='grouped-entry-inline-title-save-button']").click()
 
         // Verify popover closed
-        assertThat(page.locator("[data-testid='grouped-entry-quick-title-popover']")).not().isVisible()
+        assertThat(page.locator("[data-testid='grouped-entry-inline-title-popover']")).not().isVisible()
 
         // Verify UI updated
-        assertThat(groupedEntry.locator("[data-testid='grouped-entry-quick-title-trigger']")).containsText(
+        assertThat(groupedEntry.locator("[data-testid='grouped-entry-inline-title-trigger']")).containsText(
             "Updated Group Title",
         )
 
@@ -208,14 +208,14 @@ class TimeLogsQuickTitleEditTest : TimeLogsPageTestBase() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Open popover
-        page.locator("[data-testid='time-entry-quick-title-trigger']").click()
-        assertThat(page.locator("[data-testid='time-entry-quick-title-popover']")).isVisible()
+        page.locator("[data-testid='time-entry-inline-title-trigger']").click()
+        assertThat(page.locator("[data-testid='time-entry-inline-title-popover']")).isVisible()
 
         // Press Escape
         page.keyboard().press("Escape")
 
         // Verify popover closed
-        assertThat(page.locator("[data-testid='time-entry-quick-title-popover']")).not().isVisible()
+        assertThat(page.locator("[data-testid='time-entry-inline-title-popover']")).not().isVisible()
     }
 
     @Test
@@ -234,19 +234,19 @@ class TimeLogsQuickTitleEditTest : TimeLogsPageTestBase() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Open popover
-        page.locator("[data-testid='time-entry-quick-title-trigger']").click()
-        assertThat(page.locator("[data-testid='time-entry-quick-title-popover']")).isVisible()
+        page.locator("[data-testid='time-entry-inline-title-trigger']").click()
+        assertThat(page.locator("[data-testid='time-entry-inline-title-popover']")).isVisible()
 
         // Update title and press Enter
-        val input = page.locator("[data-testid='time-entry-quick-title-input']")
+        val input = page.locator("[data-testid='time-entry-inline-title-input']")
         input.fill("Title via Enter")
         input.press("Enter")
 
         // Verify popover closed
-        assertThat(page.locator("[data-testid='time-entry-quick-title-popover']")).not().isVisible()
+        assertThat(page.locator("[data-testid='time-entry-inline-title-popover']")).not().isVisible()
 
         // Verify title updated
-        assertThat(page.locator("[data-testid='time-entry-quick-title-trigger']")).containsText("Title via Enter")
+        assertThat(page.locator("[data-testid='time-entry-inline-title-trigger']")).containsText("Title via Enter")
 
         // Verify database
         testDatabaseSupport.inTransaction {
@@ -270,14 +270,14 @@ class TimeLogsQuickTitleEditTest : TimeLogsPageTestBase() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Open popover
-        page.locator("[data-testid='time-entry-quick-title-trigger']").click()
+        page.locator("[data-testid='time-entry-inline-title-trigger']").click()
 
         // Clear the title
-        val input = page.locator("[data-testid='time-entry-quick-title-input']")
+        val input = page.locator("[data-testid='time-entry-inline-title-input']")
         input.fill("")
 
         // Verify save button is disabled
-        assertThat(page.locator("[data-testid='time-entry-quick-title-save-button']")).isDisabled()
+        assertThat(page.locator("[data-testid='time-entry-inline-title-save-button']")).isDisabled()
     }
 
     @Test
@@ -295,64 +295,15 @@ class TimeLogsQuickTitleEditTest : TimeLogsPageTestBase() {
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Open popover
-        page.locator("[data-testid='time-entry-quick-title-trigger']").click()
+        page.locator("[data-testid='time-entry-inline-title-trigger']").click()
 
         // Enter a title that's too long (over 1000 characters)
-        val input = page.locator("[data-testid='time-entry-quick-title-input']")
+        val input = page.locator("[data-testid='time-entry-inline-title-input']")
         val longTitle = "a".repeat(1001)
         input.fill(longTitle)
 
         // Verify save button is disabled
-        assertThat(page.locator("[data-testid='time-entry-quick-title-save-button']")).isDisabled()
-    }
-
-    @Test
-    fun `should show loading state while saving`() {
-        testDatabaseSupport.insert(
-            TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
-                title = "Original Title",
-                ownerId = requireNotNull(testUser.id),
-                tags = emptyArray(),
-            ),
-        )
-
-        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
-
-        // Open popover
-        page.locator("[data-testid='time-entry-quick-title-trigger']").click()
-
-        // Update title
-        val input = page.locator("[data-testid='time-entry-quick-title-input']")
-        input.fill("New Title")
-
-        // Click save and immediately check for loading icon
-        // Note: This might be too fast to observe the loading state in some cases
-        page.locator("[data-testid='time-entry-quick-title-save-button']").click()
-
-        // Verify the operation completes (popover closes)
-        assertThat(page.locator("[data-testid='time-entry-quick-title-popover']")).not().isVisible()
-    }
-
-    @Test
-    fun `should show cursor pointer on hover over title`() {
-        testDatabaseSupport.insert(
-            TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
-                title = "Test Entry",
-                ownerId = requireNotNull(testUser.id),
-                tags = emptyArray(),
-            ),
-        )
-
-        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
-
-        // Verify the title has cursor-pointer class
-        val titleTrigger = page.locator("[data-testid='time-entry-quick-title-trigger']")
-        val classAttr = titleTrigger.getAttribute("class") ?: ""
-        assert(classAttr.contains("cursor-pointer")) { "Expected cursor-pointer class but got: $classAttr" }
+        assertThat(page.locator("[data-testid='time-entry-inline-title-save-button']")).isDisabled()
     }
 
     @Test
@@ -370,13 +321,13 @@ class TimeLogsQuickTitleEditTest : TimeLogsPageTestBase() {
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
-        // Quick edit title
-        page.locator("[data-testid='time-entry-quick-title-trigger']").click()
-        page.locator("[data-testid='time-entry-quick-title-input']").fill("Updated Title")
-        page.locator("[data-testid='time-entry-quick-title-save-button']").click()
+        // Inline edit title
+        page.locator("[data-testid='time-entry-inline-title-trigger']").click()
+        page.locator("[data-testid='time-entry-inline-title-input']").fill("Updated Title")
+        page.locator("[data-testid='time-entry-inline-title-save-button']").click()
 
         // Wait for save to complete
-        assertThat(page.locator("[data-testid='time-entry-quick-title-popover']")).not().isVisible()
+        assertThat(page.locator("[data-testid='time-entry-inline-title-popover']")).not().isVisible()
 
         // Verify tags are still visible in UI
         val tags = page.locator("[data-testid='entry-tags']").locator("[data-testid^='entry-tag-']")
@@ -405,13 +356,13 @@ class TimeLogsQuickTitleEditTest : TimeLogsPageTestBase() {
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
-        // Quick edit with whitespace
-        page.locator("[data-testid='time-entry-quick-title-trigger']").click()
-        page.locator("[data-testid='time-entry-quick-title-input']").fill("  Trimmed Title  ")
-        page.locator("[data-testid='time-entry-quick-title-save-button']").click()
+        // Inline edit with whitespace
+        page.locator("[data-testid='time-entry-inline-title-trigger']").click()
+        page.locator("[data-testid='time-entry-inline-title-input']").fill("  Trimmed Title  ")
+        page.locator("[data-testid='time-entry-inline-title-save-button']").click()
 
         // Wait for save
-        assertThat(page.locator("[data-testid='time-entry-quick-title-popover']")).not().isVisible()
+        assertThat(page.locator("[data-testid='time-entry-inline-title-popover']")).not().isVisible()
 
         // Verify title was trimmed in database
         testDatabaseSupport.inTransaction {

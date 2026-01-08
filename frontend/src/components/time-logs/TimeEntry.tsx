@@ -16,7 +16,7 @@ import { apiDelete, apiPost, apiPut, apiPatch } from "@/lib/api";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
 import { EditEntryForm } from "./EditEntryForm";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
-import { QuickTitleEdit } from "./QuickTitleEdit";
+import { InlineTitleEdit } from "./InlineTitleEdit";
 import type { EntryOverlap } from "@/lib/overlap-detection";
 import type { TimeLogEntry, TimeEntry } from "./types";
 
@@ -118,7 +118,7 @@ export function TimeEntry({
     });
   };
 
-  const handleQuickTitleUpdate = async (newTitle: string) => {
+  const handleInlineTitleUpdate = async (newTitle: string) => {
     await apiPatch<TimeEntry>(`/api-ui/time-log-entries/${entry.id}/title`, {
       title: newTitle,
     });
@@ -162,10 +162,10 @@ export function TimeEntry({
       <div className="flex-1">
         {!hideTitle && (
           <div data-testid="entry-title">
-            <QuickTitleEdit
+            <InlineTitleEdit
               currentTitle={entry.title}
-              onSave={handleQuickTitleUpdate}
-              testIdPrefix="time-entry-quick-title"
+              onSave={handleInlineTitleUpdate}
+              testIdPrefix="time-entry-inline-title"
             />
           </div>
         )}

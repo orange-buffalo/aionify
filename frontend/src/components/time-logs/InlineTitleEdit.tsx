@@ -5,13 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send, Loader2 } from "lucide-react";
 
-interface QuickTitleEditProps {
+interface InlineTitleEditProps {
   currentTitle: string;
   onSave: (newTitle: string) => Promise<void>;
   testIdPrefix?: string;
 }
 
-export function QuickTitleEdit({ currentTitle, onSave, testIdPrefix = "quick-title-edit" }: QuickTitleEditProps) {
+export function InlineTitleEdit({ currentTitle, onSave, testIdPrefix = "inline-title-edit" }: InlineTitleEditProps) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState(currentTitle);

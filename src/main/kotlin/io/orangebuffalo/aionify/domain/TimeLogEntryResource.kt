@@ -34,6 +34,23 @@ open class TimeLogEntryResource(
 ) {
     private val log = org.slf4j.LoggerFactory.getLogger(TimeLogEntryResource::class.java)
 
+    /**
+     * Helper method to find a time log entry and verify ownership.
+     * Returns null if the entry doesn't exist or doesn't belong to the user.
+     */
+    private fun findEntryAndVerifyOwnership(
+        id: Long,
+        currentUser: UserWithId,
+    ): TimeLogEntry? = timeLogEntryRepository.findByIdAndOwnerId(id, currentUser.id).orElse(null)
+
+    /**
+     * Helper method to return a 404 Not Found response for a missing entry.
+     */
+    private fun entryNotFoundResponse(): HttpResponse<TimeLogEntryErrorResponse> =
+        HttpResponse
+            .notFound<TimeLogEntryErrorResponse>()
+            .body(TimeLogEntryErrorResponse("Time log entry not found", "ENTRY_NOT_FOUND"))
+
     @Get
     open fun listEntries(
         @QueryValue startTime: Instant,
@@ -105,14 +122,11 @@ open class TimeLogEntryResource(
     ): HttpResponse<*> {
         log.debug("Stopping time log entry: {} for user: {}", id, currentUser.user.userName)
 
-        // Find the log entry and verify ownership
-        val entry = timeLogEntryRepository.findByIdAndOwnerId(id, currentUser.id).orElse(null)
-        if (entry == null) {
-            log.debug("Stop entry failed: entry not found: {}", id)
-            return HttpResponse
-                .notFound<TimeLogEntryErrorResponse>()
-                .body(TimeLogEntryErrorResponse("Time log entry not found", "ENTRY_NOT_FOUND"))
-        }
+        val entry =
+            findEntryAndVerifyOwnership(id, currentUser) ?: run {
+                log.debug("Stop entry failed: entry not found: {}", id)
+                return entryNotFoundResponse()
+            }
 
         // Check if already stopped
         if (entry.endTime != null) {
@@ -140,14 +154,11 @@ open class TimeLogEntryResource(
     ): HttpResponse<*> {
         log.debug("Updating time log entry: {} for user: {}", id, currentUser.user.userName)
 
-        // Find the log entry and verify ownership
-        val entry = timeLogEntryRepository.findByIdAndOwnerId(id, currentUser.id).orElse(null)
-        if (entry == null) {
-            log.debug("Update entry failed: entry not found: {}", id)
-            return HttpResponse
-                .notFound<TimeLogEntryErrorResponse>()
-                .body(TimeLogEntryErrorResponse("Time log entry not found", "ENTRY_NOT_FOUND"))
-        }
+        val entry =
+            findEntryAndVerifyOwnership(id, currentUser) ?: run {
+                log.debug("Update entry failed: entry not found: {}", id)
+                return entryNotFoundResponse()
+            }
 
         // For stopped entries, validate end time if provided
         val endTime =
@@ -247,14 +258,11 @@ open class TimeLogEntryResource(
     ): HttpResponse<*> {
         log.debug("Updating time log entry title: {} for user: {}", id, currentUser.user.userName)
 
-        // Find the log entry and verify ownership
-        val entry = timeLogEntryRepository.findByIdAndOwnerId(id, currentUser.id).orElse(null)
-        if (entry == null) {
-            log.debug("Update title failed: entry not found: {}", id)
-            return HttpResponse
-                .notFound<TimeLogEntryErrorResponse>()
-                .body(TimeLogEntryErrorResponse("Time log entry not found", "ENTRY_NOT_FOUND"))
-        }
+        val entry =
+            findEntryAndVerifyOwnership(id, currentUser) ?: run {
+                log.debug("Update title failed: entry not found: {}", id)
+                return entryNotFoundResponse()
+            }
 
         val updatedEntry =
             timeLogEntryRepository.update(
@@ -273,14 +281,11 @@ open class TimeLogEntryResource(
     ): HttpResponse<*> {
         log.debug("Deleting time log entry: {} for user: {}", id, currentUser.user.userName)
 
-        // Find the log entry and verify ownership
-        val entry = timeLogEntryRepository.findByIdAndOwnerId(id, currentUser.id).orElse(null)
-        if (entry == null) {
-            log.debug("Delete entry failed: entry not found: {}", id)
-            return HttpResponse
-                .notFound<TimeLogEntryErrorResponse>()
-                .body(TimeLogEntryErrorResponse("Time log entry not found", "ENTRY_NOT_FOUND"))
-        }
+        val entry =
+            findEntryAndVerifyOwnership(id, currentUser) ?: run {
+                log.debug("Delete entry failed: entry not found: {}", id)
+                return entryNotFoundResponse()
+            }
 
         timeLogEntryRepository.delete(entry)
 
