@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play, Square, Pencil } from "lucide-react";
 import { formatDateTime } from "@/lib/date-format";
-import { formatDuration } from "@/lib/time-utils";
+import { formatDuration, calculateDuration } from "@/lib/time-utils";
 import { EditEntryForm } from "./EditEntryForm";
 import { TagSelector } from "./TagSelector";
 import { EntryAutocomplete } from "./EntryAutocomplete";
@@ -14,7 +14,6 @@ import type { TimeEntry } from "./types";
 
 interface CurrentEntryPanelProps {
   activeEntry: TimeEntry | null;
-  activeDuration: number;
   locale: string;
   startOfWeek: number;
   isEditingStoppedEntry: boolean;
@@ -23,13 +22,13 @@ interface CurrentEntryPanelProps {
 
 export function CurrentEntryPanel({
   activeEntry,
-  activeDuration,
   locale,
   startOfWeek,
   isEditingStoppedEntry,
   onDataChange,
 }: CurrentEntryPanelProps) {
   const { t } = useTranslation();
+  const [activeDuration, setActiveDuration] = useState<number>(0);
   const {
     executeApiCall: executeStartCall,
     apiCallInProgress: isStarting,
@@ -51,6 +50,22 @@ export function CurrentEntryPanel({
   const [editTitle, setEditTitle] = useState("");
   const [editDateTime, setEditDateTime] = useState<Date>(new Date());
   const [editTags, setEditTags] = useState<string[]>([]);
+
+  // Auto-refresh active entry timer every second
+  useEffect(() => {
+    if (!activeEntry) {
+      setActiveDuration(0);
+      return;
+    }
+
+    setActiveDuration(calculateDuration(activeEntry.startTime, null));
+
+    const interval = setInterval(() => {
+      setActiveDuration(calculateDuration(activeEntry.startTime, null));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [activeEntry?.id, activeEntry?.startTime]);
 
   // Cancel edit mode when editing a stopped entry
   if (isEditMode && isEditingStoppedEntry) {
