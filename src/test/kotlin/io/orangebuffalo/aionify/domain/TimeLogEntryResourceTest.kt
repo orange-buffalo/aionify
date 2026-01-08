@@ -273,4 +273,200 @@ class TimeLogEntryResourceTest {
         val activeEntry = response.body()?.entry
         assertNull(activeEntry)
     }
+
+    @Test
+    fun `should not allow updating other users entry title`() {
+        // Given: User 1 token and User 2's entry
+        val user1Token = testAuthSupport.generateToken(user1)
+
+        // When: User 1 tries to update User 2's entry title
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest
+                        .PATCH("/api-ui/time-log-entries/${user2Entry.id}/title", mapOf("title" to "Hacked Title"))
+                        .bearerAuth(user1Token),
+                    String::class.java,
+                )
+            }
+
+        // Then: Should be not found (entry belongs to different user)
+        assertEquals(HttpStatus.NOT_FOUND, exception.status)
+
+        // And: Title should remain unchanged
+        val unchanged = timeEntryRepository.findById(requireNotNull(user2Entry.id))
+        assertTrue(unchanged.isPresent)
+        assertEquals("User 2 Task", unchanged.get().title)
+    }
+
+    @Test
+    fun `should allow user to update own entry title`() {
+        // Given: User 1 token and User 1's entry
+        val user1Token = testAuthSupport.generateToken(user1)
+
+        // When: User 1 updates their own entry title
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .PATCH("/api-ui/time-log-entries/${user1Entry.id}/title", mapOf("title" to "Updated Title"))
+                    .bearerAuth(user1Token),
+                TimeLogEntryDto::class.java,
+            )
+
+        // Then: Should succeed
+        assertEquals(HttpStatus.OK, response.status)
+        val updatedEntry = response.body()
+        assertNotNull(updatedEntry)
+        assertEquals("Updated Title", updatedEntry?.title)
+
+        // And: Title should be updated in database
+        val fromDb = timeEntryRepository.findById(requireNotNull(user1Entry.id))
+        assertTrue(fromDb.isPresent)
+        assertEquals("Updated Title", fromDb.get().title)
+    }
+
+    @Test
+    fun `should require authentication to update entry title`() {
+        // When: Trying to update title without authentication
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest.PATCH("/api-ui/time-log-entries/${user1Entry.id}/title", mapOf("title" to "New Title")),
+                    String::class.java,
+                )
+            }
+
+        // Then: Access should be unauthorized
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+    }
+
+    @Test
+    fun `should not allow bulk updating other users entries titles`() {
+        // Given: User 1 token and User 2's entry
+        val user1Token = testAuthSupport.generateToken(user1)
+
+        // When: User 1 tries to bulk update User 2's entries
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest
+                        .PATCH(
+                            "/api-ui/time-log-entries/bulk-update-title",
+                            mapOf(
+                                "title" to "Hacked Title",
+                                "entryIds" to listOf(user2Entry.id),
+                            ),
+                        ).bearerAuth(user1Token),
+                    String::class.java,
+                )
+            }
+
+        // Then: Should be not found (entries belong to different user)
+        assertEquals(HttpStatus.NOT_FOUND, exception.status)
+
+        // And: Title should remain unchanged
+        val unchanged = timeEntryRepository.findById(requireNotNull(user2Entry.id))
+        assertTrue(unchanged.isPresent)
+        assertEquals("User 2 Task", unchanged.get().title)
+    }
+
+    @Test
+    fun `should not allow bulk updating mix of own and other users entries`() {
+        // Given: User 1 token, and both User 1's and User 2's entries
+        val user1Token = testAuthSupport.generateToken(user1)
+
+        // When: User 1 tries to bulk update both their own and User 2's entries
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest
+                        .PATCH(
+                            "/api-ui/time-log-entries/bulk-update-title",
+                            mapOf(
+                                "title" to "New Title",
+                                "entryIds" to listOf(user1Entry.id, user2Entry.id),
+                            ),
+                        ).bearerAuth(user1Token),
+                    String::class.java,
+                )
+            }
+
+        // Then: Should be not found (some entries belong to different user)
+        assertEquals(HttpStatus.NOT_FOUND, exception.status)
+
+        // And: Neither entry should be updated
+        val user1EntryUnchanged = timeEntryRepository.findById(requireNotNull(user1Entry.id))
+        assertTrue(user1EntryUnchanged.isPresent)
+        assertEquals("User 1 Task", user1EntryUnchanged.get().title)
+
+        val user2EntryUnchanged = timeEntryRepository.findById(requireNotNull(user2Entry.id))
+        assertTrue(user2EntryUnchanged.isPresent)
+        assertEquals("User 2 Task", user2EntryUnchanged.get().title)
+    }
+
+    @Test
+    fun `should allow user to bulk update own entries titles`() {
+        // Given: User 1 token and multiple User 1 entries
+        val user1Token = testAuthSupport.generateToken(user1)
+
+        val user1Entry2 =
+            testDatabaseSupport.insert(
+                TimeLogEntry(
+                    startTime = Instant.parse("2024-01-15T12:00:00Z"),
+                    endTime = Instant.parse("2024-01-15T13:00:00Z"),
+                    title = "User 1 Task 2",
+                    ownerId = requireNotNull(user1.id),
+                ),
+            )
+
+        // When: User 1 bulk updates their own entries
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .PATCH(
+                        "/api-ui/time-log-entries/bulk-update-title",
+                        mapOf(
+                            "title" to "Batch Updated",
+                            "entryIds" to listOf(user1Entry.id, user1Entry2.id),
+                        ),
+                    ).bearerAuth(user1Token),
+                BulkUpdateTimeLogEntriesResponse::class.java,
+            )
+
+        // Then: Should succeed
+        assertEquals(HttpStatus.OK, response.status)
+        val result = response.body()
+        assertNotNull(result)
+        assertEquals(2, result?.updatedCount)
+
+        // And: Both entries should be updated in database
+        val entry1FromDb = timeEntryRepository.findById(requireNotNull(user1Entry.id))
+        assertTrue(entry1FromDb.isPresent)
+        assertEquals("Batch Updated", entry1FromDb.get().title)
+
+        val entry2FromDb = timeEntryRepository.findById(requireNotNull(user1Entry2.id))
+        assertTrue(entry2FromDb.isPresent)
+        assertEquals("Batch Updated", entry2FromDb.get().title)
+    }
+
+    @Test
+    fun `should require authentication to bulk update entries titles`() {
+        // When: Trying to bulk update without authentication
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest.PATCH(
+                        "/api-ui/time-log-entries/bulk-update-title",
+                        mapOf(
+                            "title" to "New Title",
+                            "entryIds" to listOf(user1Entry.id),
+                        ),
+                    ),
+                    String::class.java,
+                )
+            }
+
+        // Then: Access should be unauthorized
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+    }
 }
