@@ -469,4 +469,177 @@ class TimeLogEntryResourceTest {
         // Then: Access should be unauthorized
         assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
     }
+
+    @Test
+    fun `should not allow updating other users entry start time`() {
+        // Given: User 1 token and User 2's entry
+        val user1Token = testAuthSupport.generateToken(user1)
+
+        // When: User 1 tries to update User 2's entry start time
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest
+                        .PATCH(
+                            "/api-ui/time-log-entries/${user2Entry.id}/start-time",
+                            mapOf("startTime" to "2024-01-15T15:00:00Z"),
+                        ).bearerAuth(user1Token),
+                    String::class.java,
+                )
+            }
+
+        // Then: Should be not found (entry belongs to different user)
+        assertEquals(HttpStatus.NOT_FOUND, exception.status)
+
+        // And: Start time should remain unchanged
+        val unchanged = timeEntryRepository.findById(requireNotNull(user2Entry.id))
+        assertTrue(unchanged.isPresent)
+        assertEquals(Instant.parse("2024-01-15T14:00:00Z"), unchanged.get().startTime)
+    }
+
+    @Test
+    fun `should allow user to update own entry start time`() {
+        // Given: User 1 token and User 1's entry
+        val user1Token = testAuthSupport.generateToken(user1)
+
+        // When: User 1 updates their own entry start time
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .PATCH(
+                        "/api-ui/time-log-entries/${user1Entry.id}/start-time",
+                        mapOf("startTime" to "2024-01-15T09:30:00Z"),
+                    ).bearerAuth(user1Token),
+                TimeLogEntryDto::class.java,
+            )
+
+        // Then: Should succeed
+        assertEquals(HttpStatus.OK, response.status)
+        val updatedEntry = response.body()
+        assertNotNull(updatedEntry)
+        assertEquals(Instant.parse("2024-01-15T09:30:00Z"), updatedEntry?.startTime)
+
+        // And: Start time should be updated in database
+        val fromDb = timeEntryRepository.findById(requireNotNull(user1Entry.id))
+        assertTrue(fromDb.isPresent)
+        assertEquals(Instant.parse("2024-01-15T09:30:00Z"), fromDb.get().startTime)
+    }
+
+    @Test
+    fun `should not allow updating other users entry end time`() {
+        // Given: User 1 token and User 1's entry (has end time)
+        val user2Token = testAuthSupport.generateToken(user2)
+
+        // When: User 2 tries to update User 1's entry end time
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest
+                        .PATCH(
+                            "/api-ui/time-log-entries/${user1Entry.id}/end-time",
+                            mapOf("endTime" to "2024-01-15T12:00:00Z"),
+                        ).bearerAuth(user2Token),
+                    String::class.java,
+                )
+            }
+
+        // Then: Should be not found (entry belongs to different user)
+        assertEquals(HttpStatus.NOT_FOUND, exception.status)
+
+        // And: End time should remain unchanged
+        val unchanged = timeEntryRepository.findById(requireNotNull(user1Entry.id))
+        assertTrue(unchanged.isPresent)
+        assertEquals(Instant.parse("2024-01-15T11:00:00Z"), unchanged.get().endTime)
+    }
+
+    @Test
+    fun `should allow user to update own entry end time`() {
+        // Given: User 1 token and User 1's entry (has end time)
+        val user1Token = testAuthSupport.generateToken(user1)
+
+        // When: User 1 updates their own entry end time
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .PATCH(
+                        "/api-ui/time-log-entries/${user1Entry.id}/end-time",
+                        mapOf("endTime" to "2024-01-15T11:30:00Z"),
+                    ).bearerAuth(user1Token),
+                TimeLogEntryDto::class.java,
+            )
+
+        // Then: Should succeed
+        assertEquals(HttpStatus.OK, response.status)
+        val updatedEntry = response.body()
+        assertNotNull(updatedEntry)
+        assertEquals(Instant.parse("2024-01-15T11:30:00Z"), updatedEntry?.endTime)
+
+        // And: End time should be updated in database
+        val fromDb = timeEntryRepository.findById(requireNotNull(user1Entry.id))
+        assertTrue(fromDb.isPresent)
+        assertEquals(Instant.parse("2024-01-15T11:30:00Z"), fromDb.get().endTime)
+    }
+
+    @Test
+    fun `should not allow updating end time for active entry`() {
+        // Given: User 2 token and User 2's active entry
+        val user2Token = testAuthSupport.generateToken(user2)
+
+        // When: User 2 tries to update end time for their active entry
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest
+                        .PATCH(
+                            "/api-ui/time-log-entries/${user2Entry.id}/end-time",
+                            mapOf("endTime" to "2024-01-15T15:00:00Z"),
+                        ).bearerAuth(user2Token),
+                    String::class.java,
+                )
+            }
+
+        // Then: Should be bad request
+        assertEquals(HttpStatus.BAD_REQUEST, exception.status)
+
+        // And: End time should remain null
+        val unchanged = timeEntryRepository.findById(requireNotNull(user2Entry.id))
+        assertTrue(unchanged.isPresent)
+        assertNull(unchanged.get().endTime)
+    }
+
+    @Test
+    fun `should require authentication to update start time`() {
+        // When: Trying to access endpoint without authentication
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest.PATCH(
+                        "/api-ui/time-log-entries/${user1Entry.id}/start-time",
+                        mapOf("startTime" to "2024-01-15T09:30:00Z"),
+                    ),
+                    String::class.java,
+                )
+            }
+
+        // Then: Access should be unauthorized
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+    }
+
+    @Test
+    fun `should require authentication to update end time`() {
+        // When: Trying to access endpoint without authentication
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest.PATCH(
+                        "/api-ui/time-log-entries/${user1Entry.id}/end-time",
+                        mapOf("endTime" to "2024-01-15T12:00:00Z"),
+                    ),
+                    String::class.java,
+                )
+            }
+
+        // Then: Access should be unauthorized
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+    }
 }
