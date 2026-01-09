@@ -59,6 +59,9 @@ abstract class PlaywrightTestBase {
     @Inject
     lateinit var testUsers: TestUsers
 
+    @Inject
+    lateinit var testTimeService: TestTimeService
+
     private lateinit var playwright: Playwright
     private lateinit var browser: Browser
     private lateinit var browserContext: BrowserContext
@@ -163,6 +166,9 @@ abstract class PlaywrightTestBase {
         // Use pauseAt to prevent automatic time progression - time only advances when explicitly requested
         // This ensures frontend JavaScript Date API uses the same fixed time as backend TimeService
         _page.clock().pauseAt(FIXED_TEST_TIME.toEpochMilli())
+
+        // Reset backend time to FIXED_TEST_TIME for each test
+        testTimeService.resetTime()
     }
 
     private fun createBrowserContext(): BrowserContext =
@@ -235,6 +241,33 @@ abstract class PlaywrightTestBase {
             targetPath,
             Page.NavigateOptions().setWaitUntil(WaitUntilState.DOMCONTENTLOADED),
         )
+    }
+
+    /**
+     * Sets the current timestamp for both the browser (Playwright clock) and backend (TestTimeService).
+     * This is useful for tests that need to verify behavior at specific times different from FIXED_TEST_TIME.
+     *
+     * @param instant The instant to set as the current time
+     * @return The instant that was set (for convenience in test code)
+     *
+     * Example:
+     * ```
+     * val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "02:30"))
+     * // Now both browser and backend think the current time is 2024-03-16 02:30 in test timezone
+     * ```
+     */
+    protected fun setCurrentTimestamp(instant: Instant): Instant {
+        // Set browser time
+        page.clock().pauseAt(instant.toEpochMilli())
+        
+        // Set backend time by calculating the offset from FIXED_TEST_TIME
+        val offset = java.time.Duration.between(FIXED_TEST_TIME, instant)
+        testTimeService.resetTime()
+        if (!offset.isZero) {
+            testTimeService.advanceTime(offset)
+        }
+        
+        return instant
     }
 
     @AfterEach
