@@ -14,6 +14,9 @@ import java.time.temporal.ChronoUnit
  */
 val TEST_TIMEZONE: ZoneId = ZoneId.of("Pacific/Auckland")
 
+private val DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+private val TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
+
 /**
  * Extension functions for time shifts in tests.
  * These make test code more readable than raw second calculations.
@@ -46,7 +49,7 @@ fun Instant.plusDays(days: Long): Instant = this.plus(days, ChronoUnit.DAYS)
  */
 fun Instant.withLocalTime(localTime: String): Instant {
     val zonedDateTime = this.atZone(TEST_TIMEZONE)
-    val time = LocalTime.parse(localTime, DateTimeFormatter.ofPattern("HH:mm"))
+    val time = parseLocalTime(localTime)
     return zonedDateTime.with(time).toInstant()
 }
 
@@ -69,7 +72,11 @@ fun timeInTestTz(
     localDate: String,
     localTime: String,
 ): Instant {
-    val date = LocalDate.parse(localDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-    val time = LocalTime.parse(localTime, DateTimeFormatter.ofPattern("HH:mm"))
+    val date = parseLocalDate(localDate)
+    val time = parseLocalTime(localTime)
     return ZonedDateTime.of(date, time, TEST_TIMEZONE).toInstant()
 }
+
+private fun parseLocalDate(localDate: String): LocalDate = LocalDate.parse(localDate, DATE_FORMATTER)
+
+private fun parseLocalTime(localTime: String): LocalTime = LocalTime.parse(localTime, TIME_FORMATTER)

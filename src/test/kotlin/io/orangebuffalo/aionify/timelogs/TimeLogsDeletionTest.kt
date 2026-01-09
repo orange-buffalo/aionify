@@ -68,7 +68,7 @@ class TimeLogsDeletionTest : TimeLogsPageTestBase() {
     fun `should delete midnight-split entry correctly`() {
         // Create an entry that spans midnight
         // Friday 22:00 NZDT to Saturday 02:00 NZDT (4 hours, spans midnight)
-        // Friday 22:00 NZDT (5.5 hours = 19800 seconds before Saturday 03:30)
+        // Friday 22:00 NZDT (5.5 hours before Saturday 03:30)
         val fridayEvening = FIXED_TEST_TIME.minusHours(5).minusMinutes(30)
         // Saturday 02:00 NZDT (1.5 hours before Saturday 03:30)
         val saturdayMorning = FIXED_TEST_TIME.minusHours(1).minusMinutes(30)
