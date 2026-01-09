@@ -14,10 +14,10 @@ interface TimePickerProps {
 export function TimePicker({ value, onChange, disabled, locale, testIdPrefix }: TimePickerProps) {
   const is12HourFormat = uses12HourFormat(locale);
 
-  // Format time value for input - use UTC to avoid timezone shifts
+  // Format time value for input
   const formatTimeForInput = (date: Date): string => {
-    const hours = date.getUTCHours();
-    const minutes = date.getUTCMinutes();
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
 
     if (is12HourFormat) {
       const hour12 = hours % 12 || 12;
@@ -41,8 +41,7 @@ export function TimePicker({ value, onChange, disabled, locale, testIdPrefix }: 
     const parsed = parseTime(timeStr);
     if (parsed !== null) {
       const newDate = new Date(value);
-      // Use UTC methods to avoid timezone conversion issues
-      newDate.setUTCHours(parsed.hours, parsed.minutes, 0, 0);
+      newDate.setHours(parsed.hours, parsed.minutes, 0, 0);
       onChange(newDate);
     }
   };
@@ -96,7 +95,7 @@ export function TimePicker({ value, onChange, disabled, locale, testIdPrefix }: 
     const parsed = parseTime(inputValue);
     if (parsed !== null) {
       const newDate = new Date(value);
-      newDate.setUTCHours(parsed.hours, parsed.minutes, 0, 0);
+      newDate.setHours(parsed.hours, parsed.minutes, 0, 0);
       setInputValue(formatTimeForInput(newDate));
     } else {
       // Reset to current value if invalid

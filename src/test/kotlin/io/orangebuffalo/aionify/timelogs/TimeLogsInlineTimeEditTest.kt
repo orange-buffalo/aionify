@@ -40,9 +40,9 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         // Verify calendar is visible
         assertThat(page.locator("[data-testid='time-entry-inline-start-time-grid']")).isVisible()
 
-        // Change the time to 13:45 (after the original 13:30 start time, before the 14:00 end time)
+        // Change the time to 02:45 (in Pacific/Auckland local time, between start 02:30 and end 03:00)
         val timeInput = page.locator("[data-testid='time-entry-inline-start-time-time-input']")
-        timeInput.fill("13:45")
+        timeInput.fill("02:45")
 
         // Click the save button
         page.locator("[data-testid='time-entry-inline-start-time-save-button']").click()
@@ -53,10 +53,12 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         // Verify database was updated
         testDatabaseSupport.inTransaction {
             val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
-            // The time should be updated to 13:45 UTC (same date, updated time)
-            // Original: 2024-03-15T13:30:00Z, Expected: 2024-03-15T13:45:00Z
+            // The browser runs in Pacific/Auckland timezone (UTC+13)
+            // Original entry: 2024-03-15T13:30:00Z = 2024-03-16 02:30 local
+            // User enters "02:45" local time = 2024-03-16 02:45 Pacific/Auckland
+            // Expected UTC: 2024-03-15T13:45:00Z (02:45 - 13 hours)
             val expectedStartTime = Instant.parse("2024-03-15T13:45:00Z")
-            assertEquals(expectedStartTime, updatedEntry.startTime, "Start time should be updated to 13:45 UTC")
+            assertEquals(expectedStartTime, updatedEntry.startTime, "Start time should be updated to 02:45 local (13:45 UTC)")
 
             // Ensure other fields were not changed
             assertEquals(entry.endTime, updatedEntry.endTime)
@@ -86,9 +88,9 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         // Verify popover is visible
         assertThat(page.locator("[data-testid='time-entry-inline-end-time-popover']")).isVisible()
 
-        // Change the time to 14:45 (using 24-hour format)
+        // Change the time to 03:15 (in Pacific/Auckland, after the original 03:00 end time)
         val timeInput = page.locator("[data-testid='time-entry-inline-end-time-time-input']")
-        timeInput.fill("14:45")
+        timeInput.fill("03:15")
 
         // Click the save button
         page.locator("[data-testid='time-entry-inline-end-time-save-button']").click()
@@ -99,10 +101,12 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         // Verify database was updated
         testDatabaseSupport.inTransaction {
             val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
-            // The time should be updated to 14:45 UTC (same date, updated time)
-            // Original: 2024-03-15T14:00:00Z, Expected: 2024-03-15T14:45:00Z
-            val expectedEndTime = Instant.parse("2024-03-15T14:45:00Z")
-            assertEquals(expectedEndTime, updatedEntry.endTime, "End time should be updated to 14:45 UTC")
+            // The browser runs in Pacific/Auckland timezone (UTC+13)
+            // Original entry end: 2024-03-15T14:00:00Z = 2024-03-16 03:00 local
+            // User enters "03:15" local time = 2024-03-16 03:15 Pacific/Auckland
+            // Expected UTC: 2024-03-15T14:15:00Z (03:15 - 13 hours)
+            val expectedEndTime = Instant.parse("2024-03-15T14:15:00Z")
+            assertEquals(expectedEndTime, updatedEntry.endTime, "End time should be updated to 03:15 local (14:15 UTC)")
 
             // Ensure other fields were not changed
             assertEquals(entry.startTime, updatedEntry.startTime)
@@ -170,10 +174,12 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         // Verify database was updated to the 5th of March
         testDatabaseSupport.inTransaction {
             val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
-            // The date should change to the 5th, time should remain at 13:30
-            // Original: 2024-03-15T13:30:00Z, Expected: 2024-03-05T13:30:00Z
-            val expectedStartTime = Instant.parse("2024-03-05T13:30:00Z")
-            assertEquals(expectedStartTime, updatedEntry.startTime, "Start time should be 5th March at 13:30 UTC")
+            // The browser runs in Pacific/Auckland timezone (UTC+13)
+            // Original: 2024-03-16 02:30 local = 2024-03-15T13:30:00Z
+            // User clicks day "5" in calendar = March 5, same time 02:30 local
+            // Expected UTC: 2024-03-04T13:30:00Z (March 5, 02:30 local - 13 hours)
+            val expectedStartTime = Instant.parse("2024-03-04T13:30:00Z")
+            assertEquals(expectedStartTime, updatedEntry.startTime, "Start time should be 5th March local at 02:30 (4th March 13:30 UTC)")
         }
     }
 
@@ -225,7 +231,7 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
 
         // Change the time
         val timeInput = page.locator("[data-testid='time-entry-inline-start-time-time-input']")
-        timeInput.fill("10:00")
+        timeInput.fill("01:45")
 
         // Save
         page.locator("[data-testid='time-entry-inline-start-time-save-button']").click()
@@ -237,10 +243,12 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         testDatabaseSupport.inTransaction {
             // The first visible entry should be the most recent one (entry2)
             // Find which entry was updated by checking for the new time
+            // User fills "01:45" local = March 16, 01:45 Pacific/Auckland
+            // Expected UTC: 2024-03-15T12:45:00Z (01:45 - 13 hours)
             val entries = timeLogEntryRepository.findAll()
             val updatedEntry =
-                entries.find { it.startTime == Instant.parse("2024-03-15T10:00:00Z") }
-            assertNotNull(updatedEntry, "One entry should have start time updated to 10:00 UTC")
+                entries.find { it.startTime == Instant.parse("2024-03-15T12:45:00Z") }
+            assertNotNull(updatedEntry, "One entry should have start time updated to 01:45 local (12:45 UTC)")
         }
     }
 
@@ -261,7 +269,7 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
 
         // Edit start time
         page.locator("[data-testid='time-entry-inline-start-time-trigger']").click()
-        page.locator("[data-testid='time-entry-inline-start-time-time-input']").fill("11:30")
+        page.locator("[data-testid='time-entry-inline-start-time-time-input']").fill("02:40")
         page.locator("[data-testid='time-entry-inline-start-time-save-button']").click()
 
         // Wait for save to complete
@@ -277,6 +285,9 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         // Verify database
         testDatabaseSupport.inTransaction {
             val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
+            // Verify time was updated (02:40 local = 13:40 UTC)
+            assertEquals(Instant.parse("2024-03-15T13:40:00Z"), updatedEntry.startTime)
+            // Verify title and tags were not changed
             assertEquals("Important Task", updatedEntry.title)
             assertEquals(entry.tags.toSet(), updatedEntry.tags.toSet())
             assertEquals(entry.endTime, updatedEntry.endTime)
@@ -346,7 +357,7 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
 
         // Change the time
         val timeInput = page.locator("[data-testid='time-entry-inline-end-time-time-input']")
-        timeInput.fill("15:30")
+        timeInput.fill("04:00")
 
         // Click the save button
         page.locator("[data-testid='time-entry-inline-end-time-save-button']").click()
@@ -357,10 +368,12 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         // Verify database was updated
         testDatabaseSupport.inTransaction {
             val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
-            // The time should be updated to 15:30 UTC on March 16
-            // Original: 2024-03-16T14:30:00Z, Expected: 2024-03-16T15:30:00Z
-            val expectedEndTime = Instant.parse("2024-03-16T15:30:00Z")
-            assertEquals(expectedEndTime, updatedEntry.endTime, "End time should be updated to 16 March at 15:30 UTC")
+            // The browser runs in Pacific/Auckland timezone (UTC+13)
+            // Original: 2024-03-16T14:30:00Z = 2024-03-17 03:30 local (cross-day)
+            // User enters "04:00" local time = 2024-03-17 04:00 Pacific/Auckland
+            // Expected UTC: 2024-03-16T15:00:00Z (04:00 - 13 hours)
+            val expectedEndTime = Instant.parse("2024-03-16T15:00:00Z")
+            assertEquals(expectedEndTime, updatedEntry.endTime, "End time should be updated to 04:00 local (15:00 UTC)")
 
             // Ensure other fields were not changed
             assertEquals(entry.startTime, updatedEntry.startTime)
