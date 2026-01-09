@@ -24,8 +24,8 @@ class TimeLogsValidationTest : TimeLogsPageTestBase() {
         val createdEntry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                    startTime = FIXED_TEST_TIME.minusHours(1),
+                    endTime = FIXED_TEST_TIME.minusMinutes(30),
                     title = "Task to Edit",
                     ownerId = requireNotNull(testUser.id),
                 ),
@@ -71,8 +71,8 @@ class TimeLogsValidationTest : TimeLogsPageTestBase() {
                 ).orElse(null)
         assertNotNull(unchangedEntry, "Entry should exist in database")
         assertEquals("Task to Edit", unchangedEntry!!.title, "Title should be unchanged")
-        assertEquals(FIXED_TEST_TIME.minusSeconds(3600), unchangedEntry.startTime, "Start time should be unchanged")
-        assertEquals(FIXED_TEST_TIME.minusSeconds(1800), unchangedEntry.endTime, "End time should be unchanged")
+        assertEquals(FIXED_TEST_TIME.minusHours(1), unchangedEntry.startTime, "Start time should be unchanged")
+        assertEquals(FIXED_TEST_TIME.minusMinutes(30), unchangedEntry.endTime, "End time should be unchanged")
         assertEquals(testUser.id, unchangedEntry.ownerId, "Owner ID should be unchanged")
     }
 }

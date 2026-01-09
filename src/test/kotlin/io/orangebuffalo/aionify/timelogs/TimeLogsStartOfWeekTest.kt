@@ -94,7 +94,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = saturdayBeforeWeek,
-                endTime = saturdayBeforeWeek.plusSeconds(3600),
+                endTime = saturdayBeforeWeek.plusHours(1),
                 title = "Before Week Entry",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -104,7 +104,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = sundayStartOfWeek,
-                endTime = sundayStartOfWeek.plusSeconds(3600),
+                endTime = sundayStartOfWeek.plusHours(1),
                 title = "Sunday Entry",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -114,17 +114,17 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = saturdayEndOfWeek,
-                endTime = saturdayEndOfWeek.plusSeconds(3600),
+                endTime = saturdayEndOfWeek.plusHours(1),
                 title = "Saturday Entry",
                 ownerId = requireNotNull(testUser.id),
             ),
         )
 
-        val sundayAfterWeek = FIXED_TEST_TIME.plusSeconds(24 * 3600) // Sun Mar 17
+        val sundayAfterWeek = FIXED_TEST_TIME.plusDays(1) // Sun Mar 17
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = sundayAfterWeek,
-                endTime = sundayAfterWeek.plusSeconds(3600),
+                endTime = sundayAfterWeek.plusHours(1),
                 title = "After Week Entry",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -156,7 +156,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = sundayBeforeWeek,
-                endTime = sundayBeforeWeek.plusSeconds(3600),
+                endTime = sundayBeforeWeek.plusHours(1),
                 title = "Before Week Entry",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -166,17 +166,17 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = mondayStartOfWeek,
-                endTime = mondayStartOfWeek.plusSeconds(3600),
+                endTime = mondayStartOfWeek.plusHours(1),
                 title = "Monday Entry",
                 ownerId = requireNotNull(testUser.id),
             ),
         )
 
-        val sundayEndOfWeek = FIXED_TEST_TIME.plusSeconds(24 * 3600) // Sun Mar 17
+        val sundayEndOfWeek = FIXED_TEST_TIME.plusDays(1) // Sun Mar 17
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = sundayEndOfWeek,
-                endTime = sundayEndOfWeek.plusSeconds(3600),
+                endTime = sundayEndOfWeek.plusHours(1),
                 title = "Sunday Entry",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -186,7 +186,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = mondayAfterWeek,
-                endTime = mondayAfterWeek.plusSeconds(3600),
+                endTime = mondayAfterWeek.plusHours(1),
                 title = "After Week Entry",
                 ownerId = requireNotNull(testUser.id),
             ),

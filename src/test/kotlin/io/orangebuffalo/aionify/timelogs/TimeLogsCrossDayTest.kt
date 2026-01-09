@@ -14,8 +14,8 @@ class TimeLogsCrossDayTest : TimeLogsPageTestBase() {
         // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30:00 NZDT
         // Create an entry that starts on Friday evening and ends on Saturday morning
         // Friday 20:00 NZDT to Saturday 02:30 NZDT (6.5 hours, spans midnight)
-        val fridayEvening = FIXED_TEST_TIME.minusSeconds(27000) // Friday 20:00 NZDT
-        val saturdayMorning = FIXED_TEST_TIME.minusSeconds(3600) // Saturday 02:30 NZDT
+        val fridayEvening = FIXED_TEST_TIME.minusHours(7).minusMinutes(30) // Friday 20:00 NZDT
+        val saturdayMorning = FIXED_TEST_TIME.minusHours(1) // Saturday 02:30 NZDT
 
         testDatabaseSupport.insert(
             TimeLogEntry(
@@ -59,8 +59,8 @@ class TimeLogsCrossDayTest : TimeLogsPageTestBase() {
         // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30:00 NZDT
         // Create an entry that starts on Sunday (last day of week) and ends on Monday (first day of next week)
         // Sunday 23:30 NZDT to Monday 01:30 NZDT (2 hours, spans week boundary)
-        val sundayEvening = FIXED_TEST_TIME.plusSeconds(158400) // Sunday, March 17 at 23:30 NZDT
-        val mondayMorning = FIXED_TEST_TIME.plusSeconds(165600) // Monday, March 18 at 01:30 NZDT
+        val sundayEvening = FIXED_TEST_TIME.plusHours(44) // Sunday, March 17 at 23:30 NZDT
+        val mondayMorning = FIXED_TEST_TIME.plusHours(46) // Monday, March 18 at 01:30 NZDT
 
         testDatabaseSupport.insert(
             TimeLogEntry(
@@ -102,8 +102,8 @@ class TimeLogsCrossDayTest : TimeLogsPageTestBase() {
     fun `should not show warning icon for same-day entry`() {
         // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30:00 NZDT
         // Create an entry that starts and ends on the same day
-        val morning = FIXED_TEST_TIME.minusSeconds(3600) // Saturday 02:30 NZDT
-        val afternoon = FIXED_TEST_TIME.plusSeconds(3600) // Saturday 04:30 NZDT
+        val morning = FIXED_TEST_TIME.minusHours(1) // Saturday 02:30 NZDT
+        val afternoon = FIXED_TEST_TIME.plusHours(1) // Saturday 04:30 NZDT
 
         testDatabaseSupport.insert(
             TimeLogEntry(

@@ -2,6 +2,8 @@ package io.orangebuffalo.aionify.timelogs
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.TimeLogEntry
+import io.orangebuffalo.aionify.minusHours
+import io.orangebuffalo.aionify.minusMinutes
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -16,8 +18,8 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                    startTime = FIXED_TEST_TIME.minusHours(1),
+                    endTime = FIXED_TEST_TIME.minusMinutes(30),
                     title = "Original Title",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend"),
@@ -65,7 +67,7 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
+                    startTime = FIXED_TEST_TIME.minusHours(1),
                     endTime = null,
                     title = "Active Entry",
                     ownerId = requireNotNull(testUser.id),
@@ -111,8 +113,8 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
         val entry1 =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(10800), // 3 hours ago
-                    endTime = FIXED_TEST_TIME.minusSeconds(9000), // 2.5 hours ago
+                    startTime = FIXED_TEST_TIME.minusHours(3), // 3 hours ago
+                    endTime = FIXED_TEST_TIME.minusHours(2).minusMinutes(30), // 2.5 hours ago
                     title = "Grouped Entry",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend", "urgent"),
@@ -122,8 +124,8 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
         val entry2 =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(7200), // 2 hours ago
-                    endTime = FIXED_TEST_TIME.minusSeconds(5400), // 1.5 hours ago
+                    startTime = FIXED_TEST_TIME.minusHours(2), // 2 hours ago
+                    endTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30), // 1.5 hours ago
                     title = "Grouped Entry",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend", "urgent"),
@@ -133,8 +135,8 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
         val entry3 =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600), // 1 hour ago
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago
+                    startTime = FIXED_TEST_TIME.minusHours(1), // 1 hour ago
+                    endTime = FIXED_TEST_TIME.minusMinutes(30), // 30 minutes ago
                     title = "Grouped Entry",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend", "urgent"),
@@ -197,8 +199,8 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
     fun `should close popover when pressing Escape key`() {
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = FIXED_TEST_TIME.minusHours(1),
+                endTime = FIXED_TEST_TIME.minusMinutes(30),
                 title = "Test Entry",
                 ownerId = requireNotNull(testUser.id),
                 tags = emptyArray(),
@@ -223,8 +225,8 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                    startTime = FIXED_TEST_TIME.minusHours(1),
+                    endTime = FIXED_TEST_TIME.minusMinutes(30),
                     title = "Original Title",
                     ownerId = requireNotNull(testUser.id),
                     tags = emptyArray(),
@@ -259,8 +261,8 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
     fun `should disable save button when title is empty`() {
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = FIXED_TEST_TIME.minusHours(1),
+                endTime = FIXED_TEST_TIME.minusMinutes(30),
                 title = "Original Title",
                 ownerId = requireNotNull(testUser.id),
                 tags = emptyArray(),
@@ -284,8 +286,8 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
     fun `should disable save button when title exceeds max length`() {
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = FIXED_TEST_TIME.minusHours(1),
+                endTime = FIXED_TEST_TIME.minusMinutes(30),
                 title = "Original Title",
                 ownerId = requireNotNull(testUser.id),
                 tags = emptyArray(),
@@ -311,8 +313,8 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                    startTime = FIXED_TEST_TIME.minusHours(1),
+                    endTime = FIXED_TEST_TIME.minusMinutes(30),
                     title = "Original Title",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend", "urgent", "feature"),
@@ -346,8 +348,8 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                    startTime = FIXED_TEST_TIME.minusHours(1),
+                    endTime = FIXED_TEST_TIME.minusMinutes(30),
                     title = "Original Title",
                     ownerId = requireNotNull(testUser.id),
                     tags = emptyArray(),

@@ -2,9 +2,9 @@ package io.orangebuffalo.aionify.timelogs
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.TimeLogEntry
+import io.orangebuffalo.aionify.timeInTestTz
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.Instant
 
 /**
  * Tests for time log entry autocomplete functionality.
@@ -18,8 +18,8 @@ class TimeLogsAutocompleteTest : TimeLogsPageTestBase() {
             timeLogEntryRepository.save(
                 TimeLogEntry(
                     title = "Meeting with team",
-                    startTime = Instant.parse("2024-03-15T09:00:00Z"),
-                    endTime = Instant.parse("2024-03-15T10:00:00Z"),
+                    startTime = timeInTestTz("2024-03-15", "22:00"),
+                    endTime = timeInTestTz("2024-03-15", "23:00"),
                     ownerId = testUser.id!!,
                     tags = arrayOf("work", "meeting"),
                 ),
@@ -29,8 +29,8 @@ class TimeLogsAutocompleteTest : TimeLogsPageTestBase() {
             timeLogEntryRepository.save(
                 TimeLogEntry(
                     title = "Team standup",
-                    startTime = Instant.parse("2024-03-15T11:00:00Z"),
-                    endTime = Instant.parse("2024-03-15T11:15:00Z"),
+                    startTime = timeInTestTz("2024-03-16", "00:00"),
+                    endTime = timeInTestTz("2024-03-16", "00:15"),
                     ownerId = testUser.id!!,
                     tags = arrayOf("meeting"),
                 ),
@@ -40,8 +40,8 @@ class TimeLogsAutocompleteTest : TimeLogsPageTestBase() {
             timeLogEntryRepository.save(
                 TimeLogEntry(
                     title = "Code review",
-                    startTime = Instant.parse("2024-03-15T13:00:00Z"),
-                    endTime = Instant.parse("2024-03-15T14:00:00Z"),
+                    startTime = timeInTestTz("2024-03-16", "02:00"),
+                    endTime = timeInTestTz("2024-03-16", "03:00"),
                     ownerId = testUser.id!!,
                     tags = arrayOf("work"),
                 ),
@@ -51,8 +51,8 @@ class TimeLogsAutocompleteTest : TimeLogsPageTestBase() {
             timeLogEntryRepository.save(
                 TimeLogEntry(
                     title = "Meeting with team",
-                    startTime = Instant.parse("2024-03-14T09:00:00Z"),
-                    endTime = Instant.parse("2024-03-14T10:00:00Z"),
+                    startTime = timeInTestTz("2024-03-14", "22:00"),
+                    endTime = timeInTestTz("2024-03-14", "23:00"),
                     ownerId = testUser.id!!,
                     tags = arrayOf("work"),
                 ),
@@ -233,8 +233,8 @@ class TimeLogsAutocompleteTest : TimeLogsPageTestBase() {
             timeLogEntryRepository.save(
                 TimeLogEntry(
                     title = "Other user team meeting",
-                    startTime = Instant.parse("2024-03-15T15:00:00Z"),
-                    endTime = Instant.parse("2024-03-15T16:00:00Z"),
+                    startTime = timeInTestTz("2024-03-16", "04:00"),
+                    endTime = timeInTestTz("2024-03-16", "05:00"),
                     ownerId = otherUser.id!!,
                     tags = arrayOf("work"),
                 ),

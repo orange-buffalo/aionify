@@ -100,7 +100,7 @@ class TimeLogsStartStopTest : TimeLogsPageTestBase() {
         // Create an active entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = FIXED_TEST_TIME.minusMinutes(30),
                 endTime = null,
                 title = "Active Task",
                 ownerId = requireNotNull(testUser.id),
@@ -209,7 +209,7 @@ class TimeLogsStartStopTest : TimeLogsPageTestBase() {
         // Create an active entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = FIXED_TEST_TIME.minusMinutes(30),
                 endTime = null,
                 title = "Active Task",
                 ownerId = requireNotNull(testUser.id),

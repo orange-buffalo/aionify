@@ -259,14 +259,14 @@ abstract class PlaywrightTestBase {
     protected fun setCurrentTimestamp(instant: Instant): Instant {
         // Set browser time
         page.clock().pauseAt(instant.toEpochMilli())
-        
+
         // Set backend time by calculating the offset from FIXED_TEST_TIME
         val offset = java.time.Duration.between(FIXED_TEST_TIME, instant)
         testTimeService.resetTime()
         if (!offset.isZero) {
             testTimeService.advanceTime(offset)
         }
-        
+
         return instant
     }
 

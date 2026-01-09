@@ -19,8 +19,8 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
         val entry1 =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(10800), // 3 hours ago
-                    endTime = FIXED_TEST_TIME.minusSeconds(9000), // 2.5 hours ago
+                    startTime = FIXED_TEST_TIME.minusHours(3), // 3 hours ago
+                    endTime = FIXED_TEST_TIME.minusHours(2).minusMinutes(30), // 2.5 hours ago
                     title = "Original Title",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend", "urgent"),
@@ -30,8 +30,8 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
         val entry2 =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(7200), // 2 hours ago
-                    endTime = FIXED_TEST_TIME.minusSeconds(5400), // 1.5 hours ago
+                    startTime = FIXED_TEST_TIME.minusHours(2), // 2 hours ago
+                    endTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30), // 1.5 hours ago
                     title = "Original Title",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend", "urgent"),
@@ -41,8 +41,8 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
         val entry3 =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600), // 1 hour ago
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago
+                    startTime = FIXED_TEST_TIME.minusHours(1), // 1 hour ago
+                    endTime = FIXED_TEST_TIME.minusMinutes(30), // 30 minutes ago
                     title = "Original Title",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend", "urgent"),
@@ -130,8 +130,8 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
         val groupEntry1 =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(7200),
-                    endTime = FIXED_TEST_TIME.minusSeconds(5400),
+                    startTime = FIXED_TEST_TIME.minusHours(2),
+                    endTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30),
                     title = "Group A",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend"),
@@ -141,8 +141,8 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
         val groupEntry2 =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                    startTime = FIXED_TEST_TIME.minusHours(1),
+                    endTime = FIXED_TEST_TIME.minusMinutes(30),
                     title = "Group A",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend"),
@@ -153,8 +153,8 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
         val separateEntry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(900),
-                    endTime = FIXED_TEST_TIME.minusSeconds(300),
+                    startTime = FIXED_TEST_TIME.minusMinutes(15),
+                    endTime = FIXED_TEST_TIME.minusMinutes(5),
                     title = "Different Entry",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("frontend"),
@@ -196,8 +196,8 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
         // Create grouped entries
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(7200),
-                endTime = FIXED_TEST_TIME.minusSeconds(5400),
+                startTime = FIXED_TEST_TIME.minusHours(2),
+                endTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30),
                 title = "Testing",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("qa"),
@@ -206,8 +206,8 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = FIXED_TEST_TIME.minusHours(1),
+                endTime = FIXED_TEST_TIME.minusMinutes(30),
                 title = "Testing",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("qa"),
@@ -239,8 +239,8 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
         // Create a single entry (not grouped)
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = FIXED_TEST_TIME.minusHours(1),
+                endTime = FIXED_TEST_TIME.minusMinutes(30),
                 title = "Single Entry",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend"),
@@ -264,8 +264,8 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
         // Create grouped entries
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(7200),
-                endTime = FIXED_TEST_TIME.minusSeconds(5400),
+                startTime = FIXED_TEST_TIME.minusHours(2),
+                endTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30),
                 title = "Valid Title",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend"),
@@ -274,8 +274,8 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = FIXED_TEST_TIME.minusHours(1),
+                endTime = FIXED_TEST_TIME.minusMinutes(30),
                 title = "Valid Title",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend"),

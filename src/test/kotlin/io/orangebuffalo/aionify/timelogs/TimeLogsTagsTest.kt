@@ -15,8 +15,8 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
         // Create entries with various tag configurations
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(7200), // 2 hours ago
-                endTime = FIXED_TEST_TIME.minusSeconds(5400), // 1.5 hours ago
+                startTime = FIXED_TEST_TIME.minusHours(2), // 2 hours ago
+                endTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30), // 1.5 hours ago
                 title = "Entry with Multiple Tags",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("work", "urgent", "frontend"),
@@ -25,8 +25,8 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(5400), // 1.5 hours ago
-                endTime = FIXED_TEST_TIME.minusSeconds(3600), // 1 hour ago
+                startTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30), // 1.5 hours ago
+                endTime = FIXED_TEST_TIME.minusHours(1), // 1 hour ago
                 title = "Entry with Single Tag",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend"),
@@ -35,8 +35,8 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600), // 1 hour ago
-                endTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago
+                startTime = FIXED_TEST_TIME.minusHours(1), // 1 hour ago
+                endTime = FIXED_TEST_TIME.minusMinutes(30), // 30 minutes ago
                 title = "Entry without Tags",
                 ownerId = requireNotNull(testUser.id),
                 tags = emptyArray(),
@@ -139,8 +139,8 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
         // Create existing entries with tags to populate the tag selector
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(7200),
-                endTime = FIXED_TEST_TIME.minusSeconds(3600),
+                startTime = FIXED_TEST_TIME.minusHours(2),
+                endTime = FIXED_TEST_TIME.minusHours(1),
                 title = "Previous Task",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("frontend", "testing", "ui"),
@@ -186,8 +186,8 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                    startTime = FIXED_TEST_TIME.minusHours(1),
+                    endTime = FIXED_TEST_TIME.minusMinutes(30),
                     title = "Completed Task",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend"),
@@ -249,8 +249,8 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
         // Create an entry with tags
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(7200),
-                endTime = FIXED_TEST_TIME.minusSeconds(3600),
+                startTime = FIXED_TEST_TIME.minusHours(2),
+                endTime = FIXED_TEST_TIME.minusHours(1),
                 title = "Previous Task",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("meeting", "planning"),
@@ -260,8 +260,8 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
         // Create the entry to edit
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = FIXED_TEST_TIME.minusHours(1),
+                endTime = FIXED_TEST_TIME.minusMinutes(30),
                 title = "Task to Edit",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("meeting"),
@@ -295,8 +295,8 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
         // Create a stopped entry with tags
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600), // 1 hour ago
-                endTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago
+                startTime = FIXED_TEST_TIME.minusHours(1), // 1 hour ago
+                endTime = FIXED_TEST_TIME.minusMinutes(30), // 30 minutes ago
                 title = "Task with Tags",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend", "urgent", "database"),

@@ -16,8 +16,8 @@ class TimeLogsNavigationTest : TimeLogsPageTestBase() {
         // Current week entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = FIXED_TEST_TIME.minusHours(1),
+                endTime = FIXED_TEST_TIME.minusMinutes(30),
                 title = "This Week Task",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -26,8 +26,8 @@ class TimeLogsNavigationTest : TimeLogsPageTestBase() {
         // Last week entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = lastWeek.minusSeconds(3600),
-                endTime = lastWeek.minusSeconds(1800),
+                startTime = lastWeek.minusHours(1),
+                endTime = lastWeek.minusMinutes(30),
                 title = "Last Week Task",
                 ownerId = requireNotNull(testUser.id),
             ),

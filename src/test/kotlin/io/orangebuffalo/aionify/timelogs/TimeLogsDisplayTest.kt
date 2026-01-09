@@ -43,16 +43,16 @@ class TimeLogsDisplayTest : TimeLogsPageTestBase() {
         val monday = FIXED_TEST_TIME.minusSeconds(5 * 24 * 3600) // 5 days before Saturday
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = monday.minusSeconds(7200),
-                endTime = monday.minusSeconds(5400),
+                startTime = monday.minusHours(2),
+                endTime = monday.minusHours(1).minusMinutes(30),
                 title = "Monday Task 1",
                 ownerId = requireNotNull(testUser.id),
             ),
         )
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = monday.minusSeconds(3600),
-                endTime = monday.minusSeconds(1800),
+                startTime = monday.minusHours(1),
+                endTime = monday.minusMinutes(30),
                 title = "Monday Task 2",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -62,8 +62,8 @@ class TimeLogsDisplayTest : TimeLogsPageTestBase() {
         val tuesday = FIXED_TEST_TIME.minusSeconds(4 * 24 * 3600)
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = tuesday.minusSeconds(3600),
-                endTime = tuesday.minusSeconds(1800),
+                startTime = tuesday.minusHours(1),
+                endTime = tuesday.minusMinutes(30),
                 title = "Tuesday Task",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -73,24 +73,24 @@ class TimeLogsDisplayTest : TimeLogsPageTestBase() {
         val wednesday = FIXED_TEST_TIME.minusSeconds(3 * 24 * 3600)
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = wednesday.minusSeconds(10800),
-                endTime = wednesday.minusSeconds(9000),
+                startTime = wednesday.minusHours(3),
+                endTime = wednesday.minusHours(2).minusMinutes(30),
                 title = "Wednesday Task 1",
                 ownerId = requireNotNull(testUser.id),
             ),
         )
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = wednesday.minusSeconds(7200),
-                endTime = wednesday.minusSeconds(5400),
+                startTime = wednesday.minusHours(2),
+                endTime = wednesday.minusHours(1).minusMinutes(30),
                 title = "Wednesday Task 2",
                 ownerId = requireNotNull(testUser.id),
             ),
         )
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = wednesday.minusSeconds(3600),
-                endTime = wednesday.minusSeconds(1800),
+                startTime = wednesday.minusHours(1),
+                endTime = wednesday.minusMinutes(30),
                 title = "Wednesday Task 3",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -99,8 +99,8 @@ class TimeLogsDisplayTest : TimeLogsPageTestBase() {
         // Saturday (Mar 16) - today - 1 entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = FIXED_TEST_TIME.minusHours(1),
+                endTime = FIXED_TEST_TIME.minusMinutes(30),
                 title = "Saturday Task",
                 ownerId = requireNotNull(testUser.id),
             ),

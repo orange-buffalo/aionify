@@ -32,7 +32,7 @@ class TimeLogsLocaleTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = afternoonTime.minusSeconds(1800), // Started 30 minutes ago at 14:00 (2:00 PM)
+                startTime = afternoonTime.minusMinutes(30), // Started 30 minutes ago at 14:00 (2:00 PM)
                 endTime = null,
                 title = testCase.taskTitle,
                 ownerId = requireNotNull(testUser.id),
@@ -42,8 +42,8 @@ class TimeLogsLocaleTest : TimeLogsPageTestBase() {
         // Also create a completed entry to test time ranges in the day groups
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = afternoonTime.minusSeconds(7200), // Started 2 hours ago at 12:30 (12:30 PM)
-                endTime = afternoonTime.minusSeconds(5400), // Ended 1.5 hours ago at 13:00 (1:00 PM)
+                startTime = afternoonTime.minusHours(2), // Started 2 hours ago at 12:30 (12:30 PM)
+                endTime = afternoonTime.minusHours(1).minusMinutes(30), // Ended 1.5 hours ago at 13:00 (1:00 PM)
                 title = testCase.completedTaskTitle,
                 ownerId = requireNotNull(testUser.id),
             ),

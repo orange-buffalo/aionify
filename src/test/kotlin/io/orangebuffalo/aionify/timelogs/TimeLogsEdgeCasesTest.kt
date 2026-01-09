@@ -13,7 +13,7 @@ class TimeLogsEdgeCasesTest : TimeLogsPageTestBase() {
         // FIXED_TEST_TIME is Friday, March 15, 2024 at 14:30:00 UTC = Saturday, March 16, 2024 at 03:30:00 NZDT
         // Sunday, March 17, 2024 at 14:30:00 UTC = Monday, March 18, 2024 at 03:30:00 NZDT
         // To test Sunday in Auckland, we need Sunday at 03:30 NZDT = Saturday at 14:30 UTC
-        val sundayTime = FIXED_TEST_TIME.plusSeconds(24 * 3600) // Saturday 14:30 UTC = Sunday 03:30 NZDT
+        val sundayTime = FIXED_TEST_TIME.plusDays(1) // Saturday 14:30 UTC = Sunday 03:30 NZDT
 
         // Override the test time to Sunday
         page.clock().pauseAt(sundayTime.toEpochMilli())
@@ -21,8 +21,8 @@ class TimeLogsEdgeCasesTest : TimeLogsPageTestBase() {
         // Create an entry for Sunday in Auckland timezone
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = sundayTime.minusSeconds(1800), // 30 minutes ago (Saturday 14:00 UTC = Sunday 03:00 NZDT)
-                endTime = sundayTime.minusSeconds(900), // 15 minutes ago (Saturday 14:15 UTC = Sunday 03:15 NZDT)
+                startTime = sundayTime.minusMinutes(30), // 30 minutes ago (Saturday 14:00 UTC = Sunday 03:00 NZDT)
+                endTime = sundayTime.minusMinutes(15), // 15 minutes ago (Saturday 14:15 UTC = Sunday 03:15 NZDT)
                 title = "Sunday Task",
                 ownerId = requireNotNull(testUser.id),
             ),

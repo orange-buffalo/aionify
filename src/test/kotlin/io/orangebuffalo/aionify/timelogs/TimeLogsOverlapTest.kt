@@ -17,8 +17,8 @@ class TimeLogsOverlapTest : TimeLogsPageTestBase() {
         // Entry 1: 01:00 - 02:30 (1h 30min)
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(9000), // 03:30 - 2:30 = 01:00
-                endTime = FIXED_TEST_TIME.minusSeconds(3600), // 03:30 - 1:00 = 02:30
+                startTime = FIXED_TEST_TIME.minusHours(2).minusMinutes(30), // 03:30 - 2:30 = 01:00
+                endTime = FIXED_TEST_TIME.minusHours(1), // 03:30 - 1:00 = 02:30
                 title = "Task A",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -27,8 +27,8 @@ class TimeLogsOverlapTest : TimeLogsPageTestBase() {
         // Entry 2: 02:00 - 03:00 (1h) - overlaps with Entry 1 from 02:00 to 02:30 (30 minutes)
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(5400), // 03:30 - 1:30 = 02:00
-                endTime = FIXED_TEST_TIME.minusSeconds(1800), // 03:30 - 0:30 = 03:00
+                startTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30), // 03:30 - 1:30 = 02:00
+                endTime = FIXED_TEST_TIME.minusMinutes(30), // 03:30 - 0:30 = 03:00
                 title = "Task B",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -76,8 +76,8 @@ class TimeLogsOverlapTest : TimeLogsPageTestBase() {
         // Entry 1: 01:00 - 02:00
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(9000), // 01:00
-                endTime = FIXED_TEST_TIME.minusSeconds(5400), // 02:00
+                startTime = FIXED_TEST_TIME.minusHours(2).minusMinutes(30), // 01:00
+                endTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30), // 02:00
                 title = "Task A",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -86,8 +86,8 @@ class TimeLogsOverlapTest : TimeLogsPageTestBase() {
         // Entry 2: 02:00 - 03:00 (exact boundary, 0 overlap)
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(5400), // 02:00 (same as Entry 1 end)
-                endTime = FIXED_TEST_TIME.minusSeconds(1800), // 03:00
+                startTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30), // 02:00 (same as Entry 1 end)
+                endTime = FIXED_TEST_TIME.minusMinutes(30), // 03:00
                 title = "Task B",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -133,7 +133,7 @@ class TimeLogsOverlapTest : TimeLogsPageTestBase() {
         // Entry 1: 01:00 - 04:00 (3 hours - large entry)
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(9000), // 01:00
+                startTime = FIXED_TEST_TIME.minusHours(2).minusMinutes(30), // 01:00
                 endTime = FIXED_TEST_TIME.minusSeconds(-1800), // 04:00
                 title = "Long Task",
                 ownerId = requireNotNull(testUser.id),
@@ -143,8 +143,8 @@ class TimeLogsOverlapTest : TimeLogsPageTestBase() {
         // Entry 2: 02:00 - 03:00 (1 hour - fully contained in Entry 1)
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(5400), // 02:00
-                endTime = FIXED_TEST_TIME.minusSeconds(1800), // 03:00
+                startTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30), // 02:00
+                endTime = FIXED_TEST_TIME.minusMinutes(30), // 03:00
                 title = "Short Task",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -192,8 +192,8 @@ class TimeLogsOverlapTest : TimeLogsPageTestBase() {
         // Entry 1: 01:00 - 02:30
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(9000), // 01:00
-                endTime = FIXED_TEST_TIME.minusSeconds(3600), // 02:30
+                startTime = FIXED_TEST_TIME.minusHours(2).minusMinutes(30), // 01:00
+                endTime = FIXED_TEST_TIME.minusHours(1), // 02:30
                 title = "Task A",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -202,7 +202,7 @@ class TimeLogsOverlapTest : TimeLogsPageTestBase() {
         // Entry 2: 02:00 - 03:30 (overlaps with Entry 1 from 02:00 to 02:30)
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(5400), // 02:00
+                startTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30), // 02:00
                 endTime = FIXED_TEST_TIME, // 03:30
                 title = "Task B",
                 ownerId = requireNotNull(testUser.id),
@@ -212,7 +212,7 @@ class TimeLogsOverlapTest : TimeLogsPageTestBase() {
         // Entry 3: 03:00 - 04:00 (overlaps with Entry 2 from 03:00 to 03:30)
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(1800), // 03:00
+                startTime = FIXED_TEST_TIME.minusMinutes(30), // 03:00
                 endTime = FIXED_TEST_TIME.minusSeconds(-1800), // 04:00
                 title = "Task C",
                 ownerId = requireNotNull(testUser.id),
@@ -268,8 +268,8 @@ class TimeLogsOverlapTest : TimeLogsPageTestBase() {
         // Entry 1: 01:00 - 02:00
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(9000), // 01:00
-                endTime = FIXED_TEST_TIME.minusSeconds(5400), // 02:00
+                startTime = FIXED_TEST_TIME.minusHours(2).minusMinutes(30), // 01:00
+                endTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30), // 02:00
                 title = "Task A",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -278,7 +278,7 @@ class TimeLogsOverlapTest : TimeLogsPageTestBase() {
         // Entry 2: 02:30 - 03:30 (gap of 30 minutes, no overlap)
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600), // 02:30
+                startTime = FIXED_TEST_TIME.minusHours(1), // 02:30
                 endTime = FIXED_TEST_TIME, // 03:30
                 title = "Task B",
                 ownerId = requireNotNull(testUser.id),
@@ -325,8 +325,8 @@ class TimeLogsOverlapTest : TimeLogsPageTestBase() {
         // Entry 1: 01:00 - 03:00 (stopped)
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(9000), // 01:00
-                endTime = FIXED_TEST_TIME.minusSeconds(1800), // 03:00
+                startTime = FIXED_TEST_TIME.minusHours(2).minusMinutes(30), // 01:00
+                endTime = FIXED_TEST_TIME.minusMinutes(30), // 03:00
                 title = "Stopped Task",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -335,7 +335,7 @@ class TimeLogsOverlapTest : TimeLogsPageTestBase() {
         // Entry 2: 02:00 - still running (active) - would overlap if it were stopped
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(5400), // 02:00
+                startTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30), // 02:00
                 endTime = null, // Active entry
                 title = "Active Task",
                 ownerId = requireNotNull(testUser.id),

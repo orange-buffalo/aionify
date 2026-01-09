@@ -13,7 +13,7 @@ class TimeLogsClockTest : TimeLogsPageTestBase() {
         // Create an active entry that started 30 minutes ago (1800 seconds)
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = FIXED_TEST_TIME.minusMinutes(30),
                 endTime = null,
                 title = "Active Task",
                 ownerId = requireNotNull(testUser.id),
