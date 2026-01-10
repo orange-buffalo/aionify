@@ -11,12 +11,12 @@ class TimeLogsEdgeCasesTest : TimeLogsPageTestBase() {
     @Test
     fun `should show Sunday entry in current week when viewing on Sunday`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // baseTime is Friday, March 15, 2024 at 14:30:00 UTC = Saturday, March 16, 2024 at 03:30:00 NZDT
         // Sunday, March 17, 2024 at 14:30:00 UTC = Monday, March 18, 2024 at 03:30:00 NZDT
         // To test Sunday in Auckland, we need Sunday at 03:30 NZDT = Saturday at 14:30 UTC
-        val sundayTime = baseTime.plusDays(1) // Saturday 14:30 UTC = Sunday 03:30 NZDT
+        val sundayTime = baseTime.withLocalDate("2024-03-17") // Saturday 14:30 UTC = Sunday 03:30 NZDT
 
         // Override the test time to Sunday
         page.clock().pauseAt(sundayTime.toEpochMilli())

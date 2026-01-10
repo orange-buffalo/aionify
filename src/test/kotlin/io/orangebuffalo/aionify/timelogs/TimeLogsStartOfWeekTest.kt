@@ -28,7 +28,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
     @Test
     fun `should display week range starting on Monday when start of week is Monday`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // baseTime is Saturday, March 16, 2024 at 03:30 NZDT
         // Default is Monday, so week should be Mon Mar 11 - Sun Mar 17
@@ -43,7 +43,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
     @Test
     fun `should display week range starting on Sunday when start of week is Sunday`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // baseTime is Saturday, March 16, 2024 at 03:30 NZDT
         // Change start of week to Sunday, so week should be Sun Mar 10 - Sat Mar 16
@@ -64,7 +64,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
     @Test
     fun `should display week range starting on Wednesday when start of week is Wednesday`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // baseTime is Saturday, March 16, 2024 at 03:30 NZDT
         // Change start of week to Wednesday, so week should be Wed Mar 13 - Tue Mar 19
@@ -85,7 +85,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
     @Test
     fun `should group entries by week starting on Sunday when configured`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // baseTime is Saturday, March 16, 2024 at 03:30 NZDT
         // Change start of week to Sunday, so week should be Sun Mar 10 - Sat Mar 16
@@ -132,7 +132,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
             ),
         )
 
-        val sundayAfterWeek = baseTime.plusDays(1) // Sun Mar 17
+        val sundayAfterWeek = baseTime.withLocalDate("2024-03-17") // Sun Mar 17
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = sundayAfterWeek,
@@ -156,7 +156,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
     @Test
     fun `should group entries by week starting on Monday when configured`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // baseTime is Saturday, March 16, 2024 at 03:30 NZDT
         // Default start of week is Monday, so week should be Mon Mar 11 - Sun Mar 17
@@ -187,7 +187,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
             ),
         )
 
-        val sundayEndOfWeek = baseTime.plusDays(1) // Sun Mar 17
+        val sundayEndOfWeek = baseTime.withLocalDate("2024-03-17") // Sun Mar 17
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = sundayEndOfWeek,

@@ -12,13 +12,13 @@ class TimeLogsCrossDayTest : TimeLogsPageTestBase() {
     @Test
     fun `should show entry on start day when it spans midnight`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // baseTime is Saturday, March 16, 2024 at 03:30:00 NZDT
         // Create an entry that starts on Friday evening and ends on Saturday morning
         // Friday 20:00 NZDT to Saturday 02:30 NZDT (6.5 hours, spans midnight)
-        val fridayEvening = baseTime.minusHours(7).minusMinutes(30) // Friday 20:00 NZDT
-        val saturdayMorning = baseTime.minusHours(1) // Saturday 02:30 NZDT
+        val fridayEvening = baseTime.withLocalDate("2024-03-15").withLocalTime("20:00") // Friday 20:00 NZDT
+        val saturdayMorning = baseTime.withLocalTime("02:30") // Saturday 02:30 NZDT
 
         testDatabaseSupport.insert(
             TimeLogEntry(
@@ -60,13 +60,13 @@ class TimeLogsCrossDayTest : TimeLogsPageTestBase() {
     @Test
     fun `should show entry on start day when it spans week boundary`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // baseTime is Saturday, March 16, 2024 at 03:30:00 NZDT
         // Create an entry that starts on Sunday (last day of week) and ends on Monday (first day of next week)
         // Sunday 23:30 NZDT to Monday 01:30 NZDT (2 hours, spans week boundary)
-        val sundayEvening = baseTime.plusHours(44) // Sunday, March 17 at 23:30 NZDT
-        val mondayMorning = baseTime.plusHours(46) // Monday, March 18 at 01:30 NZDT
+        val sundayEvening = baseTime.withLocalDate("2024-03-17").withLocalTime("23:30") // Sunday, March 17 at 23:30 NZDT
+        val mondayMorning = baseTime.withLocalDate("2024-03-18").withLocalTime("01:30") // Monday, March 18 at 01:30 NZDT
 
         testDatabaseSupport.insert(
             TimeLogEntry(
@@ -107,12 +107,12 @@ class TimeLogsCrossDayTest : TimeLogsPageTestBase() {
     @Test
     fun `should not show warning icon for same-day entry`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // baseTime is Saturday, March 16, 2024 at 03:30:00 NZDT
         // Create an entry that starts and ends on the same day
-        val morning = baseTime.minusHours(1) // Saturday 02:30 NZDT
-        val afternoon = baseTime.plusHours(1) // Saturday 04:30 NZDT
+        val morning = baseTime.withLocalTime("02:30") // Saturday 02:30 NZDT
+        val afternoon = baseTime.withLocalTime("04:30") // Saturday 04:30 NZDT
 
         testDatabaseSupport.insert(
             TimeLogEntry(

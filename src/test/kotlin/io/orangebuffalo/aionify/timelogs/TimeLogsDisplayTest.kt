@@ -14,6 +14,9 @@ import org.junit.jupiter.params.provider.MethodSource
 class TimeLogsDisplayTest : TimeLogsPageTestBase() {
     @Test
     fun `should display time logs page with navigation`() {
+        // Set base time to ensure consistent test behavior
+        setBaseTime("2024-03-16", "03:30")
+
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Assert initial empty page state - using default state
@@ -22,6 +25,9 @@ class TimeLogsDisplayTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should show no entries message when week is empty`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        setBaseTime("2024-03-16", "03:30")
+
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify empty state
@@ -37,7 +43,7 @@ class TimeLogsDisplayTest : TimeLogsPageTestBase() {
     @Test
     fun `should render entries from multiple days with varying entry counts`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // baseTime is Saturday, March 16, 2024 at 03:30 NZDT
         // Let's create entries for different days in the current week (Mon Mar 11 - Sun Mar 17)
@@ -102,8 +108,8 @@ class TimeLogsDisplayTest : TimeLogsPageTestBase() {
         // Saturday (Mar 16) - today - 1 entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = baseTime.minusHours(1),
-                endTime = baseTime.minusMinutes(30),
+                startTime = baseTime.withLocalTime("02:30"),
+                endTime = baseTime.withLocalTime("03:00"),
                 title = "Saturday Task",
                 ownerId = requireNotNull(testUser.id),
             ),

@@ -11,16 +11,16 @@ class TimeLogsNavigationTest : TimeLogsPageTestBase() {
     @Test
     fun `should navigate between weeks`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // Create entries for different weeks
-        val lastWeek = baseTime.minusDays(7)
+        val lastWeek = baseTime.withLocalDate("2024-03-09")
 
         // Current week entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = baseTime.minusHours(1),
-                endTime = baseTime.minusMinutes(30),
+                startTime = baseTime.withLocalTime("02:30"),
+                endTime = baseTime.withLocalTime("03:00"),
                 title = "This Week Task",
                 ownerId = requireNotNull(testUser.id),
             ),

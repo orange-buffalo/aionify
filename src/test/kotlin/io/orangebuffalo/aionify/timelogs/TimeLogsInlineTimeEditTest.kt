@@ -6,6 +6,7 @@ import io.orangebuffalo.aionify.minusHours
 import io.orangebuffalo.aionify.minusMinutes
 import io.orangebuffalo.aionify.plusDays
 import io.orangebuffalo.aionify.timeInTestTz
+import io.orangebuffalo.aionify.withLocalDate
 import io.orangebuffalo.aionify.withLocalTime
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -19,14 +20,14 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
     @Test
     fun `should allow inline edit of start time on stopped entry`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // Create a stopped entry
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = baseTime.minusHours(1),
-                    endTime = baseTime.minusMinutes(30),
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalTime("03:00"),
                     title = "Test Entry",
                     ownerId = requireNotNull(testUser.id),
                     tags = emptyArray(),
@@ -72,14 +73,14 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
     @Test
     fun `should allow inline edit of end time on stopped entry`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // Create a stopped entry
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = baseTime.minusHours(1),
-                    endTime = baseTime.minusMinutes(30),
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalTime("03:00"),
                     title = "Test Entry",
                     ownerId = requireNotNull(testUser.id),
                     tags = emptyArray(),
@@ -119,12 +120,12 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
     @Test
     fun `should not show inline edit for end time on active entry`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // Create an active entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = baseTime.minusHours(1),
+                startTime = baseTime.withLocalTime("02:30"),
                 endTime = null,
                 title = "Active Entry",
                 ownerId = requireNotNull(testUser.id),
@@ -148,14 +149,14 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
     @Test
     fun `should allow changing date when editing start time`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // Create a stopped entry
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = baseTime.minusHours(1),
-                    endTime = baseTime.minusMinutes(30),
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalTime("03:00"),
                     title = "Test Entry",
                     ownerId = requireNotNull(testUser.id),
                     tags = emptyArray(),
@@ -191,14 +192,14 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
     @Test
     fun `should allow editing times in expanded grouped entries`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // Create two entries with same title and tags (will be grouped)
         val entry1 =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = baseTime.minusHours(2),
-                    endTime = baseTime.minusMinutes(90),
+                    startTime = baseTime.withLocalTime("01:30"),
+                    endTime = baseTime.withLocalTime("02:00"),
                     title = "Grouped Entry",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend"),
@@ -207,8 +208,8 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = baseTime.minusHours(1),
-                endTime = baseTime.minusMinutes(30),
+                startTime = baseTime.withLocalTime("02:30"),
+                endTime = baseTime.withLocalTime("03:00"),
                 title = "Grouped Entry",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend"),
@@ -261,13 +262,13 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
     @Test
     fun `should not affect title or tags when updating time`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = baseTime.minusHours(1),
-                    endTime = baseTime.minusMinutes(30),
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalTime("03:00"),
                     title = "Important Task",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend", "urgent", "feature"),
@@ -306,13 +307,13 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
     @Test
     fun `should not allow inline edit of grouped entry header times`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // Create two entries with same title and tags (will be grouped)
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = baseTime.minusHours(2),
-                endTime = baseTime.minusMinutes(90),
+                startTime = baseTime.withLocalTime("01:30"),
+                endTime = baseTime.withLocalTime("02:00"),
                 title = "Grouped Entry",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend"),
@@ -321,8 +322,8 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = baseTime.minusHours(1),
-                endTime = baseTime.minusMinutes(30),
+                startTime = baseTime.withLocalTime("02:30"),
+                endTime = baseTime.withLocalTime("03:00"),
                 title = "Grouped Entry",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend"),
@@ -344,14 +345,14 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
     @Test
     fun `should allow inline edit of end time for cross-day entries`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // Create an entry that spans across different days
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = baseTime.minusHours(1),
-                    endTime = baseTime.plusDays(1),
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalDate("2024-03-17"),
                     title = "Cross-day Entry",
                     ownerId = requireNotNull(testUser.id),
                     tags = emptyArray(),

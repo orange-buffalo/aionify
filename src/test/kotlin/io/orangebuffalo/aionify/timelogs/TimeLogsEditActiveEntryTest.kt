@@ -12,12 +12,12 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
     @Test
     fun `should edit active entry title`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // Create an active entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = baseTime.minusMinutes(30),
+                startTime = baseTime.withLocalTime("03:00"),
                 endTime = null,
                 title = "Original Title",
                 ownerId = requireNotNull(testUser.id),
@@ -111,19 +111,19 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
         val editedEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(editedEntry, "Active entry should still exist in database")
         assertEquals("Updated Title", editedEntry!!.title, "Title should be updated in database")
-        assertEquals(baseTime.minusMinutes(30), editedEntry.startTime, "Start time should remain unchanged")
+        assertEquals(baseTime.withLocalTime("03:00"), editedEntry.startTime, "Start time should remain unchanged")
         assertNull(editedEntry.endTime, "Active entry should not have end time")
     }
 
     @Test
     fun `should edit active entry start time`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // Create an active entry that started 30 minutes ago
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = baseTime.minusMinutes(30), // 14:00
+                startTime = baseTime.withLocalTime("03:00"), // 14:00
                 endTime = null,
                 title = "Test Task",
                 ownerId = requireNotNull(testUser.id),
@@ -204,20 +204,20 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
         assertNotNull(editedEntry, "Active entry should still exist in database")
         assertEquals("Test Task", editedEntry!!.title)
         // When user edits start time, they provide the value, so it should match what they entered
-        // The user entered "02:30" in NZDT timezone, which is baseTime.minusHours(1)
-        assertEquals(baseTime.minusHours(1), editedEntry.startTime, "Start time should be updated to user's value")
+        // The user entered "02:30" in NZDT timezone, which is baseTime.withLocalTime("02:30")
+        assertEquals(baseTime.withLocalTime("02:30"), editedEntry.startTime, "Start time should be updated to user's value")
         assertNull(editedEntry.endTime, "Active entry should not have end time")
     }
 
     @Test
     fun `should edit active entry title and start time together`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // Create an active entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = baseTime.minusMinutes(30), // 14:00
+                startTime = baseTime.withLocalTime("03:00"), // 14:00
                 endTime = null,
                 title = "Original Task",
                 ownerId = requireNotNull(testUser.id),
@@ -298,20 +298,24 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
         val editedEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(editedEntry, "Active entry should still exist in database")
         assertEquals("Modified Task", editedEntry!!.title, "Title should be updated in database")
-        // User entered "01:00" in NZDT timezone, which is baseTime.minusHours(2).minusMinutes(30)
-        assertEquals(baseTime.minusHours(2).minusMinutes(30), editedEntry.startTime, "Start time should be updated to user's value")
+        // User entered "01:00" in NZDT timezone, which is baseTime.withLocalTime("01:30").minusMinutes(30)
+        assertEquals(
+            baseTime.withLocalTime("01:30").minusMinutes(30),
+            editedEntry.startTime,
+            "Start time should be updated to user's value",
+        )
         assertNull(editedEntry.endTime, "Active entry should not have end time")
     }
 
     @Test
     fun `should cancel editing and revert changes`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // Create an active entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = baseTime.minusMinutes(30),
+                startTime = baseTime.withLocalTime("03:00"),
                 endTime = null,
                 title = "Original Title",
                 ownerId = requireNotNull(testUser.id),
@@ -365,12 +369,12 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
     @Test
     fun `should change start time to different day`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // Create an active entry that started today
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = baseTime.minusMinutes(30), // Friday 14:00
+                startTime = baseTime.withLocalTime("03:00"), // Friday 14:00
                 endTime = null,
                 title = "Cross-Day Task",
                 ownerId = requireNotNull(testUser.id),
@@ -452,12 +456,12 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
     @Test
     fun `should prevent saving edit with empty title`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // Create an active entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = baseTime.minusMinutes(30),
+                startTime = baseTime.withLocalTime("03:00"),
                 endTime = null,
                 title = "Valid Title",
                 ownerId = requireNotNull(testUser.id),
@@ -540,6 +544,9 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should hide edit button when not in active state`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        setBaseTime("2024-03-16", "03:30")
+
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify edit button is not visible when no active entry

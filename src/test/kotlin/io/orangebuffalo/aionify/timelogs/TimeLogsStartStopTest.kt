@@ -12,7 +12,7 @@ class TimeLogsStartStopTest : TimeLogsPageTestBase() {
     @Test
     fun `should start and stop a time entry`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
@@ -101,12 +101,12 @@ class TimeLogsStartStopTest : TimeLogsPageTestBase() {
     @Test
     fun `should show active entry on page load`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // Create an active entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = baseTime.minusMinutes(30),
+                startTime = baseTime.withLocalTime("03:00"),
                 endTime = null,
                 title = "Active Task",
                 ownerId = requireNotNull(testUser.id),
@@ -147,6 +147,9 @@ class TimeLogsStartStopTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should require title to start entry`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        setBaseTime("2024-03-16", "03:30")
+
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify start button is disabled without title
@@ -167,7 +170,7 @@ class TimeLogsStartStopTest : TimeLogsPageTestBase() {
     @Test
     fun `should allow starting entry by pressing Enter`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
@@ -216,12 +219,12 @@ class TimeLogsStartStopTest : TimeLogsPageTestBase() {
     @Test
     fun `should prevent starting new entry while another is active`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // Create an active entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = baseTime.minusMinutes(30),
+                startTime = baseTime.withLocalTime("03:00"),
                 endTime = null,
                 title = "Active Task",
                 ownerId = requireNotNull(testUser.id),

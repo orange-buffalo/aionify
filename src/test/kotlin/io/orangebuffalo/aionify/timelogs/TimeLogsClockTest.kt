@@ -11,12 +11,12 @@ class TimeLogsClockTest : TimeLogsPageTestBase() {
     @Test
     fun `should verify active task duration using clock`() {
         // Set the base time for this test: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // Create an active entry that started 30 minutes ago
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = baseTime.minusMinutes(30),
+                startTime = baseTime.withLocalTime("03:00"),
                 endTime = null,
                 title = "Active Task",
                 ownerId = requireNotNull(testUser.id),

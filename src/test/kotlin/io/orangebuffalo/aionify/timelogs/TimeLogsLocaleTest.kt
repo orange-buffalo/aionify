@@ -15,7 +15,7 @@ class TimeLogsLocaleTest : TimeLogsPageTestBase() {
     @MethodSource("localeTestCases")
     fun `should display dates and times according to user locale`(testCase: LocaleTestCase) {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+        val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // Create a user with the specified locale
         val testUser =

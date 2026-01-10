@@ -12,6 +12,9 @@ import org.junit.jupiter.api.Test
 class TimeLogsAutocompleteTest : TimeLogsPageTestBase() {
     @BeforeEach
     fun setupAutocompleteTest() {
+        // Set base time for all autocomplete tests
+        setBaseTime("2024-03-16", "03:30")
+
         // Create test entries with various titles for autocomplete testing
         testDatabaseSupport.inTransaction {
             // Entry with "Meeting with team"
