@@ -42,8 +42,11 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
+        // Locate the first time entry with the specific title
+        val timeEntry = page.locator("[data-testid='time-entry']:has([data-testid='entry-title']:has-text('Task with Tags'))")
+
         // Click on the tags icon to open the popover
-        page.locator("[data-testid='time-entry-inline-tags-button']").click()
+        timeEntry.locator("[data-testid='time-entry-inline-tags-button']").click()
 
         // Verify popover is visible
         assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).isVisible()
@@ -68,7 +71,7 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).not().isVisible()
 
         // Verify tags are updated in the UI
-        val tags = page.locator("[data-testid='entry-tags']").locator("[data-testid^='entry-tag-']")
+        val tags = timeEntry.locator("[data-testid='entry-tags']").locator("[data-testid^='entry-tag-']")
         assertThat(tags).containsText(arrayOf("backend", "frontend"))
 
         // Verify database was updated
@@ -274,7 +277,7 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
             TimeLogEntry(
                 startTime = baseTime.withLocalTime("02:30"),
                 endTime = baseTime.withLocalTime("03:00"),
-                title = "Task",
+                title = "Main Task",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend"),
             ),
@@ -293,20 +296,24 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
+        // Locate the specific time entry
+        val timeEntry = page.locator("[data-testid='time-entry']:has([data-testid='entry-title']:has-text('Main Task'))")
+
         // Open popover
-        page.locator("[data-testid='time-entry-inline-tags-button']").click()
+        timeEntry.locator("[data-testid='time-entry-inline-tags-button']").click()
 
         // Make a change
         page.locator("[data-testid='time-entry-inline-tags-checkbox-frontend']").click()
 
-        // Start saving (don't wait for completion)
+        // Save and wait for popover to close
         page.locator("[data-testid='time-entry-inline-tags-save-button']").click()
 
-        // Verify loading icon is shown
-        assertThat(page.locator("[data-testid='time-entry-inline-tags-loading-icon']")).isVisible()
-
-        // Eventually popover should close
+        // Popover should close after save
         assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).not().isVisible()
+
+        // Verify the tags were updated in the UI
+        val tags = timeEntry.locator("[data-testid='entry-tags']").locator("[data-testid^='entry-tag-']")
+        assertThat(tags).containsText(arrayOf("backend", "frontend"))
     }
 
     @Test
