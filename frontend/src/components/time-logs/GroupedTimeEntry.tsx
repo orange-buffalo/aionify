@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +21,13 @@ interface GroupedTimeEntryProps {
   overlaps: Map<number, EntryOverlap>;
 }
 
-export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChange, overlaps }: GroupedTimeEntryProps) {
+export const GroupedTimeEntry = memo(function GroupedTimeEntry({
+  groupedEntry,
+  locale,
+  startOfWeek,
+  onDataChange,
+  overlaps,
+}: GroupedTimeEntryProps) {
   const { t } = useTranslation();
   const { executeApiCall: executeContinueCall, apiCallInProgress: isContinuing } = useApiExecutor("continue-entry");
   const { executeApiCall: executeGroupEditCall, apiCallInProgress: isSavingGroup } =
@@ -30,6 +36,7 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
   const [isEditingGroup, setIsEditingGroup] = useState(false);
   const [editTitle, setEditTitle] = useState(groupedEntry.title);
   const [editTags, setEditTags] = useState<string[]>(groupedEntry.tags || []);
+  const [totalDuration, setTotalDuration] = useState<number>(groupedEntry.totalDuration);
 
   const endTimeDisplay = groupedEntry.endTime ? formatTime(groupedEntry.endTime, locale) : t("timeLogs.inProgress");
 
@@ -39,13 +46,31 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
   // Check if group contains an active entry
   const hasActiveEntry = groupedEntry.entries.some((e) => e.endTime == null);
 
-  // Calculate total duration dynamically for groups with active entries
-  const totalDuration = hasActiveEntry
-    ? groupedEntry.entries.reduce((sum, entry) => {
-        const duration = calculateDuration(entry.startTime, entry.endTime);
-        return sum + duration;
-      }, 0)
-    : groupedEntry.totalDuration;
+  // Calculate total duration for all entries
+  function calculateGroupTotalDuration(): number {
+    return groupedEntry.entries.reduce((sum, entry) => {
+      const duration = calculateDuration(entry.startTime, entry.endTime);
+      return sum + duration;
+    }, 0);
+  }
+
+  // Update total duration when entries change
+  useEffect(() => {
+    const total = calculateGroupTotalDuration();
+    setTotalDuration(total);
+  }, [groupedEntry.entries]);
+
+  // Update total duration every second only if there's an active entry
+  useEffect(() => {
+    if (!hasActiveEntry) return;
+
+    const interval = setInterval(() => {
+      const updatedTotal = calculateGroupTotalDuration();
+      setTotalDuration(updatedTotal);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [hasActiveEntry, groupedEntry.entries]);
 
   const handleEditClick = () => {
     setEditTitle(groupedEntry.title);
@@ -213,4 +238,4 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
       )}
     </div>
   );
-}
+});

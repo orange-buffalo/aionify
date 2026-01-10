@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDuration } from "@/lib/time-utils";
@@ -14,7 +15,7 @@ interface DayGroupProps {
   onDataChange: () => Promise<void>;
 }
 
-export function DayGroup({ group, locale, startOfWeek, onDataChange }: DayGroupProps) {
+export const DayGroup = memo(function DayGroup({ group, locale, startOfWeek, onDataChange }: DayGroupProps) {
   const { t } = useTranslation();
 
   // Detect overlaps within this day group
@@ -67,4 +68,4 @@ export function DayGroup({ group, locale, startOfWeek, onDataChange }: DayGroupP
       </CardContent>
     </Card>
   );
-}
+});

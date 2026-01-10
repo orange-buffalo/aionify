@@ -67,11 +67,14 @@ export function WeekNavigation({ entries, activeEntry, locale, startOfWeek, onTi
     return entries.reduce((sum, entry) => sum + calculateDuration(entry.startTime, entry.endTime), 0);
   }
 
-  // Recalculate weekly total when entries change or when there's an active entry
+  // Recalculate weekly total when entries change
   useEffect(() => {
     const total = calculateWeeklyTotal();
     setWeeklyTotal(total);
+  }, [entries]);
 
+  // Update weekly total every second only if there's an active entry
+  useEffect(() => {
     if (!activeEntry) return;
 
     const interval = setInterval(() => {
@@ -80,7 +83,7 @@ export function WeekNavigation({ entries, activeEntry, locale, startOfWeek, onTi
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [entries, activeEntry]);
+  }, [activeEntry, entries]);
 
   // Don't render until weekStart is initialized
   if (!weekStart) {
