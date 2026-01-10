@@ -80,12 +80,17 @@ class TimeLogEntryEventResource(
                     log.error("Error in event stream for user {}", userId, error)
                 }
 
-        // Send heartbeat events every 30 seconds to keep connection alive (if enabled)
+        // Send heartbeat events: immediately on connection, then every 30 seconds (if enabled)
+        // The immediate heartbeat helps establish the connection and verify it's working
         val heartbeatFlux =
             if (heartbeatEnabled) {
                 Flux
-                    .interval(java.time.Duration.ofSeconds(30))
-                    .map { Event.of<String>("heartbeat").name("heartbeat") }
+                    .concat(
+                        Flux.just(Event.of<String>("heartbeat").name("heartbeat")),
+                        Flux
+                            .interval(java.time.Duration.ofSeconds(30))
+                            .map { Event.of<String>("heartbeat").name("heartbeat") },
+                    )
             } else {
                 Flux.empty()
             }
