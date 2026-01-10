@@ -429,8 +429,10 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         assertThat(selectedButtons.first()).containsText("16")
 
         // Navigate to the previous month (February)
-        page.locator("[data-testid='time-entry-inline-start-time-popover']")
-            .locator("button:has-text('‹')").click()
+        page
+            .locator("[data-testid='time-entry-inline-start-time-popover']")
+            .locator("button:has-text('‹')")
+            .click()
 
         // Wait for calendar to update - check that we're now viewing February
         assertThat(page.locator("[data-testid='time-entry-inline-start-time-popover']")).containsText("February 2024")
@@ -440,8 +442,10 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         assertThat(februarySelectedButtons).hasCount(0)
 
         // Navigate to the next month (back to March)
-        page.locator("[data-testid='time-entry-inline-start-time-popover']")
-            .locator("button:has-text('›')").click()
+        page
+            .locator("[data-testid='time-entry-inline-start-time-popover']")
+            .locator("button:has-text('›')")
+            .click()
 
         // Wait for calendar to update back to March
         assertThat(page.locator("[data-testid='time-entry-inline-start-time-popover']")).containsText("March 2024")
