@@ -642,4 +642,208 @@ class TimeLogEntryResourceTest {
         // Then: Access should be unauthorized
         assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
     }
+
+    @Test
+    fun `should not allow updating other users entry tags`() {
+        // Given: User 1 token and User 2's entry
+        val user1Token = testAuthSupport.generateToken(user1)
+
+        // When: User 1 tries to update User 2's entry tags
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest
+                        .PATCH("/api-ui/time-log-entries/${user2Entry.id}/tags", mapOf("tags" to listOf("hacked")))
+                        .bearerAuth(user1Token),
+                    String::class.java,
+                )
+            }
+
+        // Then: Should be not found (entry belongs to different user)
+        assertEquals(HttpStatus.NOT_FOUND, exception.status)
+
+        // And: Tags should remain unchanged
+        val unchanged = timeEntryRepository.findById(requireNotNull(user2Entry.id))
+        assertTrue(unchanged.isPresent)
+        assertEquals(0, unchanged.get().tags.size)
+    }
+
+    @Test
+    fun `should allow user to update own entry tags`() {
+        // Given: User 1 token and User 1's entry
+        val user1Token = testAuthSupport.generateToken(user1)
+
+        // When: User 1 updates their own entry tags
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .PATCH("/api-ui/time-log-entries/${user1Entry.id}/tags", mapOf("tags" to listOf("backend", "urgent")))
+                    .bearerAuth(user1Token),
+                TimeLogEntryDto::class.java,
+            )
+
+        // Then: Should succeed
+        assertEquals(HttpStatus.OK, response.status)
+        val updatedEntry = response.body()
+        assertNotNull(updatedEntry)
+        assertEquals(2, updatedEntry?.tags?.size)
+        assertTrue(updatedEntry?.tags?.contains("backend") ?: false)
+        assertTrue(updatedEntry?.tags?.contains("urgent") ?: false)
+
+        // And: Tags should be updated in database
+        val fromDb = timeEntryRepository.findById(requireNotNull(user1Entry.id))
+        assertTrue(fromDb.isPresent)
+        assertEquals(2, fromDb.get().tags.size)
+        assertTrue(fromDb.get().tags.contains("backend"))
+        assertTrue(fromDb.get().tags.contains("urgent"))
+    }
+
+    @Test
+    fun `should require authentication to update entry tags`() {
+        // When: Trying to update tags without authentication
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest.PATCH("/api-ui/time-log-entries/${user1Entry.id}/tags", mapOf("tags" to listOf("test"))),
+                    String::class.java,
+                )
+            }
+
+        // Then: Access should be unauthorized
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+    }
+
+    @Test
+    fun `should not allow bulk updating other users entries tags`() {
+        // Given: User 1 token and User 2's entry
+        val user1Token = testAuthSupport.generateToken(user1)
+
+        // When: User 1 tries to bulk update User 2's entries tags
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest
+                        .PATCH(
+                            "/api-ui/time-log-entries/bulk-update-tags",
+                            mapOf(
+                                "tags" to listOf("hacked"),
+                                "entryIds" to listOf(user2Entry.id),
+                            ),
+                        ).bearerAuth(user1Token),
+                    String::class.java,
+                )
+            }
+
+        // Then: Should be not found (entries belong to different user)
+        assertEquals(HttpStatus.NOT_FOUND, exception.status)
+
+        // And: Tags should remain unchanged
+        val unchanged = timeEntryRepository.findById(requireNotNull(user2Entry.id))
+        assertTrue(unchanged.isPresent)
+        assertEquals(0, unchanged.get().tags.size)
+    }
+
+    @Test
+    fun `should not allow bulk updating mix of own and other users entries tags`() {
+        // Given: User 1 token, and both User 1's and User 2's entries
+        val user1Token = testAuthSupport.generateToken(user1)
+
+        // When: User 1 tries to bulk update both their own and User 2's entries tags
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest
+                        .PATCH(
+                            "/api-ui/time-log-entries/bulk-update-tags",
+                            mapOf(
+                                "tags" to listOf("test"),
+                                "entryIds" to listOf(user1Entry.id, user2Entry.id),
+                            ),
+                        ).bearerAuth(user1Token),
+                    String::class.java,
+                )
+            }
+
+        // Then: Should be not found (some entries belong to different user)
+        assertEquals(HttpStatus.NOT_FOUND, exception.status)
+
+        // And: Neither entry should be updated
+        val user1EntryUnchanged = timeEntryRepository.findById(requireNotNull(user1Entry.id))
+        assertTrue(user1EntryUnchanged.isPresent)
+        assertEquals(0, user1EntryUnchanged.get().tags.size)
+
+        val user2EntryUnchanged = timeEntryRepository.findById(requireNotNull(user2Entry.id))
+        assertTrue(user2EntryUnchanged.isPresent)
+        assertEquals(0, user2EntryUnchanged.get().tags.size)
+    }
+
+    @Test
+    fun `should allow user to bulk update own entries tags`() {
+        // Given: User 1 token and multiple User 1 entries
+        val user1Token = testAuthSupport.generateToken(user1)
+
+        val user1Entry2 =
+            testDatabaseSupport.insert(
+                TimeLogEntry(
+                    startTime = Instant.parse("2024-01-15T12:00:00Z"),
+                    endTime = Instant.parse("2024-01-15T13:00:00Z"),
+                    title = "User 1 Task 2",
+                    ownerId = requireNotNull(user1.id),
+                ),
+            )
+
+        // When: User 1 bulk updates their own entries tags
+        val response =
+            client.toBlocking().exchange(
+                HttpRequest
+                    .PATCH(
+                        "/api-ui/time-log-entries/bulk-update-tags",
+                        mapOf(
+                            "tags" to listOf("backend", "feature"),
+                            "entryIds" to listOf(user1Entry.id, user1Entry2.id),
+                        ),
+                    ).bearerAuth(user1Token),
+                BulkUpdateTimeLogEntriesResponse::class.java,
+            )
+
+        // Then: Should succeed
+        assertEquals(HttpStatus.OK, response.status)
+        val result = response.body()
+        assertNotNull(result)
+        assertEquals(2, result?.updatedCount)
+
+        // And: Both entries should be updated in database
+        val entry1FromDb = timeEntryRepository.findById(requireNotNull(user1Entry.id))
+        assertTrue(entry1FromDb.isPresent)
+        assertEquals(2, entry1FromDb.get().tags.size)
+        assertTrue(entry1FromDb.get().tags.contains("backend"))
+        assertTrue(entry1FromDb.get().tags.contains("feature"))
+
+        val entry2FromDb = timeEntryRepository.findById(requireNotNull(user1Entry2.id))
+        assertTrue(entry2FromDb.isPresent)
+        assertEquals(2, entry2FromDb.get().tags.size)
+        assertTrue(entry2FromDb.get().tags.contains("backend"))
+        assertTrue(entry2FromDb.get().tags.contains("feature"))
+    }
+
+    @Test
+    fun `should require authentication to bulk update entries tags`() {
+        // When: Trying to bulk update tags without authentication
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest.PATCH(
+                        "/api-ui/time-log-entries/bulk-update-tags",
+                        mapOf(
+                            "tags" to listOf("test"),
+                            "entryIds" to listOf(user1Entry.id),
+                        ),
+                    ),
+                    String::class.java,
+                )
+            }
+
+        // Then: Access should be unauthorized
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+    }
 }
