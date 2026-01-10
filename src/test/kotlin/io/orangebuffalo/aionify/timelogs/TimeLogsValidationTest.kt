@@ -12,6 +12,9 @@ import org.junit.jupiter.api.Test
 class TimeLogsValidationTest : TimeLogsPageTestBase() {
     @Test
     fun `should hide edit button when not in active state`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify edit button is not visible when no active entry
@@ -20,12 +23,15 @@ class TimeLogsValidationTest : TimeLogsPageTestBase() {
     }
 
     fun `should show error when end time is before start time`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
         // Create a stopped entry
         val createdEntry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusHours(1),
-                    endTime = FIXED_TEST_TIME.minusMinutes(30),
+                    startTime = baseTime.minusHours(1),
+                    endTime = baseTime.minusMinutes(30),
                     title = "Task to Edit",
                     ownerId = requireNotNull(testUser.id),
                 ),
@@ -71,8 +77,8 @@ class TimeLogsValidationTest : TimeLogsPageTestBase() {
                 ).orElse(null)
         assertNotNull(unchangedEntry, "Entry should exist in database")
         assertEquals("Task to Edit", unchangedEntry!!.title, "Title should be unchanged")
-        assertEquals(FIXED_TEST_TIME.minusHours(1), unchangedEntry.startTime, "Start time should be unchanged")
-        assertEquals(FIXED_TEST_TIME.minusMinutes(30), unchangedEntry.endTime, "End time should be unchanged")
+        assertEquals(baseTime.minusHours(1), unchangedEntry.startTime, "Start time should be unchanged")
+        assertEquals(baseTime.minusMinutes(30), unchangedEntry.endTime, "End time should be unchanged")
         assertEquals(testUser.id, unchangedEntry.ownerId, "Owner ID should be unchanged")
     }
 }

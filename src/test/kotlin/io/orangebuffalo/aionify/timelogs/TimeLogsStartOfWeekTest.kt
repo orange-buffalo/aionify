@@ -27,7 +27,10 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should display week range starting on Monday when start of week is Monday`() {
-        // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30 NZDT
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
+        // baseTime is Saturday, March 16, 2024 at 03:30 NZDT
         // Default is Monday, so week should be Mon Mar 11 - Sun Mar 17
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
@@ -39,7 +42,10 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should display week range starting on Sunday when start of week is Sunday`() {
-        // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30 NZDT
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
+        // baseTime is Saturday, March 16, 2024 at 03:30 NZDT
         // Change start of week to Sunday, so week should be Sun Mar 10 - Sat Mar 16
 
         // Update user settings to start week on Sunday
@@ -57,7 +63,10 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should display week range starting on Wednesday when start of week is Wednesday`() {
-        // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30 NZDT
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
+        // baseTime is Saturday, March 16, 2024 at 03:30 NZDT
         // Change start of week to Wednesday, so week should be Wed Mar 13 - Tue Mar 19
 
         // Update user settings to start week on Wednesday
@@ -75,7 +84,10 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should group entries by week starting on Sunday when configured`() {
-        // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30 NZDT
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
+        // baseTime is Saturday, March 16, 2024 at 03:30 NZDT
         // Change start of week to Sunday, so week should be Sun Mar 10 - Sat Mar 16
 
         // Update user settings to start week on Sunday
@@ -90,7 +102,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
         // - One on Saturday Mar 16 (last day of week) - should show
         // - One on Sunday Mar 17 (after week ends) - should NOT show
 
-        val saturdayBeforeWeek = FIXED_TEST_TIME.minusSeconds(7 * 24 * 3600) // Sat Mar 9
+        val saturdayBeforeWeek = baseTime.minusSeconds(7 * 24 * 3600) // Sat Mar 9
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = saturdayBeforeWeek,
@@ -100,7 +112,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
             ),
         )
 
-        val sundayStartOfWeek = FIXED_TEST_TIME.minusSeconds(6 * 24 * 3600) // Sun Mar 10
+        val sundayStartOfWeek = baseTime.minusSeconds(6 * 24 * 3600) // Sun Mar 10
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = sundayStartOfWeek,
@@ -110,7 +122,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
             ),
         )
 
-        val saturdayEndOfWeek = FIXED_TEST_TIME // Sat Mar 16
+        val saturdayEndOfWeek = baseTime // Sat Mar 16
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = saturdayEndOfWeek,
@@ -120,7 +132,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
             ),
         )
 
-        val sundayAfterWeek = FIXED_TEST_TIME.plusDays(1) // Sun Mar 17
+        val sundayAfterWeek = baseTime.plusDays(1) // Sun Mar 17
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = sundayAfterWeek,
@@ -143,7 +155,10 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should group entries by week starting on Monday when configured`() {
-        // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30 NZDT
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
+        // baseTime is Saturday, March 16, 2024 at 03:30 NZDT
         // Default start of week is Monday, so week should be Mon Mar 11 - Sun Mar 17
 
         // Create entries:
@@ -152,7 +167,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
         // - One on Sunday Mar 17 (last day of week) - should show
         // - One on Monday Mar 18 (after week ends) - should NOT show
 
-        val sundayBeforeWeek = FIXED_TEST_TIME.minusSeconds(6 * 24 * 3600) // Sun Mar 10
+        val sundayBeforeWeek = baseTime.minusSeconds(6 * 24 * 3600) // Sun Mar 10
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = sundayBeforeWeek,
@@ -162,7 +177,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
             ),
         )
 
-        val mondayStartOfWeek = FIXED_TEST_TIME.minusSeconds(5 * 24 * 3600) // Mon Mar 11
+        val mondayStartOfWeek = baseTime.minusSeconds(5 * 24 * 3600) // Mon Mar 11
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = mondayStartOfWeek,
@@ -172,7 +187,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
             ),
         )
 
-        val sundayEndOfWeek = FIXED_TEST_TIME.plusDays(1) // Sun Mar 17
+        val sundayEndOfWeek = baseTime.plusDays(1) // Sun Mar 17
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = sundayEndOfWeek,
@@ -182,7 +197,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
             ),
         )
 
-        val mondayAfterWeek = FIXED_TEST_TIME.plusSeconds(2 * 24 * 3600) // Mon Mar 18
+        val mondayAfterWeek = baseTime.plusSeconds(2 * 24 * 3600) // Mon Mar 18
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = mondayAfterWeek,

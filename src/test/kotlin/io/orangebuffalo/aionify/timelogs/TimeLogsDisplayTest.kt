@@ -36,11 +36,14 @@ class TimeLogsDisplayTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should render entries from multiple days with varying entry counts`() {
-        // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30 NZDT
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
+        // baseTime is Saturday, March 16, 2024 at 03:30 NZDT
         // Let's create entries for different days in the current week (Mon Mar 11 - Sun Mar 17)
 
         // Monday (Mar 11) - 2 entries (5 days before Saturday)
-        val monday = FIXED_TEST_TIME.minusSeconds(5 * 24 * 3600) // 5 days before Saturday
+        val monday = baseTime.minusSeconds(5 * 24 * 3600) // 5 days before Saturday
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = monday.minusHours(2),
@@ -59,7 +62,7 @@ class TimeLogsDisplayTest : TimeLogsPageTestBase() {
         )
 
         // Tuesday (Mar 12) - 1 entry (4 days before Saturday)
-        val tuesday = FIXED_TEST_TIME.minusSeconds(4 * 24 * 3600)
+        val tuesday = baseTime.minusSeconds(4 * 24 * 3600)
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = tuesday.minusHours(1),
@@ -70,7 +73,7 @@ class TimeLogsDisplayTest : TimeLogsPageTestBase() {
         )
 
         // Wednesday (Mar 13) - 3 entries (3 days before Saturday)
-        val wednesday = FIXED_TEST_TIME.minusSeconds(3 * 24 * 3600)
+        val wednesday = baseTime.minusSeconds(3 * 24 * 3600)
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = wednesday.minusHours(3),
@@ -99,8 +102,8 @@ class TimeLogsDisplayTest : TimeLogsPageTestBase() {
         // Saturday (Mar 16) - today - 1 entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(1),
-                endTime = FIXED_TEST_TIME.minusMinutes(30),
+                startTime = baseTime.minusHours(1),
+                endTime = baseTime.minusMinutes(30),
                 title = "Saturday Task",
                 ownerId = requireNotNull(testUser.id),
             ),

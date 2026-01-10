@@ -11,11 +11,14 @@ import org.junit.jupiter.api.Test
 class TimeLogsGroupingTest : TimeLogsPageTestBase() {
     @Test
     fun `should group completed entries with same title and tags`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
         // Create three entries with the same title and tags
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(3), // 3 hours ago (12:30)
-                endTime = FIXED_TEST_TIME.minusHours(2).minusMinutes(30), // 2.5 hours ago (13:00)
+                startTime = baseTime.minusHours(3), // 3 hours ago (12:30)
+                endTime = baseTime.minusHours(2).minusMinutes(30), // 2.5 hours ago (13:00)
                 title = "Development Task",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend", "urgent"),
@@ -24,8 +27,8 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(2), // 2 hours ago (13:30)
-                endTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30), // 1.5 hours ago (14:00)
+                startTime = baseTime.minusHours(2), // 2 hours ago (13:30)
+                endTime = baseTime.minusHours(1).minusMinutes(30), // 1.5 hours ago (14:00)
                 title = "Development Task",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("urgent", "backend"), // Same tags, different order
@@ -34,8 +37,8 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(1), // 1 hour ago (14:30)
-                endTime = FIXED_TEST_TIME.minusMinutes(30), // 30 minutes ago (15:00)
+                startTime = baseTime.minusHours(1), // 1 hour ago (14:30)
+                endTime = baseTime.minusMinutes(30), // 30 minutes ago (15:00)
                 title = "Development Task",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend", "urgent"),
@@ -45,8 +48,8 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         // Create one entry with different tags that should not be grouped
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusMinutes(15), // 15 minutes ago (15:15)
-                endTime = FIXED_TEST_TIME.minusMinutes(5), // 5 minutes ago (15:25)
+                startTime = baseTime.minusMinutes(15), // 15 minutes ago (15:15)
+                endTime = baseTime.minusMinutes(5), // 5 minutes ago (15:25)
                 title = "Development Task",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("frontend"), // Different tags
@@ -116,11 +119,14 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should expand grouped entry to show individual entries`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
         // Create two entries with the same title and tags
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(2), // 2 hours ago (13:30)
-                endTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30), // 1.5 hours ago (14:00)
+                startTime = baseTime.minusHours(2), // 2 hours ago (13:30)
+                endTime = baseTime.minusHours(1).minusMinutes(30), // 1.5 hours ago (14:00)
                 title = "Code Review",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("review"),
@@ -129,8 +135,8 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(1), // 1 hour ago (14:30)
-                endTime = FIXED_TEST_TIME.minusMinutes(30), // 30 minutes ago (15:00)
+                startTime = baseTime.minusHours(1), // 1 hour ago (14:30)
+                endTime = baseTime.minusMinutes(30), // 30 minutes ago (15:00)
                 title = "Code Review",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("review"),
@@ -188,11 +194,14 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should group entries including active entry`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
         // Create one completed entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(2), // 2 hours ago (13:30)
-                endTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30), // 1.5 hours ago (14:00)
+                startTime = baseTime.minusHours(2), // 2 hours ago (13:30)
+                endTime = baseTime.minusHours(1).minusMinutes(30), // 1.5 hours ago (14:00)
                 title = "Meeting Notes",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("meeting"),
@@ -202,7 +211,7 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         // Create an active entry with same title and tags
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusMinutes(30), // 30 minutes ago (15:00)
+                startTime = baseTime.minusMinutes(30), // 30 minutes ago (15:00)
                 endTime = null, // Active entry
                 title = "Meeting Notes",
                 ownerId = requireNotNull(testUser.id),
@@ -242,11 +251,14 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should update grouped entry duration automatically when it contains active entry`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
         // Create one completed entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(2), // 2 hours ago (13:30)
-                endTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30), // 1.5 hours ago (14:00)
+                startTime = baseTime.minusHours(2), // 2 hours ago (13:30)
+                endTime = baseTime.minusHours(1).minusMinutes(30), // 1.5 hours ago (14:00)
                 title = "Meeting Notes",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("meeting"),
@@ -256,7 +268,7 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         // Create an active entry with same title and tags
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusMinutes(30), // 30 minutes ago (15:00)
+                startTime = baseTime.minusMinutes(30), // 30 minutes ago (15:00)
                 endTime = null, // Active entry
                 title = "Meeting Notes",
                 ownerId = requireNotNull(testUser.id),
@@ -368,11 +380,14 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should allow clicking continue on grouped entry`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
         // Create two completed entries with same title and tags
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(2), // 2 hours ago
-                endTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30), // 1.5 hours ago
+                startTime = baseTime.minusHours(2), // 2 hours ago
+                endTime = baseTime.minusHours(1).minusMinutes(30), // 1.5 hours ago
                 title = "Documentation",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("docs"),
@@ -381,8 +396,8 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(1), // 1 hour ago
-                endTime = FIXED_TEST_TIME.minusMinutes(30), // 30 minutes ago
+                startTime = baseTime.minusHours(1), // 1 hour ago
+                endTime = baseTime.minusMinutes(30), // 30 minutes ago
                 title = "Documentation",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("docs"),
@@ -409,11 +424,14 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should not group entries with different titles`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
         // Create entries with same tags but different titles
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(2),
-                endTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30),
+                startTime = baseTime.minusHours(2),
+                endTime = baseTime.minusHours(1).minusMinutes(30),
                 title = "Task A",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend"),
@@ -422,8 +440,8 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(1),
-                endTime = FIXED_TEST_TIME.minusMinutes(30),
+                startTime = baseTime.minusHours(1),
+                endTime = baseTime.minusMinutes(30),
                 title = "Task B",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend"),
@@ -446,11 +464,14 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should not group entries with different tags`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
         // Create entries with same title but different tags
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(2),
-                endTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30),
+                startTime = baseTime.minusHours(2),
+                endTime = baseTime.minusHours(1).minusMinutes(30),
                 title = "Development",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend", "urgent"),
@@ -459,8 +480,8 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(1),
-                endTime = FIXED_TEST_TIME.minusMinutes(30),
+                startTime = baseTime.minusHours(1),
+                endTime = baseTime.minusMinutes(30),
                 title = "Development",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend"), // Missing "urgent" tag
@@ -478,11 +499,14 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should group entries with no tags`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
         // Create entries with same title and no tags
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(2),
-                endTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30),
+                startTime = baseTime.minusHours(2),
+                endTime = baseTime.minusHours(1).minusMinutes(30),
                 title = "Planning",
                 ownerId = requireNotNull(testUser.id),
                 tags = emptyArray(),
@@ -491,8 +515,8 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(1),
-                endTime = FIXED_TEST_TIME.minusMinutes(30),
+                startTime = baseTime.minusHours(1),
+                endTime = baseTime.minusMinutes(30),
                 title = "Planning",
                 ownerId = requireNotNull(testUser.id),
                 tags = emptyArray(),
@@ -512,11 +536,14 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should allow editing and deleting individual entries in expanded grouped view`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
         // Create two entries with same title and tags
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(2),
-                endTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30),
+                startTime = baseTime.minusHours(2),
+                endTime = baseTime.minusHours(1).minusMinutes(30),
                 title = "Testing",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("qa"),
@@ -525,8 +552,8 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(1),
-                endTime = FIXED_TEST_TIME.minusMinutes(30),
+                startTime = baseTime.minusHours(1),
+                endTime = baseTime.minusMinutes(30),
                 title = "Testing",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("qa"),

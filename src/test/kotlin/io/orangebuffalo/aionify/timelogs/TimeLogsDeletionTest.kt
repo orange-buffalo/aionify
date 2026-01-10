@@ -10,11 +10,14 @@ import org.junit.jupiter.api.Test
 class TimeLogsDeletionTest : TimeLogsPageTestBase() {
     @Test
     fun `should delete a time entry with confirmation`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
         // Create an entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(1),
-                endTime = FIXED_TEST_TIME.minusMinutes(30),
+                startTime = baseTime.minusHours(1),
+                endTime = baseTime.minusMinutes(30),
                 title = "Task to Delete",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -66,12 +69,15 @@ class TimeLogsDeletionTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should delete midnight-split entry correctly`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
         // Create an entry that spans midnight
         // Friday 22:00 NZDT to Saturday 02:00 NZDT (4 hours, spans midnight)
         // Friday 22:00 NZDT (5.5 hours before Saturday 03:30)
-        val fridayEvening = FIXED_TEST_TIME.minusHours(5).minusMinutes(30)
+        val fridayEvening = baseTime.minusHours(5).minusMinutes(30)
         // Saturday 02:00 NZDT (1.5 hours before Saturday 03:30)
-        val saturdayMorning = FIXED_TEST_TIME.minusHours(1).minusMinutes(30)
+        val saturdayMorning = baseTime.minusHours(1).minusMinutes(30)
 
         testDatabaseSupport.insert(
             TimeLogEntry(

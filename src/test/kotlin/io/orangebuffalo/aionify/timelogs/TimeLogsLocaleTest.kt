@@ -14,6 +14,9 @@ class TimeLogsLocaleTest : TimeLogsPageTestBase() {
     @ParameterizedTest
     @MethodSource("localeTestCases")
     fun `should display dates and times according to user locale`(testCase: LocaleTestCase) {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
         // Create a user with the specified locale
         val testUser =
             testUsers.createUserWithLocale(
@@ -23,9 +26,9 @@ class TimeLogsLocaleTest : TimeLogsPageTestBase() {
             )
 
         // Create an entry that started at 14:30 (2:30 PM) - afternoon time to clearly show 12/24-hour format difference
-        // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30:00 NZDT
+        // baseTime is Saturday, March 16, 2024 at 03:30:00 NZDT
         // We want 14:30 NZDT, which is 11 hours later
-        val afternoonTime = FIXED_TEST_TIME.plusSeconds(11 * 3600) // 14:30 NZDT
+        val afternoonTime = baseTime.plusSeconds(11 * 3600) // 14:30 NZDT
 
         // Set the browser clock to the afternoon time for this test
         page.clock().pauseAt(afternoonTime.toEpochMilli())

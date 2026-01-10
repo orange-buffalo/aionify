@@ -12,12 +12,15 @@ import org.junit.jupiter.api.Test
 class TimeLogsEditStoppedEntryTest : TimeLogsPageTestBase() {
     @Test
     fun `should edit stopped entry title`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
         // Create a stopped entry
         val createdEntry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusHours(1),
-                    endTime = FIXED_TEST_TIME.minusMinutes(30),
+                    startTime = baseTime.minusHours(1),
+                    endTime = baseTime.minusMinutes(30),
                     title = "Original Task",
                     ownerId = requireNotNull(testUser.id),
                 ),
@@ -100,19 +103,22 @@ class TimeLogsEditStoppedEntryTest : TimeLogsPageTestBase() {
                 ).orElse(null)
         assertNotNull(updatedEntry, "Entry should exist in database")
         assertEquals("Updated Task", updatedEntry!!.title, "Title should be updated")
-        assertEquals(FIXED_TEST_TIME.minusHours(1), updatedEntry.startTime, "Start time should be unchanged")
-        assertEquals(FIXED_TEST_TIME.minusMinutes(30), updatedEntry.endTime, "End time should be unchanged")
+        assertEquals(baseTime.minusHours(1), updatedEntry.startTime, "Start time should be unchanged")
+        assertEquals(baseTime.minusMinutes(30), updatedEntry.endTime, "End time should be unchanged")
         assertEquals(testUser.id, updatedEntry.ownerId, "Owner ID should be unchanged")
     }
 
     @Test
     fun `should edit stopped entry start and end times`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
         // Create a stopped entry
         val createdEntry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusHours(1),
-                    endTime = FIXED_TEST_TIME.minusMinutes(30),
+                    startTime = baseTime.minusHours(1),
+                    endTime = baseTime.minusMinutes(30),
                     title = "Task to Edit",
                     ownerId = requireNotNull(testUser.id),
                 ),
@@ -177,19 +183,22 @@ class TimeLogsEditStoppedEntryTest : TimeLogsPageTestBase() {
                 ).orElse(null)
         assertNotNull(updatedEntry, "Entry should exist in database")
         assertEquals("Task to Edit", updatedEntry!!.title, "Title should be unchanged")
-        assertEquals(FIXED_TEST_TIME.minusHours(2).minusMinutes(30), updatedEntry.startTime, "Start time should be updated to 01:00")
-        assertEquals(FIXED_TEST_TIME.minusHours(1).minusMinutes(30), updatedEntry.endTime, "End time should be updated to 02:00")
+        assertEquals(baseTime.minusHours(2).minusMinutes(30), updatedEntry.startTime, "Start time should be updated to 01:00")
+        assertEquals(baseTime.minusHours(1).minusMinutes(30), updatedEntry.endTime, "End time should be updated to 02:00")
         assertEquals(testUser.id, updatedEntry.ownerId, "Owner ID should be unchanged")
     }
 
     @Test
     fun `should cancel editing stopped entry`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
         // Create a stopped entry
         val createdEntry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusHours(1),
-                    endTime = FIXED_TEST_TIME.minusMinutes(30),
+                    startTime = baseTime.minusHours(1),
+                    endTime = baseTime.minusMinutes(30),
                     title = "Original Task",
                     ownerId = requireNotNull(testUser.id),
                 ),
@@ -255,18 +264,21 @@ class TimeLogsEditStoppedEntryTest : TimeLogsPageTestBase() {
                 ).orElse(null)
         assertNotNull(unchangedEntry, "Entry should exist in database")
         assertEquals("Original Task", unchangedEntry!!.title, "Title should be unchanged")
-        assertEquals(FIXED_TEST_TIME.minusHours(1), unchangedEntry.startTime, "Start time should be unchanged")
-        assertEquals(FIXED_TEST_TIME.minusMinutes(30), unchangedEntry.endTime, "End time should be unchanged")
+        assertEquals(baseTime.minusHours(1), unchangedEntry.startTime, "Start time should be unchanged")
+        assertEquals(baseTime.minusMinutes(30), unchangedEntry.endTime, "End time should be unchanged")
         assertEquals(testUser.id, unchangedEntry.ownerId, "Owner ID should be unchanged")
     }
 
     @Test
     fun `should allow editing multiple stopped entries simultaneously`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
         // Create two stopped entries
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(1).minusMinutes(30),
-                endTime = FIXED_TEST_TIME.minusHours(1),
+                startTime = baseTime.minusHours(1).minusMinutes(30),
+                endTime = baseTime.minusHours(1),
                 title = "First Task",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -274,8 +286,8 @@ class TimeLogsEditStoppedEntryTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusHours(1),
-                endTime = FIXED_TEST_TIME.minusMinutes(30),
+                startTime = baseTime.minusHours(1),
+                endTime = baseTime.minusMinutes(30),
                 title = "Second Task",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -329,12 +341,15 @@ class TimeLogsEditStoppedEntryTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should show error when end time is before start time`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
         // Create a stopped entry
         val createdEntry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusHours(1),
-                    endTime = FIXED_TEST_TIME.minusMinutes(30),
+                    startTime = baseTime.minusHours(1),
+                    endTime = baseTime.minusMinutes(30),
                     title = "Task to Edit",
                     ownerId = requireNotNull(testUser.id),
                 ),
@@ -380,8 +395,8 @@ class TimeLogsEditStoppedEntryTest : TimeLogsPageTestBase() {
                 ).orElse(null)
         assertNotNull(unchangedEntry, "Entry should exist in database")
         assertEquals("Task to Edit", unchangedEntry!!.title, "Title should be unchanged")
-        assertEquals(FIXED_TEST_TIME.minusHours(1), unchangedEntry.startTime, "Start time should be unchanged")
-        assertEquals(FIXED_TEST_TIME.minusMinutes(30), unchangedEntry.endTime, "End time should be unchanged")
+        assertEquals(baseTime.minusHours(1), unchangedEntry.startTime, "Start time should be unchanged")
+        assertEquals(baseTime.minusMinutes(30), unchangedEntry.endTime, "End time should be unchanged")
         assertEquals(testUser.id, unchangedEntry.ownerId, "Owner ID should be unchanged")
     }
 }
