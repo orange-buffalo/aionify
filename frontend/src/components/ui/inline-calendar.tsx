@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 interface InlineCalendarProps {
@@ -15,6 +16,9 @@ export function InlineCalendar({
   startOfWeek,
   testIdPrefix = "calendar",
 }: InlineCalendarProps) {
+  // Track which month is currently being viewed (separate from selected date)
+  const [viewingDate, setViewingDate] = useState(value);
+
   // Generate calendar days for current month
   const generateCalendar = (date: Date) => {
     const year = date.getFullYear();
@@ -37,7 +41,7 @@ export function InlineCalendar({
     return { days, month, year };
   };
 
-  const { days, month, year } = generateCalendar(value);
+  const { days, month, year } = generateCalendar(viewingDate);
 
   // Get localized month name using Intl API
   const getMonthName = (monthIndex: number) => {
@@ -82,27 +86,15 @@ export function InlineCalendar({
   };
 
   const prevMonth = () => {
-    const targetMonth = value.getMonth() - 1;
-    const targetYear = value.getFullYear();
-    // Get the last day of the target month
-    const lastDayOfTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
-    // Use the smaller of current day or last day of target month
-    const day = Math.min(value.getDate(), lastDayOfTargetMonth);
-    const newDate = new Date(value);
-    newDate.setFullYear(targetYear, targetMonth, day);
-    onChange(newDate);
+    const newViewingDate = new Date(viewingDate);
+    newViewingDate.setMonth(newViewingDate.getMonth() - 1);
+    setViewingDate(newViewingDate);
   };
 
   const nextMonth = () => {
-    const targetMonth = value.getMonth() + 1;
-    const targetYear = value.getFullYear();
-    // Get the last day of the target month
-    const lastDayOfTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
-    // Use the smaller of current day or last day of target month
-    const day = Math.min(value.getDate(), lastDayOfTargetMonth);
-    const newDate = new Date(value);
-    newDate.setFullYear(targetYear, targetMonth, day);
-    onChange(newDate);
+    const newViewingDate = new Date(viewingDate);
+    newViewingDate.setMonth(newViewingDate.getMonth() + 1);
+    setViewingDate(newViewingDate);
   };
 
   return (

@@ -223,6 +223,7 @@ export function TimeEntry({
               locale={locale}
               startOfWeek={startOfWeek}
               testIdPrefix="time-entry-inline-start-time"
+              maxDateTime={entry.endTime || undefined}
             />
             {" - "}
             {entry.endTime ? (
@@ -233,6 +234,7 @@ export function TimeEntry({
                 startOfWeek={startOfWeek}
                 showWeekday={spansDifferentDay}
                 testIdPrefix="time-entry-inline-end-time"
+                minDateTime={entry.startTime}
               />
             ) : (
               <span>{t("timeLogs.inProgress")}</span>

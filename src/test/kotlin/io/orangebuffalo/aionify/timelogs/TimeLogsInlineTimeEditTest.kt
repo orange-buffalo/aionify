@@ -390,4 +390,243 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
             assertEquals(entry.title, updatedEntry.title)
         }
     }
+
+    @Test
+    fun `should only highlight the correct day when navigating between months in calendar`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
+        // Create a stopped entry on March 16
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = baseTime.withLocalTime("02:30"),
+                endTime = baseTime.withLocalTime("03:00"),
+                title = "Test Entry",
+                ownerId = requireNotNull(testUser.id),
+                tags = emptyArray(),
+            ),
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Click on the start time to open the popover
+        page.locator("[data-testid='time-entry-inline-start-time-trigger']").click()
+
+        // Verify popover is visible
+        assertThat(page.locator("[data-testid='time-entry-inline-start-time-popover']")).isVisible()
+
+        val calendarGrid = page.locator("[data-testid='time-entry-inline-start-time-grid']")
+
+        // Verify we're viewing March
+        assertThat(page.locator("[data-testid='time-entry-inline-start-time-popover']")).containsText("March 2024")
+
+        // Find all buttons in the calendar and check which ones have bg-primary class (selected)
+        val allButtons = calendarGrid.locator("button")
+        val selectedButtons = calendarGrid.locator("button.bg-primary")
+
+        // In March, exactly one button should be selected (day 16)
+        assertThat(selectedButtons).hasCount(1)
+        assertThat(selectedButtons.first()).containsText("16")
+
+        // Navigate to the previous month (February)
+        page
+            .locator("[data-testid='time-entry-inline-start-time-popover']")
+            .locator("button:has-text('‹')")
+            .click()
+
+        // Wait for calendar to update - check that we're now viewing February
+        assertThat(page.locator("[data-testid='time-entry-inline-start-time-popover']")).containsText("February 2024")
+
+        // In February, NO buttons should be selected (the selected date is March 16, not February 16)
+        val februarySelectedButtons = calendarGrid.locator("button.bg-primary")
+        assertThat(februarySelectedButtons).hasCount(0)
+
+        // Navigate to the next month (back to March)
+        page
+            .locator("[data-testid='time-entry-inline-start-time-popover']")
+            .locator("button:has-text('›')")
+            .click()
+
+        // Wait for calendar to update back to March
+        assertThat(page.locator("[data-testid='time-entry-inline-start-time-popover']")).containsText("March 2024")
+
+        // Verify day 16 is highlighted again in March
+        val marchSelectedButtonsAgain = calendarGrid.locator("button.bg-primary")
+        assertThat(marchSelectedButtonsAgain).hasCount(1)
+        assertThat(marchSelectedButtonsAgain.first()).containsText("16")
+    }
+
+    @Test
+    fun `should disable submit and show tooltip when start time is after end time - time only change`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
+        // Create a stopped entry
+        val entry =
+            testDatabaseSupport.insert(
+                TimeLogEntry(
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalTime("03:00"),
+                    title = "Test Entry",
+                    ownerId = requireNotNull(testUser.id),
+                    tags = emptyArray(),
+                ),
+            )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Click on the start time to open the popover
+        page.locator("[data-testid='time-entry-inline-start-time-trigger']").click()
+
+        // Change the time to 03:30 (after end time)
+        val timeInput = page.locator("[data-testid='time-entry-inline-start-time-time-input']")
+        timeInput.fill("03:30")
+
+        // Verify submit button is disabled
+        val saveButton = page.locator("[data-testid='time-entry-inline-start-time-save-button']")
+        assertThat(saveButton).isDisabled()
+
+        // Hover over the button wrapper to trigger tooltip
+        val buttonWrapper = page.locator("[data-testid='time-entry-inline-start-time-save-button-wrapper']")
+        buttonWrapper.hover()
+
+        // Verify tooltip is visible with validation message
+        val tooltip = page.locator("[data-testid='time-entry-inline-start-time-validation-tooltip']")
+        assertThat(tooltip).isVisible()
+        assertThat(tooltip).containsText("Time must be before end time")
+
+        // Verify database was NOT updated (button is disabled, so can't click it)
+        testDatabaseSupport.inTransaction {
+            val unchangedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
+            assertEquals(entry.startTime, unchangedEntry.startTime, "Start time should not be updated")
+        }
+    }
+
+    @Test
+    fun `should disable submit and show tooltip when start time is after end time - date change`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
+        // Create a stopped entry
+        val entry =
+            testDatabaseSupport.insert(
+                TimeLogEntry(
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalTime("03:00"),
+                    title = "Test Entry",
+                    ownerId = requireNotNull(testUser.id),
+                    tags = emptyArray(),
+                ),
+            )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Click on the start time to open the popover
+        page.locator("[data-testid='time-entry-inline-start-time-trigger']").click()
+
+        // Click on the 17th day of the month (day after end time)
+        val calendarGrid = page.locator("[data-testid='time-entry-inline-start-time-grid']")
+        val dayButtons = calendarGrid.locator("button")
+        dayButtons.locator("text=17").first().click()
+
+        // Verify submit button is disabled
+        val saveButton = page.locator("[data-testid='time-entry-inline-start-time-save-button']")
+        assertThat(saveButton).isDisabled()
+
+        // Hover over the button wrapper to trigger tooltip
+        val buttonWrapper = page.locator("[data-testid='time-entry-inline-start-time-save-button-wrapper']")
+        buttonWrapper.hover()
+
+        // Verify tooltip is visible with validation message
+        val tooltip = page.locator("[data-testid='time-entry-inline-start-time-validation-tooltip']")
+        assertThat(tooltip).isVisible()
+        assertThat(tooltip).containsText("Time must be before end time")
+    }
+
+    @Test
+    fun `should disable submit and show tooltip when end time is before start time - time only change`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
+        // Create a stopped entry
+        val entry =
+            testDatabaseSupport.insert(
+                TimeLogEntry(
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalTime("03:00"),
+                    title = "Test Entry",
+                    ownerId = requireNotNull(testUser.id),
+                    tags = emptyArray(),
+                ),
+            )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Click on the end time to open the popover
+        page.locator("[data-testid='time-entry-inline-end-time-trigger']").click()
+
+        // Change the time to 02:00 (before start time)
+        val timeInput = page.locator("[data-testid='time-entry-inline-end-time-time-input']")
+        timeInput.fill("02:00")
+
+        // Verify submit button is disabled
+        val saveButton = page.locator("[data-testid='time-entry-inline-end-time-save-button']")
+        assertThat(saveButton).isDisabled()
+
+        // Hover over the button wrapper to trigger tooltip
+        val buttonWrapper = page.locator("[data-testid='time-entry-inline-end-time-save-button-wrapper']")
+        buttonWrapper.hover()
+
+        // Verify tooltip is visible with validation message
+        val tooltip = page.locator("[data-testid='time-entry-inline-end-time-validation-tooltip']")
+        assertThat(tooltip).isVisible()
+        assertThat(tooltip).containsText("Time must be after start time")
+
+        // Verify database was NOT updated
+        testDatabaseSupport.inTransaction {
+            val unchangedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
+            assertEquals(entry.endTime, unchangedEntry.endTime, "End time should not be updated")
+        }
+    }
+
+    @Test
+    fun `should disable submit and show tooltip when end time is before start time - date change`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
+        // Create a stopped entry
+        val entry =
+            testDatabaseSupport.insert(
+                TimeLogEntry(
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalTime("03:00"),
+                    title = "Test Entry",
+                    ownerId = requireNotNull(testUser.id),
+                    tags = emptyArray(),
+                ),
+            )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Click on the end time to open the popover
+        page.locator("[data-testid='time-entry-inline-end-time-trigger']").click()
+
+        // Click on the 15th day of the month (day before start time)
+        val calendarGrid = page.locator("[data-testid='time-entry-inline-end-time-grid']")
+        val dayButtons = calendarGrid.locator("button")
+        dayButtons.locator("text=15").first().click()
+
+        // Verify submit button is disabled
+        val saveButton = page.locator("[data-testid='time-entry-inline-end-time-save-button']")
+        assertThat(saveButton).isDisabled()
+
+        // Hover over the button wrapper to trigger tooltip
+        val buttonWrapper = page.locator("[data-testid='time-entry-inline-end-time-save-button-wrapper']")
+        buttonWrapper.hover()
+
+        // Verify tooltip is visible with validation message
+        val tooltip = page.locator("[data-testid='time-entry-inline-end-time-validation-tooltip']")
+        assertThat(tooltip).isVisible()
+        assertThat(tooltip).containsText("Time must be after start time")
+    }
 }
