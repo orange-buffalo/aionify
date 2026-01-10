@@ -176,6 +176,9 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should display activation token when it exists`() {
+        // Set base time for activation token tests
+        setBaseTime("2024-03-16", "03:30")
+
         // Create activation token for the user
         val activationToken =
             testDatabaseSupport.insert(
@@ -223,6 +226,9 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should regenerate activation token successfully`() {
+        // Set base time for activation token tests
+        setBaseTime("2024-03-16", "03:30")
+
         // Create activation token for the user
         val oldToken =
             testDatabaseSupport.insert(
@@ -351,6 +357,9 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should not show expired activation token`() {
+        // Set base time for activation token tests
+        setBaseTime("2024-03-16", "03:30")
+
         // Create expired activation token for the user
         val expiredToken =
             testDatabaseSupport.insert(

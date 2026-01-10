@@ -19,6 +19,9 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupTestData() {
+        // Set base time for all activation token tests
+        setBaseTime("2024-03-16", "03:30")
+
         // Create a user without a valid password (will be set via activation)
         testUser =
             testDatabaseSupport.insert(

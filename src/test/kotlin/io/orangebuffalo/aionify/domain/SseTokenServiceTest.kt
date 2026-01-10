@@ -16,9 +16,6 @@ class SseTokenServiceTest {
     @Inject
     lateinit var testTimeService: TestTimeService
 
-    @AfterEach
-    fun resetTime() { }
-
     @Test
     fun `should generate unique tokens`() {
         val token1 = sseTokenService.generateToken(1L)
