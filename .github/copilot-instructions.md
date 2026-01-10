@@ -88,7 +88,8 @@ To run a specific test class:
 
 ### Pull Request Guidelines
 
-**CRITICAL: All pull request titles and commit messages MUST follow Conventional Commits format.**
+**CRITICAL: All pull request titles and commit messages MUST follow Conventional Commits format (every commit message
+and PR titel must have one of the standard prefixes).**
 
 Conventional Commits provide a standardized way to communicate the nature of changes.
 

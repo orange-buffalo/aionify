@@ -38,6 +38,13 @@ class TimeLogEntryEventResource(
     private val log = LoggerFactory.getLogger(TimeLogEntryEventResource::class.java)
 
     /**
+     * Whether to send heartbeat events. Can be disabled for testing purposes.
+     * Defaults to true for production use.
+     */
+    @Volatile
+    var heartbeatEnabled: Boolean = true
+
+    /**
      * Generates a short-lived token for SSE authentication.
      * The token expires after 30 seconds.
      */
@@ -73,11 +80,20 @@ class TimeLogEntryEventResource(
                     log.error("Error in event stream for user {}", userId, error)
                 }
 
-        // Send heartbeat events every 30 seconds to keep connection alive
+        // Send heartbeat events: immediately on connection, then every 30 seconds (if enabled)
+        // The immediate heartbeat helps establish the connection and verify it's working
         val heartbeatFlux =
-            Flux
-                .interval(java.time.Duration.ofSeconds(30))
-                .map { Event.of<String>("heartbeat").name("heartbeat") }
+            if (heartbeatEnabled) {
+                Flux
+                    .concat(
+                        Flux.just(Event.of<String>("heartbeat").name("heartbeat")),
+                        Flux
+                            .interval(java.time.Duration.ofSeconds(30))
+                            .map { Event.of<String>("heartbeat").name("heartbeat") },
+                    )
+            } else {
+                Flux.empty()
+            }
 
         // Merge event stream with heartbeat
         return Flux.merge(eventFlux, heartbeatFlux)
