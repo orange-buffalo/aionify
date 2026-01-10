@@ -14,6 +14,9 @@ import org.junit.jupiter.params.provider.MethodSource
 class TimeLogsDisplayTest : TimeLogsPageTestBase() {
     @Test
     fun `should display time logs page with navigation`() {
+        // Set base time to ensure consistent test behavior
+        setBaseTime("2024-03-16", "03:30")
+
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Assert initial empty page state - using default state
@@ -22,6 +25,9 @@ class TimeLogsDisplayTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should show no entries message when week is empty`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        setBaseTime("2024-03-16", "03:30")
+
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify empty state
@@ -36,61 +42,64 @@ class TimeLogsDisplayTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should render entries from multiple days with varying entry counts`() {
-        // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30 NZDT
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
+        // baseTime is Saturday, March 16, 2024 at 03:30 NZDT
         // Let's create entries for different days in the current week (Mon Mar 11 - Sun Mar 17)
 
-        // Monday (Mar 11) - 2 entries (5 days before Saturday)
-        val monday = FIXED_TEST_TIME.minusSeconds(5 * 24 * 3600) // 5 days before Saturday
+        // Monday (Mar 11) - 2 entries
+        val monday = timeInTestTz("2024-03-11", "03:30")
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = monday.minusSeconds(7200),
-                endTime = monday.minusSeconds(5400),
+                startTime = monday.withLocalTime("01:30"),
+                endTime = monday.withLocalTime("02:00"),
                 title = "Monday Task 1",
                 ownerId = requireNotNull(testUser.id),
             ),
         )
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = monday.minusSeconds(3600),
-                endTime = monday.minusSeconds(1800),
+                startTime = monday.withLocalTime("02:30"),
+                endTime = monday.withLocalTime("03:00"),
                 title = "Monday Task 2",
                 ownerId = requireNotNull(testUser.id),
             ),
         )
 
-        // Tuesday (Mar 12) - 1 entry (4 days before Saturday)
-        val tuesday = FIXED_TEST_TIME.minusSeconds(4 * 24 * 3600)
+        // Tuesday (Mar 12) - 1 entry
+        val tuesday = timeInTestTz("2024-03-12", "03:30")
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = tuesday.minusSeconds(3600),
-                endTime = tuesday.minusSeconds(1800),
+                startTime = tuesday.withLocalTime("02:30"),
+                endTime = tuesday.withLocalTime("03:00"),
                 title = "Tuesday Task",
                 ownerId = requireNotNull(testUser.id),
             ),
         )
 
-        // Wednesday (Mar 13) - 3 entries (3 days before Saturday)
-        val wednesday = FIXED_TEST_TIME.minusSeconds(3 * 24 * 3600)
+        // Wednesday (Mar 13) - 3 entries
+        val wednesday = timeInTestTz("2024-03-13", "03:30")
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = wednesday.minusSeconds(10800),
-                endTime = wednesday.minusSeconds(9000),
+                startTime = wednesday.withLocalTime("00:30"),
+                endTime = wednesday.withLocalTime("01:00"),
                 title = "Wednesday Task 1",
                 ownerId = requireNotNull(testUser.id),
             ),
         )
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = wednesday.minusSeconds(7200),
-                endTime = wednesday.minusSeconds(5400),
+                startTime = wednesday.withLocalTime("01:30"),
+                endTime = wednesday.withLocalTime("02:00"),
                 title = "Wednesday Task 2",
                 ownerId = requireNotNull(testUser.id),
             ),
         )
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = wednesday.minusSeconds(3600),
-                endTime = wednesday.minusSeconds(1800),
+                startTime = wednesday.withLocalTime("02:30"),
+                endTime = wednesday.withLocalTime("03:00"),
                 title = "Wednesday Task 3",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -99,8 +108,8 @@ class TimeLogsDisplayTest : TimeLogsPageTestBase() {
         // Saturday (Mar 16) - today - 1 entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = baseTime.withLocalTime("02:30"),
+                endTime = baseTime.withLocalTime("03:00"),
                 title = "Saturday Task",
                 ownerId = requireNotNull(testUser.id),
             ),

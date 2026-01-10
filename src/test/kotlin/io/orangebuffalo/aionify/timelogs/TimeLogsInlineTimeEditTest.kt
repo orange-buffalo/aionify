@@ -2,10 +2,12 @@ package io.orangebuffalo.aionify.timelogs
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.TimeLogEntry
+import io.orangebuffalo.aionify.timeInTestTz
+import io.orangebuffalo.aionify.withLocalDate
+import io.orangebuffalo.aionify.withLocalTime
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
-import java.time.Instant
 
 /**
  * Tests for inline time editing functionality.
@@ -14,12 +16,15 @@ import java.time.Instant
 class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
     @Test
     fun `should allow inline edit of start time on stopped entry`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create a stopped entry
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600), // 1 hour ago
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalTime("03:00"),
                     title = "Test Entry",
                     ownerId = requireNotNull(testUser.id),
                     tags = emptyArray(),
@@ -40,7 +45,7 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         // Verify calendar is visible
         assertThat(page.locator("[data-testid='time-entry-inline-start-time-grid']")).isVisible()
 
-        // Change the time to 02:45 (in Pacific/Auckland local time, between start 02:30 and end 03:00)
+        // Change the time to 02:45
         val timeInput = page.locator("[data-testid='time-entry-inline-start-time-time-input']")
         timeInput.fill("02:45")
 
@@ -53,12 +58,8 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         // Verify database was updated
         testDatabaseSupport.inTransaction {
             val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
-            // The browser runs in Pacific/Auckland timezone (UTC+13)
-            // Original entry: 2024-03-15T13:30:00Z = 2024-03-16 02:30 local
-            // User enters "02:45" local time = 2024-03-16 02:45 Pacific/Auckland
-            // Expected UTC: 2024-03-15T13:45:00Z (02:45 - 13 hours)
-            val expectedStartTime = Instant.parse("2024-03-15T13:45:00Z")
-            assertEquals(expectedStartTime, updatedEntry.startTime, "Start time should be updated to 02:45 local (13:45 UTC)")
+            val expectedStartTime = timeInTestTz("2024-03-16", "02:45")
+            assertEquals(expectedStartTime, updatedEntry.startTime, "Start time should be updated to 02:45 local")
 
             // Ensure other fields were not changed
             assertEquals(entry.endTime, updatedEntry.endTime)
@@ -68,12 +69,15 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should allow inline edit of end time on stopped entry`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create a stopped entry
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600), // 1 hour ago
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalTime("03:00"),
                     title = "Test Entry",
                     ownerId = requireNotNull(testUser.id),
                     tags = emptyArray(),
@@ -88,7 +92,7 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         // Verify popover is visible
         assertThat(page.locator("[data-testid='time-entry-inline-end-time-popover']")).isVisible()
 
-        // Change the time to 03:15 (in Pacific/Auckland, after the original 03:00 end time)
+        // Change the time to 03:15
         val timeInput = page.locator("[data-testid='time-entry-inline-end-time-time-input']")
         timeInput.fill("03:15")
 
@@ -101,12 +105,8 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         // Verify database was updated
         testDatabaseSupport.inTransaction {
             val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
-            // The browser runs in Pacific/Auckland timezone (UTC+13)
-            // Original entry end: 2024-03-15T14:00:00Z = 2024-03-16 03:00 local
-            // User enters "03:15" local time = 2024-03-16 03:15 Pacific/Auckland
-            // Expected UTC: 2024-03-15T14:15:00Z (03:15 - 13 hours)
-            val expectedEndTime = Instant.parse("2024-03-15T14:15:00Z")
-            assertEquals(expectedEndTime, updatedEntry.endTime, "End time should be updated to 03:15 local (14:15 UTC)")
+            val expectedEndTime = timeInTestTz("2024-03-16", "03:15")
+            assertEquals(expectedEndTime, updatedEntry.endTime, "End time should be updated to 03:15 local")
 
             // Ensure other fields were not changed
             assertEquals(entry.startTime, updatedEntry.startTime)
@@ -116,10 +116,13 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should not show inline edit for end time on active entry`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create an active entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
+                startTime = baseTime.withLocalTime("02:30"),
                 endTime = null,
                 title = "Active Entry",
                 ownerId = requireNotNull(testUser.id),
@@ -142,12 +145,15 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should allow changing date when editing start time`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create a stopped entry
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalTime("03:00"),
                     title = "Test Entry",
                     ownerId = requireNotNull(testUser.id),
                     tags = emptyArray(),
@@ -174,23 +180,23 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         // Verify database was updated to the 5th of March
         testDatabaseSupport.inTransaction {
             val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
-            // The browser runs in Pacific/Auckland timezone (UTC+13)
-            // Original: 2024-03-16 02:30 local = 2024-03-15T13:30:00Z
             // User clicks day "5" in calendar = March 5, same time 02:30 local
-            // Expected UTC: 2024-03-04T13:30:00Z (March 5, 02:30 local - 13 hours)
-            val expectedStartTime = Instant.parse("2024-03-04T13:30:00Z")
-            assertEquals(expectedStartTime, updatedEntry.startTime, "Start time should be 5th March local at 02:30 (4th March 13:30 UTC)")
+            val expectedStartTime = timeInTestTz("2024-03-05", "02:30")
+            assertEquals(expectedStartTime, updatedEntry.startTime, "Start time should be 5th March at 02:30 local")
         }
     }
 
     @Test
     fun `should allow editing times in expanded grouped entries`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create two entries with same title and tags (will be grouped)
         val entry1 =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(7200), // 2 hours ago
-                    endTime = FIXED_TEST_TIME.minusSeconds(5400), // 1.5 hours ago
+                    startTime = baseTime.withLocalTime("01:30"),
+                    endTime = baseTime.withLocalTime("02:00"),
                     title = "Grouped Entry",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend"),
@@ -199,8 +205,8 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600), // 1 hour ago
-                endTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago
+                startTime = baseTime.withLocalTime("02:30"),
+                endTime = baseTime.withLocalTime("03:00"),
                 title = "Grouped Entry",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend"),
@@ -243,22 +249,23 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         testDatabaseSupport.inTransaction {
             // The first visible entry should be the most recent one (entry2)
             // Find which entry was updated by checking for the new time
-            // User fills "01:45" local = March 16, 01:45 Pacific/Auckland
-            // Expected UTC: 2024-03-15T12:45:00Z (01:45 - 13 hours)
             val entries = timeLogEntryRepository.findAll()
             val updatedEntry =
-                entries.find { it.startTime == Instant.parse("2024-03-15T12:45:00Z") }
-            assertNotNull(updatedEntry, "One entry should have start time updated to 01:45 local (12:45 UTC)")
+                entries.find { it.startTime == timeInTestTz("2024-03-16", "01:45") }
+            assertNotNull(updatedEntry, "One entry should have start time updated to 01:45 local")
         }
     }
 
     @Test
     fun `should not affect title or tags when updating time`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalTime("03:00"),
                     title = "Important Task",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend", "urgent", "feature"),
@@ -285,8 +292,8 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         // Verify database
         testDatabaseSupport.inTransaction {
             val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
-            // Verify time was updated (02:40 local = 13:40 UTC)
-            assertEquals(Instant.parse("2024-03-15T13:40:00Z"), updatedEntry.startTime)
+            // Verify time was updated to 02:40 local
+            assertEquals(timeInTestTz("2024-03-16", "02:40"), updatedEntry.startTime)
             // Verify title and tags were not changed
             assertEquals("Important Task", updatedEntry.title)
             assertEquals(entry.tags.toSet(), updatedEntry.tags.toSet())
@@ -296,11 +303,14 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should not allow inline edit of grouped entry header times`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create two entries with same title and tags (will be grouped)
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(7200),
-                endTime = FIXED_TEST_TIME.minusSeconds(5400),
+                startTime = baseTime.withLocalTime("01:30"),
+                endTime = baseTime.withLocalTime("02:00"),
                 title = "Grouped Entry",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend"),
@@ -309,8 +319,8 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = baseTime.withLocalTime("02:30"),
+                endTime = baseTime.withLocalTime("03:00"),
                 title = "Grouped Entry",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend"),
@@ -331,12 +341,15 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should allow inline edit of end time for cross-day entries`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create an entry that spans across different days
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600), // 1 hour ago
-                    endTime = FIXED_TEST_TIME.plusSeconds(86400), // 1 day later
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalDate("2024-03-17"),
                     title = "Cross-day Entry",
                     ownerId = requireNotNull(testUser.id),
                     tags = emptyArray(),
@@ -368,12 +381,9 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         // Verify database was updated
         testDatabaseSupport.inTransaction {
             val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
-            // The browser runs in Pacific/Auckland timezone (UTC+13)
-            // Original: 2024-03-16T14:30:00Z = 2024-03-17 03:30 local (cross-day)
             // User enters "04:00" local time = 2024-03-17 04:00 Pacific/Auckland
-            // Expected UTC: 2024-03-16T15:00:00Z (04:00 - 13 hours)
-            val expectedEndTime = Instant.parse("2024-03-16T15:00:00Z")
-            assertEquals(expectedEndTime, updatedEntry.endTime, "End time should be updated to 04:00 local (15:00 UTC)")
+            val expectedEndTime = timeInTestTz("2024-03-17", "04:00")
+            assertEquals(expectedEndTime, updatedEntry.endTime, "End time should be updated to 04:00 local")
 
             // Ensure other fields were not changed
             assertEquals(entry.startTime, updatedEntry.startTime)

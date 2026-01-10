@@ -195,6 +195,13 @@ Playwright tests should extend `PlaywrightTestBase` which provides:
   - ❌ BAD: `showButton.click(); val value = input.inputValue()` - races with async API call
   - ✅ GOOD: `showButton.click(); assertThat(input).not().hasValue("••••••"); val value = input.inputValue()` - waits for async update
   - This prevents flaky tests where sometimes the old value is read before the async operation completes
+- **CRITICAL: ALL tests that use time-dependent data MUST explicitly set their base time**:
+  - Every Playwright test that creates time-dependent data (e.g., TimeLogEntry, ActivationToken) must call `setBaseTime()` at the start
+  - Never rely on the implicit default time - tests must be explicit about their time context
+  - ❌ BAD: Creating `TimeLogEntry(startTime = timeInTestTz("2024-03-16", "03:30"), ...)` without calling `setBaseTime()` first
+  - ✅ GOOD: Start test with `val baseTime = setBaseTime("2024-03-16", "03:30")` then create time entries
+  - This ensures backend and browser clocks are synchronized and the test's time context is clear
+  - Use `setBaseTime(localDate = "2024-03-16")` to only set date (uses default time), or `setBaseTime(localTime = "14:30")` to only set time (uses default date)
 
 Example:
 ```kotlin
@@ -228,6 +235,9 @@ class MyPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `my test`() {
+        // CRITICAL: Set base time for time-dependent tests
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+        
         page.navigate("/login")
         // Now testUser is visible to login endpoint
     }

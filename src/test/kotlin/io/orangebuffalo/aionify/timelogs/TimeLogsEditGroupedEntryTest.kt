@@ -15,12 +15,15 @@ import org.junit.jupiter.api.Test
 class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
     @Test
     fun `should allow editing title and tags of grouped entries`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create three entries with same title and tags
         val entry1 =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(10800), // 3 hours ago
-                    endTime = FIXED_TEST_TIME.minusSeconds(9000), // 2.5 hours ago
+                    startTime = baseTime.withLocalTime("00:30"), // 3 hours ago
+                    endTime = baseTime.withLocalTime("01:00"), // 2.5 hours ago
                     title = "Original Title",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend", "urgent"),
@@ -30,8 +33,8 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
         val entry2 =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(7200), // 2 hours ago
-                    endTime = FIXED_TEST_TIME.minusSeconds(5400), // 1.5 hours ago
+                    startTime = baseTime.withLocalTime("01:30"), // 2 hours ago
+                    endTime = baseTime.withLocalTime("02:00"), // 1.5 hours ago
                     title = "Original Title",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend", "urgent"),
@@ -41,8 +44,8 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
         val entry3 =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600), // 1 hour ago
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago
+                    startTime = baseTime.withLocalTime("02:30"), // 1 hour ago
+                    endTime = baseTime.withLocalTime("03:00"), // 30 minutes ago
                     title = "Original Title",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend", "urgent"),
@@ -126,12 +129,15 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should only update entries in the edited group`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create a group of 2 entries with same title and tags
         val groupEntry1 =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(7200),
-                    endTime = FIXED_TEST_TIME.minusSeconds(5400),
+                    startTime = baseTime.withLocalTime("01:30"),
+                    endTime = baseTime.withLocalTime("02:00"),
                     title = "Group A",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend"),
@@ -141,8 +147,8 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
         val groupEntry2 =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalTime("03:00"),
                     title = "Group A",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend"),
@@ -153,8 +159,8 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
         val separateEntry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(900),
-                    endTime = FIXED_TEST_TIME.minusSeconds(300),
+                    startTime = baseTime.withLocalTime("03:15"),
+                    endTime = baseTime.withLocalTime("03:25"),
                     title = "Different Entry",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("frontend"),
@@ -193,11 +199,14 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should cancel editing grouped entry without saving changes`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create grouped entries
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(7200),
-                endTime = FIXED_TEST_TIME.minusSeconds(5400),
+                startTime = baseTime.withLocalTime("01:30"),
+                endTime = baseTime.withLocalTime("02:00"),
                 title = "Testing",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("qa"),
@@ -206,8 +215,8 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = baseTime.withLocalTime("02:30"),
+                endTime = baseTime.withLocalTime("03:00"),
                 title = "Testing",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("qa"),
@@ -236,11 +245,14 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should not show edit button on ungrouped entries`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create a single entry (not grouped)
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = baseTime.withLocalTime("02:30"),
+                endTime = baseTime.withLocalTime("03:00"),
                 title = "Single Entry",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend"),
@@ -261,11 +273,14 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should not allow editing grouped entry with blank title`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create grouped entries
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(7200),
-                endTime = FIXED_TEST_TIME.minusSeconds(5400),
+                startTime = baseTime.withLocalTime("01:30"),
+                endTime = baseTime.withLocalTime("02:00"),
                 title = "Valid Title",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend"),
@@ -274,8 +289,8 @@ class TimeLogsEditGroupedEntryTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = baseTime.withLocalTime("02:30"),
+                endTime = baseTime.withLocalTime("03:00"),
                 title = "Valid Title",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend"),

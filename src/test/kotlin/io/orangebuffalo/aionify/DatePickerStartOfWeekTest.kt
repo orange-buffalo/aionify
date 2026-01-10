@@ -10,7 +10,6 @@ import io.orangebuffalo.aionify.domain.WeekDay
 import jakarta.inject.Inject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.Instant
 
 /**
  * Tests for date picker respecting user's start of week preference.
@@ -29,6 +28,8 @@ class DatePickerStartOfWeekTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupTestData() {
+        val baseTime = setBaseTime("2024-03-16", "03:00")
+
         // Create test user with user settings
         regularUser = testUsers.createRegularUser("datePickerTestUser", "Date Picker Test User")
         testDatabaseSupport.insert(UserSettings.create(userId = requireNotNull(regularUser.id)))
@@ -37,8 +38,8 @@ class DatePickerStartOfWeekTest : PlaywrightTestBase() {
         // Create a time entry so we can test editing and opening date picker
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = Instant.parse("2024-03-15T14:00:00Z"),
-                endTime = Instant.parse("2024-03-15T15:00:00Z"),
+                startTime = baseTime.withLocalTime("02:00"),
+                endTime = baseTime.withLocalTime("03:00"),
                 title = "Test Entry",
                 ownerId = requireNotNull(regularUser.id),
             ),

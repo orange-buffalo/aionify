@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.Instant
 
 /**
  * Tests for date picker month navigation.
@@ -27,17 +26,19 @@ class DatePickerMonthNavigationTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupTestData() {
+        // Set base time to March 15, 2024 at 13:00 local time (Pacific/Auckland)
+        val baseTime = setBaseTime("2024-03-15", "13:00")
+
         // Create test user with user settings
         regularUser = testUsers.createRegularUser("datePickerNavTestUser", "Date Picker Nav Test User")
         testDatabaseSupport.insert(UserSettings.create(userId = requireNotNull(regularUser.id)))
         timeLogsPage = TimeLogsPageObject(page)
 
-        // Create a time entry on March 15, 2024 at 00:00 UTC
-        // In Pacific/Auckland (UTC+13), this will be March 15, 13:00 local time
+        // Create a time entry on March 15, 2024
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = Instant.parse("2024-03-15T00:00:00Z"),
-                endTime = Instant.parse("2024-03-15T01:00:00Z"),
+                startTime = baseTime,
+                endTime = baseTime.withLocalTime("14:00"),
                 title = "Test Entry",
                 ownerId = requireNotNull(regularUser.id),
             ),

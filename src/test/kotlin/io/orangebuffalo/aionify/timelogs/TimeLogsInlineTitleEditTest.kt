@@ -2,6 +2,8 @@ package io.orangebuffalo.aionify.timelogs
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.TimeLogEntry
+import io.orangebuffalo.aionify.timeInTestTz
+import io.orangebuffalo.aionify.withLocalTime
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -12,12 +14,15 @@ import org.junit.jupiter.api.Test
 class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
     @Test
     fun `should allow inline edit of title on stopped entry`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create a stopped entry
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalTime("03:00"),
                     title = "Original Title",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend"),
@@ -61,11 +66,14 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should allow quick edit of title on active entry`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create an active entry
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
+                    startTime = baseTime.withLocalTime("02:30"),
                     endTime = null,
                     title = "Active Entry",
                     ownerId = requireNotNull(testUser.id),
@@ -107,12 +115,15 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should allow inline edit of grouped entries`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create three entries with same title and tags
         val entry1 =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(10800), // 3 hours ago
-                    endTime = FIXED_TEST_TIME.minusSeconds(9000), // 2.5 hours ago
+                    startTime = baseTime.withLocalTime("00:30"), // 3 hours ago
+                    endTime = baseTime.withLocalTime("01:00"), // 2.5 hours ago
                     title = "Grouped Entry",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend", "urgent"),
@@ -122,8 +133,8 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
         val entry2 =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(7200), // 2 hours ago
-                    endTime = FIXED_TEST_TIME.minusSeconds(5400), // 1.5 hours ago
+                    startTime = baseTime.withLocalTime("01:30"), // 2 hours ago
+                    endTime = baseTime.withLocalTime("02:00"), // 1.5 hours ago
                     title = "Grouped Entry",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend", "urgent"),
@@ -133,8 +144,8 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
         val entry3 =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600), // 1 hour ago
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago
+                    startTime = baseTime.withLocalTime("02:30"), // 1 hour ago
+                    endTime = baseTime.withLocalTime("03:00"), // 30 minutes ago
                     title = "Grouped Entry",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend", "urgent"),
@@ -195,10 +206,13 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should close popover when pressing Escape key`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = baseTime.withLocalTime("02:30"),
+                endTime = baseTime.withLocalTime("03:00"),
                 title = "Test Entry",
                 ownerId = requireNotNull(testUser.id),
                 tags = emptyArray(),
@@ -220,11 +234,14 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should save title when pressing Enter key`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalTime("03:00"),
                     title = "Original Title",
                     ownerId = requireNotNull(testUser.id),
                     tags = emptyArray(),
@@ -257,10 +274,13 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should disable save button when title is empty`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = baseTime.withLocalTime("02:30"),
+                endTime = baseTime.withLocalTime("03:00"),
                 title = "Original Title",
                 ownerId = requireNotNull(testUser.id),
                 tags = emptyArray(),
@@ -282,10 +302,13 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should disable save button when title exceeds max length`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = baseTime.withLocalTime("02:30"),
+                endTime = baseTime.withLocalTime("03:00"),
                 title = "Original Title",
                 ownerId = requireNotNull(testUser.id),
                 tags = emptyArray(),
@@ -308,11 +331,14 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should not affect tags when updating title`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalTime("03:00"),
                     title = "Original Title",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend", "urgent", "feature"),
@@ -343,11 +369,14 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should trim whitespace from title when saving`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalTime("03:00"),
                     title = "Original Title",
                     ownerId = requireNotNull(testUser.id),
                     tags = emptyArray(),

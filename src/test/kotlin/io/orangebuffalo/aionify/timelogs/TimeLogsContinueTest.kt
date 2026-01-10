@@ -11,11 +11,14 @@ import org.junit.jupiter.api.Test
 class TimeLogsContinueTest : TimeLogsPageTestBase() {
     @Test
     fun `should continue with an existing entry`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create a completed entry with a specific tag to avoid grouping with the new entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = baseTime.withLocalTime("02:30"),
+                endTime = baseTime.withLocalTime("03:00"),
                 title = "Previous Task",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("completed"),
@@ -60,7 +63,7 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
                     CurrentEntryState.ActiveEntry(
                         title = "Previous Task",
                         duration = "00:00:00",
-                        startedAt = "16 Mar, 03:30", // Started at FIXED_TEST_TIME (backend time)
+                        startedAt = "16 Mar, 03:30", // Started at baseTime (backend time)
                     ),
                 weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:30:00"),
                 dayGroups =
@@ -105,18 +108,21 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
         val newActiveEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(newActiveEntry, "New active entry should exist in database")
         assertEquals("Previous Task", newActiveEntry!!.title)
-        // Verify startTime is set by backend to FIXED_TEST_TIME
-        assertEquals(FIXED_TEST_TIME, newActiveEntry.startTime, "Start time should be set by backend")
+        // Verify startTime is set by backend to baseTime
+        assertEquals(baseTime, newActiveEntry.startTime, "Start time should be set by backend")
         assertNull(newActiveEntry.endTime, "Active entry should not have end time")
     }
 
     @Test
     fun `should start from existing entry when active entry exists by stopping active entry first`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "03:30"))
+
         // Create a completed entry with tags to prevent grouping with the new active entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(7200), // 2 hours ago (12:30)
-                endTime = FIXED_TEST_TIME.minusSeconds(5400), // 1.5 hours ago (13:00)
+                startTime = baseTime.withLocalTime("01:30"), // 2 hours before 03:30
+                endTime = baseTime.withLocalTime("02:00"), // 1.5 hours before 03:30
                 title = "Completed Task",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("completed"),
@@ -127,7 +133,7 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
         val previouslyActiveEntry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago (03:00)
+                    startTime = baseTime.withLocalTime("03:00"), // 30 minutes before 03:30
                     endTime = null,
                     title = "Currently Active Task",
                     ownerId = requireNotNull(testUser.id),
@@ -188,7 +194,7 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
                     CurrentEntryState.ActiveEntry(
                         title = "Completed Task",
                         duration = "00:00:00",
-                        startedAt = "16 Mar, 03:30", // Started at FIXED_TEST_TIME (backend time)
+                        startedAt = "16 Mar, 03:30", // Started at baseTime (backend time)
                     ),
                 weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "01:00:00"),
                 dayGroups =
@@ -240,16 +246,16 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
         // 1. The previously active entry should be stopped with endTime from backend
         val stoppedPreviousEntry = timeLogEntryRepository.findById(previouslyActiveEntry.id!!).orElse(null)
         assertNotNull(stoppedPreviousEntry, "Previously active entry should exist")
-        assertEquals(FIXED_TEST_TIME.minusSeconds(1800), stoppedPreviousEntry!!.startTime)
-        // Verify endTime is set by backend to FIXED_TEST_TIME
-        assertEquals(FIXED_TEST_TIME, stoppedPreviousEntry.endTime, "End time should be set by backend when stopping")
+        assertEquals(baseTime.withLocalTime("03:00"), stoppedPreviousEntry!!.startTime)
+        // Verify endTime is set by backend to baseTime
+        assertEquals(baseTime, stoppedPreviousEntry.endTime, "End time should be set by backend when stopping")
 
         // 2. A new active entry should be created with startTime from backend
         val newActiveEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(newActiveEntry, "New active entry should exist in database")
         assertEquals("Completed Task", newActiveEntry!!.title)
-        // Verify startTime is set by backend to FIXED_TEST_TIME
-        assertEquals(FIXED_TEST_TIME, newActiveEntry.startTime, "Start time should be set by backend")
+        // Verify startTime is set by backend to baseTime
+        assertEquals(baseTime, newActiveEntry.startTime, "Start time should be set by backend")
         assertNull(newActiveEntry.endTime, "New active entry should not have end time")
     }
 }

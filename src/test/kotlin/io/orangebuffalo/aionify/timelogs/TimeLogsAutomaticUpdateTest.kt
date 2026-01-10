@@ -12,6 +12,7 @@ import io.orangebuffalo.aionify.TimeLogsPageState
 import io.orangebuffalo.aionify.api.StartTimeLogEntryRequest
 import io.orangebuffalo.aionify.api.StartTimeLogEntryResponse
 import io.orangebuffalo.aionify.domain.UserApiAccessToken
+import io.orangebuffalo.aionify.timeInTestTz
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -28,6 +29,9 @@ class TimeLogsAutomaticUpdateTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should automatically update UI when entry is started via public API`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        setBaseTime("2024-03-16", "03:30")
+
         // Given: User is logged in and viewing the time logs page
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
@@ -86,11 +90,14 @@ class TimeLogsAutomaticUpdateTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should automatically update UI when entry is stopped via public API`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Given: User has an active entry and is viewing the time logs page
         val activeEntry =
             testDatabaseSupport.insert(
                 io.orangebuffalo.aionify.domain.TimeLogEntry(
-                    startTime = FIXED_TEST_TIME,
+                    startTime = baseTime,
                     endTime = null,
                     title = "Active Task",
                     ownerId = requireNotNull(testUser.id),

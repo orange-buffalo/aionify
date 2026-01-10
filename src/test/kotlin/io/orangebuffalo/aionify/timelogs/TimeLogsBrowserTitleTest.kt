@@ -21,6 +21,9 @@ class TimeLogsBrowserTitleTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should update browser tab title based on active entry`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        setBaseTime("2024-03-16", "03:30")
+
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
         // Verify initial page title is the default app name
@@ -48,6 +51,9 @@ class TimeLogsBrowserTitleTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should update browser tab title when entry is started and stopped via public API`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        setBaseTime("2024-03-16", "03:30")
+
         // Given: User is logged in and viewing the time logs page
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 

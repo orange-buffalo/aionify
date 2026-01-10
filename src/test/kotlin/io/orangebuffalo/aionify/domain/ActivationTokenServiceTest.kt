@@ -23,6 +23,9 @@ class ActivationTokenServiceTest {
     @Inject
     lateinit var testDatabaseSupport: TestDatabaseSupport
 
+    @Inject
+    lateinit var testTimeService: TestTimeService
+
     private fun createTestUser(): User =
         testDatabaseSupport.insert(
             User.create(
@@ -47,8 +50,8 @@ class ActivationTokenServiceTest {
         assertNotNull(token.token)
         assertNotNull(token.expiresAt)
 
-        // Calculate the duration between the fixed test time and expiration
-        val now = TestTimeService.FIXED_TEST_TIME
+        // Calculate the duration between the current test time and expiration
+        val now = testTimeService.now()
         val duration = Duration.between(now, token.expiresAt)
 
         // Should be approximately 10 days (240 hours)
@@ -80,8 +83,8 @@ class ActivationTokenServiceTest {
         assertNotNull(token.token)
         assertNotNull(token.expiresAt)
 
-        // Calculate the duration using the fixed test time
-        val now = TestTimeService.FIXED_TEST_TIME
+        // Calculate the duration using the current test time
+        val now = testTimeService.now()
         val duration = Duration.between(now, token.expiresAt)
 
         // Should be approximately 48 hours

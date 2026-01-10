@@ -83,11 +83,13 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should list existing tags from current user entries`() {
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create entries with tags for test user
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME,
-                endTime = FIXED_TEST_TIME.plusSeconds(3600),
+                startTime = baseTime,
+                endTime = baseTime.plusSeconds(3600),
                 title = "Task 1",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("kotlin", "backend"),
@@ -110,11 +112,13 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should filter out legacy tags from selection`() {
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create entry with tags
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME,
-                endTime = FIXED_TEST_TIME.plusSeconds(3600),
+                startTime = baseTime,
+                endTime = baseTime.plusSeconds(3600),
                 title = "Task 1",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("active-tag", "legacy-tag"),
@@ -141,11 +145,13 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should only show tags from current user entries`() {
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create entry with tags for test user
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME,
-                endTime = FIXED_TEST_TIME.plusSeconds(3600),
+                startTime = baseTime,
+                endTime = baseTime.plusSeconds(3600),
                 title = "My Task",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("my-tag"),
@@ -155,8 +161,8 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
         // Create entry with tags for other user
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME,
-                endTime = FIXED_TEST_TIME.plusSeconds(3600),
+                startTime = baseTime,
+                endTime = baseTime.plusSeconds(3600),
                 title = "Other Task",
                 ownerId = requireNotNull(otherUser.id),
                 tags = arrayOf("other-tag"),
@@ -249,11 +255,13 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should toggle tag selection when clicking checkbox`() {
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create entry with tags
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME,
-                endTime = FIXED_TEST_TIME.plusSeconds(3600),
+                startTime = baseTime,
+                endTime = baseTime.plusSeconds(3600),
                 title = "Task 1",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("toggle-tag"),
@@ -307,11 +315,13 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should save entry with selected tags`() {
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create existing entry with tags to populate tag list
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(7200),
-                endTime = FIXED_TEST_TIME.minusSeconds(3600),
+                startTime = baseTime.minusSeconds(7200),
+                endTime = baseTime.minusSeconds(3600),
                 title = "Previous Task",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("existing-tag", "another-tag"),
@@ -368,11 +378,13 @@ class TimeLogTagSelectorPlaywrightTest : PlaywrightTestBase() {
 
     @Test
     fun `should clear selected tags after starting entry`() {
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create existing entry with tags
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(7200),
-                endTime = FIXED_TEST_TIME.minusSeconds(3600),
+                startTime = baseTime.minusSeconds(7200),
+                endTime = baseTime.minusSeconds(3600),
                 title = "Previous Task",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("test-tag"),

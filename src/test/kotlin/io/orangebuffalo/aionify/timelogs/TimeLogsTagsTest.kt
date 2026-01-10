@@ -12,11 +12,14 @@ import org.junit.jupiter.api.Test
 class TimeLogsTagsTest : TimeLogsPageTestBase() {
     @Test
     fun `should display tags on time entries`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create entries with various tag configurations
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(7200), // 2 hours ago
-                endTime = FIXED_TEST_TIME.minusSeconds(5400), // 1.5 hours ago
+                startTime = baseTime.withLocalTime("01:30"), // 2 hours ago
+                endTime = baseTime.withLocalTime("02:00"), // 1.5 hours ago
                 title = "Entry with Multiple Tags",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("work", "urgent", "frontend"),
@@ -25,8 +28,8 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(5400), // 1.5 hours ago
-                endTime = FIXED_TEST_TIME.minusSeconds(3600), // 1 hour ago
+                startTime = baseTime.withLocalTime("02:00"), // 1.5 hours ago
+                endTime = baseTime.withLocalTime("02:30"), // 1 hour ago
                 title = "Entry with Single Tag",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend"),
@@ -35,8 +38,8 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600), // 1 hour ago
-                endTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago
+                startTime = baseTime.withLocalTime("02:30"), // 1 hour ago
+                endTime = baseTime.withLocalTime("03:00"), // 30 minutes ago
                 title = "Entry without Tags",
                 ownerId = requireNotNull(testUser.id),
                 tags = emptyArray(),
@@ -84,11 +87,14 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should support editing tags on active entry`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create an active entry with initial tags
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME,
+                    startTime = baseTime,
                     endTime = null,
                     title = "Active Task with Tags",
                     ownerId = requireNotNull(testUser.id),
@@ -136,11 +142,14 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should load existing tags when editing active entry`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create existing entries with tags to populate the tag selector
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(7200),
-                endTime = FIXED_TEST_TIME.minusSeconds(3600),
+                startTime = baseTime.withLocalTime("01:30"),
+                endTime = baseTime.withLocalTime("02:30"),
                 title = "Previous Task",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("frontend", "testing", "ui"),
@@ -150,7 +159,7 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
         // Create an active entry with some tags
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME,
+                startTime = baseTime,
                 endTime = null,
                 title = "Current Task",
                 ownerId = requireNotNull(testUser.id),
@@ -182,12 +191,15 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should support editing tags on stopped entry`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create a stopped entry with initial tags
         val entry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                    endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalTime("03:00"),
                     title = "Completed Task",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend"),
@@ -246,11 +258,14 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should load existing tags when editing stopped entry`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create an entry with tags
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(7200),
-                endTime = FIXED_TEST_TIME.minusSeconds(3600),
+                startTime = baseTime.withLocalTime("01:30"),
+                endTime = baseTime.withLocalTime("02:30"),
                 title = "Previous Task",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("meeting", "planning"),
@@ -260,8 +275,8 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
         // Create the entry to edit
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = baseTime.withLocalTime("02:30"),
+                endTime = baseTime.withLocalTime("03:00"),
                 title = "Task to Edit",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("meeting"),
@@ -292,11 +307,14 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
 
     @Test
     fun `should copy tags when starting from existing entry`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create a stopped entry with tags
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600), // 1 hour ago
-                endTime = FIXED_TEST_TIME.minusSeconds(1800), // 30 minutes ago
+                startTime = baseTime.withLocalTime("02:30"), // 1 hour ago
+                endTime = baseTime.withLocalTime("03:00"), // 30 minutes ago
                 title = "Task with Tags",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend", "urgent", "database"),

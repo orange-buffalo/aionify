@@ -19,6 +19,9 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
 
     @BeforeEach
     fun setupTestData() {
+        // Set base time for all activation token tests
+        setBaseTime("2024-03-16", "03:30")
+
         // Create a user without a valid password (will be set via activation)
         testUser =
             testDatabaseSupport.insert(
@@ -37,8 +40,8 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
                 ActivationToken(
                     userId = requireNotNull(testUser.id),
                     token = "valid-test-token-123",
-                    expiresAt = TestTimeService.FIXED_TEST_TIME.plus(24, ChronoUnit.HOURS),
-                    createdAt = TestTimeService.FIXED_TEST_TIME,
+                    expiresAt = timeInTestTz("2024-03-16", "03:30").plus(24, ChronoUnit.HOURS),
+                    createdAt = timeInTestTz("2024-03-16", "03:30"),
                 ),
             )
     }
@@ -133,8 +136,8 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
             ActivationToken(
                 userId = requireNotNull(testUser.id),
                 token = "expired-token-456",
-                expiresAt = TestTimeService.FIXED_TEST_TIME.minus(1, ChronoUnit.HOURS),
-                createdAt = TestTimeService.FIXED_TEST_TIME.minus(2, ChronoUnit.HOURS),
+                expiresAt = timeInTestTz("2024-03-16", "03:30").minus(1, ChronoUnit.HOURS),
+                createdAt = timeInTestTz("2024-03-16", "03:30").minus(2, ChronoUnit.HOURS),
             ),
         )
 
@@ -264,8 +267,8 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
             ActivationToken(
                 userId = requireNotNull(testUser.id),
                 token = "rate-limit-token",
-                expiresAt = TestTimeService.FIXED_TEST_TIME.plus(24, ChronoUnit.HOURS),
-                createdAt = TestTimeService.FIXED_TEST_TIME,
+                expiresAt = timeInTestTz("2024-03-16", "03:30").plus(24, ChronoUnit.HOURS),
+                createdAt = timeInTestTz("2024-03-16", "03:30"),
             ),
         )
 
@@ -310,8 +313,8 @@ class ActivationTokenPlaywrightTest : PlaywrightTestBase() {
             ActivationToken(
                 userId = requireNotNull(testUser.id),
                 token = rateLimitTestToken,
-                expiresAt = TestTimeService.FIXED_TEST_TIME.plus(24, ChronoUnit.HOURS),
-                createdAt = TestTimeService.FIXED_TEST_TIME,
+                expiresAt = timeInTestTz("2024-03-16", "03:30").plus(24, ChronoUnit.HOURS),
+                createdAt = timeInTestTz("2024-03-16", "03:30"),
             ),
         )
 

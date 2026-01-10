@@ -10,14 +10,17 @@ import org.junit.jupiter.api.Test
 class TimeLogsNavigationTest : TimeLogsPageTestBase() {
     @Test
     fun `should navigate between weeks`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
         // Create entries for different weeks
-        val lastWeek = FIXED_TEST_TIME.minusSeconds(7 * 24 * 3600)
+        val lastWeek = baseTime.withLocalDate("2024-03-09")
 
         // Current week entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1800),
+                startTime = baseTime.withLocalTime("02:30"),
+                endTime = baseTime.withLocalTime("03:00"),
                 title = "This Week Task",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -26,8 +29,8 @@ class TimeLogsNavigationTest : TimeLogsPageTestBase() {
         // Last week entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = lastWeek.minusSeconds(3600),
-                endTime = lastWeek.minusSeconds(1800),
+                startTime = lastWeek.withLocalTime("02:30"),
+                endTime = lastWeek.withLocalTime("03:00"),
                 title = "Last Week Task",
                 ownerId = requireNotNull(testUser.id),
             ),
