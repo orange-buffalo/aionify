@@ -8,6 +8,7 @@ import { calculateDuration, formatDuration } from "@/lib/time-utils";
 import { apiPost, apiPut, apiPatch } from "@/lib/api";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
 import { InlineTitleEdit } from "./InlineTitleEdit";
+import { InlineTagsEdit } from "./InlineTagsEdit";
 import type { EntryOverlap } from "@/lib/overlap-detection";
 import type { GroupedTimeLogEntry, TimeLogEntry, TimeEntry } from "@/components/time-logs/types";
 import { TimeEntry as TimeEntryComponent } from "./TimeEntry";
@@ -93,6 +94,15 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
     await onDataChange();
   };
 
+  const handleInlineTagsUpdate = async (newTags: string[]) => {
+    const entryIds = groupedEntry.entries.map((e) => e.id);
+    await apiPatch(`/api-ui/time-log-entries/bulk-update-tags`, {
+      entryIds,
+      tags: newTags,
+    });
+    await onDataChange();
+  };
+
   if (isEditingGroup) {
     return (
       <EditGroupedEntryForm
@@ -165,6 +175,11 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
             {formatDuration(totalDuration)}
           </div>
           <div className="flex items-center gap-2">
+            <InlineTagsEdit
+              currentTags={groupedEntry.tags || []}
+              onSave={handleInlineTagsUpdate}
+              testIdPrefix="grouped-entry-inline-tags"
+            />
             <Button
               variant="ghost"
               size="sm"

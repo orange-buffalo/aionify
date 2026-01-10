@@ -346,6 +346,76 @@ open class TimeLogEntryResource(
         return HttpResponse.ok(updatedEntry.toDto())
     }
 
+    @Patch("/{id}/tags")
+    open fun updateEntryTags(
+        @PathVariable id: Long,
+        @Valid @Body request: UpdateTimeLogEntryTagsRequest,
+        currentUser: UserWithId,
+    ): HttpResponse<*> {
+        log.debug("Updating time log entry tags: {} for user: {}", id, currentUser.user.userName)
+
+        val entry =
+            findEntryAndVerifyOwnership(id, currentUser) ?: run {
+                log.debug("Update tags failed: entry not found: {}", id)
+                return entryNotFoundResponse()
+            }
+
+        val updatedEntry =
+            timeLogEntryRepository.update(
+                entry.copy(tags = request.tags.toTypedArray()),
+            )
+
+        log.info("Time log entry tags updated: {} for user: {}", id, currentUser.user.userName)
+
+        return HttpResponse.ok(updatedEntry.toDto())
+    }
+
+    @Patch("/bulk-update-tags")
+    open fun bulkUpdateEntriesTags(
+        @Valid @Body request: BulkUpdateTimeLogEntriesTagsRequest,
+        currentUser: UserWithId,
+    ): HttpResponse<*> {
+        log.debug("Bulk updating tags for {} time log entries for user: {}", request.entryIds.size, currentUser.user.userName)
+
+        if (request.entryIds.isEmpty()) {
+            log.debug("Bulk update tags failed: no entry IDs provided")
+            return HttpResponse.badRequest(
+                TimeLogEntryErrorResponse("No entry IDs provided", "NO_ENTRY_IDS"),
+            )
+        }
+
+        // Fetch all entries and verify ownership
+        val entries =
+            request.entryIds.mapNotNull { id ->
+                timeLogEntryRepository.findByIdAndOwnerId(id, currentUser.id).orElse(null)
+            }
+
+        // Verify all entries were found
+        if (entries.size != request.entryIds.size) {
+            log.debug("Bulk update tags failed: some entries not found or not owned by user")
+            return HttpResponse
+                .notFound<TimeLogEntryErrorResponse>()
+                .body(TimeLogEntryErrorResponse("One or more time log entries not found", "ENTRIES_NOT_FOUND"))
+        }
+
+        // Update each entry - only tags, preserve everything else
+        val updatedEntries =
+            entries.map { entry ->
+                timeLogEntryRepository.update(
+                    entry.copy(tags = request.tags.toTypedArray()),
+                )
+            }
+
+        log.info("Bulk updated tags for {} time log entries for user: {}", updatedEntries.size, currentUser.user.userName)
+
+        return HttpResponse.ok(
+            BulkUpdateTimeLogEntriesResponse(
+                updatedCount = updatedEntries.size,
+                entries = updatedEntries.map { it.toDto() },
+            ),
+        )
+    }
+
     @Delete("/{id}")
     open fun deleteEntry(
         @PathVariable id: Long,
@@ -570,4 +640,17 @@ data class UpdateTimeLogEntryStartTimeRequest(
 @Introspected
 data class UpdateTimeLogEntryEndTimeRequest(
     val endTime: Instant,
+)
+
+@Serdeable
+@Introspected
+data class UpdateTimeLogEntryTagsRequest(
+    val tags: List<String> = emptyList(),
+)
+
+@Serdeable
+@Introspected
+data class BulkUpdateTimeLogEntriesTagsRequest(
+    val tags: List<String> = emptyList(),
+    val entryIds: List<Long>,
 )
