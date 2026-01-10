@@ -17,9 +17,7 @@ class SseTokenServiceTest {
     lateinit var testTimeService: TestTimeService
 
     @AfterEach
-    fun resetTime() {
-        testTimeService.resetTime()
-    }
+    fun resetTime() { }
 
     @Test
     fun `should generate unique tokens`() {
@@ -51,10 +49,11 @@ class SseTokenServiceTest {
     @Test
     fun `should return null for expired token`() {
         val userId = 456L
+        val baseTime = testTimeService.now()
         val token = sseTokenService.generateToken(userId)
 
         // Advance time by 31 seconds to expire the token (TTL is 30 seconds)
-        testTimeService.advanceTime(Duration.ofSeconds(31))
+        testTimeService.setTime(baseTime.plusSeconds(31))
 
         val validatedUserId = sseTokenService.validateToken(token)
 
@@ -93,6 +92,7 @@ class SseTokenServiceTest {
     @Test
     fun `should cleanup expired tokens on generation`() {
         val userId = 999L
+        val baseTime = testTimeService.now()
 
         // Generate a token
         val token1 = sseTokenService.generateToken(userId)
@@ -101,7 +101,7 @@ class SseTokenServiceTest {
         assertNotNull(sseTokenService.validateToken(token1), "Token should be valid initially")
 
         // Advance time to expire the first token
-        testTimeService.advanceTime(Duration.ofSeconds(31))
+        testTimeService.setTime(baseTime.plusSeconds(31))
 
         // Generate a new token (this should trigger cleanup)
         val token2 = sseTokenService.generateToken(userId)

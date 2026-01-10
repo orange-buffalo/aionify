@@ -59,11 +59,11 @@ class DemoScreenshotTest : PlaywrightTestBase() {
         // This creates data for tags statistics and week view
         val fryId = requireNotNull(fry.id)
 
-        // FIXED_TEST_TIME is Saturday, March 16, 2024 at 03:30 NZDT (Friday Mar 15 14:30 UTC)
+        // setBaseTime("2024-03-16", "03:30") is Saturday, March 16, 2024 at 03:30 NZDT (Friday Mar 15 14:30 UTC)
         // Week is Mon Mar 11 - Sun Mar 17
 
         // Monday (Mar 11) - Package deliveries
-        val monday = FIXED_TEST_TIME.minusSeconds(5 * 24 * 3600)
+        val monday = setBaseTime("2024-03-16", "03:30").minusSeconds(5 * 24 * 3600)
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = monday.minusSeconds(7 * 3600),
@@ -84,7 +84,7 @@ class DemoScreenshotTest : PlaywrightTestBase() {
         )
 
         // Tuesday (Mar 12) - More deliveries
-        val tuesday = FIXED_TEST_TIME.minusSeconds(4 * 24 * 3600)
+        val tuesday = setBaseTime("2024-03-16", "03:30").minusSeconds(4 * 24 * 3600)
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = tuesday.minusSeconds(8 * 3600),
@@ -105,7 +105,7 @@ class DemoScreenshotTest : PlaywrightTestBase() {
         )
 
         // Wednesday (Mar 13) - Mixed tasks
-        val wednesday = FIXED_TEST_TIME.minusSeconds(3 * 24 * 3600)
+        val wednesday = setBaseTime("2024-03-16", "03:30").minusSeconds(3 * 24 * 3600)
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = wednesday.minusSeconds(9 * 3600),
@@ -126,7 +126,7 @@ class DemoScreenshotTest : PlaywrightTestBase() {
         )
 
         // Thursday (Mar 14) - Learning and development
-        val thursday = FIXED_TEST_TIME.minusSeconds(2 * 24 * 3600)
+        val thursday = setBaseTime("2024-03-16", "03:30").minusSeconds(2 * 24 * 3600)
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = thursday.minusSeconds(7 * 3600),
@@ -147,7 +147,7 @@ class DemoScreenshotTest : PlaywrightTestBase() {
         )
 
         // Friday (Mar 15) - Yesterday
-        val friday = FIXED_TEST_TIME.minusSeconds(1 * 24 * 3600)
+        val friday = setBaseTime("2024-03-16", "03:30").minusSeconds(1 * 24 * 3600)
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = friday.minusSeconds(8 * 3600),
@@ -170,8 +170,8 @@ class DemoScreenshotTest : PlaywrightTestBase() {
         // Saturday (Mar 16) - Today, with one completed entry and one active (running) entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(2 * 3600),
-                endTime = FIXED_TEST_TIME.minusSeconds(1 * 3600),
+                startTime = setBaseTime("2024-03-16", "03:30").minusSeconds(2 * 3600),
+                endTime = setBaseTime("2024-03-16", "03:30").minusSeconds(1 * 3600),
                 title = "Morning coffee with Leela",
                 ownerId = fryId,
                 tags = arrayOf("break"),
@@ -181,7 +181,7 @@ class DemoScreenshotTest : PlaywrightTestBase() {
         // Active (running) task - no end time
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = FIXED_TEST_TIME.minusSeconds(30 * 60), // Started 30 minutes ago
+                startTime = setBaseTime("2024-03-16", "03:30").minusSeconds(30 * 60), // Started 30 minutes ago
                 endTime = null, // Still running
                 title = "Delivery to Neptune",
                 ownerId = fryId,

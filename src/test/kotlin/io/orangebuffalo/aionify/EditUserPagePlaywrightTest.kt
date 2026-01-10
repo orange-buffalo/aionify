@@ -182,8 +182,8 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
                 ActivationToken(
                     userId = requireNotNull(regularUser.id),
                     token = "test-activation-token-123",
-                    expiresAt = TestTimeService.FIXED_TEST_TIME.plus(24, ChronoUnit.HOURS),
-                    createdAt = TestTimeService.FIXED_TEST_TIME,
+                    expiresAt = timeInTestTz("2024-03-16", "03:30").plus(24, ChronoUnit.HOURS),
+                    createdAt = timeInTestTz("2024-03-16", "03:30"),
                 ),
             )
 
@@ -229,8 +229,8 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
                 ActivationToken(
                     userId = requireNotNull(regularUser.id),
                     token = "old-activation-token",
-                    expiresAt = TestTimeService.FIXED_TEST_TIME.plus(24, ChronoUnit.HOURS),
-                    createdAt = TestTimeService.FIXED_TEST_TIME,
+                    expiresAt = timeInTestTz("2024-03-16", "03:30").plus(24, ChronoUnit.HOURS),
+                    createdAt = timeInTestTz("2024-03-16", "03:30"),
                 ),
             )
 
@@ -357,8 +357,8 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
                 ActivationToken(
                     userId = requireNotNull(regularUser.id),
                     token = "expired-token",
-                    expiresAt = TestTimeService.FIXED_TEST_TIME.minus(1, ChronoUnit.HOURS),
-                    createdAt = TestTimeService.FIXED_TEST_TIME.minus(2, ChronoUnit.HOURS),
+                    expiresAt = timeInTestTz("2024-03-16", "03:30").minus(1, ChronoUnit.HOURS),
+                    createdAt = timeInTestTz("2024-03-16", "03:30").minus(2, ChronoUnit.HOURS),
                 ),
             )
 

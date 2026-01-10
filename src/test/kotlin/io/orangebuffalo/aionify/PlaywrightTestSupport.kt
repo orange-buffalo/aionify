@@ -85,18 +85,6 @@ abstract class PlaywrightTestBase {
         // Local storage keys matching frontend constants
         const val TOKEN_KEY = "aionify_token"
         const val LAST_USERNAME_KEY = "aionify_last_username"
-
-        /**
-         * Fixed time for all Playwright tests defined in NZDT (New Zealand Daylight Time, UTC+13):
-         * Saturday, March 16, 2024 at 03:30:00 NZDT
-         *
-         * This corresponds to Friday, March 15, 2024 at 14:30:00 UTC.
-         * This is the same time used by TestTimeService for backend operations.
-         *
-         * All tests run in Pacific/Auckland timezone to ensure timezone awareness and catch
-         * any timezone-related bugs early. Test expectations should use NZDT values (Saturday 03:30).
-         */
-        val FIXED_TEST_TIME: Instant = TestTimeService.FIXED_TEST_TIME
     }
 
     @BeforeEach
@@ -162,13 +150,11 @@ abstract class PlaywrightTestBase {
             }
         }
 
-        // Install Playwright clock with fixed time for deterministic tests
-        // Use pauseAt to prevent automatic time progression - time only advances when explicitly requested
-        // This ensures frontend JavaScript Date API uses the same fixed time as backend TimeService
-        _page.clock().pauseAt(FIXED_TEST_TIME.toEpochMilli())
-
-        // Reset backend time to FIXED_TEST_TIME for each test
-        testTimeService.resetTime()
+        // Initialize browser and backend time to a consistent default value
+        // Tests that depend on specific times should call setBaseTime() to set their own time context
+        val defaultTestTime = timeInTestTz("2024-01-01", "12:00")
+        _page.clock().pauseAt(defaultTestTime.toEpochMilli())
+        testTimeService.setTime(defaultTestTime)
     }
 
     private fun createBrowserContext(): BrowserContext =
@@ -244,29 +230,40 @@ abstract class PlaywrightTestBase {
     }
 
     /**
-     * Sets the current timestamp for both the browser (Playwright clock) and backend (TestTimeService).
-     * This is useful for tests that need to verify behavior at specific times different from FIXED_TEST_TIME.
+     * Sets the base time for the test, synchronizing both browser and backend clocks.
+     * This should be called at the start of tests that depend on specific time values.
      *
-     * @param instant The instant to set as the current time
+     * @param localDate The local date in yyyy-MM-dd format (default: "2024-01-02")
+     * @param localTime The local time in HH:mm format (default: "12:13")
      * @return The instant that was set (for convenience in test code)
      *
      * Example:
      * ```
-     * val baseTime = setCurrentTimestamp(timeInTestTz("2024-03-16", "02:30"))
-     * // Now both browser and backend think the current time is 2024-03-16 02:30 in test timezone
+     * val baseTime = setBaseTime("2024-03-16", "03:30")
+     * val baseTime = setBaseTime(localDate = "2024-03-16") // uses default time 12:13
+     * val baseTime = setBaseTime(localTime = "14:00") // uses default date 2024-01-02
      * ```
      */
-    protected fun setCurrentTimestamp(instant: Instant): Instant {
-        // Set browser time
+    protected fun setBaseTime(
+        localDate: String = "2024-01-02",
+        localTime: String = "12:13",
+    ): Instant {
+        val instant = timeInTestTz(localDate, localTime)
         page.clock().pauseAt(instant.toEpochMilli())
+        testTimeService.setTime(instant)
+        return instant
+    }
 
-        // Set backend time by calculating the offset from FIXED_TEST_TIME
-        val offset = java.time.Duration.between(FIXED_TEST_TIME, instant)
-        testTimeService.resetTime()
-        if (!offset.isZero) {
-            testTimeService.advanceTime(offset)
-        }
-
+    /**
+     * Sets the current timestamp for both the browser (Playwright clock) and backend (TestTimeService).
+     * This is a lower-level method; prefer using setBaseTime() for most cases.
+     *
+     * @param instant The instant to set as the current time
+     * @return The instant that was set (for convenience in test code)
+     */
+    protected fun setCurrentTimestamp(instant: Instant): Instant {
+        page.clock().pauseAt(instant.toEpochMilli())
+        testTimeService.setTime(instant)
         return instant
     }
 

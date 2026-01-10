@@ -36,14 +36,14 @@ fun Instant.plusDays(days: Long): Instant = this.plus(days, ChronoUnit.DAYS)
 
 /**
  * Creates a new Instant with the same date but different local time in the test timezone.
- * This is useful for inline time editing tests where the date stays the same but time changes.
+ * This is useful for tests where the date stays the same but time changes.
  *
  * @param localTime The local time in HH:mm format (e.g., "02:45")
  * @return A new Instant with the same local date but the specified local time
  *
  * Example:
  * ```
- * val baseTime = FIXED_TEST_TIME // Saturday, March 16, 2024 at 03:30:00 NZDT
+ * val baseTime = timeInTestTz("2024-03-16", "03:30")
  * val newTime = baseTime.withLocalTime("02:45") // Saturday, March 16, 2024 at 02:45:00 NZDT
  * ```
  */
@@ -51,6 +51,25 @@ fun Instant.withLocalTime(localTime: String): Instant {
     val zonedDateTime = this.atZone(TEST_TIMEZONE)
     val time = parseLocalTime(localTime)
     return zonedDateTime.with(time).toInstant()
+}
+
+/**
+ * Creates a new Instant with a different date but the same local time in the test timezone.
+ * This is useful for tests where the time stays the same but date changes.
+ *
+ * @param localDate The local date in yyyy-MM-dd format (e.g., "2024-03-15")
+ * @return A new Instant with the specified local date but the same local time
+ *
+ * Example:
+ * ```
+ * val baseTime = timeInTestTz("2024-03-16", "03:30")
+ * val yesterday = baseTime.withLocalDate("2024-03-15") // Friday, March 15, 2024 at 03:30:00 NZDT
+ * ```
+ */
+fun Instant.withLocalDate(localDate: String): Instant {
+    val zonedDateTime = this.atZone(TEST_TIMEZONE)
+    val date = parseLocalDate(localDate)
+    return zonedDateTime.with(date).toInstant()
 }
 
 /**
