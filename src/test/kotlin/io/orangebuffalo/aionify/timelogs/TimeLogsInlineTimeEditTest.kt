@@ -390,4 +390,69 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
             assertEquals(entry.title, updatedEntry.title)
         }
     }
+
+    @Test
+    fun `should only highlight the correct day when navigating between months in calendar`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
+        // Create a stopped entry on March 16
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = baseTime.withLocalTime("02:30"),
+                endTime = baseTime.withLocalTime("03:00"),
+                title = "Test Entry",
+                ownerId = requireNotNull(testUser.id),
+                tags = emptyArray(),
+            ),
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Click on the start time to open the popover
+        page.locator("[data-testid='time-entry-inline-start-time-trigger']").click()
+
+        // Verify popover is visible
+        assertThat(page.locator("[data-testid='time-entry-inline-start-time-popover']")).isVisible()
+
+        val calendarGrid = page.locator("[data-testid='time-entry-inline-start-time-grid']")
+
+        // Verify we're viewing March
+        assertThat(page.locator("[data-testid='time-entry-inline-start-time-popover']")).containsText("March 2024")
+
+        // Find all buttons in the calendar and check which ones have bg-primary class (selected)
+        val allButtons = calendarGrid.locator("button")
+        val selectedButtons = calendarGrid.locator("button.bg-primary")
+
+        // In March, exactly one button should be selected (day 16)
+        assertThat(selectedButtons).hasCount(1)
+        assertThat(selectedButtons.first()).containsText("16")
+
+        // Navigate to the previous month (February)
+        page
+            .locator("[data-testid='time-entry-inline-start-time-popover']")
+            .locator("button:has-text('‹')")
+            .click()
+
+        // Wait for calendar to update - check that we're now viewing February
+        assertThat(page.locator("[data-testid='time-entry-inline-start-time-popover']")).containsText("February 2024")
+
+        // In February, NO buttons should be selected (the selected date is March 16, not February 16)
+        val februarySelectedButtons = calendarGrid.locator("button.bg-primary")
+        assertThat(februarySelectedButtons).hasCount(0)
+
+        // Navigate to the next month (back to March)
+        page
+            .locator("[data-testid='time-entry-inline-start-time-popover']")
+            .locator("button:has-text('›')")
+            .click()
+
+        // Wait for calendar to update back to March
+        assertThat(page.locator("[data-testid='time-entry-inline-start-time-popover']")).containsText("March 2024")
+
+        // Verify day 16 is highlighted again in March
+        val marchSelectedButtonsAgain = calendarGrid.locator("button.bg-primary")
+        assertThat(marchSelectedButtonsAgain).hasCount(1)
+        assertThat(marchSelectedButtonsAgain.first()).containsText("16")
+    }
 }
