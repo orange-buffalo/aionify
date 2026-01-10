@@ -228,6 +228,10 @@ const resources = {
           expand: "Expand to see all entries",
           collapse: "Collapse",
         },
+        validation: {
+          mustBeAfter: "Time must be after start time",
+          mustBeBefore: "Time must be before end time",
+        },
       },
       // Portal Pages
       portal: {
@@ -637,6 +641,10 @@ const resources = {
           count: "{{count}} записів",
           expand: "Розгорнути для перегляду всіх записів",
           collapse: "Згорнути",
+        },
+        validation: {
+          mustBeAfter: "Час має бути після часу початку",
+          mustBeBefore: "Час має бути перед часом закінчення",
         },
       },
       // Portal Pages

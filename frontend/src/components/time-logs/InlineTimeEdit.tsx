@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Send, Loader2 } from "lucide-react";
 import { TimePicker } from "@/components/ui/time-picker";
@@ -14,6 +15,9 @@ interface InlineTimeEditProps {
   startOfWeek: number;
   showWeekday?: boolean; // Show weekday in trigger for cross-day entries
   testIdPrefix?: string;
+  // For validation
+  minDateTime?: string; // ISO 8601 timestamp - selected time must be after this
+  maxDateTime?: string; // ISO 8601 timestamp - selected time must be before this
 }
 
 export function InlineTimeEdit({
@@ -23,11 +27,14 @@ export function InlineTimeEdit({
   startOfWeek,
   showWeekday = false,
   testIdPrefix = "inline-time-edit",
+  minDateTime,
+  maxDateTime,
 }: InlineTimeEditProps) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [dateTime, setDateTime] = useState(new Date(currentDateTime));
   const [isSaving, setIsSaving] = useState(false);
+  const [tooltipOpen, setTooltipOpen] = useState(false);
   const timePickerRef = useRef<HTMLDivElement>(null);
 
   // Reset dateTime when popover opens
@@ -36,6 +43,42 @@ export function InlineTimeEdit({
       setDateTime(new Date(currentDateTime));
     }
   }, [isOpen, currentDateTime]);
+
+  // Validate selected time
+  const isValidSelection = () => {
+    if (minDateTime) {
+      const minDate = new Date(minDateTime);
+      if (dateTime <= minDate) {
+        return false;
+      }
+    }
+    if (maxDateTime) {
+      const maxDate = new Date(maxDateTime);
+      if (dateTime >= maxDate) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const getValidationMessage = () => {
+    if (minDateTime) {
+      const minDate = new Date(minDateTime);
+      if (dateTime <= minDate) {
+        return t("timeLogs.validation.mustBeAfter");
+      }
+    }
+    if (maxDateTime) {
+      const maxDate = new Date(maxDateTime);
+      if (dateTime >= maxDate) {
+        return t("timeLogs.validation.mustBeBefore");
+      }
+    }
+    return "";
+  };
+
+  const isValid = isValidSelection();
+  const validationMessage = getValidationMessage();
 
   const handleSave = async () => {
     if (isSaving) return;
@@ -69,19 +112,35 @@ export function InlineTimeEdit({
                 testIdPrefix={`${testIdPrefix}-time`}
               />
             </div>
-            <Button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="bg-teal-600 hover:bg-teal-700"
-              size="sm"
-              data-testid={`${testIdPrefix}-save-button`}
-            >
-              {isSaving ? (
-                <Loader2 className="h-4 w-4 animate-spin" data-testid={`${testIdPrefix}-loading-icon`} />
-              ) : (
-                <Send className="h-4 w-4" data-testid={`${testIdPrefix}-send-icon`} />
-              )}
-            </Button>
+            <TooltipProvider>
+              <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
+                <TooltipTrigger asChild>
+                  <span
+                    className="inline-block"
+                    data-testid={`${testIdPrefix}-save-button-wrapper`}
+                    onMouseEnter={() => !isValid && !isSaving && setTooltipOpen(true)}
+                    onMouseLeave={() => setTooltipOpen(false)}
+                  >
+                    <Button
+                      onClick={handleSave}
+                      disabled={isSaving || !isValid}
+                      className="bg-teal-600 hover:bg-teal-700"
+                      size="sm"
+                      data-testid={`${testIdPrefix}-save-button`}
+                    >
+                      {isSaving ? (
+                        <Loader2 className="h-4 w-4 animate-spin" data-testid={`${testIdPrefix}-loading-icon`} />
+                      ) : (
+                        <Send className="h-4 w-4" data-testid={`${testIdPrefix}-send-icon`} />
+                      )}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent data-testid={`${testIdPrefix}-validation-tooltip`}>
+                  <p>{validationMessage}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
 
           {/* Inline Calendar */}
