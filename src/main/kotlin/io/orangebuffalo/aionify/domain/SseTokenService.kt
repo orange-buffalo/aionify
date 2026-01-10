@@ -22,6 +22,13 @@ class SseTokenService(
     // Map of token -> (userId, expirationTime)
     private val tokens = ConcurrentHashMap<String, SseTokenData>()
 
+    /**
+     * Token TTL in seconds. Can be modified for testing purposes.
+     * Defaults to 30 seconds for production use.
+     */
+    @Volatile
+    var tokenTtlSeconds: Long = TOKEN_TTL_SECONDS
+
     companion object {
         private const val TOKEN_TTL_SECONDS = 30L
         private const val TOKEN_LENGTH_BYTES = 32
@@ -40,7 +47,7 @@ class SseTokenService(
         secureRandom.nextBytes(tokenBytes)
         val token = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes)
 
-        val expiresAt = timeService.now().plusSeconds(TOKEN_TTL_SECONDS)
+        val expiresAt = timeService.now().plusSeconds(tokenTtlSeconds)
         tokens[token] = SseTokenData(userId, expiresAt)
 
         log.debug("Generated SSE token for user {} (expires at {})", userId, expiresAt)
