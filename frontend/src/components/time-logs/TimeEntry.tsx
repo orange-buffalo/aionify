@@ -1,4 +1,4 @@
-import { useState, memo } from "react";
+import { useState, useEffect, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -54,7 +54,8 @@ export const TimeEntry = memo(function TimeEntry({
     apiCallInProgress: isSaving,
     formMessage: editFormMessage,
   } = useApiExecutor("edit-stopped-entry");
-  const duration = calculateDuration(entry.startTime, entry.endTime);
+
+  const [duration, setDuration] = useState(() => calculateDuration(entry.startTime, entry.endTime));
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(entry.title);
   const [editStartDateTime, setEditStartDateTime] = useState<Date>(new Date(entry.startTime));
@@ -63,6 +64,27 @@ export const TimeEntry = memo(function TimeEntry({
 
   // Deletion state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // Check if this is an active entry (no end time)
+  const isActiveEntry = entry.endTime == null;
+
+  // Update duration when entry changes
+  useEffect(() => {
+    const newDuration = calculateDuration(entry.startTime, entry.endTime);
+    setDuration(newDuration);
+  }, [entry.startTime, entry.endTime]);
+
+  // Update duration every second only for active entries
+  useEffect(() => {
+    if (!isActiveEntry) return;
+
+    const interval = setInterval(() => {
+      const updatedDuration = calculateDuration(entry.startTime, entry.endTime);
+      setDuration(updatedDuration);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isActiveEntry, entry.startTime, entry.endTime]);
 
   const handleEditClick = () => {
     setEditTitle(entry.title);
