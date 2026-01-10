@@ -75,20 +75,11 @@ export function DayGroups({ entries, activeEntry, locale, startOfWeek, onDataCha
       });
   }
 
-  // Recalculate day groups when entries change or when there's an active entry
+  // Recalculate day groups when entries change
   useEffect(() => {
     const groups = groupEntriesByDay(entries, locale);
     setDayGroups(groups);
-
-    if (!activeEntry) return;
-
-    const interval = setInterval(() => {
-      const updatedGroups = groupEntriesByDay(entries, locale);
-      setDayGroups(updatedGroups);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [entries, activeEntry, locale]);
+  }, [entries, locale]);
 
   if (dayGroups.length === 0) {
     return (
