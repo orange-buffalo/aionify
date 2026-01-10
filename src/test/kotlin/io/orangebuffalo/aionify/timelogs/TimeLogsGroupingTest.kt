@@ -18,7 +18,7 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = baseTime.withLocalTime("00:30"), // 3 hours ago (12:30)
-                endTime = baseTime.withLocalTime("01:30").minusMinutes(30), // 2.5 hours ago (13:00)
+                endTime = baseTime.withLocalTime("01:00"), // 2.5 hours ago (13:00)
                 title = "Development Task",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend", "urgent"),
@@ -28,7 +28,7 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = baseTime.withLocalTime("01:30"), // 2 hours ago (13:30)
-                endTime = baseTime.withLocalTime("02:30").minusMinutes(30), // 1.5 hours ago (14:00)
+                endTime = baseTime.withLocalTime("02:00"), // 1.5 hours ago (14:00)
                 title = "Development Task",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("urgent", "backend"), // Same tags, different order
@@ -126,7 +126,7 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = baseTime.withLocalTime("01:30"), // 2 hours ago (13:30)
-                endTime = baseTime.withLocalTime("02:30").minusMinutes(30), // 1.5 hours ago (14:00)
+                endTime = baseTime.withLocalTime("02:00"), // 1.5 hours ago (14:00)
                 title = "Code Review",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("review"),
@@ -201,7 +201,7 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = baseTime.withLocalTime("01:30"), // 2 hours ago (13:30)
-                endTime = baseTime.withLocalTime("02:30").minusMinutes(30), // 1.5 hours ago (14:00)
+                endTime = baseTime.withLocalTime("02:00"), // 1.5 hours ago (14:00)
                 title = "Meeting Notes",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("meeting"),
@@ -258,7 +258,7 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = baseTime.withLocalTime("01:30"), // 2 hours ago (13:30)
-                endTime = baseTime.withLocalTime("02:30").minusMinutes(30), // 1.5 hours ago (14:00)
+                endTime = baseTime.withLocalTime("02:00"), // 1.5 hours ago (14:00)
                 title = "Meeting Notes",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("meeting"),
@@ -387,7 +387,7 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = baseTime.withLocalTime("01:30"), // 2 hours ago
-                endTime = baseTime.withLocalTime("02:30").minusMinutes(30), // 1.5 hours ago
+                endTime = baseTime.withLocalTime("02:00"), // 1.5 hours ago
                 title = "Documentation",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("docs"),
@@ -431,7 +431,7 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = baseTime.withLocalTime("01:30"),
-                endTime = baseTime.withLocalTime("02:30").minusMinutes(30),
+                endTime = baseTime.withLocalTime("02:00"),
                 title = "Task A",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend"),
@@ -471,7 +471,7 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = baseTime.withLocalTime("01:30"),
-                endTime = baseTime.withLocalTime("02:30").minusMinutes(30),
+                endTime = baseTime.withLocalTime("02:00"),
                 title = "Development",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("backend", "urgent"),
@@ -506,7 +506,7 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = baseTime.withLocalTime("01:30"),
-                endTime = baseTime.withLocalTime("02:30").minusMinutes(30),
+                endTime = baseTime.withLocalTime("02:00"),
                 title = "Planning",
                 ownerId = requireNotNull(testUser.id),
                 tags = emptyArray(),
@@ -543,7 +543,7 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = baseTime.withLocalTime("01:30"),
-                endTime = baseTime.withLocalTime("02:30").minusMinutes(30),
+                endTime = baseTime.withLocalTime("02:00"),
                 title = "Testing",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("qa"),

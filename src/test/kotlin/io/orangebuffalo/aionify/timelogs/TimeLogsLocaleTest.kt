@@ -27,15 +27,15 @@ class TimeLogsLocaleTest : TimeLogsPageTestBase() {
 
         // Create an entry that started at 14:30 (2:30 PM) - afternoon time to clearly show 12/24-hour format difference
         // baseTime is Saturday, March 16, 2024 at 03:30:00 NZDT
-        // We want 14:30 NZDT, which is 11 hours later
-        val afternoonTime = baseTime.plusSeconds(11 * 3600) // 14:30 NZDT
+        // We want 14:30 NZDT
+        val afternoonTime = timeInTestTz("2024-03-16", "14:30")
 
         // Set the browser clock to the afternoon time for this test
         page.clock().pauseAt(afternoonTime.toEpochMilli())
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = afternoonTime.minusMinutes(30), // Started 30 minutes ago at 14:00 (2:00 PM)
+                startTime = afternoonTime.withLocalTime("14:00"), // Started at 14:00 (2:00 PM)
                 endTime = null,
                 title = testCase.taskTitle,
                 ownerId = requireNotNull(testUser.id),
@@ -45,8 +45,8 @@ class TimeLogsLocaleTest : TimeLogsPageTestBase() {
         // Also create a completed entry to test time ranges in the day groups
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = afternoonTime.minusHours(2), // Started 2 hours ago at 12:30 (12:30 PM)
-                endTime = afternoonTime.minusHours(1).minusMinutes(30), // Ended 1.5 hours ago at 13:00 (1:00 PM)
+                startTime = afternoonTime.withLocalTime("12:30"), // Started at 12:30 (12:30 PM)
+                endTime = afternoonTime.withLocalTime("13:00"), // Ended at 13:00 (1:00 PM)
                 title = testCase.completedTaskTitle,
                 ownerId = requireNotNull(testUser.id),
             ),

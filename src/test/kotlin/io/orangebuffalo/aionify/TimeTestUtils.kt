@@ -18,23 +18,6 @@ private val DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 private val TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
 
 /**
- * Extension functions for time shifts in tests.
- * These make test code more readable than raw second calculations.
- */
-
-fun Instant.minusHours(hours: Long): Instant = this.minus(hours, ChronoUnit.HOURS)
-
-fun Instant.plusHours(hours: Long): Instant = this.plus(hours, ChronoUnit.HOURS)
-
-fun Instant.minusMinutes(minutes: Long): Instant = this.minus(minutes, ChronoUnit.MINUTES)
-
-fun Instant.plusMinutes(minutes: Long): Instant = this.plus(minutes, ChronoUnit.MINUTES)
-
-fun Instant.minusDays(days: Long): Instant = this.minus(days, ChronoUnit.DAYS)
-
-fun Instant.plusDays(days: Long): Instant = this.plus(days, ChronoUnit.DAYS)
-
-/**
  * Creates a new Instant with the same date but different local time in the test timezone.
  * This is useful for tests where the date stays the same but time changes.
  *

@@ -298,9 +298,9 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
         val editedEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(editedEntry, "Active entry should still exist in database")
         assertEquals("Modified Task", editedEntry!!.title, "Title should be updated in database")
-        // User entered "01:00" in NZDT timezone, which is baseTime.withLocalTime("01:30").minusMinutes(30)
+        // User entered "01:00" in NZDT timezone, which is baseTime.withLocalTime("01:00")
         assertEquals(
-            baseTime.withLocalTime("01:30").minusMinutes(30),
+            baseTime.withLocalTime("01:00"),
             editedEntry.startTime,
             "Start time should be updated to user's value",
         )

@@ -29,8 +29,8 @@ class TimeLogsNavigationTest : TimeLogsPageTestBase() {
         // Last week entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = lastWeek.minusHours(1),
-                endTime = lastWeek.minusMinutes(30),
+                startTime = lastWeek.withLocalTime("02:30"),
+                endTime = lastWeek.withLocalTime("03:00"),
                 title = "Last Week Task",
                 ownerId = requireNotNull(testUser.id),
             ),

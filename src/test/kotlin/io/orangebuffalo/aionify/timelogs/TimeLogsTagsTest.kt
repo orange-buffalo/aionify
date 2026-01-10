@@ -19,7 +19,7 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = baseTime.withLocalTime("01:30"), // 2 hours ago
-                endTime = baseTime.withLocalTime("02:30").minusMinutes(30), // 1.5 hours ago
+                endTime = baseTime.withLocalTime("02:00"), // 1.5 hours ago
                 title = "Entry with Multiple Tags",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("work", "urgent", "frontend"),
@@ -28,7 +28,7 @@ class TimeLogsTagsTest : TimeLogsPageTestBase() {
 
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = baseTime.withLocalTime("02:30").minusMinutes(30), // 1.5 hours ago
+                startTime = baseTime.withLocalTime("02:00"), // 1.5 hours ago
                 endTime = baseTime.withLocalTime("02:30"), // 1 hour ago
                 title = "Entry with Single Tag",
                 ownerId = requireNotNull(testUser.id),

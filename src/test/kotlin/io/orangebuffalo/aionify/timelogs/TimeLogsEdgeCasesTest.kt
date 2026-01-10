@@ -24,8 +24,8 @@ class TimeLogsEdgeCasesTest : TimeLogsPageTestBase() {
         // Create an entry for Sunday in Auckland timezone
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = sundayTime.minusMinutes(30), // 30 minutes ago (Saturday 14:00 UTC = Sunday 03:00 NZDT)
-                endTime = sundayTime.minusMinutes(15), // 15 minutes ago (Saturday 14:15 UTC = Sunday 03:15 NZDT)
+                startTime = sundayTime.withLocalTime("03:00"), // Sunday 03:00 NZDT
+                endTime = sundayTime.withLocalTime("03:15"), // Sunday 03:15 NZDT
                 title = "Sunday Task",
                 ownerId = requireNotNull(testUser.id),
             ),

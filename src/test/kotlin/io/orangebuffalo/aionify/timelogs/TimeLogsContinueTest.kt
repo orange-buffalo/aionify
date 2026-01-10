@@ -121,8 +121,8 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
         // Create a completed entry with tags to prevent grouping with the new active entry
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = baseTime.minusHours(2), // 2 hours ago (12:30)
-                endTime = baseTime.minusHours(1).minusMinutes(30), // 1.5 hours ago (13:00)
+                startTime = baseTime.withLocalTime("01:30"), // 2 hours before 03:30
+                endTime = baseTime.withLocalTime("02:00"), // 1.5 hours before 03:30
                 title = "Completed Task",
                 ownerId = requireNotNull(testUser.id),
                 tags = arrayOf("completed"),
@@ -133,7 +133,7 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
         val previouslyActiveEntry =
             testDatabaseSupport.insert(
                 TimeLogEntry(
-                    startTime = baseTime.minusMinutes(30), // 30 minutes ago (03:00)
+                    startTime = baseTime.withLocalTime("03:00"), // 30 minutes before 03:30
                     endTime = null,
                     title = "Currently Active Task",
                     ownerId = requireNotNull(testUser.id),
@@ -246,7 +246,7 @@ class TimeLogsContinueTest : TimeLogsPageTestBase() {
         // 1. The previously active entry should be stopped with endTime from backend
         val stoppedPreviousEntry = timeLogEntryRepository.findById(previouslyActiveEntry.id!!).orElse(null)
         assertNotNull(stoppedPreviousEntry, "Previously active entry should exist")
-        assertEquals(baseTime.minusMinutes(30), stoppedPreviousEntry!!.startTime)
+        assertEquals(baseTime.withLocalTime("03:00"), stoppedPreviousEntry!!.startTime)
         // Verify endTime is set by backend to baseTime
         assertEquals(baseTime, stoppedPreviousEntry.endTime, "End time should be set by backend when stopping")
 

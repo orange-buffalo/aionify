@@ -2,8 +2,6 @@ package io.orangebuffalo.aionify.timelogs
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.TimeLogEntry
-import io.orangebuffalo.aionify.minusHours
-import io.orangebuffalo.aionify.minusMinutes
 import io.orangebuffalo.aionify.timeInTestTz
 import io.orangebuffalo.aionify.withLocalTime
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -125,7 +123,7 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
             testDatabaseSupport.insert(
                 TimeLogEntry(
                     startTime = baseTime.withLocalTime("00:30"), // 3 hours ago
-                    endTime = baseTime.withLocalTime("01:30").minusMinutes(30), // 2.5 hours ago
+                    endTime = baseTime.withLocalTime("01:00"), // 2.5 hours ago
                     title = "Grouped Entry",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend", "urgent"),
@@ -136,7 +134,7 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
             testDatabaseSupport.insert(
                 TimeLogEntry(
                     startTime = baseTime.withLocalTime("01:30"), // 2 hours ago
-                    endTime = baseTime.withLocalTime("02:30").minusMinutes(30), // 1.5 hours ago
+                    endTime = baseTime.withLocalTime("02:00"), // 1.5 hours ago
                     title = "Grouped Entry",
                     ownerId = requireNotNull(testUser.id),
                     tags = arrayOf("backend", "urgent"),

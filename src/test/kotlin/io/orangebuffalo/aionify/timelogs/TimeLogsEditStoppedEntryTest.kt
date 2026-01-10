@@ -183,8 +183,8 @@ class TimeLogsEditStoppedEntryTest : TimeLogsPageTestBase() {
                 ).orElse(null)
         assertNotNull(updatedEntry, "Entry should exist in database")
         assertEquals("Task to Edit", updatedEntry!!.title, "Title should be unchanged")
-        assertEquals(baseTime.withLocalTime("01:30").minusMinutes(30), updatedEntry.startTime, "Start time should be updated to 01:00")
-        assertEquals(baseTime.withLocalTime("02:30").minusMinutes(30), updatedEntry.endTime, "End time should be updated to 02:00")
+        assertEquals(baseTime.withLocalTime("01:00"), updatedEntry.startTime, "Start time should be updated to 01:00")
+        assertEquals(baseTime.withLocalTime("02:00"), updatedEntry.endTime, "End time should be updated to 02:00")
         assertEquals(testUser.id, updatedEntry.ownerId, "Owner ID should be unchanged")
     }
 
@@ -277,7 +277,7 @@ class TimeLogsEditStoppedEntryTest : TimeLogsPageTestBase() {
         // Create two stopped entries
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = baseTime.withLocalTime("02:30").minusMinutes(30),
+                startTime = baseTime.withLocalTime("02:00"),
                 endTime = baseTime.withLocalTime("02:30"),
                 title = "First Task",
                 ownerId = requireNotNull(testUser.id),

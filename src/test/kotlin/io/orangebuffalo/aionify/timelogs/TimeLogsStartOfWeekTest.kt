@@ -102,21 +102,21 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
         // - One on Saturday Mar 16 (last day of week) - should show
         // - One on Sunday Mar 17 (after week ends) - should NOT show
 
-        val saturdayBeforeWeek = baseTime.minusSeconds(7 * 24 * 3600) // Sat Mar 9
+        val saturdayBeforeWeek = timeInTestTz("2024-03-09", "03:30") // Sat Mar 9
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = saturdayBeforeWeek,
-                endTime = saturdayBeforeWeek.plusHours(1),
+                endTime = saturdayBeforeWeek.withLocalTime("04:30"),
                 title = "Before Week Entry",
                 ownerId = requireNotNull(testUser.id),
             ),
         )
 
-        val sundayStartOfWeek = baseTime.minusSeconds(6 * 24 * 3600) // Sun Mar 10
+        val sundayStartOfWeek = timeInTestTz("2024-03-10", "03:30") // Sun Mar 10
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = sundayStartOfWeek,
-                endTime = sundayStartOfWeek.plusHours(1),
+                endTime = sundayStartOfWeek.withLocalTime("04:30"),
                 title = "Sunday Entry",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -126,7 +126,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = saturdayEndOfWeek,
-                endTime = saturdayEndOfWeek.plusHours(1),
+                endTime = saturdayEndOfWeek.withLocalTime("04:30"),
                 title = "Saturday Entry",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -136,7 +136,7 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = sundayAfterWeek,
-                endTime = sundayAfterWeek.plusHours(1),
+                endTime = sundayAfterWeek.withLocalTime("04:30"),
                 title = "After Week Entry",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -167,21 +167,21 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
         // - One on Sunday Mar 17 (last day of week) - should show
         // - One on Monday Mar 18 (after week ends) - should NOT show
 
-        val sundayBeforeWeek = baseTime.minusSeconds(6 * 24 * 3600) // Sun Mar 10
+        val sundayBeforeWeek = timeInTestTz("2024-03-10", "03:30") // Sun Mar 10
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = sundayBeforeWeek,
-                endTime = sundayBeforeWeek.plusHours(1),
+                endTime = sundayBeforeWeek.withLocalTime("04:30"),
                 title = "Before Week Entry",
                 ownerId = requireNotNull(testUser.id),
             ),
         )
 
-        val mondayStartOfWeek = baseTime.minusSeconds(5 * 24 * 3600) // Mon Mar 11
+        val mondayStartOfWeek = timeInTestTz("2024-03-11", "03:30") // Mon Mar 11
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = mondayStartOfWeek,
-                endTime = mondayStartOfWeek.plusHours(1),
+                endTime = mondayStartOfWeek.withLocalTime("04:30"),
                 title = "Monday Entry",
                 ownerId = requireNotNull(testUser.id),
             ),
@@ -191,17 +191,17 @@ class TimeLogsStartOfWeekTest : TimeLogsPageTestBase() {
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = sundayEndOfWeek,
-                endTime = sundayEndOfWeek.plusHours(1),
+                endTime = sundayEndOfWeek.withLocalTime("04:30"),
                 title = "Sunday Entry",
                 ownerId = requireNotNull(testUser.id),
             ),
         )
 
-        val mondayAfterWeek = baseTime.plusSeconds(2 * 24 * 3600) // Mon Mar 18
+        val mondayAfterWeek = timeInTestTz("2024-03-18", "03:30") // Mon Mar 18
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = mondayAfterWeek,
-                endTime = mondayAfterWeek.plusHours(1),
+                endTime = mondayAfterWeek.withLocalTime("04:30"),
                 title = "After Week Entry",
                 ownerId = requireNotNull(testUser.id),
             ),

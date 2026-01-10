@@ -48,58 +48,58 @@ class TimeLogsDisplayTest : TimeLogsPageTestBase() {
         // baseTime is Saturday, March 16, 2024 at 03:30 NZDT
         // Let's create entries for different days in the current week (Mon Mar 11 - Sun Mar 17)
 
-        // Monday (Mar 11) - 2 entries (5 days before Saturday)
-        val monday = baseTime.minusSeconds(5 * 24 * 3600) // 5 days before Saturday
+        // Monday (Mar 11) - 2 entries
+        val monday = timeInTestTz("2024-03-11", "03:30")
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = monday.minusHours(2),
-                endTime = monday.minusHours(1).minusMinutes(30),
+                startTime = monday.withLocalTime("01:30"),
+                endTime = monday.withLocalTime("02:00"),
                 title = "Monday Task 1",
                 ownerId = requireNotNull(testUser.id),
             ),
         )
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = monday.minusHours(1),
-                endTime = monday.minusMinutes(30),
+                startTime = monday.withLocalTime("02:30"),
+                endTime = monday.withLocalTime("03:00"),
                 title = "Monday Task 2",
                 ownerId = requireNotNull(testUser.id),
             ),
         )
 
-        // Tuesday (Mar 12) - 1 entry (4 days before Saturday)
-        val tuesday = baseTime.minusSeconds(4 * 24 * 3600)
+        // Tuesday (Mar 12) - 1 entry
+        val tuesday = timeInTestTz("2024-03-12", "03:30")
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = tuesday.minusHours(1),
-                endTime = tuesday.minusMinutes(30),
+                startTime = tuesday.withLocalTime("02:30"),
+                endTime = tuesday.withLocalTime("03:00"),
                 title = "Tuesday Task",
                 ownerId = requireNotNull(testUser.id),
             ),
         )
 
-        // Wednesday (Mar 13) - 3 entries (3 days before Saturday)
-        val wednesday = baseTime.minusSeconds(3 * 24 * 3600)
+        // Wednesday (Mar 13) - 3 entries
+        val wednesday = timeInTestTz("2024-03-13", "03:30")
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = wednesday.minusHours(3),
-                endTime = wednesday.minusHours(2).minusMinutes(30),
+                startTime = wednesday.withLocalTime("00:30"),
+                endTime = wednesday.withLocalTime("01:00"),
                 title = "Wednesday Task 1",
                 ownerId = requireNotNull(testUser.id),
             ),
         )
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = wednesday.minusHours(2),
-                endTime = wednesday.minusHours(1).minusMinutes(30),
+                startTime = wednesday.withLocalTime("01:30"),
+                endTime = wednesday.withLocalTime("02:00"),
                 title = "Wednesday Task 2",
                 ownerId = requireNotNull(testUser.id),
             ),
         )
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = wednesday.minusHours(1),
-                endTime = wednesday.minusMinutes(30),
+                startTime = wednesday.withLocalTime("02:30"),
+                endTime = wednesday.withLocalTime("03:00"),
                 title = "Wednesday Task 3",
                 ownerId = requireNotNull(testUser.id),
             ),
