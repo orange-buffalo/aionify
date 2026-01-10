@@ -2,10 +2,8 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Tag, Plus, Send, Loader2 } from "lucide-react";
-import { apiGet } from "@/lib/api";
+import { Tag, Send, Loader2 } from "lucide-react";
+import { TagListContent } from "./TagListContent";
 
 interface InlineTagsEditProps {
   currentTags: string[];
@@ -13,97 +11,18 @@ interface InlineTagsEditProps {
   testIdPrefix?: string;
 }
 
-interface TagStat {
-  tag: string;
-  count: number;
-  isLegacy: boolean;
-}
-
 export function InlineTagsEdit({ currentTags, onSave, testIdPrefix = "inline-tags-edit" }: InlineTagsEditProps) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>(currentTags);
-  const [availableTags, setAvailableTags] = useState<string[]>([]);
-  const [newTagInput, setNewTagInput] = useState("");
-  const [loading, setLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-
-  // Load available tags from the API when popover opens
-  useEffect(() => {
-    async function loadTags() {
-      if (!isOpen) return;
-
-      try {
-        setLoading(true);
-        const response = await apiGet<{ tags: TagStat[] }>("/api-ui/tags/stats");
-
-        // Filter out legacy tags and extract tag names
-        const nonLegacyTags = (response.tags || []).filter((stat) => !stat.isLegacy).map((stat) => stat.tag);
-
-        setAvailableTags(nonLegacyTags);
-      } catch (err) {
-        console.error("Failed to load tags:", err);
-        setAvailableTags([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadTags();
-  }, [isOpen]);
 
   // Reset selectedTags when popover opens
   useEffect(() => {
     if (isOpen) {
       setSelectedTags(currentTags);
-      setNewTagInput("");
     }
   }, [isOpen, currentTags]);
-
-  const handleToggleTag = (tag: string) => {
-    if (isSaving) return;
-
-    if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter((t) => t !== tag));
-    } else {
-      setSelectedTags([...selectedTags, tag]);
-    }
-  };
-
-  const handleAddNewTag = () => {
-    if (isSaving) return;
-
-    const trimmedTag = newTagInput.trim();
-    if (!trimmedTag) return;
-
-    // Add to selected tags if not already selected
-    if (!selectedTags.includes(trimmedTag)) {
-      setSelectedTags([...selectedTags, trimmedTag]);
-    }
-
-    // Add to available tags if not already there
-    if (!availableTags.includes(trimmedTag)) {
-      setAvailableTags([...availableTags, trimmedTag].sort());
-    }
-
-    setNewTagInput("");
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-
-      // If there's text in the input, add the tag
-      if (newTagInput.trim()) {
-        handleAddNewTag();
-      } else {
-        // Otherwise, save if there are changes
-        handleSave();
-      }
-    } else if (e.key === "Escape") {
-      setIsOpen(false);
-    }
-  };
 
   const handleSave = async () => {
     if (isSaving) return;
@@ -147,68 +66,18 @@ export function InlineTagsEdit({ currentTags, onSave, testIdPrefix = "inline-tag
         </Button>
       </PopoverTrigger>
       <PopoverContent className="dark w-80 p-0" align="start" data-testid={`${testIdPrefix}-popover`}>
-        <div className="p-3 space-y-2">
-          {/* Add new tag section */}
-          <div className="flex gap-2 pb-2 border-b border-border">
-            <Input
-              value={newTagInput}
-              onChange={(e) => setNewTagInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={t("timeLogs.tags.addNewPlaceholder")}
-              className="flex-1 text-foreground"
-              data-testid={`${testIdPrefix}-new-tag-input`}
-              disabled={loading || isSaving}
-            />
-            <Button
-              size="icon"
-              onClick={handleAddNewTag}
-              disabled={!newTagInput.trim() || loading || isSaving}
-              data-testid={`${testIdPrefix}-add-tag-button`}
-              type="button"
-              variant="ghost"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
+        <TagListContent
+          selectedTags={selectedTags}
+          onTagsChange={setSelectedTags}
+          disabled={isSaving}
+          testIdPrefix={testIdPrefix}
+          isOpen={isOpen}
+          onEnterWithEmptyInput={handleSave}
+          onEscape={() => setIsOpen(false)}
+        />
 
-          {/* Tags list */}
-          <div className="max-h-64 overflow-y-auto">
-            {loading ? (
-              <div
-                className="text-center py-4 text-sm text-muted-foreground text-foreground"
-                data-testid={`${testIdPrefix}-loading`}
-              >
-                {t("common.loading")}
-              </div>
-            ) : availableTags.length === 0 ? (
-              <div
-                className="text-center py-4 text-sm text-muted-foreground text-foreground"
-                data-testid={`${testIdPrefix}-empty`}
-              >
-                {t("timeLogs.tags.noTags")}
-              </div>
-            ) : (
-              <div className="space-y-1" data-testid={`${testIdPrefix}-list`}>
-                {availableTags.map((tag) => (
-                  <label
-                    key={tag}
-                    className="flex items-center gap-2 px-2 py-1.5 rounded-sm hover:bg-accent cursor-pointer"
-                    data-testid={`${testIdPrefix}-item-${tag}`}
-                  >
-                    <Checkbox
-                      checked={selectedTags.includes(tag)}
-                      onCheckedChange={() => handleToggleTag(tag)}
-                      data-testid={`${testIdPrefix}-checkbox-${tag}`}
-                      disabled={isSaving}
-                    />
-                    <span className="text-sm text-foreground flex-1">{tag}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Save button */}
+        {/* Save button */}
+        <div className="p-3 pt-0">
           <div className="pt-2 border-t border-border">
             <Button
               onClick={handleSave}
