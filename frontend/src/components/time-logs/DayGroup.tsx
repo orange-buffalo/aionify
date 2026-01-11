@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDuration, calculateDuration } from "@/lib/time-utils";
 import { TimeEntry } from "./TimeEntry";
 import { GroupedTimeEntry } from "./GroupedTimeEntry";
+import { TotalDurationDisplay } from "./TotalDurationDisplay";
 import { groupEntriesByTitleAndTags, isGroupedEntry } from "@/lib/entry-grouping";
 import { detectOverlaps } from "@/lib/overlap-detection";
-import type { DayGroup as DayGroupType, TimeLogEntry } from "./types";
+import type { DayGroup as DayGroupType } from "./types";
 
 interface DayGroupProps {
   group: DayGroupType;
@@ -17,36 +16,6 @@ interface DayGroupProps {
 
 export function DayGroup({ group, locale, startOfWeek, onDataChange }: DayGroupProps) {
   const { t } = useTranslation();
-  const [totalDuration, setTotalDuration] = useState<number>(group.totalDuration);
-
-  // Check if this group contains an active entry
-  const hasActiveEntry = group.entries.some((e) => e.endTime == null);
-
-  // Calculate total duration for all entries in this group
-  function calculateGroupTotalDuration(): number {
-    return group.entries.reduce((sum, entry) => {
-      const duration = calculateDuration(entry.startTime, entry.endTime);
-      return sum + duration;
-    }, 0);
-  }
-
-  // Update total duration when entries change
-  useEffect(() => {
-    const total = calculateGroupTotalDuration();
-    setTotalDuration(total);
-  }, [group.entries]);
-
-  // Update total duration every second only if there's an active entry
-  useEffect(() => {
-    if (!hasActiveEntry) return;
-
-    const interval = setInterval(() => {
-      const updatedTotal = calculateGroupTotalDuration();
-      setTotalDuration(updatedTotal);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [hasActiveEntry, group.entries]);
 
   // Detect overlaps within this day group
   const overlaps = detectOverlaps(group.entries);
@@ -62,7 +31,7 @@ export function DayGroup({ group, locale, startOfWeek, onDataChange }: DayGroupP
             {group.displayTitle}
           </CardTitle>
           <div className="text-sm text-muted-foreground" data-testid="day-total-duration">
-            {t("timeLogs.totalDuration")}: {formatDuration(totalDuration)}
+            {t("timeLogs.totalDuration")}: <TotalDurationDisplay entries={group.entries} />
           </div>
         </div>
       </CardHeader>

@@ -1,13 +1,13 @@
-import { useState, useEffect, memo } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Play, Pencil } from "lucide-react";
 import { formatTime } from "@/lib/date-format";
-import { calculateDuration, formatDuration } from "@/lib/time-utils";
 import { apiPost, apiPut, apiPatch } from "@/lib/api";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
 import { InlineTitleEdit } from "./InlineTitleEdit";
+import { TotalDurationDisplay } from "./TotalDurationDisplay";
 import type { EntryOverlap } from "@/lib/overlap-detection";
 import type { GroupedTimeLogEntry, TimeLogEntry, TimeEntry } from "@/components/time-logs/types";
 import { TimeEntry as TimeEntryComponent } from "./TimeEntry";
@@ -21,13 +21,7 @@ interface GroupedTimeEntryProps {
   overlaps: Map<number, EntryOverlap>;
 }
 
-export const GroupedTimeEntry = memo(function GroupedTimeEntry({
-  groupedEntry,
-  locale,
-  startOfWeek,
-  onDataChange,
-  overlaps,
-}: GroupedTimeEntryProps) {
+export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChange, overlaps }: GroupedTimeEntryProps) {
   const { t } = useTranslation();
   const { executeApiCall: executeContinueCall, apiCallInProgress: isContinuing } = useApiExecutor("continue-entry");
   const { executeApiCall: executeGroupEditCall, apiCallInProgress: isSavingGroup } =
@@ -36,41 +30,11 @@ export const GroupedTimeEntry = memo(function GroupedTimeEntry({
   const [isEditingGroup, setIsEditingGroup] = useState(false);
   const [editTitle, setEditTitle] = useState(groupedEntry.title);
   const [editTags, setEditTags] = useState<string[]>(groupedEntry.tags || []);
-  const [totalDuration, setTotalDuration] = useState<number>(groupedEntry.totalDuration);
 
   const endTimeDisplay = groupedEntry.endTime ? formatTime(groupedEntry.endTime, locale) : t("timeLogs.inProgress");
 
   // Use the first entry for the continue action
   const firstEntry = groupedEntry.entries[0];
-
-  // Check if group contains an active entry
-  const hasActiveEntry = groupedEntry.entries.some((e) => e.endTime == null);
-
-  // Calculate total duration for all entries
-  function calculateGroupTotalDuration(): number {
-    return groupedEntry.entries.reduce((sum, entry) => {
-      const duration = calculateDuration(entry.startTime, entry.endTime);
-      return sum + duration;
-    }, 0);
-  }
-
-  // Update total duration when entries change
-  useEffect(() => {
-    const total = calculateGroupTotalDuration();
-    setTotalDuration(total);
-  }, [groupedEntry.entries]);
-
-  // Update total duration every second only if there's an active entry
-  useEffect(() => {
-    if (!hasActiveEntry) return;
-
-    const interval = setInterval(() => {
-      const updatedTotal = calculateGroupTotalDuration();
-      setTotalDuration(updatedTotal);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [hasActiveEntry, groupedEntry.entries]);
 
   const handleEditClick = () => {
     setEditTitle(groupedEntry.title);
@@ -187,7 +151,7 @@ export const GroupedTimeEntry = memo(function GroupedTimeEntry({
             </span>
           </div>
           <div className="font-mono font-semibold text-foreground min-w-[70px] text-right" data-testid="entry-duration">
-            {formatDuration(totalDuration)}
+            <TotalDurationDisplay entries={groupedEntry.entries} />
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -238,4 +202,4 @@ export const GroupedTimeEntry = memo(function GroupedTimeEntry({
       )}
     </div>
   );
-});
+}

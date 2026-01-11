@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,13 +11,14 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Play, MoreVertical, Trash2, Pencil, AlertCircle } from "lucide-react";
 import { formatTime, formatTimeWithWeekday, formatDate } from "@/lib/date-format";
-import { calculateDuration, formatDuration, isDifferentDay } from "@/lib/time-utils";
+import { isDifferentDay } from "@/lib/time-utils";
 import { apiDelete, apiPost, apiPut, apiPatch } from "@/lib/api";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
 import { EditEntryForm } from "./EditEntryForm";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 import { InlineTitleEdit } from "./InlineTitleEdit";
 import { InlineTimeEdit } from "./InlineTimeEdit";
+import { DurationDisplay } from "./DurationDisplay";
 import type { EntryOverlap } from "@/lib/overlap-detection";
 import type { TimeLogEntry, TimeEntry } from "./types";
 
@@ -32,7 +33,7 @@ interface TimeEntryProps {
   overlap?: EntryOverlap;
 }
 
-export const TimeEntry = memo(function TimeEntry({
+export function TimeEntry({
   entry,
   locale,
   startOfWeek,
@@ -55,7 +56,6 @@ export const TimeEntry = memo(function TimeEntry({
     formMessage: editFormMessage,
   } = useApiExecutor("edit-stopped-entry");
 
-  const [duration, setDuration] = useState(() => calculateDuration(entry.startTime, entry.endTime));
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(entry.title);
   const [editStartDateTime, setEditStartDateTime] = useState<Date>(new Date(entry.startTime));
@@ -64,27 +64,6 @@ export const TimeEntry = memo(function TimeEntry({
 
   // Deletion state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
-  // Check if this is an active entry (no end time)
-  const isActiveEntry = entry.endTime == null;
-
-  // Update duration when entry changes
-  useEffect(() => {
-    const newDuration = calculateDuration(entry.startTime, entry.endTime);
-    setDuration(newDuration);
-  }, [entry.startTime, entry.endTime]);
-
-  // Update duration every second only for active entries
-  useEffect(() => {
-    if (!isActiveEntry) return;
-
-    const interval = setInterval(() => {
-      const updatedDuration = calculateDuration(entry.startTime, entry.endTime);
-      setDuration(updatedDuration);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isActiveEntry, entry.startTime, entry.endTime]);
 
   const handleEditClick = () => {
     setEditTitle(entry.title);
@@ -264,7 +243,7 @@ export const TimeEntry = memo(function TimeEntry({
           </span>
         </div>
         <div className="font-mono font-semibold text-foreground min-w-[70px] text-right" data-testid="entry-duration">
-          {formatDuration(duration)}
+          <DurationDisplay startTime={entry.startTime} endTime={entry.endTime} />
         </div>
         <div className="flex items-center gap-2">
           {!hideContinue && (
@@ -318,4 +297,4 @@ export const TimeEntry = memo(function TimeEntry({
       />
     </div>
   );
-});
+}
