@@ -69,7 +69,7 @@ sealed class CurrentEntryState {
     data class NoActiveEntry(
         val inputVisible: Boolean = true,
         val startButtonVisible: Boolean = true,
-        val startButtonEnabled: Boolean = false,
+        val startButtonEnabled: Boolean = true,
     ) : CurrentEntryState()
 
     /**
@@ -247,7 +247,9 @@ class TimeLogsPageObject(
                 when (currentEntry.editMode) {
                     is EditModeState.NotEditing -> {
                         // View mode: show title, startedAt, edit button, timer, and stop button
-                        assertThat(page.locator("[data-testid='current-entry-panel']").locator("text=${currentEntry.title}")).isVisible()
+                        // Use data-testid to locate title element (works even with empty title)
+                        assertThat(page.locator("[data-testid='active-entry-title']")).isVisible()
+                        assertThat(page.locator("[data-testid='active-entry-title']")).hasText(currentEntry.title)
 
                         // startedAt is always present (business invariant)
                         assertThat(page.locator("[data-testid='active-entry-started-at']")).isVisible()
