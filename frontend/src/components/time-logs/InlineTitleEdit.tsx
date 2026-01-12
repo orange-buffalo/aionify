@@ -26,7 +26,7 @@ export function InlineTitleEdit({ currentTitle, onSave, testIdPrefix = "inline-t
   }, [isOpen, currentTitle]);
 
   const handleSave = async () => {
-    if (!title.trim() || title.length > 1000 || isSaving) return;
+    if (title.length > 1000 || isSaving) return;
 
     setIsSaving(true);
     try {
@@ -46,7 +46,7 @@ export function InlineTitleEdit({ currentTitle, onSave, testIdPrefix = "inline-t
     }
   };
 
-  const isInvalid = !title.trim() || title.length > 1000;
+  const isInvalid = title.length > 1000;
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>

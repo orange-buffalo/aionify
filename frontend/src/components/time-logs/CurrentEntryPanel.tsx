@@ -93,7 +93,7 @@ export function CurrentEntryPanel({
   };
 
   const handleSaveEdit = async () => {
-    if (!activeEntry || !editTitle.trim()) return;
+    if (!activeEntry) return;
     await executeEditCall(async () => {
       const startTimeISO = editDateTime.toISOString();
       await apiPut<TimeEntry>(`/api-ui/time-log-entries/${activeEntry.id}`, {

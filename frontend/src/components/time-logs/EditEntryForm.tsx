@@ -111,7 +111,7 @@ export function EditEntryForm({
       <div className="flex items-center gap-2">
         <Button
           onClick={onSave}
-          disabled={!title.trim() || isSaving}
+          disabled={isSaving}
           data-testid={`save-${testIdPrefix}-button`}
           className="bg-teal-600 hover:bg-teal-700"
         >
