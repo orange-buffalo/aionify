@@ -52,7 +52,7 @@ export function InlineTitleEdit({ currentTitle, onSave, testIdPrefix = "inline-t
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <span className="font-medium text-foreground cursor-pointer" data-testid={`${testIdPrefix}-trigger`}>
-          {currentTitle}
+          {currentTitle || "(no title)"}
         </span>
       </PopoverTrigger>
       <PopoverContent

@@ -1,5 +1,6 @@
 package io.orangebuffalo.aionify.domain
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import io.micronaut.core.annotation.Introspected
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Body
@@ -457,6 +458,7 @@ open class TimeLogEntryResource(
 
 @Serdeable
 @Introspected
+@JsonInclude(JsonInclude.Include.ALWAYS)
 data class TimeLogEntryDto(
     val id: Long,
     val startTime: Instant,

@@ -174,7 +174,7 @@ class TimeLogsStartStopTest : TimeLogsPageTestBase() {
             initialState.copy(
                 currentEntry =
                     CurrentEntryState.ActiveEntry(
-                        title = "",
+                        title = "(no title)",
                         duration = "00:00:00",
                         startedAt = "16 Mar, 03:30",
                     ),
@@ -186,7 +186,7 @@ class TimeLogsStartStopTest : TimeLogsPageTestBase() {
                             entries =
                                 listOf(
                                     EntryState(
-                                        title = "",
+                                        title = "(no title)",
                                         timeRange = "03:30 - in progress",
                                         duration = "00:00:00",
                                     ),
@@ -268,7 +268,7 @@ class TimeLogsStartStopTest : TimeLogsPageTestBase() {
             TimeLogsPageState(
                 currentEntry =
                     CurrentEntryState.ActiveEntry(
-                        title = "",
+                        title = "(no title)",
                         duration = "00:00:00",
                         startedAt = "16 Mar, 03:30",
                     ),
@@ -281,7 +281,7 @@ class TimeLogsStartStopTest : TimeLogsPageTestBase() {
                             entries =
                                 listOf(
                                     EntryState(
-                                        title = "",
+                                        title = "(no title)",
                                         timeRange = "03:30 - in progress",
                                         duration = "00:00:00",
                                     ),

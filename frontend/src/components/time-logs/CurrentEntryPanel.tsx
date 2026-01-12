@@ -154,7 +154,9 @@ export function CurrentEntryPanel({
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="font-semibold text-foreground" data-testid="active-entry-title">{activeEntry.title}</p>
+                  <p className="font-semibold text-foreground" data-testid="active-entry-title">
+                    {activeEntry.title || "(no title)"}
+                  </p>
                   <Button
                     variant="ghost"
                     size="sm"
