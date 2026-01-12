@@ -247,9 +247,7 @@ class TimeLogsPageObject(
                 when (currentEntry.editMode) {
                     is EditModeState.NotEditing -> {
                         // View mode: show title, startedAt, edit button, timer, and stop button
-                        // Use data-testid to locate title element (works even with empty title)
-                        assertThat(page.locator("[data-testid='active-entry-title']")).isVisible()
-                        assertThat(page.locator("[data-testid='active-entry-title']")).hasText(currentEntry.title)
+                        assertThat(page.locator("[data-testid='current-entry-panel']").locator("text=${currentEntry.title}")).isVisible()
 
                         // startedAt is always present (business invariant)
                         assertThat(page.locator("[data-testid='active-entry-started-at']")).isVisible()

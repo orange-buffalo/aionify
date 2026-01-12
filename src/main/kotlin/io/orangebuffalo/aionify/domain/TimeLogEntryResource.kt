@@ -1,6 +1,5 @@
 package io.orangebuffalo.aionify.domain
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import io.micronaut.core.annotation.Introspected
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Body
@@ -18,6 +17,7 @@ import io.micronaut.serde.annotation.Serdeable
 import io.swagger.v3.oas.annotations.Hidden
 import jakarta.transaction.Transactional
 import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import java.security.Principal
 import java.time.Instant
@@ -457,7 +457,6 @@ open class TimeLogEntryResource(
 
 @Serdeable
 @Introspected
-@JsonInclude(JsonInclude.Include.ALWAYS)
 data class TimeLogEntryDto(
     val id: Long,
     val startTime: Instant,
@@ -483,6 +482,7 @@ data class ActiveLogEntryResponse(
 @Serdeable
 @Introspected
 data class CreateTimeLogEntryRequest(
+    @field:NotBlank(message = "Title cannot be blank")
     @field:Size(max = 1000, message = "Title cannot exceed 1000 characters")
     val title: String,
     val stopActiveEntry: Boolean = false,
@@ -492,6 +492,7 @@ data class CreateTimeLogEntryRequest(
 @Serdeable
 @Introspected
 data class UpdateTimeLogEntryRequest(
+    @field:NotBlank(message = "Title cannot be blank")
     @field:Size(max = 1000, message = "Title cannot exceed 1000 characters")
     val title: String,
     val startTime: Instant,
@@ -528,6 +529,7 @@ data class AutocompleteEntryDto(
 @Serdeable
 @Introspected
 data class BulkUpdateTimeLogEntriesRequest(
+    @field:NotBlank(message = "Title cannot be blank")
     @field:Size(max = 1000, message = "Title cannot exceed 1000 characters")
     val title: String,
     val tags: List<String> = emptyList(),
@@ -544,6 +546,7 @@ data class BulkUpdateTimeLogEntriesResponse(
 @Serdeable
 @Introspected
 data class UpdateTimeLogEntryTitleRequest(
+    @field:NotBlank(message = "Title cannot be blank")
     @field:Size(max = 1000, message = "Title cannot exceed 1000 characters")
     val title: String,
 )
@@ -551,6 +554,7 @@ data class UpdateTimeLogEntryTitleRequest(
 @Serdeable
 @Introspected
 data class BulkUpdateTimeLogEntriesTitleRequest(
+    @field:NotBlank(message = "Title cannot be blank")
     @field:Size(max = 1000, message = "Title cannot exceed 1000 characters")
     val title: String,
     val entryIds: List<Long>,

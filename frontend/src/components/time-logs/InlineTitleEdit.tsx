@@ -26,7 +26,7 @@ export function InlineTitleEdit({ currentTitle, onSave, testIdPrefix = "inline-t
   }, [isOpen, currentTitle]);
 
   const handleSave = async () => {
-    if (title.length > 1000 || isSaving) return;
+    if (!title.trim() || title.length > 1000 || isSaving) return;
 
     setIsSaving(true);
     try {
@@ -46,13 +46,13 @@ export function InlineTitleEdit({ currentTitle, onSave, testIdPrefix = "inline-t
     }
   };
 
-  const isInvalid = title.length > 1000;
+  const isInvalid = !title.trim() || title.length > 1000;
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <span className="font-medium text-foreground cursor-pointer" data-testid={`${testIdPrefix}-trigger`}>
-          {currentTitle || "(no title)"}
+          {currentTitle}
         </span>
       </PopoverTrigger>
       <PopoverContent

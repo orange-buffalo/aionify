@@ -454,21 +454,19 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
     }
 
     @Test
-    @Test
-    fun `should allow saving edit with empty title`() {
+    fun `should prevent saving edit with empty title`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
         val baseTime = setBaseTime("2024-03-16", "03:30")
 
         // Create an active entry
-        val entry =
-            testDatabaseSupport.insert(
-                TimeLogEntry(
-                    startTime = baseTime.withLocalTime("03:00"),
-                    endTime = null,
-                    title = "Valid Title",
-                    ownerId = requireNotNull(testUser.id),
-                ),
-            )
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = baseTime.withLocalTime("03:00"),
+                endTime = null,
+                title = "Valid Title",
+                ownerId = requireNotNull(testUser.id),
+            ),
+        )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
@@ -524,7 +522,7 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
         // Clear the title
         timeLogsPage.fillEditTitle("")
 
-        // Verify save button is still enabled (empty titles now allowed)
+        // Verify save button is disabled with empty title
         val editWithEmptyTitleState =
             initialState.copy(
                 currentEntry =
@@ -537,46 +535,11 @@ class TimeLogsEditActiveEntryTest : TimeLogsPageTestBase() {
                                 titleValue = "",
                                 dateValue = "16 Mar 2024",
                                 timeValue = "03:00",
-                                saveButtonEnabled = true,
+                                saveButtonEnabled = false,
                             ),
                     ),
             )
         timeLogsPage.assertPageState(editWithEmptyTitleState)
-
-        // Save the edit
-        timeLogsPage.clickSaveEditEntry()
-
-        // Verify we're back to view mode with empty title displayed as placeholder
-        val savedState =
-            initialState.copy(
-                currentEntry =
-                    CurrentEntryState.ActiveEntry(
-                        title = "(no title)",
-                        duration = "00:30:00",
-                        startedAt = "16 Mar, 03:00",
-                    ),
-                dayGroups =
-                    listOf(
-                        DayGroupState(
-                            displayTitle = "Today",
-                            totalDuration = "00:30:00",
-                            entries =
-                                listOf(
-                                    EntryState(
-                                        title = "(no title)",
-                                        timeRange = "03:00 - in progress",
-                                        duration = "00:30:00",
-                                    ),
-                                ),
-                        ),
-                    ),
-            )
-        timeLogsPage.assertPageState(savedState)
-
-        // Verify database was updated
-        val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElse(null)
-        assertNotNull(updatedEntry)
-        assertEquals("", updatedEntry!!.title)
     }
 
     @Test

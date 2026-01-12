@@ -146,13 +146,13 @@ class TimeLogsStartStopTest : TimeLogsPageTestBase() {
     }
 
     @Test
-    fun `should allow starting entry without title`() {
+    fun `should auto-populate title when starting without one`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
         val baseTime = setBaseTime("2024-03-16", "03:30")
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
-        // Verify initial state - start button should be enabled even without title
+        // Verify start button is enabled even without title
         val initialState =
             TimeLogsPageState(
                 currentEntry =
@@ -166,15 +166,15 @@ class TimeLogsStartStopTest : TimeLogsPageTestBase() {
             )
         timeLogsPage.assertPageState(initialState)
 
-        // Start entry without providing a title
+        // Click start without entering a title
         timeLogsPage.clickStart()
 
-        // Verify entry is started with empty title
+        // Verify entry is started with auto-populated title "New Entry"
         val activeState =
             initialState.copy(
                 currentEntry =
                     CurrentEntryState.ActiveEntry(
-                        title = "(no title)",
+                        title = "New Entry",
                         duration = "00:00:00",
                         startedAt = "16 Mar, 03:30",
                     ),
@@ -186,7 +186,7 @@ class TimeLogsStartStopTest : TimeLogsPageTestBase() {
                             entries =
                                 listOf(
                                     EntryState(
-                                        title = "(no title)",
+                                        title = "New Entry",
                                         timeRange = "03:30 - in progress",
                                         duration = "00:00:00",
                                     ),
@@ -196,10 +196,10 @@ class TimeLogsStartStopTest : TimeLogsPageTestBase() {
             )
         timeLogsPage.assertPageState(activeState)
 
-        // Verify database state - entry should have empty title
+        // Verify database has auto-populated title
         val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
         assertNotNull(activeEntry, "Active entry should exist in database")
-        assertEquals("", activeEntry!!.title, "Title should be empty")
+        assertEquals("New Entry", activeEntry!!.title, "Title should be auto-populated")
         assertEquals(baseTime, activeEntry.startTime, "Start time should be set by backend")
         assertNull(activeEntry.endTime, "Active entry should not have end time")
     }
@@ -249,52 +249,6 @@ class TimeLogsStartStopTest : TimeLogsPageTestBase() {
         assertNotNull(activeEntry, "Active entry should exist in database")
         assertEquals("Quick Entry", activeEntry!!.title)
         // Verify startTime is set by backend to baseTime
-        assertEquals(baseTime, activeEntry.startTime, "Start time should be set by backend")
-        assertNull(activeEntry.endTime, "Active entry should not have end time")
-    }
-
-    @Test
-    fun `should allow starting entry by pressing Enter without title`() {
-        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setBaseTime("2024-03-16", "03:30")
-
-        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
-
-        // Press Enter without filling in title
-        timeLogsPage.pressEnterInNewEntryInput()
-
-        // Verify entry is started with empty title
-        val activeState =
-            TimeLogsPageState(
-                currentEntry =
-                    CurrentEntryState.ActiveEntry(
-                        title = "(no title)",
-                        duration = "00:00:00",
-                        startedAt = "16 Mar, 03:30",
-                    ),
-                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:00:00"),
-                dayGroups =
-                    listOf(
-                        DayGroupState(
-                            displayTitle = "Today",
-                            totalDuration = "00:00:00",
-                            entries =
-                                listOf(
-                                    EntryState(
-                                        title = "(no title)",
-                                        timeRange = "03:30 - in progress",
-                                        duration = "00:00:00",
-                                    ),
-                                ),
-                        ),
-                    ),
-            )
-        timeLogsPage.assertPageState(activeState)
-
-        // Verify database state - entry should have empty title
-        val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(testUser.id)).orElse(null)
-        assertNotNull(activeEntry, "Active entry should exist in database")
-        assertEquals("", activeEntry!!.title, "Title should be empty")
         assertEquals(baseTime, activeEntry.startTime, "Start time should be set by backend")
         assertNull(activeEntry.endTime, "Active entry should not have end time")
     }

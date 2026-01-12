@@ -74,8 +74,10 @@ export function CurrentEntryPanel({
 
   const handleStart = async () => {
     await executeStartCall(async () => {
+      // Auto-populate title with default if empty
+      const titleToSend = newEntryTitle.trim() || "New Entry";
       await apiPost<TimeEntry>("/api-ui/time-log-entries", {
-        title: newEntryTitle.trim(),
+        title: titleToSend,
         tags: selectedTags,
       });
       await onDataChange();

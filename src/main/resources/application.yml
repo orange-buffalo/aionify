@@ -1,8 +1,6 @@
 micronaut:
   application:
     name: aionify
-  serde:
-    serialization-inclusion: always
   server:
     port: 8080
     cors:
@@ -63,7 +61,7 @@ jackson:
     writeDatesAsTimestamps: false
   deserialization:
     adjust-dates-to-context-time-zone: false
-  serialization-inclusion: always
+  serialization-inclusion: non-absent
 
 netty:
   default:
