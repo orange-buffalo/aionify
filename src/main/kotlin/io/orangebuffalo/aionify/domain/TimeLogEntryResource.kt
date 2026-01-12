@@ -482,9 +482,8 @@ data class ActiveLogEntryResponse(
 @Serdeable
 @Introspected
 data class CreateTimeLogEntryRequest(
-    @field:NotBlank(message = "Title cannot be blank")
     @field:Size(max = 1000, message = "Title cannot exceed 1000 characters")
-    val title: String,
+    val title: String = "",
     val stopActiveEntry: Boolean = false,
     val tags: List<String> = emptyList(),
 )
