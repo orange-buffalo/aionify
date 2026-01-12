@@ -56,10 +56,11 @@ export function CurrentEntryPanel({
   }
 
   const handleStart = async () => {
-    if (!newEntryTitle.trim()) return;
     await executeStartCall(async () => {
+      // Auto-populate title with default if empty
+      const titleToSend = newEntryTitle.trim() || "New Entry";
       await apiPost<TimeEntry>("/api-ui/time-log-entries", {
-        title: newEntryTitle.trim(),
+        title: titleToSend,
         tags: selectedTags,
       });
       await onDataChange();
@@ -178,7 +179,7 @@ export function CurrentEntryPanel({
                 setSelectedTags(entry.tags);
               }}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && newEntryTitle.trim()) {
+                if (e.key === "Enter") {
                   handleStart();
                 }
               }}
@@ -195,7 +196,7 @@ export function CurrentEntryPanel({
             <Button
               onClick={handleStart}
               className="bg-teal-600 hover:bg-teal-700"
-              disabled={!newEntryTitle.trim() || isStarting}
+              disabled={isStarting}
               data-testid="start-button"
             >
               <Play className="h-4 w-4" />
