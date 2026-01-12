@@ -507,7 +507,7 @@ class TimeLogEntryApiResourceTest {
                     .GET<Any>("/api/time-log-entries/active")
                     .bearerAuth(validToken1)
 
-            val response = client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
+            val response = client.toBlocking().exchange(request, TimeLogEntryApiDto::class.java)
 
             // Then: Request succeeds
             assertEquals(HttpStatus.OK, response.status)
@@ -527,7 +527,7 @@ class TimeLogEntryApiResourceTest {
 
             val exception =
                 assertThrows(HttpClientResponseException::class.java) {
-                    client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
+                    client.toBlocking().exchange(request, TimeLogEntryApiDto::class.java)
                 }
 
             // Then: Request returns 404
@@ -541,7 +541,7 @@ class TimeLogEntryApiResourceTest {
 
             val exception =
                 assertThrows(HttpClientResponseException::class.java) {
-                    client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
+                    client.toBlocking().exchange(request, TimeLogEntryApiDto::class.java)
                 }
 
             // Then: Request is rejected with 401
@@ -576,7 +576,7 @@ class TimeLogEntryApiResourceTest {
                     .GET<Any>("/api/time-log-entries/active")
                     .bearerAuth(validToken1)
 
-            val response1 = client.toBlocking().exchange(request1, ActiveTimeLogEntryResponse::class.java)
+            val response1 = client.toBlocking().exchange(request1, TimeLogEntryApiDto::class.java)
 
             // Then: User1 gets their own entry
             assertEquals(HttpStatus.OK, response1.status)
@@ -589,7 +589,7 @@ class TimeLogEntryApiResourceTest {
                     .GET<Any>("/api/time-log-entries/active")
                     .bearerAuth(validToken2)
 
-            val response2 = client.toBlocking().exchange(request2, ActiveTimeLogEntryResponse::class.java)
+            val response2 = client.toBlocking().exchange(request2, TimeLogEntryApiDto::class.java)
 
             // Then: User2 gets their own entry
             assertEquals(HttpStatus.OK, response2.status)
@@ -619,7 +619,7 @@ class TimeLogEntryApiResourceTest {
 
             val exception =
                 assertThrows(HttpClientResponseException::class.java) {
-                    client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
+                    client.toBlocking().exchange(request, TimeLogEntryApiDto::class.java)
                 }
 
             // Then: User1 gets 404 (cannot see User2's entry)
@@ -648,7 +648,7 @@ class TimeLogEntryApiResourceTest {
 
             val exception =
                 assertThrows(HttpClientResponseException::class.java) {
-                    client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
+                    client.toBlocking().exchange(request, TimeLogEntryApiDto::class.java)
                 }
 
             // Then: Returns 404 (stopped entry is not active)
@@ -676,7 +676,7 @@ class TimeLogEntryApiResourceTest {
                     .GET<Any>("/api/time-log-entries/active")
                     .bearerAuth(validToken1)
 
-            val response = client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
+            val response = client.toBlocking().exchange(request, TimeLogEntryApiDto::class.java)
 
             // Then: Request succeeds with metadata
             assertEquals(HttpStatus.OK, response.status)
@@ -705,7 +705,7 @@ class TimeLogEntryApiResourceTest {
                     .GET<Any>("/api/time-log-entries/active")
                     .bearerAuth(validToken1)
 
-            val response = client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
+            val response = client.toBlocking().exchange(request, TimeLogEntryApiDto::class.java)
 
             // Then: Request succeeds with empty metadata
             assertEquals(HttpStatus.OK, response.status)

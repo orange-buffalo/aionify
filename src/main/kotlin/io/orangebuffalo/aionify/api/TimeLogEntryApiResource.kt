@@ -136,7 +136,7 @@ open class TimeLogEntryApiResource(
     @ApiResponse(
         responseCode = "200",
         description = "Active time log entry found",
-        content = [Content(schema = Schema(implementation = ActiveTimeLogEntryResponse::class))],
+        content = [Content(schema = Schema(implementation = TimeLogEntryApiDto::class))],
     )
     @ApiResponse(
         responseCode = "404",
@@ -157,16 +157,7 @@ open class TimeLogEntryApiResource(
         val activeEntry = timeLogEntryService.getActiveEntry(currentUser.id)
 
         return if (activeEntry != null) {
-            val dto = activeEntry.toApiDto()
-            HttpResponse.ok(
-                ActiveTimeLogEntryResponse(
-                    startTime = dto.startTime,
-                    endTime = dto.endTime,
-                    title = dto.title,
-                    tags = dto.tags,
-                    metadata = dto.metadata,
-                ),
-            )
+            HttpResponse.ok(activeEntry.toApiDto())
         } else {
             HttpResponse
                 .notFound<TimeLogEntryApiErrorResponse>()
@@ -353,31 +344,6 @@ data class StopTimeLogEntryResponse(
     val message: String,
     @field:Schema(description = "Whether an entry was stopped", example = "true")
     val stopped: Boolean,
-)
-
-@Serdeable
-@Introspected
-@Schema(description = "Response containing the active time log entry")
-data class ActiveTimeLogEntryResponse(
-    @field:Schema(
-        description = "Start time of the entry in ISO 8601 format",
-        example = "2024-01-15T10:30:00Z",
-        required = true,
-    )
-    val startTime: Instant,
-    @field:Schema(
-        description = "End time of the entry in ISO 8601 format (null if entry is still active)",
-        example = "2024-01-15T12:30:00Z",
-        required = false,
-        nullable = true,
-    )
-    val endTime: Instant?,
-    @field:Schema(description = "Title of the active time log entry", example = "Working on feature X")
-    val title: String,
-    @field:Schema(description = "Tags associated with the entry", example = "[\"frontend\", \"bug-fix\"]")
-    val tags: List<String>,
-    @field:Schema(description = "Metadata of the active time log entry", example = "[\"project:aionify\", \"task:API-123\"]")
-    val metadata: List<String>,
 )
 
 @Serdeable
