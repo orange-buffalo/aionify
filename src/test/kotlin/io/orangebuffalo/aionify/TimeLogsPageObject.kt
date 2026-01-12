@@ -69,7 +69,7 @@ sealed class CurrentEntryState {
     data class NoActiveEntry(
         val inputVisible: Boolean = true,
         val startButtonVisible: Boolean = true,
-        val startButtonEnabled: Boolean = false,
+        val startButtonEnabled: Boolean = true,
     ) : CurrentEntryState()
 
     /**

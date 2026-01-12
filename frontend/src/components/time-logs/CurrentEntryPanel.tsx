@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play, Square, Pencil } from "lucide-react";
 import { formatDateTime } from "@/lib/date-format";
-import { formatDuration, calculateDuration } from "@/lib/time-utils";
+import { DurationDisplay } from "./DurationDisplay";
 import { EditEntryForm } from "./EditEntryForm";
 import { TagSelector } from "./TagSelector";
 import { EntryAutocomplete } from "./EntryAutocomplete";
@@ -28,7 +28,6 @@ export function CurrentEntryPanel({
   onDataChange,
 }: CurrentEntryPanelProps) {
   const { t } = useTranslation();
-  const [activeDuration, setActiveDuration] = useState<number>(0);
   const {
     executeApiCall: executeStartCall,
     apiCallInProgress: isStarting,
@@ -51,32 +50,17 @@ export function CurrentEntryPanel({
   const [editDateTime, setEditDateTime] = useState<Date>(new Date());
   const [editTags, setEditTags] = useState<string[]>([]);
 
-  // Auto-refresh active entry timer every second
-  useEffect(() => {
-    if (!activeEntry) {
-      setActiveDuration(0);
-      return;
-    }
-
-    setActiveDuration(calculateDuration(activeEntry.startTime, null));
-
-    const interval = setInterval(() => {
-      setActiveDuration(calculateDuration(activeEntry.startTime, null));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [activeEntry?.id, activeEntry?.startTime]);
-
   // Cancel edit mode when editing a stopped entry
   if (isEditMode && isEditingStoppedEntry) {
     setIsEditMode(false);
   }
 
   const handleStart = async () => {
-    if (!newEntryTitle.trim()) return;
     await executeStartCall(async () => {
+      // Auto-populate title with default if empty
+      const titleToSend = newEntryTitle.trim() || "New Entry";
       await apiPost<TimeEntry>("/api-ui/time-log-entries", {
-        title: newEntryTitle.trim(),
+        title: titleToSend,
         tags: selectedTags,
       });
       await onDataChange();
@@ -172,7 +156,7 @@ export function CurrentEntryPanel({
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-2xl font-mono font-bold text-foreground" data-testid="active-timer">
-                  {formatDuration(activeDuration)}
+                  <DurationDisplay startTime={activeEntry.startTime} endTime={null} />
                 </div>
                 <Button
                   onClick={handleStop}
@@ -195,7 +179,7 @@ export function CurrentEntryPanel({
                 setSelectedTags(entry.tags);
               }}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && newEntryTitle.trim()) {
+                if (e.key === "Enter") {
                   handleStart();
                 }
               }}
@@ -212,7 +196,7 @@ export function CurrentEntryPanel({
             <Button
               onClick={handleStart}
               className="bg-teal-600 hover:bg-teal-700"
-              disabled={!newEntryTitle.trim() || isStarting}
+              disabled={isStarting}
               data-testid="start-button"
             >
               <Play className="h-4 w-4" />
