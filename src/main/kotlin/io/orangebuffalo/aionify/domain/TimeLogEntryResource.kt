@@ -18,7 +18,6 @@ import io.micronaut.serde.annotation.Serdeable
 import io.swagger.v3.oas.annotations.Hidden
 import jakarta.transaction.Transactional
 import jakarta.validation.Valid
-import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import java.security.Principal
 import java.time.Instant
@@ -485,7 +484,7 @@ data class ActiveLogEntryResponse(
 @Introspected
 data class CreateTimeLogEntryRequest(
     @field:Size(max = 1000, message = "Title cannot exceed 1000 characters")
-    val title: String = "",
+    val title: String,
     val stopActiveEntry: Boolean = false,
     val tags: List<String> = emptyList(),
 )
