@@ -6,7 +6,9 @@ import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
+import io.micronaut.http.annotation.QueryValue
 import io.micronaut.serde.annotation.Serdeable
+import io.orangebuffalo.aionify.domain.TimeLogEntry
 import io.orangebuffalo.aionify.domain.TimeLogEntryService
 import io.orangebuffalo.aionify.domain.UserWithId
 import io.swagger.v3.oas.annotations.Operation
@@ -17,9 +19,12 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.transaction.Transactional
 import jakarta.validation.Valid
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import org.slf4j.LoggerFactory
+import java.time.Instant
 
 /**
  * Public API controller for time log entries.
@@ -154,8 +159,7 @@ open class TimeLogEntryApiResource(
         return if (activeEntry != null) {
             HttpResponse.ok(
                 ActiveTimeLogEntryResponse(
-                    title = activeEntry.title,
-                    metadata = activeEntry.metadata.toList(),
+                    entry = activeEntry.toApiDto(),
                 ),
             )
         } else {
@@ -164,7 +168,155 @@ open class TimeLogEntryApiResource(
                 .body(TimeLogEntryApiErrorResponse(error = "No active time log entry", errorCode = "NO_ACTIVE_ENTRY"))
         }
     }
+
+    @Get
+    @Operation(
+        summary = "List time log entries",
+        description = """
+            Returns a paginated list of time log entries within the specified time range.
+            All operations are scoped to the current authenticated user.
+            Results are ordered by start time descending (newest first).
+        """,
+        security = [SecurityRequirement(name = "BearerAuth")],
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Time log entries retrieved successfully",
+        content = [Content(schema = Schema(implementation = ListTimeLogEntriesResponse::class))],
+    )
+    @ApiResponse(
+        responseCode = "400",
+        description = "Bad Request - Invalid query parameters (e.g., invalid date range, invalid page size)",
+        content = [Content(schema = Schema(implementation = TimeLogEntryApiErrorResponse::class))],
+    )
+    @ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized - Invalid or missing API token",
+    )
+    @ApiResponse(
+        responseCode = "429",
+        description = "Too Many Requests - IP blocked due to too many failed auth attempts",
+    )
+    open fun listEntries(
+        @QueryValue
+        @Schema(
+            description = "Start of time range (inclusive) in ISO 8601 format",
+            example = "2024-01-01T00:00:00Z",
+            required = true,
+        )
+        startTimeFrom: Instant,
+        @QueryValue
+        @Schema(
+            description = "End of time range (exclusive) in ISO 8601 format",
+            example = "2024-01-31T23:59:59Z",
+            required = true,
+        )
+        startTimeTo: Instant,
+        @QueryValue(defaultValue = "0")
+        @Min(0)
+        @Schema(
+            description = "Page number (zero-based)",
+            example = "0",
+            defaultValue = "0",
+            minimum = "0",
+        )
+        page: Int,
+        @QueryValue(defaultValue = "100")
+        @Min(1)
+        @Max(500)
+        @Schema(
+            description = "Number of entries per page",
+            example = "100",
+            defaultValue = "100",
+            minimum = "1",
+            maximum = "500",
+        )
+        size: Int,
+        currentUser: UserWithId,
+    ): HttpResponse<*> {
+        log.debug(
+            "Listing time log entries for user: {}, startTimeFrom: {}, startTimeTo: {}, page: {}, size: {}",
+            currentUser.user.userName,
+            startTimeFrom,
+            startTimeTo,
+            page,
+            size,
+        )
+
+        // Validate time range
+        if (startTimeFrom.isAfter(startTimeTo) || startTimeFrom == startTimeTo) {
+            return HttpResponse.badRequest(
+                TimeLogEntryApiErrorResponse(
+                    error = "Start time must be before end time",
+                    errorCode = "INVALID_TIME_RANGE",
+                ),
+            )
+        }
+
+        val allEntries =
+            timeLogEntryService.getEntriesInRange(
+                userId = currentUser.id,
+                startTimeFrom = startTimeFrom,
+                startTimeTo = startTimeTo,
+            )
+
+        // Calculate pagination
+        val totalElements = allEntries.size
+        val totalPages = if (size > 0) (totalElements + size - 1) / size else 0
+        val startIndex = page * size
+        val endIndex = minOf(startIndex + size, totalElements)
+
+        val pageEntries =
+            if (startIndex < totalElements) {
+                allEntries.subList(startIndex, endIndex)
+            } else {
+                emptyList()
+            }
+
+        return HttpResponse.ok(
+            ListTimeLogEntriesResponse(
+                entries = pageEntries.map { it.toApiDto() },
+                page = page,
+                size = size,
+                totalElements = totalElements,
+                totalPages = totalPages,
+            ),
+        )
+    }
+
+    private fun TimeLogEntry.toApiDto() =
+        TimeLogEntryApiDto(
+            startTime = this.startTime,
+            endTime = this.endTime,
+            title = this.title,
+            tags = this.tags.toList(),
+            metadata = this.metadata.toList(),
+        )
 }
+
+@Serdeable
+@Introspected
+@Schema(description = "Time log entry for public API")
+data class TimeLogEntryApiDto(
+    @field:Schema(
+        description = "Start time of the entry in ISO 8601 format",
+        example = "2024-01-15T10:30:00Z",
+        required = true,
+    )
+    val startTime: Instant,
+    @field:Schema(
+        description = "End time of the entry in ISO 8601 format (null if entry is still active)",
+        example = "2024-01-15T12:30:00Z",
+        required = false,
+    )
+    val endTime: Instant?,
+    @field:Schema(description = "Title of the time log entry", example = "Working on feature X")
+    val title: String,
+    @field:Schema(description = "Tags associated with the entry", example = "[\"frontend\", \"bug-fix\"]")
+    val tags: List<String>,
+    @field:Schema(description = "Metadata of the time log entry", example = "[\"project:aionify\", \"task:API-123\"]")
+    val metadata: List<String>,
+)
 
 @Serdeable
 @Introspected
@@ -211,10 +363,24 @@ data class StopTimeLogEntryResponse(
 @Introspected
 @Schema(description = "Response containing the active time log entry")
 data class ActiveTimeLogEntryResponse(
-    @field:Schema(description = "Title of the active time log entry", example = "Working on feature X")
-    val title: String,
-    @field:Schema(description = "Metadata of the active time log entry", example = "[\"project:aionify\", \"task:API-123\"]")
-    val metadata: List<String>,
+    @field:Schema(description = "Active time log entry (null if no active entry)", required = false)
+    val entry: TimeLogEntryApiDto?,
+)
+
+@Serdeable
+@Introspected
+@Schema(description = "Paginated response containing time log entries")
+data class ListTimeLogEntriesResponse(
+    @field:Schema(description = "List of time log entries for the current page")
+    val entries: List<TimeLogEntryApiDto>,
+    @field:Schema(description = "Current page number (zero-based)", example = "0")
+    val page: Int,
+    @field:Schema(description = "Page size", example = "100")
+    val size: Int,
+    @field:Schema(description = "Total number of entries matching the query", example = "250")
+    val totalElements: Int,
+    @field:Schema(description = "Total number of pages", example = "3")
+    val totalPages: Int,
 )
 
 @Serdeable

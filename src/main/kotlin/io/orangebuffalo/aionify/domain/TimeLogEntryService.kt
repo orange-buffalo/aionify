@@ -2,6 +2,7 @@ package io.orangebuffalo.aionify.domain
 
 import jakarta.inject.Singleton
 import org.slf4j.LoggerFactory
+import java.time.Instant
 
 /**
  * Service for managing time log entries.
@@ -106,5 +107,30 @@ class TimeLogEntryService(
         }
 
         return activeEntry
+    }
+
+    /**
+     * Gets time log entries for a user within a specific time range.
+     *
+     * @param userId The ID of the user
+     * @param startTimeFrom Start of time range (inclusive)
+     * @param startTimeTo End of time range (exclusive)
+     * @return List of time log entries ordered by start time descending
+     */
+    fun getEntriesInRange(
+        userId: Long,
+        startTimeFrom: Instant,
+        startTimeTo: Instant,
+    ): List<TimeLogEntry> {
+        val entries =
+            timeLogEntryRepository.findByOwnerIdAndStartTimeGreaterThanEqualsAndStartTimeLessThanOrderByStartTimeDesc(
+                userId,
+                startTimeFrom,
+                startTimeTo,
+            )
+
+        log.trace("Found {} time log entries for user ID: {} in range {} - {}", entries.size, userId, startTimeFrom, startTimeTo)
+
+        return entries
     }
 }
