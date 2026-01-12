@@ -359,7 +359,11 @@ data class StopTimeLogEntryResponse(
 @Introspected
 @Schema(description = "Response containing the active time log entry")
 data class ActiveTimeLogEntryResponse(
-    @field:Schema(description = "Active time log entry (null if no active entry)", required = false)
+    @field:Schema(
+        description = "Active time log entry. This field is always present in successful (200) responses. " +
+            "A 404 response is returned when there is no active entry.",
+        required = true,
+    )
     val entry: TimeLogEntryApiDto?,
 )
 

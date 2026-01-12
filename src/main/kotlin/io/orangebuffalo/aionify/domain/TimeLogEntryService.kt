@@ -126,14 +126,15 @@ class TimeLogEntryService(
         page: Int,
         size: Int,
     ): Pair<List<TimeLogEntry>, Long> {
-        val offset = page * size
+        // Use Long arithmetic to avoid potential integer overflow for large page numbers
+        val offset = page.toLong() * size
         val entries =
             timeLogEntryRepository.findByOwnerIdAndTimeRangeWithPagination(
                 userId,
                 startTimeFrom,
                 startTimeTo,
                 size,
-                offset,
+                offset.toInt(),
             )
         val totalCount = timeLogEntryRepository.countByOwnerIdAndTimeRange(userId, startTimeFrom, startTimeTo)
 
