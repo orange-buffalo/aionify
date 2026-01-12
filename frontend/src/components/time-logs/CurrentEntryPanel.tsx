@@ -95,7 +95,7 @@ export function CurrentEntryPanel({
   };
 
   const handleSaveEdit = async () => {
-    if (!activeEntry) return;
+    if (!activeEntry || !editTitle.trim()) return;
     await executeEditCall(async () => {
       const startTimeISO = editDateTime.toISOString();
       await apiPut<TimeEntry>(`/api-ui/time-log-entries/${activeEntry.id}`, {
@@ -156,9 +156,7 @@ export function CurrentEntryPanel({
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="font-semibold text-foreground" data-testid="active-entry-title">
-                    {activeEntry.title || "(no title)"}
-                  </p>
+                  <p className="font-semibold text-foreground">{activeEntry.title}</p>
                   <Button
                     variant="ghost"
                     size="sm"
