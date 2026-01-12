@@ -3,14 +3,14 @@ import { calculateDuration, formatDuration } from "@/lib/time-utils";
 
 interface DurationDisplayProps {
   startTime: string;
-  endTime: string | null;
+  endTime: string | null | undefined;
   className?: string;
   testId?: string;
 }
 
 /**
  * A component that displays a duration and updates automatically for active entries.
- * This component re-renders every second for active entries (endTime === null),
+ * This component re-renders every second for active entries (endTime is null or undefined),
  * while the parent component remains stable.
  */
 export function DurationDisplay({ startTime, endTime, className, testId }: DurationDisplayProps) {
@@ -23,7 +23,7 @@ export function DurationDisplay({ startTime, endTime, className, testId }: Durat
 
   // Update duration every second for active entries
   useEffect(() => {
-    if (endTime !== null) return; // Only for active entries
+    if (endTime != null) return; // Only for active entries (null or undefined)
 
     const interval = setInterval(() => {
       const newDuration = calculateDuration(startTime, endTime);
