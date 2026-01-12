@@ -157,9 +157,14 @@ open class TimeLogEntryApiResource(
         val activeEntry = timeLogEntryService.getActiveEntry(currentUser.id)
 
         return if (activeEntry != null) {
+            val dto = activeEntry.toApiDto()
             HttpResponse.ok(
                 ActiveTimeLogEntryResponse(
-                    entry = activeEntry.toApiDto(),
+                    startTime = dto.startTime,
+                    endTime = dto.endTime,
+                    title = dto.title,
+                    tags = dto.tags,
+                    metadata = dto.metadata,
                 ),
             )
         } else {
@@ -231,16 +236,16 @@ open class TimeLogEntryApiResource(
             minimum = "1",
             maximum = "500",
         )
-        size: Int,
+        pageSize: Int,
         currentUser: UserWithId,
     ): HttpResponse<*> {
         log.debug(
-            "Listing time log entries for user: {}, startTimeFrom: {}, startTimeTo: {}, page: {}, size: {}",
+            "Listing time log entries for user: {}, startTimeFrom: {}, startTimeTo: {}, page: {}, pageSize: {}",
             currentUser.user.userName,
             startTimeFrom,
             startTimeTo,
             page,
-            size,
+            pageSize,
         )
 
         // Validate time range
@@ -261,20 +266,15 @@ open class TimeLogEntryApiResource(
                 startTimeFrom = startTimeFrom,
                 startTimeTo = startTimeTo,
                 page = page,
-                size = size,
+                size = pageSize,
             )
-
-        // Calculate pagination info
-        // Size is always >= 1 due to validation, so we can safely calculate total pages
-        val totalPages = ((totalCount + size - 1) / size).toInt()
 
         return HttpResponse.ok(
             ListTimeLogEntriesResponse(
                 entries = entries.map { it.toApiDto() },
                 page = page,
-                size = size,
+                size = pageSize,
                 totalElements = totalCount.toInt(),
-                totalPages = totalPages,
             ),
         )
     }
@@ -291,7 +291,7 @@ open class TimeLogEntryApiResource(
 
 @Serdeable
 @Introspected
-@Schema(description = "Time log entry for public API")
+@Schema(description = "Time log entry")
 data class TimeLogEntryApiDto(
     @field:Schema(
         description = "Start time of the entry in ISO 8601 format",
@@ -360,11 +360,24 @@ data class StopTimeLogEntryResponse(
 @Schema(description = "Response containing the active time log entry")
 data class ActiveTimeLogEntryResponse(
     @field:Schema(
-        description = "Active time log entry. This field is always present in successful (200) responses. " +
-            "A 404 response is returned when there is no active entry.",
+        description = "Start time of the entry in ISO 8601 format",
+        example = "2024-01-15T10:30:00Z",
         required = true,
     )
-    val entry: TimeLogEntryApiDto?,
+    val startTime: Instant,
+    @field:Schema(
+        description = "End time of the entry in ISO 8601 format (null if entry is still active)",
+        example = "2024-01-15T12:30:00Z",
+        required = false,
+        nullable = true,
+    )
+    val endTime: Instant?,
+    @field:Schema(description = "Title of the active time log entry", example = "Working on feature X")
+    val title: String,
+    @field:Schema(description = "Tags associated with the entry", example = "[\"frontend\", \"bug-fix\"]")
+    val tags: List<String>,
+    @field:Schema(description = "Metadata of the active time log entry", example = "[\"project:aionify\", \"task:API-123\"]")
+    val metadata: List<String>,
 )
 
 @Serdeable
@@ -379,8 +392,6 @@ data class ListTimeLogEntriesResponse(
     val size: Int,
     @field:Schema(description = "Total number of entries matching the query", example = "250")
     val totalElements: Int,
-    @field:Schema(description = "Total number of pages", example = "3")
-    val totalPages: Int,
 )
 
 @Serdeable

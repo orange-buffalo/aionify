@@ -511,8 +511,8 @@ class TimeLogEntryApiResourceTest {
 
             // Then: Request succeeds
             assertEquals(HttpStatus.OK, response.status)
-            assertEquals("Active Entry", response.body()?.entry?.title)
-            assertEquals(emptyList<String>(), response.body()?.entry?.metadata)
+            assertEquals("Active Entry", response.body()?.title)
+            assertEquals(emptyList<String>(), response.body()?.metadata)
         }
 
         @Test
@@ -580,8 +580,8 @@ class TimeLogEntryApiResourceTest {
 
             // Then: User1 gets their own entry
             assertEquals(HttpStatus.OK, response1.status)
-            assertEquals("User1 Active Entry", response1.body()?.entry?.title)
-            assertEquals(emptyList<String>(), response1.body()?.entry?.metadata)
+            assertEquals("User1 Active Entry", response1.body()?.title)
+            assertEquals(emptyList<String>(), response1.body()?.metadata)
 
             // When: User2 gets their active entry
             val request2 =
@@ -593,8 +593,8 @@ class TimeLogEntryApiResourceTest {
 
             // Then: User2 gets their own entry
             assertEquals(HttpStatus.OK, response2.status)
-            assertEquals("User2 Active Entry", response2.body()?.entry?.title)
-            assertEquals(emptyList<String>(), response2.body()?.entry?.metadata)
+            assertEquals("User2 Active Entry", response2.body()?.title)
+            assertEquals(emptyList<String>(), response2.body()?.metadata)
         }
 
         @Test
@@ -680,8 +680,8 @@ class TimeLogEntryApiResourceTest {
 
             // Then: Request succeeds with metadata
             assertEquals(HttpStatus.OK, response.status)
-            assertEquals("Active Entry", response.body()?.entry?.title)
-            assertEquals(listOf("project:aionify", "task:API-123"), response.body()?.entry?.metadata)
+            assertEquals("Active Entry", response.body()?.title)
+            assertEquals(listOf("project:aionify", "task:API-123"), response.body()?.metadata)
         }
 
         @Test
@@ -709,8 +709,8 @@ class TimeLogEntryApiResourceTest {
 
             // Then: Request succeeds with empty metadata
             assertEquals(HttpStatus.OK, response.status)
-            assertEquals("Active Entry", response.body()?.entry?.title)
-            assertEquals(emptyList<String>(), response.body()?.entry?.metadata)
+            assertEquals("Active Entry", response.body()?.title)
+            assertEquals(emptyList<String>(), response.body()?.metadata)
         }
     }
 
@@ -718,9 +718,19 @@ class TimeLogEntryApiResourceTest {
     inner class ListEntriesEndpoint {
         @Test
         fun `should list entries in time range`() {
-            // Given: User has multiple entries
+            // Given: User has multiple entries in and out of range
             val baseTime = timeService.now()
             testDatabaseSupport.inTransaction {
+                // Entry outside range (too old)
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = baseTime.minusSeconds(20000), // Way before range
+                        endTime = baseTime.minusSeconds(19000),
+                        title = "Entry Too Old",
+                        ownerId = testUser1.id!!,
+                    ),
+                )
+                // Entry 1 in range
                 timeLogEntryRepository.save(
                     TimeLogEntry(
                         startTime = baseTime.minusSeconds(7200), // 2 hours ago
@@ -731,6 +741,7 @@ class TimeLogEntryApiResourceTest {
                         metadata = arrayOf("meta1"),
                     ),
                 )
+                // Entry 2 in range
                 timeLogEntryRepository.save(
                     TimeLogEntry(
                         startTime = baseTime.minusSeconds(3600), // 1 hour ago
@@ -739,6 +750,15 @@ class TimeLogEntryApiResourceTest {
                         ownerId = testUser1.id!!,
                         tags = arrayOf("tag2"),
                         metadata = arrayOf("meta2"),
+                    ),
+                )
+                // Entry outside range (too new)
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = baseTime.plusSeconds(1000), // After range
+                        endTime = baseTime.plusSeconds(2000),
+                        title = "Entry Too New",
+                        ownerId = testUser1.id!!,
                     ),
                 )
             }
@@ -757,7 +777,6 @@ class TimeLogEntryApiResourceTest {
             assertEquals(HttpStatus.OK, response.status)
             val body = response.body()!!
             assertEquals(2, body.totalElements)
-            assertEquals(1, body.totalPages)
             assertEquals(0, body.page)
             assertEquals(100, body.size)
             assertEquals(2, body.entries.size)
@@ -769,6 +788,11 @@ class TimeLogEntryApiResourceTest {
             assertEquals("Entry 1", body.entries[1].title)
             assertEquals(listOf("tag1"), body.entries[1].tags)
             assertEquals(listOf("meta1"), body.entries[1].metadata)
+
+            // Verify only entries in range are returned (not "Entry Too Old" or "Entry Too New")
+            val returnedTitles = body.entries.map { it.title }
+            assertFalse(returnedTitles.contains("Entry Too Old"))
+            assertFalse(returnedTitles.contains("Entry Too New"))
         }
 
         @Test
@@ -788,12 +812,12 @@ class TimeLogEntryApiResourceTest {
                 }
             }
 
-            // When: Fetching first page with size 3
+            // When: Fetching first page with pageSize 3
             val startTimeFrom = baseTime.minusSeconds(10000).toString()
             val startTimeTo = baseTime.toString()
             val request1 =
                 HttpRequest
-                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&page=0&size=3")
+                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&page=0&pageSize=3")
                     .bearerAuth(validToken1)
 
             val response1 = client.toBlocking().exchange(request1, ListTimeLogEntriesResponse::class.java)
@@ -802,7 +826,6 @@ class TimeLogEntryApiResourceTest {
             assertEquals(HttpStatus.OK, response1.status)
             val body1 = response1.body()!!
             assertEquals(10, body1.totalElements)
-            assertEquals(4, body1.totalPages) // 10 entries / 3 per page = 4 pages
             assertEquals(0, body1.page)
             assertEquals(3, body1.size)
             assertEquals(3, body1.entries.size)
@@ -813,7 +836,7 @@ class TimeLogEntryApiResourceTest {
             // When: Fetching second page
             val request2 =
                 HttpRequest
-                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&page=1&size=3")
+                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&page=1&pageSize=3")
                     .bearerAuth(validToken1)
 
             val response2 = client.toBlocking().exchange(request2, ListTimeLogEntriesResponse::class.java)
@@ -822,7 +845,6 @@ class TimeLogEntryApiResourceTest {
             assertEquals(HttpStatus.OK, response2.status)
             val body2 = response2.body()!!
             assertEquals(10, body2.totalElements)
-            assertEquals(4, body2.totalPages)
             assertEquals(1, body2.page)
             assertEquals(3, body2.size)
             assertEquals(3, body2.entries.size)
@@ -833,7 +855,7 @@ class TimeLogEntryApiResourceTest {
             // When: Fetching last page
             val request3 =
                 HttpRequest
-                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&page=3&size=3")
+                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&page=3&pageSize=3")
                     .bearerAuth(validToken1)
 
             val response3 = client.toBlocking().exchange(request3, ListTimeLogEntriesResponse::class.java)
@@ -842,7 +864,6 @@ class TimeLogEntryApiResourceTest {
             assertEquals(HttpStatus.OK, response3.status)
             val body3 = response3.body()!!
             assertEquals(10, body3.totalElements)
-            assertEquals(4, body3.totalPages)
             assertEquals(3, body3.page)
             assertEquals(3, body3.size)
             assertEquals(1, body3.entries.size)
@@ -869,7 +890,7 @@ class TimeLogEntryApiResourceTest {
             val startTimeTo = baseTime.toString()
             val request =
                 HttpRequest
-                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&page=5&size=100")
+                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&page=5&pageSize=100")
                     .bearerAuth(validToken1)
 
             val response = client.toBlocking().exchange(request, ListTimeLogEntriesResponse::class.java)
@@ -878,7 +899,6 @@ class TimeLogEntryApiResourceTest {
             assertEquals(HttpStatus.OK, response.status)
             val body = response.body()!!
             assertEquals(1, body.totalElements)
-            assertEquals(1, body.totalPages)
             assertEquals(5, body.page)
             assertEquals(100, body.size)
             assertEquals(0, body.entries.size)
@@ -913,7 +933,6 @@ class TimeLogEntryApiResourceTest {
             assertEquals(HttpStatus.OK, response.status)
             val body = response.body()!!
             assertEquals(0, body.totalElements)
-            assertEquals(0, body.totalPages)
             assertEquals(0, body.page)
             assertEquals(100, body.size)
             assertEquals(0, body.entries.size)
@@ -1034,14 +1053,14 @@ class TimeLogEntryApiResourceTest {
                 }
             }
 
-            // When: Requesting with size > 500
+            // When: Requesting with pageSize > 500
             val startTimeFrom = baseTime.minusSeconds(10000).toString()
             val startTimeTo = baseTime.toString()
             val exception =
                 assertThrows(HttpClientResponseException::class.java) {
                     val request =
                         HttpRequest
-                            .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&size=501")
+                            .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&pageSize=501")
                             .bearerAuth(validToken1)
                     client.toBlocking().exchange(request, ListTimeLogEntriesResponse::class.java)
                 }
@@ -1067,12 +1086,12 @@ class TimeLogEntryApiResourceTest {
                 }
             }
 
-            // When: Requesting with size = 500
+            // When: Requesting with pageSize = 500
             val startTimeFrom = baseTime.minusSeconds(10000).toString()
             val startTimeTo = baseTime.toString()
             val request =
                 HttpRequest
-                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&size=500")
+                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&pageSize=500")
                     .bearerAuth(validToken1)
 
             val response = client.toBlocking().exchange(request, ListTimeLogEntriesResponse::class.java)
@@ -1081,7 +1100,6 @@ class TimeLogEntryApiResourceTest {
             assertEquals(HttpStatus.OK, response.status)
             val body = response.body()!!
             assertEquals(600, body.totalElements)
-            assertEquals(2, body.totalPages) // 600 / 500 = 2 pages
             assertEquals(0, body.page)
             assertEquals(500, body.size)
             assertEquals(500, body.entries.size)
@@ -1165,7 +1183,6 @@ class TimeLogEntryApiResourceTest {
             val body = response.body()!!
             assertEquals(100, body.size)
             assertEquals(5, body.totalElements)
-            assertEquals(1, body.totalPages)
         }
     }
 }
