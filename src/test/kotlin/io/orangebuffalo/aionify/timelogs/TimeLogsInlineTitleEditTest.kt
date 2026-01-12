@@ -273,19 +273,20 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
     }
 
     @Test
-    fun `should disable save button when title is empty`() {
+    fun `should allow saving when title is empty`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
         val baseTime = setBaseTime("2024-03-16", "03:30")
 
-        testDatabaseSupport.insert(
-            TimeLogEntry(
-                startTime = baseTime.withLocalTime("02:30"),
-                endTime = baseTime.withLocalTime("03:00"),
-                title = "Original Title",
-                ownerId = requireNotNull(testUser.id),
-                tags = emptyArray(),
-            ),
-        )
+        val entry =
+            testDatabaseSupport.insert(
+                TimeLogEntry(
+                    startTime = baseTime.withLocalTime("02:30"),
+                    endTime = baseTime.withLocalTime("03:00"),
+                    title = "Original Title",
+                    ownerId = requireNotNull(testUser.id),
+                    tags = emptyArray(),
+                ),
+            )
 
         loginViaToken("/portal/time-logs", testUser, testAuthSupport)
 
@@ -296,8 +297,23 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
         val input = page.locator("[data-testid='time-entry-inline-title-input']")
         input.fill("")
 
-        // Verify save button is disabled
-        assertThat(page.locator("[data-testid='time-entry-inline-title-save-button']")).isDisabled()
+        // Verify save button is enabled (empty titles are now allowed)
+        assertThat(page.locator("[data-testid='time-entry-inline-title-save-button']")).isEnabled()
+
+        // Click save
+        page.locator("[data-testid='time-entry-inline-title-save-button']").click()
+
+        // Verify popover is closed
+        assertThat(page.locator("[data-testid='time-entry-inline-title-popover']")).not().isVisible()
+
+        // Verify database was updated with empty title
+        testDatabaseSupport.inTransaction {
+            val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
+            assertEquals("", updatedEntry.title)
+        }
+
+        // Verify UI displays placeholder for empty title
+        assertThat(page.locator("[data-testid='time-entry-inline-title-trigger']")).containsText("(no title)")
     }
 
     @Test
