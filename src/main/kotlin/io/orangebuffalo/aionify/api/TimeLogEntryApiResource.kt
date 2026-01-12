@@ -244,6 +244,8 @@ open class TimeLogEntryApiResource(
         )
 
         // Validate time range
+        // Note: We reject equal start and end times as this would result in an empty range
+        // (startTimeFrom is inclusive, startTimeTo is exclusive)
         if (startTimeFrom.isAfter(startTimeTo) || startTimeFrom == startTimeTo) {
             return HttpResponse.badRequest(
                 TimeLogEntryApiErrorResponse(
@@ -263,7 +265,8 @@ open class TimeLogEntryApiResource(
             )
 
         // Calculate pagination info
-        val totalPages = if (size > 0) ((totalCount + size - 1) / size).toInt() else 0
+        // Size is always >= 1 due to validation, so we can safely calculate total pages
+        val totalPages = ((totalCount + size - 1) / size).toInt()
 
         return HttpResponse.ok(
             ListTimeLogEntriesResponse(
@@ -300,6 +303,7 @@ data class TimeLogEntryApiDto(
         description = "End time of the entry in ISO 8601 format (null if entry is still active)",
         example = "2024-01-15T12:30:00Z",
         required = false,
+        nullable = true,
     )
     val endTime: Instant?,
     @field:Schema(description = "Title of the time log entry", example = "Working on feature X")
