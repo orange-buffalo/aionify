@@ -11,13 +11,14 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Play, MoreVertical, Trash2, Pencil, AlertCircle } from "lucide-react";
 import { formatTime, formatTimeWithWeekday, formatDate } from "@/lib/date-format";
-import { calculateDuration, formatDuration, isDifferentDay } from "@/lib/time-utils";
+import { isDifferentDay } from "@/lib/time-utils";
 import { apiDelete, apiPost, apiPut, apiPatch } from "@/lib/api";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
 import { EditEntryForm } from "./EditEntryForm";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 import { InlineTitleEdit } from "./InlineTitleEdit";
 import { InlineTimeEdit } from "./InlineTimeEdit";
+import { DurationDisplay } from "./DurationDisplay";
 import type { EntryOverlap } from "@/lib/overlap-detection";
 import type { TimeLogEntry, TimeEntry } from "./types";
 
@@ -54,7 +55,7 @@ export function TimeEntry({
     apiCallInProgress: isSaving,
     formMessage: editFormMessage,
   } = useApiExecutor("edit-stopped-entry");
-  const duration = calculateDuration(entry.startTime, entry.endTime);
+
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(entry.title);
   const [editStartDateTime, setEditStartDateTime] = useState<Date>(new Date(entry.startTime));
@@ -242,7 +243,7 @@ export function TimeEntry({
           </span>
         </div>
         <div className="font-mono font-semibold text-foreground min-w-[70px] text-right" data-testid="entry-duration">
-          {formatDuration(duration)}
+          <DurationDisplay startTime={entry.startTime} endTime={entry.endTime} />
         </div>
         <div className="flex items-center gap-2">
           {!hideContinue && (

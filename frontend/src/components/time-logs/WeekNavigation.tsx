@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { formatDuration, getWeekStart, calculateDuration } from "@/lib/time-utils";
+import { getWeekStart } from "@/lib/time-utils";
+import { TotalDurationDisplay } from "./TotalDurationDisplay";
 import type { TimeLogEntry, TimeEntry } from "./types";
 
 interface WeekNavigationProps {
@@ -17,7 +18,6 @@ interface WeekNavigationProps {
 export function WeekNavigation({ entries, activeEntry, locale, startOfWeek, onTimeRangeChange }: WeekNavigationProps) {
   const { t } = useTranslation();
   const [weekStart, setWeekStart] = useState<Date | null>(null);
-  const [weeklyTotal, setWeeklyTotal] = useState<number>(0);
 
   // Initialize week start when startOfWeek is available
   useEffect(() => {
@@ -62,26 +62,6 @@ export function WeekNavigation({ entries, activeEntry, locale, startOfWeek, onTi
     return `${startStr} - ${endStr}`;
   }
 
-  // Calculate weekly total from entries
-  function calculateWeeklyTotal(): number {
-    return entries.reduce((sum, entry) => sum + calculateDuration(entry.startTime, entry.endTime), 0);
-  }
-
-  // Recalculate weekly total when entries change or when there's an active entry
-  useEffect(() => {
-    const total = calculateWeeklyTotal();
-    setWeeklyTotal(total);
-
-    if (!activeEntry) return;
-
-    const interval = setInterval(() => {
-      const updatedTotal = calculateWeeklyTotal();
-      setWeeklyTotal(updatedTotal);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [entries, activeEntry]);
-
   // Don't render until weekStart is initialized
   if (!weekStart) {
     return null;
@@ -106,7 +86,7 @@ export function WeekNavigation({ entries, activeEntry, locale, startOfWeek, onTi
             {weekRange}
           </h2>
           <div className="text-sm text-muted-foreground mt-1" data-testid="weekly-total">
-            {t("timeLogs.weeklyTotal")}: {formatDuration(weeklyTotal)}
+            {t("timeLogs.weeklyTotal")}: <TotalDurationDisplay entries={entries} />
           </div>
         </div>
         <Button variant="ghost" onClick={handleNextWeek} data-testid="next-week-button" className="text-foreground">

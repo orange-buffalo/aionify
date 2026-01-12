@@ -1,11 +1,11 @@
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDuration } from "@/lib/time-utils";
 import { TimeEntry } from "./TimeEntry";
 import { GroupedTimeEntry } from "./GroupedTimeEntry";
+import { TotalDurationDisplay } from "./TotalDurationDisplay";
 import { groupEntriesByTitleAndTags, isGroupedEntry } from "@/lib/entry-grouping";
 import { detectOverlaps } from "@/lib/overlap-detection";
-import type { DayGroup as DayGroupType, TimeLogEntry } from "./types";
+import type { DayGroup as DayGroupType } from "./types";
 
 interface DayGroupProps {
   group: DayGroupType;
@@ -31,7 +31,7 @@ export function DayGroup({ group, locale, startOfWeek, onDataChange }: DayGroupP
             {group.displayTitle}
           </CardTitle>
           <div className="text-sm text-muted-foreground" data-testid="day-total-duration">
-            {t("timeLogs.totalDuration")}: {formatDuration(group.totalDuration)}
+            {t("timeLogs.totalDuration")}: <TotalDurationDisplay entries={group.entries} />
           </div>
         </div>
       </CardHeader>
