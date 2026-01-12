@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Play, Pencil } from "lucide-react";
 import { formatTime } from "@/lib/date-format";
-import { calculateDuration, formatDuration } from "@/lib/time-utils";
 import { apiPost, apiPut, apiPatch } from "@/lib/api";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
 import { InlineTitleEdit } from "./InlineTitleEdit";
+import { TotalDurationDisplay } from "./TotalDurationDisplay";
 import type { EntryOverlap } from "@/lib/overlap-detection";
 import type { GroupedTimeLogEntry, TimeLogEntry, TimeEntry } from "@/components/time-logs/types";
 import { TimeEntry as TimeEntryComponent } from "./TimeEntry";
@@ -35,17 +35,6 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
 
   // Use the first entry for the continue action
   const firstEntry = groupedEntry.entries[0];
-
-  // Check if group contains an active entry
-  const hasActiveEntry = groupedEntry.entries.some((e) => e.endTime == null);
-
-  // Calculate total duration dynamically for groups with active entries
-  const totalDuration = hasActiveEntry
-    ? groupedEntry.entries.reduce((sum, entry) => {
-        const duration = calculateDuration(entry.startTime, entry.endTime);
-        return sum + duration;
-      }, 0)
-    : groupedEntry.totalDuration;
 
   const handleEditClick = () => {
     setEditTitle(groupedEntry.title);
@@ -162,7 +151,7 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
             </span>
           </div>
           <div className="font-mono font-semibold text-foreground min-w-[70px] text-right" data-testid="entry-duration">
-            {formatDuration(totalDuration)}
+            <TotalDurationDisplay entries={groupedEntry.entries} />
           </div>
           <div className="flex items-center gap-2">
             <Button
