@@ -110,27 +110,44 @@ class TimeLogEntryService(
     }
 
     /**
-     * Gets time log entries for a user within a specific time range.
+     * Gets time log entries for a user within a specific time range with pagination.
      *
      * @param userId The ID of the user
      * @param startTimeFrom Start of time range (inclusive)
      * @param startTimeTo End of time range (exclusive)
-     * @return List of time log entries ordered by start time descending
+     * @param page Page number (zero-based)
+     * @param size Number of entries per page
+     * @return Pair of (entries list, total count)
      */
-    fun getEntriesInRange(
+    fun getEntriesInRangePaginated(
         userId: Long,
         startTimeFrom: Instant,
         startTimeTo: Instant,
-    ): List<TimeLogEntry> {
+        page: Int,
+        size: Int,
+    ): Pair<List<TimeLogEntry>, Long> {
+        val offset = page * size
         val entries =
-            timeLogEntryRepository.findByOwnerIdAndStartTimeGreaterThanEqualsAndStartTimeLessThanOrderByStartTimeDesc(
+            timeLogEntryRepository.findByOwnerIdAndTimeRangeWithPagination(
                 userId,
                 startTimeFrom,
                 startTimeTo,
+                size,
+                offset,
             )
+        val totalCount = timeLogEntryRepository.countByOwnerIdAndTimeRange(userId, startTimeFrom, startTimeTo)
 
-        log.trace("Found {} time log entries for user ID: {} in range {} - {}", entries.size, userId, startTimeFrom, startTimeTo)
+        log.trace(
+            "Found {} time log entries (page {}, size {}) for user ID: {} in range {} - {}, total: {}",
+            entries.size,
+            page,
+            size,
+            userId,
+            startTimeFrom,
+            startTimeTo,
+            totalCount,
+        )
 
-        return entries
+        return Pair(entries, totalCount)
     }
 }

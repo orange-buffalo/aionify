@@ -253,32 +253,24 @@ open class TimeLogEntryApiResource(
             )
         }
 
-        val allEntries =
-            timeLogEntryService.getEntriesInRange(
+        val (entries, totalCount) =
+            timeLogEntryService.getEntriesInRangePaginated(
                 userId = currentUser.id,
                 startTimeFrom = startTimeFrom,
                 startTimeTo = startTimeTo,
+                page = page,
+                size = size,
             )
 
-        // Calculate pagination
-        val totalElements = allEntries.size
-        val totalPages = if (size > 0) (totalElements + size - 1) / size else 0
-        val startIndex = page * size
-        val endIndex = minOf(startIndex + size, totalElements)
-
-        val pageEntries =
-            if (startIndex < totalElements) {
-                allEntries.subList(startIndex, endIndex)
-            } else {
-                emptyList()
-            }
+        // Calculate pagination info
+        val totalPages = if (size > 0) ((totalCount + size - 1) / size).toInt() else 0
 
         return HttpResponse.ok(
             ListTimeLogEntriesResponse(
-                entries = pageEntries.map { it.toApiDto() },
+                entries = entries.map { it.toApiDto() },
                 page = page,
                 size = size,
-                totalElements = totalElements,
+                totalElements = totalCount.toInt(),
                 totalPages = totalPages,
             ),
         )
