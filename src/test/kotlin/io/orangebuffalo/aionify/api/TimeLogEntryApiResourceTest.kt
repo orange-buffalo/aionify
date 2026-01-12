@@ -507,7 +507,7 @@ class TimeLogEntryApiResourceTest {
                     .GET<Any>("/api/time-log-entries/active")
                     .bearerAuth(validToken1)
 
-            val response = client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
+            val response = client.toBlocking().exchange(request, TimeLogEntryApiDto::class.java)
 
             // Then: Request succeeds
             assertEquals(HttpStatus.OK, response.status)
@@ -527,7 +527,7 @@ class TimeLogEntryApiResourceTest {
 
             val exception =
                 assertThrows(HttpClientResponseException::class.java) {
-                    client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
+                    client.toBlocking().exchange(request, TimeLogEntryApiDto::class.java)
                 }
 
             // Then: Request returns 404
@@ -541,7 +541,7 @@ class TimeLogEntryApiResourceTest {
 
             val exception =
                 assertThrows(HttpClientResponseException::class.java) {
-                    client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
+                    client.toBlocking().exchange(request, TimeLogEntryApiDto::class.java)
                 }
 
             // Then: Request is rejected with 401
@@ -576,7 +576,7 @@ class TimeLogEntryApiResourceTest {
                     .GET<Any>("/api/time-log-entries/active")
                     .bearerAuth(validToken1)
 
-            val response1 = client.toBlocking().exchange(request1, ActiveTimeLogEntryResponse::class.java)
+            val response1 = client.toBlocking().exchange(request1, TimeLogEntryApiDto::class.java)
 
             // Then: User1 gets their own entry
             assertEquals(HttpStatus.OK, response1.status)
@@ -589,7 +589,7 @@ class TimeLogEntryApiResourceTest {
                     .GET<Any>("/api/time-log-entries/active")
                     .bearerAuth(validToken2)
 
-            val response2 = client.toBlocking().exchange(request2, ActiveTimeLogEntryResponse::class.java)
+            val response2 = client.toBlocking().exchange(request2, TimeLogEntryApiDto::class.java)
 
             // Then: User2 gets their own entry
             assertEquals(HttpStatus.OK, response2.status)
@@ -619,7 +619,7 @@ class TimeLogEntryApiResourceTest {
 
             val exception =
                 assertThrows(HttpClientResponseException::class.java) {
-                    client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
+                    client.toBlocking().exchange(request, TimeLogEntryApiDto::class.java)
                 }
 
             // Then: User1 gets 404 (cannot see User2's entry)
@@ -648,7 +648,7 @@ class TimeLogEntryApiResourceTest {
 
             val exception =
                 assertThrows(HttpClientResponseException::class.java) {
-                    client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
+                    client.toBlocking().exchange(request, TimeLogEntryApiDto::class.java)
                 }
 
             // Then: Returns 404 (stopped entry is not active)
@@ -676,7 +676,7 @@ class TimeLogEntryApiResourceTest {
                     .GET<Any>("/api/time-log-entries/active")
                     .bearerAuth(validToken1)
 
-            val response = client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
+            val response = client.toBlocking().exchange(request, TimeLogEntryApiDto::class.java)
 
             // Then: Request succeeds with metadata
             assertEquals(HttpStatus.OK, response.status)
@@ -705,12 +705,484 @@ class TimeLogEntryApiResourceTest {
                     .GET<Any>("/api/time-log-entries/active")
                     .bearerAuth(validToken1)
 
-            val response = client.toBlocking().exchange(request, ActiveTimeLogEntryResponse::class.java)
+            val response = client.toBlocking().exchange(request, TimeLogEntryApiDto::class.java)
 
             // Then: Request succeeds with empty metadata
             assertEquals(HttpStatus.OK, response.status)
             assertEquals("Active Entry", response.body()?.title)
             assertEquals(emptyList<String>(), response.body()?.metadata)
+        }
+    }
+
+    @Nested
+    inner class ListEntriesEndpoint {
+        @Test
+        fun `should list entries in time range`() {
+            // Given: User has multiple entries in and out of range
+            val baseTime = timeService.now()
+            testDatabaseSupport.inTransaction {
+                // Entry outside range (too old)
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = baseTime.minusSeconds(20000), // Way before range
+                        endTime = baseTime.minusSeconds(19000),
+                        title = "Entry Too Old",
+                        ownerId = testUser1.id!!,
+                    ),
+                )
+                // Entry 1 in range
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = baseTime.minusSeconds(7200), // 2 hours ago
+                        endTime = baseTime.minusSeconds(3600), // 1 hour ago
+                        title = "Entry 1",
+                        ownerId = testUser1.id!!,
+                        tags = arrayOf("tag1"),
+                        metadata = arrayOf("meta1"),
+                    ),
+                )
+                // Entry 2 in range
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = baseTime.minusSeconds(3600), // 1 hour ago
+                        endTime = baseTime.minusSeconds(1800), // 30 mins ago
+                        title = "Entry 2",
+                        ownerId = testUser1.id!!,
+                        tags = arrayOf("tag2"),
+                        metadata = arrayOf("meta2"),
+                    ),
+                )
+                // Entry outside range (too new)
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = baseTime.plusSeconds(1000), // After range
+                        endTime = baseTime.plusSeconds(2000),
+                        title = "Entry Too New",
+                        ownerId = testUser1.id!!,
+                    ),
+                )
+            }
+
+            // When: Listing entries
+            val startTimeFrom = baseTime.minusSeconds(10000).toString()
+            val startTimeTo = baseTime.toString()
+            val request =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo")
+                    .bearerAuth(validToken1)
+
+            val response = client.toBlocking().exchange(request, ListTimeLogEntriesResponse::class.java)
+
+            // Then: Request succeeds
+            assertEquals(HttpStatus.OK, response.status)
+            val body = response.body()!!
+            assertEquals(2, body.totalElements)
+            assertEquals(0, body.page)
+            assertEquals(100, body.size)
+            assertEquals(2, body.entries.size)
+
+            // Entries should be ordered by start time descending (newest first)
+            assertEquals("Entry 2", body.entries[0].title)
+            assertEquals(listOf("tag2"), body.entries[0].tags)
+            assertEquals(listOf("meta2"), body.entries[0].metadata)
+            assertEquals("Entry 1", body.entries[1].title)
+            assertEquals(listOf("tag1"), body.entries[1].tags)
+            assertEquals(listOf("meta1"), body.entries[1].metadata)
+
+            // Verify only entries in range are returned (not "Entry Too Old" or "Entry Too New")
+            val returnedTitles = body.entries.map { it.title }
+            assertFalse(returnedTitles.contains("Entry Too Old"))
+            assertFalse(returnedTitles.contains("Entry Too New"))
+        }
+
+        @Test
+        fun `should paginate results correctly`() {
+            // Given: User has many entries
+            val baseTime = timeService.now()
+            testDatabaseSupport.inTransaction {
+                for (i in 1..10) {
+                    timeLogEntryRepository.save(
+                        TimeLogEntry(
+                            startTime = baseTime.minusSeconds(i * 600L),
+                            endTime = baseTime.minusSeconds(i * 600L - 300),
+                            title = "Entry $i",
+                            ownerId = testUser1.id!!,
+                        ),
+                    )
+                }
+            }
+
+            // When: Fetching first page with pageSize 3
+            val startTimeFrom = baseTime.minusSeconds(10000).toString()
+            val startTimeTo = baseTime.toString()
+            val request1 =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&page=0&pageSize=3")
+                    .bearerAuth(validToken1)
+
+            val response1 = client.toBlocking().exchange(request1, ListTimeLogEntriesResponse::class.java)
+
+            // Then: First page has correct data
+            assertEquals(HttpStatus.OK, response1.status)
+            val body1 = response1.body()!!
+            assertEquals(10, body1.totalElements)
+            assertEquals(0, body1.page)
+            assertEquals(3, body1.size)
+            assertEquals(3, body1.entries.size)
+            assertEquals("Entry 1", body1.entries[0].title)
+            assertEquals("Entry 2", body1.entries[1].title)
+            assertEquals("Entry 3", body1.entries[2].title)
+
+            // When: Fetching second page
+            val request2 =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&page=1&pageSize=3")
+                    .bearerAuth(validToken1)
+
+            val response2 = client.toBlocking().exchange(request2, ListTimeLogEntriesResponse::class.java)
+
+            // Then: Second page has correct data
+            assertEquals(HttpStatus.OK, response2.status)
+            val body2 = response2.body()!!
+            assertEquals(10, body2.totalElements)
+            assertEquals(1, body2.page)
+            assertEquals(3, body2.size)
+            assertEquals(3, body2.entries.size)
+            assertEquals("Entry 4", body2.entries[0].title)
+            assertEquals("Entry 5", body2.entries[1].title)
+            assertEquals("Entry 6", body2.entries[2].title)
+
+            // When: Fetching last page
+            val request3 =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&page=3&pageSize=3")
+                    .bearerAuth(validToken1)
+
+            val response3 = client.toBlocking().exchange(request3, ListTimeLogEntriesResponse::class.java)
+
+            // Then: Last page has correct data (only 1 entry)
+            assertEquals(HttpStatus.OK, response3.status)
+            val body3 = response3.body()!!
+            assertEquals(10, body3.totalElements)
+            assertEquals(3, body3.page)
+            assertEquals(3, body3.size)
+            assertEquals(1, body3.entries.size)
+            assertEquals("Entry 10", body3.entries[0].title)
+        }
+
+        @Test
+        fun `should return empty page when requesting beyond last page`() {
+            // Given: User has 2 entries
+            val baseTime = timeService.now()
+            testDatabaseSupport.inTransaction {
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = baseTime.minusSeconds(3600),
+                        endTime = baseTime.minusSeconds(1800),
+                        title = "Entry 1",
+                        ownerId = testUser1.id!!,
+                    ),
+                )
+            }
+
+            // When: Fetching page 5
+            val startTimeFrom = baseTime.minusSeconds(10000).toString()
+            val startTimeTo = baseTime.toString()
+            val request =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&page=5&pageSize=100")
+                    .bearerAuth(validToken1)
+
+            val response = client.toBlocking().exchange(request, ListTimeLogEntriesResponse::class.java)
+
+            // Then: Returns empty page
+            assertEquals(HttpStatus.OK, response.status)
+            val body = response.body()!!
+            assertEquals(1, body.totalElements)
+            assertEquals(5, body.page)
+            assertEquals(100, body.size)
+            assertEquals(0, body.entries.size)
+        }
+
+        @Test
+        fun `should return empty results when no entries in range`() {
+            // Given: User has entries outside the time range
+            val baseTime = timeService.now()
+            testDatabaseSupport.inTransaction {
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = baseTime.plusSeconds(3600), // 1 hour in future
+                        endTime = baseTime.plusSeconds(7200),
+                        title = "Future Entry",
+                        ownerId = testUser1.id!!,
+                    ),
+                )
+            }
+
+            // When: Querying past time range
+            val startTimeFrom = baseTime.minusSeconds(10000).toString()
+            val startTimeTo = baseTime.minusSeconds(5000).toString()
+            val request =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo")
+                    .bearerAuth(validToken1)
+
+            val response = client.toBlocking().exchange(request, ListTimeLogEntriesResponse::class.java)
+
+            // Then: Returns empty results
+            assertEquals(HttpStatus.OK, response.status)
+            val body = response.body()!!
+            assertEquals(0, body.totalElements)
+            assertEquals(0, body.page)
+            assertEquals(100, body.size)
+            assertEquals(0, body.entries.size)
+        }
+
+        @Test
+        fun `should only return current user entries`() {
+            // Given: Both users have entries
+            val baseTime = timeService.now()
+            testDatabaseSupport.inTransaction {
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = baseTime.minusSeconds(3600),
+                        endTime = baseTime.minusSeconds(1800),
+                        title = "User1 Entry",
+                        ownerId = testUser1.id!!,
+                    ),
+                )
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = baseTime.minusSeconds(3600),
+                        endTime = baseTime.minusSeconds(1800),
+                        title = "User2 Entry",
+                        ownerId = testUser2.id!!,
+                    ),
+                )
+            }
+
+            // When: User1 lists entries
+            val startTimeFrom = baseTime.minusSeconds(10000).toString()
+            val startTimeTo = baseTime.toString()
+            val request =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo")
+                    .bearerAuth(validToken1)
+
+            val response = client.toBlocking().exchange(request, ListTimeLogEntriesResponse::class.java)
+
+            // Then: Only User1's entries are returned
+            assertEquals(HttpStatus.OK, response.status)
+            val body = response.body()!!
+            assertEquals(1, body.totalElements)
+            assertEquals(1, body.entries.size)
+            assertEquals("User1 Entry", body.entries[0].title)
+        }
+
+        @Test
+        fun `should reject request without authentication`() {
+            // When: Listing entries without token
+            val baseTime = timeService.now()
+            val startTimeFrom = baseTime.minusSeconds(10000).toString()
+            val startTimeTo = baseTime.toString()
+            val request =
+                HttpRequest.GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo")
+
+            val exception =
+                assertThrows(HttpClientResponseException::class.java) {
+                    client.toBlocking().exchange(request, ListTimeLogEntriesResponse::class.java)
+                }
+
+            // Then: Request is rejected with 401
+            assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+        }
+
+        @Test
+        fun `should reject invalid time range`() {
+            // When: Providing invalid time range (startTimeFrom after startTimeTo)
+            val baseTime = timeService.now()
+            val startTimeFrom = baseTime.toString()
+            val startTimeTo = baseTime.minusSeconds(10000).toString()
+            val request =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo")
+                    .bearerAuth(validToken1)
+
+            val exception =
+                assertThrows(HttpClientResponseException::class.java) {
+                    client.toBlocking().exchange(request, ListTimeLogEntriesResponse::class.java)
+                }
+
+            // Then: Request is rejected with 400
+            assertEquals(HttpStatus.BAD_REQUEST, exception.status)
+        }
+
+        @Test
+        fun `should reject equal start and end times`() {
+            // When: Providing equal start and end times
+            val baseTime = timeService.now()
+            val timestamp = baseTime.toString()
+            val request =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries?startTimeFrom=$timestamp&startTimeTo=$timestamp")
+                    .bearerAuth(validToken1)
+
+            val exception =
+                assertThrows(HttpClientResponseException::class.java) {
+                    client.toBlocking().exchange(request, ListTimeLogEntriesResponse::class.java)
+                }
+
+            // Then: Request is rejected with 400
+            assertEquals(HttpStatus.BAD_REQUEST, exception.status)
+        }
+
+        @Test
+        fun `should respect max page size limit`() {
+            // Given: User has many entries
+            val baseTime = timeService.now()
+            testDatabaseSupport.inTransaction {
+                for (i in 1..600) {
+                    timeLogEntryRepository.save(
+                        TimeLogEntry(
+                            startTime = baseTime.minusSeconds(i * 10L),
+                            endTime = baseTime.minusSeconds(i * 10L - 5),
+                            title = "Entry $i",
+                            ownerId = testUser1.id!!,
+                        ),
+                    )
+                }
+            }
+
+            // When: Requesting with pageSize > 500
+            val startTimeFrom = baseTime.minusSeconds(10000).toString()
+            val startTimeTo = baseTime.toString()
+            val exception =
+                assertThrows(HttpClientResponseException::class.java) {
+                    val request =
+                        HttpRequest
+                            .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&pageSize=501")
+                            .bearerAuth(validToken1)
+                    client.toBlocking().exchange(request, ListTimeLogEntriesResponse::class.java)
+                }
+
+            // Then: Request is rejected with 400 (validation error)
+            assertEquals(HttpStatus.BAD_REQUEST, exception.status)
+        }
+
+        @Test
+        fun `should allow max page size of 500`() {
+            // Given: User has many entries
+            val baseTime = timeService.now()
+            testDatabaseSupport.inTransaction {
+                for (i in 1..600) {
+                    timeLogEntryRepository.save(
+                        TimeLogEntry(
+                            startTime = baseTime.minusSeconds(i * 10L),
+                            endTime = baseTime.minusSeconds(i * 10L - 5),
+                            title = "Entry $i",
+                            ownerId = testUser1.id!!,
+                        ),
+                    )
+                }
+            }
+
+            // When: Requesting with pageSize = 500
+            val startTimeFrom = baseTime.minusSeconds(10000).toString()
+            val startTimeTo = baseTime.toString()
+            val request =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&pageSize=500")
+                    .bearerAuth(validToken1)
+
+            val response = client.toBlocking().exchange(request, ListTimeLogEntriesResponse::class.java)
+
+            // Then: Request succeeds with 500 entries
+            assertEquals(HttpStatus.OK, response.status)
+            val body = response.body()!!
+            assertEquals(600, body.totalElements)
+            assertEquals(0, body.page)
+            assertEquals(500, body.size)
+            assertEquals(500, body.entries.size)
+        }
+
+        @Test
+        fun `should include active entries without end time`() {
+            // Given: User has active and stopped entries
+            val baseTime = timeService.now()
+            testDatabaseSupport.inTransaction {
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = baseTime.minusSeconds(3600),
+                        endTime = baseTime.minusSeconds(1800),
+                        title = "Stopped Entry",
+                        ownerId = testUser1.id!!,
+                    ),
+                )
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = baseTime.minusSeconds(1800),
+                        endTime = null,
+                        title = "Active Entry",
+                        ownerId = testUser1.id!!,
+                    ),
+                )
+            }
+
+            // When: Listing entries
+            val startTimeFrom = baseTime.minusSeconds(10000).toString()
+            val startTimeTo = baseTime.toString()
+            val request =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo")
+                    .bearerAuth(validToken1)
+
+            val response = client.toBlocking().exchange(request, ListTimeLogEntriesResponse::class.java)
+
+            // Then: Both entries are included
+            assertEquals(HttpStatus.OK, response.status)
+            val body = response.body()!!
+            assertEquals(2, body.totalElements)
+            assertEquals(2, body.entries.size)
+
+            // Active entry should be first (newer start time)
+            assertEquals("Active Entry", body.entries[0].title)
+            assertNull(body.entries[0].endTime)
+            assertEquals("Stopped Entry", body.entries[1].title)
+            assertNotNull(body.entries[1].endTime)
+        }
+
+        @Test
+        fun `should use default page size when not specified`() {
+            // Given: User has entries
+            val baseTime = timeService.now()
+            testDatabaseSupport.inTransaction {
+                for (i in 1..5) {
+                    timeLogEntryRepository.save(
+                        TimeLogEntry(
+                            startTime = baseTime.minusSeconds(i * 600L),
+                            endTime = baseTime.minusSeconds(i * 600L - 300),
+                            title = "Entry $i",
+                            ownerId = testUser1.id!!,
+                        ),
+                    )
+                }
+            }
+
+            // When: Listing entries without size parameter
+            val startTimeFrom = baseTime.minusSeconds(10000).toString()
+            val startTimeTo = baseTime.toString()
+            val request =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo")
+                    .bearerAuth(validToken1)
+
+            val response = client.toBlocking().exchange(request, ListTimeLogEntriesResponse::class.java)
+
+            // Then: Default size of 100 is used
+            assertEquals(HttpStatus.OK, response.status)
+            val body = response.body()!!
+            assertEquals(100, body.size)
+            assertEquals(5, body.totalElements)
         }
     }
 }

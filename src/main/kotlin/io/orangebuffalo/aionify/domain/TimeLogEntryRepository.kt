@@ -21,6 +21,40 @@ interface TimeLogEntryRepository : CrudRepository<TimeLogEntry, Long> {
     ): List<TimeLogEntry>
 
     /**
+     * Find all log entries for a specific owner within a time range with pagination, ordered by start time descending.
+     */
+    @Query(
+        """SELECT * FROM time_log_entry
+           WHERE owner_id = :ownerId
+           AND start_time >= :startTimeFrom
+           AND start_time < :startTimeTo
+           ORDER BY start_time DESC
+           LIMIT :limit OFFSET :offset""",
+    )
+    fun findByOwnerIdAndTimeRangeWithPagination(
+        ownerId: Long,
+        startTimeFrom: Instant,
+        startTimeTo: Instant,
+        limit: Int,
+        offset: Int,
+    ): List<TimeLogEntry>
+
+    /**
+     * Count all log entries for a specific owner within a time range.
+     */
+    @Query(
+        """SELECT COUNT(*) FROM time_log_entry
+           WHERE owner_id = :ownerId
+           AND start_time >= :startTimeFrom
+           AND start_time < :startTimeTo""",
+    )
+    fun countByOwnerIdAndTimeRange(
+        ownerId: Long,
+        startTimeFrom: Instant,
+        startTimeTo: Instant,
+    ): Long
+
+    /**
      * Find the active log entry (with null endTime) for a specific owner.
      */
     fun findByOwnerIdAndEndTimeIsNull(ownerId: Long): Optional<TimeLogEntry>
