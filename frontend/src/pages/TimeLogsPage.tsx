@@ -69,7 +69,6 @@ export function TimeLogsPage() {
         setEntries(entriesResponse.entries || []);
         setActiveEntry(activeEntryResponse.entry ?? null);
         setHasDataLoaded(true);
-        abortControllerRef.current = null;
       }
     } catch (err: any) {
       // Ignore abort errors - they're expected when a new request cancels the old one
@@ -84,6 +83,10 @@ export function TimeLogsPage() {
         setError(err.message || t("common.error"));
       }
     } finally {
+      // Clean up controller if this request is still the current one
+      if (abortControllerRef.current === abortController) {
+        abortControllerRef.current = null;
+      }
       if (isInitialLoad) {
         setIsInitializing(false);
       }
