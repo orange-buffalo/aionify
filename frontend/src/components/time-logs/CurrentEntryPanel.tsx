@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play, Square } from "lucide-react";
-import { formatDateTime, formatDate } from "@/lib/date-format";
+import { formatDateTime } from "@/lib/date-format";
 import { DurationDisplay } from "./DurationDisplay";
 import { TagSelector } from "./TagSelector";
 import { EntryAutocomplete } from "./EntryAutocomplete";
@@ -62,21 +62,10 @@ export function CurrentEntryPanel({
     });
   };
 
-  // Determine header title based on active entry state
-  const getHeaderTitle = () => {
-    if (activeEntry) {
-      return t("timeLogs.currentEntry.workingOnTitle");
-    } else {
-      // Show today's date when no active entry
-      const today = new Date();
-      return formatDate(today.toISOString(), locale);
-    }
-  };
-
   return (
     <Card className="mb-6 border-none shadow-md" data-testid="current-entry-panel">
       <CardHeader>
-        <CardTitle className="text-foreground">{getHeaderTitle()}</CardTitle>
+        <CardTitle className="text-foreground">{t("timeLogs.currentEntry.title")}</CardTitle>
       </CardHeader>
       <CardContent>
         {startFormMessage}
