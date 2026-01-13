@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { PortalLayout } from "@/components/layout/PortalLayout";
 import { FormMessage } from "@/components/ui/form-message";
@@ -21,6 +21,7 @@ export function TimeLogsPage() {
   const [error, setError] = useState<string | null>(null);
   const [userLocale, setUserLocale] = useState<string | null>(null);
   const [startOfWeek, setStartOfWeek] = useState<number>(1); // Default to Monday
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Update browser tab title based on active entry
   useDocumentTitle(activeEntry?.title || null);
@@ -28,6 +29,15 @@ export function TimeLogsPage() {
   // Load both time entries and active entry for the current date range
   async function loadData() {
     if (!dateRange) return;
+
+    // Cancel any pending reload request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create a new AbortController for this request
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
     // Only show loading state on initial load, not on reloads (e.g., after edits)
     const isInitialLoad = !hasDataLoaded;
@@ -48,15 +58,25 @@ export function TimeLogsPage() {
       // Execute both API calls in parallel under the same error handling
       const [entriesResponse, activeEntryResponse] = await Promise.all([
         apiGet<{ entries: TimeLogEntry[] }>(
-          `/api-ui/time-log-entries?startTime=${encodeURIComponent(startTimeStr)}&endTime=${encodeURIComponent(endTimeStr)}`
+          `/api-ui/time-log-entries?startTime=${encodeURIComponent(startTimeStr)}&endTime=${encodeURIComponent(endTimeStr)}`,
+          abortController.signal
         ),
-        apiGet<{ entry?: TimeLogEntry | null }>("/api-ui/time-log-entries/active"),
+        apiGet<{ entry?: TimeLogEntry | null }>("/api-ui/time-log-entries/active", abortController.signal),
       ]);
 
-      setEntries(entriesResponse.entries || []);
-      setActiveEntry(activeEntryResponse.entry ?? null);
-      setHasDataLoaded(true);
+      // Only update state if this request wasn't cancelled
+      if (!abortController.signal.aborted) {
+        setEntries(entriesResponse.entries || []);
+        setActiveEntry(activeEntryResponse.entry ?? null);
+        setHasDataLoaded(true);
+        abortControllerRef.current = null;
+      }
     } catch (err: any) {
+      // Ignore abort errors - they're expected when a new request cancels the old one
+      if (err.name === "AbortError") {
+        return;
+      }
+
       const errorCode = err.errorCode;
       if (errorCode) {
         setError(t(`errorCodes.${errorCode}`));

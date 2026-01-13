@@ -49,9 +49,11 @@ export async function apiRequest<T>(url: string, options: RequestInit = {}): Pro
 
 /**
  * GET request helper
+ * @param url URL to fetch
+ * @param signal Optional AbortSignal to cancel the request
  */
-export async function apiGet<T>(url: string): Promise<T> {
-  return apiRequest<T>(url);
+export async function apiGet<T>(url: string, signal?: AbortSignal): Promise<T> {
+  return apiRequest<T>(url, { signal });
 }
 
 /**
