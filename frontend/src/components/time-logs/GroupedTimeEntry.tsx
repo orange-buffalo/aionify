@@ -2,9 +2,9 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Play, Pencil } from "lucide-react";
+import { Play } from "lucide-react";
 import { formatTime } from "@/lib/date-format";
-import { apiPost, apiPut, apiPatch } from "@/lib/api";
+import { apiPost, apiPatch } from "@/lib/api";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
 import { InlineTitleEdit } from "./InlineTitleEdit";
 import { InlineTagsEdit } from "./InlineTagsEdit";
@@ -12,7 +12,6 @@ import { TotalDurationDisplay } from "./TotalDurationDisplay";
 import type { EntryOverlap } from "@/lib/overlap-detection";
 import type { GroupedTimeLogEntry, TimeLogEntry, TimeEntry } from "@/components/time-logs/types";
 import { TimeEntry as TimeEntryComponent } from "./TimeEntry";
-import { EditGroupedEntryForm } from "./EditGroupedEntryForm";
 
 interface GroupedTimeEntryProps {
   groupedEntry: GroupedTimeLogEntry;
@@ -25,43 +24,12 @@ interface GroupedTimeEntryProps {
 export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChange, overlaps }: GroupedTimeEntryProps) {
   const { t } = useTranslation();
   const { executeApiCall: executeContinueCall, apiCallInProgress: isContinuing } = useApiExecutor("continue-entry");
-  const { executeApiCall: executeGroupEditCall, apiCallInProgress: isSavingGroup } =
-    useApiExecutor("edit-grouped-entry");
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isEditingGroup, setIsEditingGroup] = useState(false);
-  const [editTitle, setEditTitle] = useState(groupedEntry.title);
-  const [editTags, setEditTags] = useState<string[]>(groupedEntry.tags || []);
 
   const endTimeDisplay = groupedEntry.endTime ? formatTime(groupedEntry.endTime, locale) : t("timeLogs.inProgress");
 
   // Use the first entry for the continue action
   const firstEntry = groupedEntry.entries[0];
-
-  const handleEditClick = () => {
-    setEditTitle(groupedEntry.title);
-    setEditTags(groupedEntry.tags || []);
-    setIsEditingGroup(true);
-  };
-
-  const handleSaveGroupEdit = async () => {
-    if (!editTitle.trim()) return;
-    await executeGroupEditCall(async () => {
-      const entryIds = groupedEntry.entries.map((e) => e.id);
-      await apiPut(`/api-ui/time-log-entries/bulk-update`, {
-        entryIds,
-        title: editTitle.trim(),
-        tags: editTags,
-      });
-      await onDataChange();
-      setIsEditingGroup(false);
-    });
-  };
-
-  const handleCancelGroupEdit = () => {
-    setEditTitle(groupedEntry.title);
-    setEditTags(groupedEntry.tags || []);
-    setIsEditingGroup(false);
-  };
 
   const handleContinue = async () => {
     await executeContinueCall(async () => {
@@ -91,20 +59,6 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
     });
     await onDataChange();
   };
-
-  if (isEditingGroup) {
-    return (
-      <EditGroupedEntryForm
-        title={editTitle}
-        tags={editTags}
-        isSaving={isSavingGroup}
-        onTitleChange={setEditTitle}
-        onTagsChange={setEditTags}
-        onSave={handleSaveGroupEdit}
-        onCancel={handleCancelGroupEdit}
-      />
-    );
-  }
 
   return (
     <div data-testid="grouped-time-entry">
@@ -179,16 +133,6 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
               title={t("timeLogs.startFromEntry")}
             >
               <Play className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleEditClick}
-              data-testid="edit-grouped-entry-button"
-              className="text-foreground"
-              title={t("timeLogs.edit")}
-            >
-              <Pencil className="h-4 w-4" />
             </Button>
           </div>
         </div>
