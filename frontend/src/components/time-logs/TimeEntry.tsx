@@ -18,6 +18,7 @@ import { EditEntryForm } from "./EditEntryForm";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 import { InlineTitleEdit } from "./InlineTitleEdit";
 import { InlineTimeEdit } from "./InlineTimeEdit";
+import { InlineTagsEdit } from "./InlineTagsEdit";
 import { DurationDisplay } from "./DurationDisplay";
 import type { EntryOverlap } from "@/lib/overlap-detection";
 import type { TimeLogEntry, TimeEntry } from "./types";
@@ -141,6 +142,13 @@ export function TimeEntry({
     await onDataChange();
   };
 
+  const handleInlineTagsUpdate = async (newTags: string[]) => {
+    await apiPatch<TimeEntry>(`/api-ui/time-log-entries/${entry.id}/tags`, {
+      tags: newTags,
+    });
+    await onDataChange();
+  };
+
   // Check if entry spans to a different day
   const spansDifferentDay = entry.endTime && isDifferentDay(entry.startTime, entry.endTime);
   const endTimeDisplay = entry.endTime
@@ -246,6 +254,11 @@ export function TimeEntry({
           <DurationDisplay startTime={entry.startTime} endTime={entry.endTime} />
         </div>
         <div className="flex items-center gap-2">
+          <InlineTagsEdit
+            currentTags={entry.tags || []}
+            onSave={handleInlineTagsUpdate}
+            testIdPrefix="time-entry-inline-tags"
+          />
           {!hideContinue && (
             <Button
               variant="ghost"
