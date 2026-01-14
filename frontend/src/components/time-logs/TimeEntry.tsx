@@ -9,12 +9,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Play, MoreVertical, Trash2, Pencil, AlertCircle } from "lucide-react";
+import { Play, MoreVertical, Trash2, AlertCircle } from "lucide-react";
 import { formatTime, formatTimeWithWeekday, formatDate } from "@/lib/date-format";
 import { isDifferentDay } from "@/lib/time-utils";
-import { apiDelete, apiPost, apiPut, apiPatch } from "@/lib/api";
+import { apiDelete, apiPost, apiPatch } from "@/lib/api";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
-import { EditEntryForm } from "./EditEntryForm";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 import { InlineTitleEdit } from "./InlineTitleEdit";
 import { InlineTimeEdit } from "./InlineTimeEdit";
@@ -51,56 +50,9 @@ export function TimeEntry({
     formMessage: deleteFormMessage,
   } = useApiExecutor("delete-entry");
   const { executeApiCall: executeContinueCall, apiCallInProgress: isContinuing } = useApiExecutor("continue-entry");
-  const {
-    executeApiCall: executeEditCall,
-    apiCallInProgress: isSaving,
-    formMessage: editFormMessage,
-  } = useApiExecutor("edit-stopped-entry");
-
-  const [isEditing, setIsEditing] = useState(false);
-  const [editTitle, setEditTitle] = useState(entry.title);
-  const [editStartDateTime, setEditStartDateTime] = useState<Date>(new Date(entry.startTime));
-  const [editEndDateTime, setEditEndDateTime] = useState<Date>(new Date(entry.endTime || new Date()));
-  const [editTags, setEditTags] = useState<string[]>(entry.tags || []);
 
   // Deletion state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
-  const handleEditClick = () => {
-    setEditTitle(entry.title);
-    setEditStartDateTime(new Date(entry.startTime));
-    setEditEndDateTime(new Date(entry.endTime || new Date()));
-    setEditTags(entry.tags || []);
-    setIsEditing(true);
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editTitle.trim()) return;
-    await executeEditCall(async () => {
-      const startTimeISO = editStartDateTime.toISOString();
-      const endTimeISO = editEndDateTime.toISOString();
-      await apiPut<TimeEntry>(`/api-ui/time-log-entries/${entry.id}`, {
-        title: editTitle.trim(),
-        startTime: startTimeISO,
-        endTime: endTimeISO,
-        tags: editTags,
-      });
-      await onDataChange();
-      setIsEditing(false);
-    });
-  };
-
-  const handleCancelEdit = () => {
-    setEditTitle(entry.title);
-    setEditStartDateTime(new Date(entry.startTime));
-    setEditEndDateTime(new Date(entry.endTime || new Date()));
-    setEditTags(entry.tags || []);
-    setIsEditing(false);
-  };
-
-  const handleDeleteClick = () => {
-    setDeleteDialogOpen(true);
-  };
 
   const handleDelete = async () => {
     await executeDeleteCall(async () => {
@@ -156,30 +108,6 @@ export function TimeEntry({
       ? formatTimeWithWeekday(entry.endTime, locale)
       : formatTime(entry.endTime, locale)
     : t("timeLogs.inProgress");
-
-  if (isEditing) {
-    return (
-      <div className="p-3 border border-border rounded-md" data-testid="time-entry-edit">
-        {editFormMessage}
-        <EditEntryForm
-          title={editTitle}
-          startDateTime={editStartDateTime}
-          endDateTime={editEndDateTime}
-          locale={locale}
-          startOfWeek={startOfWeek}
-          isSaving={isSaving}
-          tags={editTags}
-          onTitleChange={setEditTitle}
-          onStartDateTimeChange={setEditStartDateTime}
-          onEndDateTimeChange={setEditEndDateTime}
-          onTagsChange={setEditTags}
-          onSave={handleSaveEdit}
-          onCancel={handleCancelEdit}
-          testIdPrefix="stopped-entry-edit"
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="flex items-center justify-between p-3 border border-border rounded-md" data-testid="time-entry">
@@ -279,14 +207,8 @@ export function TimeEntry({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="dark" align="end">
-              {entry.endTime && (
-                <DropdownMenuItem onClick={handleEditClick} data-testid="edit-menu-item">
-                  <Pencil className="h-4 w-4 mr-2" />
-                  {t("timeLogs.edit")}
-                </DropdownMenuItem>
-              )}
               <DropdownMenuItem
-                onClick={handleDeleteClick}
+                onClick={() => setDeleteDialogOpen(true)}
                 data-testid="delete-menu-item"
                 className="text-destructive focus:text-destructive"
               >

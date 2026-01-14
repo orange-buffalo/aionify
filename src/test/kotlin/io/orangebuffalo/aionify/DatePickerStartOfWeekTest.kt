@@ -12,7 +12,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 /**
- * Tests for date picker respecting user's start of week preference.
+ * Tests for inline calendar respecting user's start of week preference.
  * Verifies that the calendar grid starts on the configured day of the week.
  */
 @MicronautTest(transactional = false)
@@ -35,7 +35,7 @@ class DatePickerStartOfWeekTest : PlaywrightTestBase() {
         testDatabaseSupport.insert(UserSettings.create(userId = requireNotNull(regularUser.id)))
         timeLogsPage = TimeLogsPageObject(page)
 
-        // Create a time entry so we can test editing and opening date picker
+        // Create a time entry so we can test inline editing and opening calendar
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = baseTime.withLocalTime("02:00"),
@@ -50,18 +50,18 @@ class DatePickerStartOfWeekTest : PlaywrightTestBase() {
     fun `date picker calendar should start week on Monday by default`() {
         loginViaToken("/portal/time-logs", regularUser, testAuthSupport)
 
-        // Click edit on the entry to open the edit form with date picker
-        timeLogsPage.clickEditForEntry("Test Entry")
+        // Click on the start time to open inline time editor with calendar
+        page.locator("[data-testid='time-entry-inline-start-time-trigger']").first().click()
 
-        // Click on the date picker to open the calendar
-        page.locator("[data-testid='stopped-entry-edit-date-input']").click()
+        // Wait for popover to be visible
+        assertThat(page.locator("[data-testid='time-entry-inline-start-time-popover']")).isVisible()
 
-        // Wait for calendar to be visible
-        val calendar = page.locator("[data-testid='calendar']")
+        // Wait for calendar grid to be visible
+        val calendar = page.locator("[data-testid='time-entry-inline-start-time-grid']")
         assertThat(calendar).isVisible()
 
         // Get the day name headers in the calendar
-        val dayHeaders = page.locator("[data-testid='calendar'] thead th")
+        val dayHeaders = calendar.locator("thead th")
 
         // Verify the first day is Monday (MON)
         assertThat(dayHeaders.first()).containsText("MON")
@@ -80,18 +80,18 @@ class DatePickerStartOfWeekTest : PlaywrightTestBase() {
 
         loginViaToken("/portal/time-logs", regularUser, testAuthSupport)
 
-        // Click edit on the entry to open the edit form with date picker
-        timeLogsPage.clickEditForEntry("Test Entry")
+        // Click on the start time to open inline time editor with calendar
+        page.locator("[data-testid='time-entry-inline-start-time-trigger']").first().click()
 
-        // Click on the date picker to open the calendar
-        page.locator("[data-testid='stopped-entry-edit-date-input']").click()
+        // Wait for popover to be visible
+        assertThat(page.locator("[data-testid='time-entry-inline-start-time-popover']")).isVisible()
 
-        // Wait for calendar to be visible
-        val calendar = page.locator("[data-testid='calendar']")
+        // Wait for calendar grid to be visible
+        val calendar = page.locator("[data-testid='time-entry-inline-start-time-grid']")
         assertThat(calendar).isVisible()
 
         // Get the day name headers in the calendar
-        val dayHeaders = page.locator("[data-testid='calendar'] thead th")
+        val dayHeaders = calendar.locator("thead th")
 
         // Verify the first day is Sunday (SUN)
         assertThat(dayHeaders.first()).containsText("SUN")
@@ -110,18 +110,18 @@ class DatePickerStartOfWeekTest : PlaywrightTestBase() {
 
         loginViaToken("/portal/time-logs", regularUser, testAuthSupport)
 
-        // Click edit on the entry to open the edit form with date picker
-        timeLogsPage.clickEditForEntry("Test Entry")
+        // Click on the start time to open inline time editor with calendar
+        page.locator("[data-testid='time-entry-inline-start-time-trigger']").first().click()
 
-        // Click on the date picker to open the calendar
-        page.locator("[data-testid='stopped-entry-edit-date-input']").click()
+        // Wait for popover to be visible
+        assertThat(page.locator("[data-testid='time-entry-inline-start-time-popover']")).isVisible()
 
-        // Wait for calendar to be visible
-        val calendar = page.locator("[data-testid='calendar']")
+        // Wait for calendar grid to be visible
+        val calendar = page.locator("[data-testid='time-entry-inline-start-time-grid']")
         assertThat(calendar).isVisible()
 
         // Get the day name headers in the calendar
-        val dayHeaders = page.locator("[data-testid='calendar'] thead th")
+        val dayHeaders = calendar.locator("thead th")
 
         // Verify the first day is Saturday (SAT)
         assertThat(dayHeaders.first()).containsText("SAT")
@@ -140,18 +140,18 @@ class DatePickerStartOfWeekTest : PlaywrightTestBase() {
 
         loginViaToken("/portal/time-logs", regularUser, testAuthSupport)
 
-        // Click edit on the entry to open the edit form with date picker
-        timeLogsPage.clickEditForEntry("Test Entry")
+        // Click on the start time to open inline time editor with calendar
+        page.locator("[data-testid='time-entry-inline-start-time-trigger']").first().click()
 
-        // Click on the date picker to open the calendar
-        page.locator("[data-testid='stopped-entry-edit-date-input']").click()
+        // Wait for popover to be visible
+        assertThat(page.locator("[data-testid='time-entry-inline-start-time-popover']")).isVisible()
 
-        // Wait for calendar to be visible
-        val calendar = page.locator("[data-testid='calendar']")
+        // Wait for calendar grid to be visible
+        val calendar = page.locator("[data-testid='time-entry-inline-start-time-grid']")
         assertThat(calendar).isVisible()
 
         // Get the day name headers in the calendar
-        val dayHeaders = page.locator("[data-testid='calendar'] thead th")
+        val dayHeaders = calendar.locator("thead th")
 
         // Verify the first day is Wednesday (WED)
         assertThat(dayHeaders.first()).containsText("WED")

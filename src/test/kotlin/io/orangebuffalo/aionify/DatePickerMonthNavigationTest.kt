@@ -12,7 +12,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 /**
- * Tests for date picker month navigation.
+ * Tests for inline calendar month navigation.
  * Verifies that when navigating to different months, only the actual selected date is highlighted,
  * not the same day number in other months.
  */
@@ -49,19 +49,20 @@ class DatePickerMonthNavigationTest : PlaywrightTestBase() {
     fun `should only highlight the actual selected date when navigating months`() {
         loginViaToken("/portal/time-logs", regularUser, testAuthSupport)
 
-        // Click edit on the entry to open the edit form with date picker
-        timeLogsPage.clickEditForEntry("Test Entry")
+        // Click on the start time to open inline time editor with calendar
+        page.locator("[data-testid='time-entry-inline-start-time-trigger']").first().click()
 
-        // Click on the date picker to open the calendar
-        page.locator("[data-testid='stopped-entry-edit-date-input']").click()
+        // Wait for popover to be visible
+        assertThat(page.locator("[data-testid='time-entry-inline-start-time-popover']")).isVisible()
 
-        // Wait for calendar to be visible
-        val calendar = page.locator("[data-testid='calendar']")
+        // Wait for calendar grid to be visible
+        val calendar = page.locator("[data-testid='time-entry-inline-start-time-grid']")
         assertThat(calendar).isVisible()
 
         // The entry is on March 15, 2024, so we should see March 2024 in the calendar
         // and day 15 should be highlighted
-        assertThat(page.locator("[data-testid='calendar']")).containsText("March 2024")
+        val popover = page.locator("[data-testid='time-entry-inline-start-time-popover']")
+        assertThat(popover).containsText("March 2024")
 
         // Check that day 15 in March has the selected styling (bg-primary class)
         // Get all buttons with text "15" in the calendar
@@ -77,11 +78,11 @@ class DatePickerMonthNavigationTest : PlaywrightTestBase() {
         }
         assertTrue(foundSelected, "Day 15 should be highlighted in March 2024")
 
-        // Navigate to the next month (April 2024)
-        page.locator("[data-testid='calendar'] button:has-text('›')").click()
+        // Navigate to the next month (April 2024) - click the › button in the popover
+        popover.locator("button:has-text('›')").click()
 
         // Calendar should now show April 2024
-        assertThat(page.locator("[data-testid='calendar']")).containsText("April 2024")
+        assertThat(popover).containsText("April 2024")
 
         // In April, day 15 should NOT be highlighted because the actual selected date is March 15
         // Check that no day 15 in April has the selected styling
@@ -98,10 +99,10 @@ class DatePickerMonthNavigationTest : PlaywrightTestBase() {
         assertFalse(foundSelectedInApril, "Day 15 should NOT be highlighted in April 2024")
 
         // Navigate to the previous month (back to March 2024)
-        page.locator("[data-testid='calendar'] button:has-text('‹')").click()
+        popover.locator("button:has-text('‹')").click()
 
         // Calendar should show March 2024 again
-        assertThat(page.locator("[data-testid='calendar']")).containsText("March 2024")
+        assertThat(popover).containsText("March 2024")
 
         // Day 15 should be highlighted again in March
         val day15BackInMarch = calendar.locator("button:has-text('15')")
@@ -116,11 +117,11 @@ class DatePickerMonthNavigationTest : PlaywrightTestBase() {
         assertTrue(foundSelectedBackInMarch, "Day 15 should be highlighted in March 2024 after navigating back")
 
         // Navigate two months back to January 2024
-        page.locator("[data-testid='calendar'] button:has-text('‹')").click() // Feb
-        page.locator("[data-testid='calendar'] button:has-text('‹')").click() // Jan
+        popover.locator("button:has-text('‹')").click() // Feb
+        popover.locator("button:has-text('‹')").click() // Jan
 
         // Calendar should show January 2024
-        assertThat(page.locator("[data-testid='calendar']")).containsText("January 2024")
+        assertThat(popover).containsText("January 2024")
 
         // In January, day 15 should NOT be highlighted because the actual selected date is March 15
         val day15InJanuary = calendar.locator("button:has-text('15')")

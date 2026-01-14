@@ -172,6 +172,7 @@ const resources = {
         yesterday: "Yesterday",
         currentEntry: {
           title: "What are you working on?",
+          workingOnTitle: "Currently working on",
           placeholder: "Enter log entry description...",
           edit: "Edit",
           save: "Save",
@@ -586,6 +587,7 @@ const resources = {
         yesterday: "Вчора",
         currentEntry: {
           title: "Над чим ви працюєте?",
+          workingOnTitle: "Зараз працюємо над",
           placeholder: "Введіть опис запису...",
           edit: "Редагувати",
           save: "Зберегти",

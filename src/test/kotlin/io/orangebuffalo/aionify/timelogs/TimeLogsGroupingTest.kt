@@ -535,7 +535,7 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
     }
 
     @Test
-    fun `should allow editing and deleting individual entries in expanded grouped view`() {
+    fun `should allow deleting individual entries in expanded grouped view`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
         val baseTime = setBaseTime("2024-03-16", "03:30")
 
@@ -570,8 +570,7 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         val expandedEntries = page.locator("[data-testid='grouped-entries-expanded']").locator("[data-testid='time-entry']")
         expandedEntries.first().locator("[data-testid='entry-menu-button']").click()
 
-        // Verify edit and delete options are available
-        assertThat(page.locator("[data-testid='edit-menu-item']")).isVisible()
+        // Verify delete option is available (edit menu item was removed with form-based editing)
         assertThat(page.locator("[data-testid='delete-menu-item']")).isVisible()
 
         // Click delete

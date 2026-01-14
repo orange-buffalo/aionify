@@ -87,33 +87,7 @@ sealed class CurrentEntryState {
         val stopButtonVisible: Boolean = true,
         val inputVisible: Boolean = false,
         val startButtonVisible: Boolean = false,
-        val editMode: EditModeState = EditModeState.NotEditing,
     ) : CurrentEntryState()
-}
-
-/**
- * Edit mode state for active entry.
- */
-sealed class EditModeState {
-    /**
-     * Not in edit mode - showing view mode with edit button.
-     *
-     * Business invariant: edit button is always visible in view mode.
-     */
-    object NotEditing : EditModeState()
-
-    /**
-     * In edit mode - showing edit form with save/cancel buttons.
-     *
-     * Business invariants:
-     * - Cancel button is always visible
-     */
-    data class Editing(
-        val titleValue: String,
-        val dateValue: String, // Locale-formatted date display value
-        val timeValue: String, // Locale-formatted time display value
-        val saveButtonEnabled: Boolean = true,
-    ) : EditModeState()
 }
 
 /**
@@ -231,11 +205,6 @@ class TimeLogsPageObject(
                 // Business invariant: Active timer and stop button must always be hidden in NoActiveEntry state
                 assertThat(page.locator("[data-testid='active-timer']")).not().isVisible()
                 assertThat(page.locator("[data-testid='stop-button']")).not().isVisible()
-                // Edit mode elements must be hidden
-                assertThat(page.locator("[data-testid='edit-entry-button']")).not().isVisible()
-                assertThat(page.locator("[data-testid='edit-title-input']")).not().isVisible()
-                assertThat(page.locator("[data-testid='edit-date-trigger']")).not().isVisible()
-                assertThat(page.locator("[data-testid='edit-time-input']")).not().isVisible()
             }
 
             is CurrentEntryState.ActiveEntry -> {
@@ -243,71 +212,21 @@ class TimeLogsPageObject(
                 assertThat(page.locator("[data-testid='new-entry-input']")).not().isVisible()
                 assertThat(page.locator("[data-testid='start-button']")).not().isVisible()
 
-                // Assert edit mode state
-                when (currentEntry.editMode) {
-                    is EditModeState.NotEditing -> {
-                        // View mode: show title, startedAt, edit button, timer, and stop button
-                        assertThat(page.locator("[data-testid='current-entry-panel']").locator("text=${currentEntry.title}")).isVisible()
+                // View mode: show title, startedAt, timer, and stop button
+                assertThat(page.locator("[data-testid='current-entry-panel']").locator("text=${currentEntry.title}")).isVisible()
 
-                        // startedAt is always present (business invariant)
-                        assertThat(page.locator("[data-testid='active-entry-started-at']")).isVisible()
-                        assertThat(page.locator("[data-testid='active-entry-started-at']")).containsText(currentEntry.startedAt)
+                // startedAt is always present (business invariant)
+                assertThat(page.locator("[data-testid='active-entry-started-at']")).isVisible()
+                assertThat(page.locator("[data-testid='active-entry-started-at']")).containsText(currentEntry.startedAt)
 
-                        // Edit button is always visible in view mode (business invariant)
-                        assertThat(page.locator("[data-testid='edit-entry-button']")).isVisible()
+                // Timer and stop button visible in view mode
+                assertThat(page.locator("[data-testid='active-timer']")).isVisible()
+                assertThat(page.locator("[data-testid='active-timer']")).hasText(currentEntry.duration)
 
-                        // Timer and stop button visible in view mode
-                        assertThat(page.locator("[data-testid='active-timer']")).isVisible()
-                        assertThat(page.locator("[data-testid='active-timer']")).hasText(currentEntry.duration)
-
-                        if (currentEntry.stopButtonVisible) {
-                            assertThat(page.locator("[data-testid='stop-button']")).isVisible()
-                        } else {
-                            assertThat(page.locator("[data-testid='stop-button']")).not().isVisible()
-                        }
-
-                        // Edit inputs must be hidden in view mode
-                        assertThat(page.locator("[data-testid='edit-title-input']")).not().isVisible()
-                        assertThat(page.locator("[data-testid='edit-date-trigger']")).not().isVisible()
-                        assertThat(page.locator("[data-testid='edit-time-input']")).not().isVisible()
-                        assertThat(page.locator("[data-testid='save-edit-button']")).not().isVisible()
-                        assertThat(page.locator("[data-testid='cancel-edit-button']")).not().isVisible()
-                    }
-
-                    is EditModeState.Editing -> {
-                        // Edit mode: show edit form, timer/stop button NOT visible
-                        val editMode = currentEntry.editMode
-
-                        // Title input
-                        assertThat(page.locator("[data-testid='edit-title-input']")).isVisible()
-                        assertThat(page.locator("[data-testid='edit-title-input']")).hasValue(editMode.titleValue)
-
-                        // Date picker input - check value
-                        val dateInput = page.locator("[data-testid='edit-date-input']")
-                        assertThat(dateInput).isVisible()
-                        assertThat(dateInput).hasValue(editMode.dateValue)
-
-                        // Time picker input - check value
-                        val timeInput = page.locator("[data-testid='edit-time-input']")
-                        assertThat(timeInput).isVisible()
-                        assertThat(timeInput).hasValue(editMode.timeValue)
-
-                        // Save button
-                        assertThat(page.locator("[data-testid='save-edit-button']")).isVisible()
-                        if (editMode.saveButtonEnabled) {
-                            assertThat(page.locator("[data-testid='save-edit-button']")).isEnabled()
-                        } else {
-                            assertThat(page.locator("[data-testid='save-edit-button']")).isDisabled()
-                        }
-
-                        // Cancel button is always visible (business invariant)
-                        assertThat(page.locator("[data-testid='cancel-edit-button']")).isVisible()
-
-                        // View mode elements must be hidden in edit mode
-                        assertThat(page.locator("[data-testid='edit-entry-button']")).not().isVisible()
-                        assertThat(page.locator("[data-testid='active-timer']")).not().isVisible()
-                        assertThat(page.locator("[data-testid='stop-button']")).not().isVisible()
-                    }
+                if (currentEntry.stopButtonVisible) {
+                    assertThat(page.locator("[data-testid='stop-button']")).isVisible()
+                } else {
+                    assertThat(page.locator("[data-testid='stop-button']")).not().isVisible()
                 }
             }
         }
@@ -647,286 +566,6 @@ class TimeLogsPageObject(
      */
     fun advanceClock(milliseconds: Long) {
         page.clock().runFor(milliseconds)
-    }
-
-    /**
-     * Clicks the edit button for the active entry.
-     */
-    fun clickEditEntry() {
-        page.locator("[data-testid='edit-entry-button']").click()
-    }
-
-    private var editDateValue: String = "2024-03-15"
-    private var editTimeValue: String = "00:00"
-
-    /**
-     * Fills the edit title input with the given title.
-     */
-    fun fillEditTitle(title: String) {
-        page.locator("[data-testid='edit-title-input']").fill(title)
-    }
-
-    /**
-     * Sets the edit date/time using the separate DatePicker and TimePicker.
-     * @param date in format "YYYY-MM-DD" (e.g., "2024-03-15")
-     * @param time in format "HH:mm" (e.g., "14:30")
-     */
-    fun fillEditDateTime(
-        date: String,
-        time: String,
-    ) {
-        // Click the date trigger button to open the date picker popover
-        val dateTrigger = page.locator("[data-testid='edit-date-trigger']")
-        dateTrigger.click()
-
-        // Wait for popover to appear
-        page.locator("[role='dialog']").waitFor()
-
-        // Parse the date to get the day we need to click
-        val dateParts = date.split("-")
-        val targetDay = dateParts[2].toInt()
-
-        // Click on the day button in the calendar grid
-        // Find button with exact text matching the day number
-        // Clicking the day now automatically applies and closes the popover
-        val popover = page.locator("[role='dialog']")
-        popover
-            .locator("button")
-            .locator("text=$targetDay")
-            .first()
-            .click()
-
-        // Wait for popover to close
-        page
-            .locator(
-                "[role='dialog']",
-            ).waitFor(
-                com.microsoft.playwright.Locator
-                    .WaitForOptions()
-                    .setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN),
-            )
-
-        // Fill in the time input
-        val (hours, minutes) = time.split(":")
-        val timeInput = page.locator("[data-testid='edit-time-input']")
-
-        // Use 24-hour format which is now accepted by both locale formats
-        val timeStr = "${hours.padStart(2, '0')}:$minutes"
-
-        // Use fill() to set the value
-        timeInput.fill(timeStr)
-    }
-
-    /**
-     * Fills the edit date input (convenience method for backwards compatibility).
-     * Stores the date value to be combined with time when applied.
-     * @param date in format "YYYY-MM-DD" (e.g., "2024-03-15")
-     */
-    fun fillEditDate(date: String) {
-        editDateValue = date
-    }
-
-    /**
-     * Fills the edit time input (convenience method for backwards compatibility).
-     * Stores the time value to be combined with date when applied.
-     * @param time in format "HH:mm" (e.g., "14:30")
-     */
-    fun fillEditTime(time: String) {
-        editTimeValue = time
-        // Apply the combined date and time
-        fillEditDateTime(editDateValue, time)
-        // Reset for next use
-        editDateValue = "2024-03-15"
-        editTimeValue = "00:00"
-    }
-
-    /**
-     * Clicks the save button to save the edited entry.
-     */
-    fun clickSaveEdit() {
-        page.locator("[data-testid='save-edit-button']").click()
-    }
-
-    /**
-     * Clicks the cancel button to discard changes.
-     */
-    fun clickCancelEdit() {
-        page.locator("[data-testid='cancel-edit-button']").click()
-    }
-
-    // Helper functions for editing stopped entries
-
-    fun clickEditForEntry(entryTitle: String) {
-        // Find the entry with the title and click the menu button
-        val entryLocator = page.locator("[data-testid='time-entry']:has-text('$entryTitle')")
-        entryLocator.locator("[data-testid='entry-menu-button']").click()
-
-        // Click the edit menu item
-        page.locator("[data-testid='edit-menu-item']").click()
-    }
-
-    fun fillStoppedEntryEditTitle(title: String) {
-        val input = page.locator("[data-testid='stopped-entry-edit-title-input']")
-        input.fill(title)
-    }
-
-    fun fillStoppedEntryEditStartDate(date: String) {
-        // Format: YYYY-MM-DD
-        // Click the date trigger button to open the date picker popover
-        val dateTrigger = page.locator("[data-testid='stopped-entry-edit-date-trigger']")
-        dateTrigger.click()
-
-        // Wait for popover to appear
-        page.locator("[role='dialog']").waitFor()
-
-        // Parse the date to get the day we need to click
-        val dateParts = date.split("-")
-        val targetDay = dateParts[2].toInt()
-
-        // Click on the day button in the calendar grid
-        val popover = page.locator("[role='dialog']")
-        popover
-            .locator("button")
-            .locator("text=$targetDay")
-            .first()
-            .click()
-
-        // Wait for popover to close
-        page
-            .locator(
-                "[role='dialog']",
-            ).waitFor(
-                com.microsoft.playwright.Locator
-                    .WaitForOptions()
-                    .setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN),
-            )
-    }
-
-    fun fillStoppedEntryEditStartTime(time: String) {
-        // Format: HH:MM (24-hour format)
-        val input = page.locator("[data-testid='stopped-entry-edit-time-input']")
-        input.fill(time)
-    }
-
-    fun fillStoppedEntryEditEndDate(date: String) {
-        // Format: YYYY-MM-DD
-        // Click the date trigger button to open the date picker popover
-        val dateTrigger = page.locator("[data-testid='stopped-entry-edit-end-date-trigger']")
-        dateTrigger.click()
-
-        // Wait for popover to appear
-        page.locator("[role='dialog']").waitFor()
-
-        // Parse the date to get the day we need to click
-        val dateParts = date.split("-")
-        val targetDay = dateParts[2].toInt()
-
-        // Click on the day button in the calendar grid
-        val popover = page.locator("[role='dialog']")
-        popover
-            .locator("button")
-            .locator("text=$targetDay")
-            .first()
-            .click()
-
-        // Wait for popover to close
-        page
-            .locator(
-                "[role='dialog']",
-            ).waitFor(
-                com.microsoft.playwright.Locator
-                    .WaitForOptions()
-                    .setState(com.microsoft.playwright.options.WaitForSelectorState.HIDDEN),
-            )
-    }
-
-    fun fillStoppedEntryEditEndTime(time: String) {
-        // Format: HH:MM (24-hour format)
-        val input = page.locator("[data-testid='stopped-entry-edit-end-time-input']")
-        input.fill(time)
-    }
-
-    fun clickSaveStoppedEntryEdit() {
-        page.locator("[data-testid='save-stopped-entry-edit-button']").click()
-    }
-
-    fun clickCancelStoppedEntryEdit() {
-        page.locator("[data-testid='cancel-stopped-entry-edit-button']").click()
-    }
-
-    /**
-     * Asserts that the stopped entry edit form is visible with all expected controls.
-     * This verifies:
-     * - Edit container is visible
-     * - Title input is visible
-     * - Start date input is visible
-     * - Start time input is visible
-     * - End date input is visible
-     * - End time input is visible
-     * - Save button is visible
-     * - Cancel button is visible
-     */
-    fun assertStoppedEntryEditVisible() {
-        assertThat(page.locator("[data-testid='time-entry-edit']")).isVisible()
-        assertThat(page.locator("[data-testid='stopped-entry-edit-title-input']")).isVisible()
-        assertThat(page.locator("[data-testid='stopped-entry-edit-date-input']")).isVisible()
-        assertThat(page.locator("[data-testid='stopped-entry-edit-time-input']")).isVisible()
-        assertThat(page.locator("[data-testid='stopped-entry-edit-end-date-input']")).isVisible()
-        assertThat(page.locator("[data-testid='stopped-entry-edit-end-time-input']")).isVisible()
-        assertThat(page.locator("[data-testid='save-stopped-entry-edit-button']")).isVisible()
-        assertThat(page.locator("[data-testid='cancel-stopped-entry-edit-button']")).isVisible()
-    }
-
-    /**
-     * Asserts that the stopped entry edit form is hidden with all controls not visible.
-     */
-    fun assertStoppedEntryEditHidden() {
-        assertThat(page.locator("[data-testid='time-entry-edit']")).not().isVisible()
-        assertThat(page.locator("[data-testid='stopped-entry-edit-title-input']")).not().isVisible()
-        assertThat(page.locator("[data-testid='stopped-entry-edit-date-input']")).not().isVisible()
-        assertThat(page.locator("[data-testid='stopped-entry-edit-time-input']")).not().isVisible()
-        assertThat(page.locator("[data-testid='stopped-entry-edit-end-date-input']")).not().isVisible()
-        assertThat(page.locator("[data-testid='stopped-entry-edit-end-time-input']")).not().isVisible()
-        assertThat(page.locator("[data-testid='save-stopped-entry-edit-button']")).not().isVisible()
-        assertThat(page.locator("[data-testid='cancel-stopped-entry-edit-button']")).not().isVisible()
-    }
-
-    /**
-     * Asserts that the stopped entry edit form has the expected values loaded.
-     * @param expectedTitle Expected value in title input
-     * @param expectedStartDate Expected value in start date input (locale-formatted)
-     * @param expectedStartTime Expected value in start time input (locale-formatted)
-     * @param expectedEndDate Expected value in end date input (locale-formatted)
-     * @param expectedEndTime Expected value in end time input (locale-formatted)
-     */
-    fun assertStoppedEntryEditValues(
-        expectedTitle: String,
-        expectedStartDate: String,
-        expectedStartTime: String,
-        expectedEndDate: String,
-        expectedEndTime: String,
-    ) {
-        assertThat(page.locator("[data-testid='stopped-entry-edit-title-input']")).hasValue(expectedTitle)
-        assertThat(page.locator("[data-testid='stopped-entry-edit-date-input']")).hasValue(expectedStartDate)
-        assertThat(page.locator("[data-testid='stopped-entry-edit-time-input']")).hasValue(expectedStartTime)
-        assertThat(page.locator("[data-testid='stopped-entry-edit-end-date-input']")).hasValue(expectedEndDate)
-        assertThat(page.locator("[data-testid='stopped-entry-edit-end-time-input']")).hasValue(expectedEndTime)
-    }
-
-    // Tag selector interaction methods
-
-    /**
-     * Clicks the tag selector button for active entry editing.
-     */
-    fun clickEditTagsButton() {
-        page.locator("[data-testid='edit-tags-button']").click()
-    }
-
-    /**
-     * Clicks the tag selector button for stopped entry editing.
-     */
-    fun clickStoppedEntryEditTagsButton() {
-        page.locator("[data-testid='stopped-entry-edit-tags-button']").click()
     }
 
     /**

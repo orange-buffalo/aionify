@@ -85,18 +85,17 @@ class TimeLogsLocaleTest : TimeLogsPageTestBase() {
         assertThat(dayTitleLocator).isVisible()
         assertThat(dayTitleLocator).hasText(testCase.expectedDayTitle)
 
-        // Click edit button to test datetime picker with the locale
-        timeLogsPage.clickEditEntry()
+        // Test inline editing - verify time picker input uses locale format
+        // Click on the start time of the active entry to open the inline time editor
+        page.locator("[data-testid='time-entry-inline-start-time-trigger']").first().click()
 
-        // Verify edit mode date input uses locale format
-        val dateInput = page.locator("[data-testid='edit-date-input']")
-        assertThat(dateInput).isVisible()
-        assertThat(dateInput).hasValue(testCase.expectedEditDateValue)
-
-        // Verify edit mode time input uses locale format
-        val timeInput = page.locator("[data-testid='edit-time-input']")
+        // Verify the time input in the popover uses locale format
+        val timeInput = page.locator("[data-testid='time-entry-inline-start-time-time-input']")
         assertThat(timeInput).isVisible()
-        assertThat(timeInput).hasValue(testCase.expectedEditTimeValue)
+        assertThat(timeInput).hasValue(testCase.expectedInlineEditTimeValue)
+
+        // Close the popover by pressing Escape
+        page.keyboard().press("Escape")
     }
 
     companion object {
@@ -115,8 +114,7 @@ class TimeLogsLocaleTest : TimeLogsPageTestBase() {
                     expectedCompletedTimeRangeText = "12:30 PM - 01:00 PM", // 12:30 - 13:00 in 12-hour format
                     expectedWeekRangeText = "Mar 11 - Mar 17",
                     expectedDayTitle = "Today",
-                    expectedEditDateValue = "Mar 16, 2024",
-                    expectedEditTimeValue = "02:00 PM",
+                    expectedInlineEditTimeValue = "02:00 PM", // 14:00 in 12-hour format in time picker
                 ),
                 // UK locale - 24-hour format
                 LocaleTestCase(
@@ -130,8 +128,7 @@ class TimeLogsLocaleTest : TimeLogsPageTestBase() {
                     expectedCompletedTimeRangeText = "12:30 - 13:00", // 12:30 - 13:00 in 24-hour format
                     expectedWeekRangeText = "11 Mar - 17 Mar",
                     expectedDayTitle = "Today",
-                    expectedEditDateValue = "16 Mar 2024",
-                    expectedEditTimeValue = "14:00",
+                    expectedInlineEditTimeValue = "14:00", // 14:00 in 24-hour format in time picker
                 ),
                 // Ukrainian locale - 24-hour format
                 LocaleTestCase(
@@ -145,8 +142,7 @@ class TimeLogsLocaleTest : TimeLogsPageTestBase() {
                     expectedCompletedTimeRangeText = "12:30 - 13:00", // 12:30 - 13:00 in 24-hour format
                     expectedWeekRangeText = "11 бер. - 17 бер.",
                     expectedDayTitle = "Сьогодні",
-                    expectedEditDateValue = "16 бер. 2024 р.",
-                    expectedEditTimeValue = "14:00",
+                    expectedInlineEditTimeValue = "14:00", // 14:00 in 24-hour format in time picker
                 ),
             )
     }
@@ -162,7 +158,6 @@ class TimeLogsLocaleTest : TimeLogsPageTestBase() {
         val expectedCompletedTimeRangeText: String,
         val expectedWeekRangeText: String,
         val expectedDayTitle: String,
-        val expectedEditDateValue: String,
-        val expectedEditTimeValue: String,
+        val expectedInlineEditTimeValue: String,
     )
 }
