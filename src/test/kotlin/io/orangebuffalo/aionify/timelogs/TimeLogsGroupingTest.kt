@@ -587,4 +587,81 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         assertThat(page.locator("[data-testid='grouped-time-entry']")).not().isVisible()
         assertThat(page.locator("[data-testid='time-entry']")).hasCount(1)
     }
+
+    @Test
+    fun `should position grouped entries by latest start time`() {
+        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+
+        // Create a grouped entry with early start times (01:30 and 02:00)
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = baseTime.withLocalTime("01:30"), // 2 hours ago (13:30)
+                endTime = baseTime.withLocalTime("01:45"), // 1h 45m ago (13:45)
+                title = "Group A",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("backend"),
+            ),
+        )
+
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = baseTime.withLocalTime("02:00"), // 1.5 hours ago (14:00)
+                endTime = baseTime.withLocalTime("02:15"), // 1h 15m ago (14:15)
+                title = "Group A",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("backend"),
+            ),
+        )
+
+        // Create a single entry that starts between the two grouped entries (01:45)
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = baseTime.withLocalTime("01:45"), // 1h 45m ago (13:45)
+                endTime = baseTime.withLocalTime("02:00"), // 1.5 hours ago (14:00)
+                title = "Single Entry",
+                ownerId = requireNotNull(testUser.id),
+                tags = arrayOf("frontend"),
+            ),
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        // Verify the order of entries in the day group
+        // With latest start time positioning:
+        // 1. Group A (positioned at 02:00 - latest start time)
+        // 2. Single Entry (positioned at 01:45)
+        val expectedState =
+            TimeLogsPageState(
+                currentEntry = CurrentEntryState.NoActiveEntry(),
+                weekNavigation = WeekNavigationState(weekRange = "11 Mar - 17 Mar", weeklyTotal = "00:45:00"),
+                dayGroups =
+                    listOf(
+                        DayGroupState(
+                            displayTitle = "Today",
+                            totalDuration = "00:45:00",
+                            entries =
+                                listOf(
+                                    // Group A appears first (positioned at 02:00 - latest start time)
+                                    EntryState(
+                                        title = "Group A",
+                                        timeRange = "01:30 - 02:15", // Display shows earliest to latest
+                                        duration = "00:30:00",
+                                        tags = listOf("backend"),
+                                        isGrouped = true,
+                                        groupCount = 2,
+                                    ),
+                                    // Single Entry appears second (positioned at 01:45)
+                                    EntryState(
+                                        title = "Single Entry",
+                                        timeRange = "01:45 - 02:00",
+                                        duration = "00:15:00",
+                                        tags = listOf("frontend"),
+                                    ),
+                                ),
+                        ),
+                    ),
+            )
+        timeLogsPage.assertPageState(expectedState)
+    }
 }

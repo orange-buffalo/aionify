@@ -12,8 +12,10 @@ export interface GroupedTimeLogEntry {
   tags: string[];
   /** All entries in this group */
   entries: TimeLogEntry[];
-  /** Earliest start time among all entries */
+  /** Latest start time among all entries (used for group positioning) */
   startTime: string;
+  /** Earliest start time among all entries (used for display) */
+  earliestStartTime: string;
   /** Latest end time among all entries (null if any entry is active) */
   endTime: string | null;
   /** Sum of durations of all entries in milliseconds */
@@ -63,8 +65,13 @@ export function groupEntriesByTitleAndTags(entries: TimeLogEntry[]): (TimeLogEnt
         (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
       );
 
-      // Find earliest start time
-      const startTime = sortedEntries.reduce((earliest, entry) => {
+      // Find latest start time for group positioning
+      const startTime = sortedEntries.reduce((latest, entry) => {
+        return new Date(entry.startTime) > new Date(latest) ? entry.startTime : latest;
+      }, sortedEntries[0].startTime);
+
+      // Find earliest start time for display
+      const earliestStartTime = sortedEntries.reduce((earliest, entry) => {
         return new Date(entry.startTime) < new Date(earliest) ? entry.startTime : earliest;
       }, sortedEntries[0].startTime);
 
@@ -98,6 +105,7 @@ export function groupEntriesByTitleAndTags(entries: TimeLogEntry[]): (TimeLogEnt
         tags: [...(sortedEntries[0].tags || [])].sort(),
         entries: sortedEntries,
         startTime,
+        earliestStartTime,
         endTime,
         totalDuration,
       });

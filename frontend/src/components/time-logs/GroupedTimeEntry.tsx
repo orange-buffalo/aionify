@@ -111,7 +111,7 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2 text-muted-foreground" data-testid="entry-time-range">
             <span>
-              {formatTime(groupedEntry.startTime, locale)} - {endTimeDisplay}
+              {formatTime(groupedEntry.earliestStartTime, locale)} - {endTimeDisplay}
             </span>
           </div>
           <div className="font-mono font-semibold text-foreground min-w-[70px] text-right" data-testid="entry-duration">
