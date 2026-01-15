@@ -179,6 +179,9 @@ export function TimeLogsPage() {
           />
 
           {/* Time Entries List */}
+          {/* Note: Using ref value in JSX is safe here because loadData() always updates
+              entries/activeEntry state after setting isInitialLoadRef.current = false,
+              which triggers a re-render showing the updated ref value */}
           {isInitialLoadRef.current ? (
             <div className="text-center py-8 text-foreground">{t("common.loading")}</div>
           ) : (
