@@ -16,12 +16,11 @@ export function TimeLogsPage() {
   const [activeEntry, setActiveEntry] = useState<TimeEntry | null>(null);
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | null>(null);
   const [entries, setEntries] = useState<TimeEntry[]>([]);
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [hasDataLoaded, setHasDataLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userLocale, setUserLocale] = useState<string | null>(null);
   const [startOfWeek, setStartOfWeek] = useState<number>(1); // Default to Monday
   const abortControllerRef = useRef<AbortController | null>(null);
+  const isInitialLoadRef = useRef(true);
 
   // Update browser tab title based on active entry
   useDocumentTitle(activeEntry?.title || null);
@@ -39,12 +38,7 @@ export function TimeLogsPage() {
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
 
-    // Only show loading state on initial load, not on reloads (e.g., after edits)
-    const isInitialLoad = !hasDataLoaded;
     try {
-      if (isInitialLoad) {
-        setIsInitializing(true);
-      }
       setError(null);
 
       const startTime = new Date(dateRange.from);
@@ -68,7 +62,8 @@ export function TimeLogsPage() {
       if (!abortController.signal.aborted) {
         setEntries(entriesResponse.entries || []);
         setActiveEntry(activeEntryResponse.entry ?? null);
-        setHasDataLoaded(true);
+        // Mark that initial load is complete
+        isInitialLoadRef.current = false;
       }
     } catch (err: any) {
       // Ignore abort errors - they're expected when a new request cancels the old one
@@ -86,9 +81,6 @@ export function TimeLogsPage() {
       // Clean up controller if this request is still the current one
       if (abortControllerRef.current === abortController) {
         abortControllerRef.current = null;
-      }
-      if (isInitialLoad) {
-        setIsInitializing(false);
       }
     }
   }
@@ -115,8 +107,8 @@ export function TimeLogsPage() {
   // Update the displayed data time range
   const updateDisplayedDataTimeRange = useCallback((from: Date, to: Date) => {
     setDateRange({ from, to });
-    // Reset the loaded flag when range changes to show loading state
-    setHasDataLoaded(false);
+    // Reset the initial load flag when range changes to show loading state
+    isInitialLoadRef.current = true;
   }, []);
 
   // Load data when date range changes
@@ -187,7 +179,7 @@ export function TimeLogsPage() {
           />
 
           {/* Time Entries List */}
-          {isInitializing ? (
+          {isInitialLoadRef.current ? (
             <div className="text-center py-8 text-foreground">{t("common.loading")}</div>
           ) : (
             <DayGroups
