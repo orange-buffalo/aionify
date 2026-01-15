@@ -26,7 +26,7 @@ export function TimeLogsPage() {
   useDocumentTitle(activeEntry?.title || null);
 
   // Load both time entries and active entry for the current date range
-  const loadData = useCallback(async () => {
+  async function loadData() {
     if (!dateRange) return;
 
     // Cancel any pending reload request
@@ -83,7 +83,7 @@ export function TimeLogsPage() {
         abortControllerRef.current = null;
       }
     }
-  }, [dateRange, t]);
+  }
 
   // Handle SSE events for time log entry changes
   const handleTimeLogEvent = useCallback(
@@ -93,7 +93,7 @@ export function TimeLogsPage() {
       // Reload both active entry and time entries to get the latest state
       await loadData();
     },
-    [loadData]
+    [dateRange, t]
   );
 
   // Subscribe to SSE events for real-time updates
@@ -102,7 +102,7 @@ export function TimeLogsPage() {
   // Reload data (this is called by components after they make changes)
   const reloadData = useCallback(async () => {
     await loadData();
-  }, [loadData]);
+  }, [dateRange, t]);
 
   // Update the displayed data time range
   const updateDisplayedDataTimeRange = useCallback((from: Date, to: Date) => {
@@ -116,7 +116,7 @@ export function TimeLogsPage() {
     if (dateRange) {
       loadData();
     }
-  }, [dateRange, loadData]);
+  }, [dateRange]);
 
   // Load user's locale and start of week preference on mount
   useEffect(() => {
