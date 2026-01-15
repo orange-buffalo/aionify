@@ -100,9 +100,9 @@ export function TimeLogsPage() {
   useTimeLogEntryEvents(handleTimeLogEvent, true);
 
   // Reload data (this is called by components after they make changes)
-  async function reloadData() {
+  const reloadData = useCallback(async () => {
     await loadData();
-  }
+  }, [loadData]);
 
   // Update the displayed data time range
   const updateDisplayedDataTimeRange = useCallback((from: Date, to: Date) => {
@@ -179,9 +179,14 @@ export function TimeLogsPage() {
           />
 
           {/* Time Entries List */}
-          {/* Note: Using ref value in JSX is safe here because loadData() always updates
-              entries/activeEntry state after setting isInitialLoadRef.current = false,
-              which triggers a re-render showing the updated ref value */}
+          {/* 
+            Note: Using ref value in JSX is safe here because:
+            1. loadData() ALWAYS updates entries/activeEntry state after setting isInitialLoadRef.current = false (line 66)
+            2. These state updates (setEntries/setActiveEntry) trigger a re-render
+            3. When the component re-renders, it reads the updated ref value and shows DayGroups instead of loading
+            4. The ref prevents unnecessary re-renders on updates (vs state) while still showing the correct UI
+               because we piggyback on other state updates that happen at the same time
+          */}
           {isInitialLoadRef.current ? (
             <div className="text-center py-8 text-foreground">{t("common.loading")}</div>
           ) : (
