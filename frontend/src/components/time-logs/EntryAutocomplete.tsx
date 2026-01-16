@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Loader } from "@/components/ui/loader";
 import { apiGet } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -170,7 +171,7 @@ export function EntryAutocomplete({
           data-testid="autocomplete-popover"
         >
           {loading ? (
-            <div className="text-center py-2 text-sm text-muted-foreground">Loading...</div>
+            <Loader className="py-2" size="sm" />
           ) : showNoResults ? (
             <div className="text-center py-2 text-sm text-muted-foreground" data-testid="autocomplete-no-results">
               No matching entries found

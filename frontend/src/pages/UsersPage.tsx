@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import { PortalLayout } from "@/components/layout/PortalLayout";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Loader } from "@/components/ui/loader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
@@ -123,9 +124,7 @@ export function UsersPage() {
           )}
 
           {loading ? (
-            <div className="text-center py-8 text-foreground" data-testid="users-loading">
-              {t("common.loading")}
-            </div>
+            <Loader className="py-8" testId="users-loading" />
           ) : (
             <>
               <Card className="border-none shadow-md" data-testid="users-table-container">
