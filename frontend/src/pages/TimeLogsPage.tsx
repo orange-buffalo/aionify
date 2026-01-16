@@ -29,7 +29,7 @@ export function TimeLogsPage() {
   const loadData = useCallback(async () => {
     if (!dateRange) return;
 
-    // Cancel any pending reload request
+    // Cancel any pending data request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
