@@ -16,21 +16,20 @@ export function TimeLogsPage() {
   const [activeEntry, setActiveEntry] = useState<TimeEntry | null>(null);
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | null>(null);
   const [entries, setEntries] = useState<TimeEntry[]>([]);
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [hasDataLoaded, setHasDataLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userLocale, setUserLocale] = useState<string | null>(null);
   const [startOfWeek, setStartOfWeek] = useState<number>(1); // Default to Monday
   const abortControllerRef = useRef<AbortController | null>(null);
+  const isInitialLoadRef = useRef(true);
 
   // Update browser tab title based on active entry
   useDocumentTitle(activeEntry?.title || null);
 
   // Load both time entries and active entry for the current date range
-  async function loadData() {
+  const loadData = useCallback(async () => {
     if (!dateRange) return;
 
-    // Cancel any pending reload request
+    // Cancel any pending data request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -39,12 +38,7 @@ export function TimeLogsPage() {
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
 
-    // Only show loading state on initial load, not on reloads (e.g., after edits)
-    const isInitialLoad = !hasDataLoaded;
     try {
-      if (isInitialLoad) {
-        setIsInitializing(true);
-      }
       setError(null);
 
       const startTime = new Date(dateRange.from);
@@ -68,7 +62,8 @@ export function TimeLogsPage() {
       if (!abortController.signal.aborted) {
         setEntries(entriesResponse.entries || []);
         setActiveEntry(activeEntryResponse.entry ?? null);
-        setHasDataLoaded(true);
+        // Mark that initial load is complete
+        isInitialLoadRef.current = false;
       }
     } catch (err: any) {
       // Ignore abort errors - they're expected when a new request cancels the old one
@@ -87,11 +82,8 @@ export function TimeLogsPage() {
       if (abortControllerRef.current === abortController) {
         abortControllerRef.current = null;
       }
-      if (isInitialLoad) {
-        setIsInitializing(false);
-      }
     }
-  }
+  }, [dateRange, t]);
 
   // Handle SSE events for time log entry changes
   const handleTimeLogEvent = useCallback(
@@ -101,22 +93,17 @@ export function TimeLogsPage() {
       // Reload both active entry and time entries to get the latest state
       await loadData();
     },
-    [dateRange] // Depend on dateRange so we reload the correct range
+    [loadData]
   );
 
   // Subscribe to SSE events for real-time updates
   useTimeLogEntryEvents(handleTimeLogEvent, true);
 
-  // Reload data (this is called by components after they make changes)
-  async function reloadData() {
-    await loadData();
-  }
-
   // Update the displayed data time range
   const updateDisplayedDataTimeRange = useCallback((from: Date, to: Date) => {
     setDateRange({ from, to });
-    // Reset the loaded flag when range changes to show loading state
-    setHasDataLoaded(false);
+    // Reset the initial load flag when range changes to show loading state
+    isInitialLoadRef.current = true;
   }, []);
 
   // Load data when date range changes
@@ -124,7 +111,7 @@ export function TimeLogsPage() {
     if (dateRange) {
       loadData();
     }
-  }, [dateRange]);
+  }, [dateRange, loadData]);
 
   // Load user's locale and start of week preference on mount
   useEffect(() => {
@@ -174,7 +161,7 @@ export function TimeLogsPage() {
             locale={locale}
             startOfWeek={startOfWeek}
             isEditingStoppedEntry={false}
-            onDataChange={reloadData}
+            onDataChange={loadData}
           />
 
           {/* Week Navigation */}
@@ -187,7 +174,15 @@ export function TimeLogsPage() {
           />
 
           {/* Time Entries List */}
-          {isInitializing ? (
+          {/* 
+            Note: Using ref value in JSX is safe here because:
+            1. loadData() ALWAYS updates entries/activeEntry state after setting isInitialLoadRef.current = false (line 66)
+            2. These state updates (setEntries/setActiveEntry) trigger a re-render
+            3. When the component re-renders, it reads the updated ref value and shows DayGroups instead of loading
+            4. The ref prevents unnecessary re-renders on updates (vs state) while still showing the correct UI
+               because we piggyback on other state updates that happen at the same time
+          */}
+          {isInitialLoadRef.current ? (
             <div className="text-center py-8 text-foreground">{t("common.loading")}</div>
           ) : (
             <DayGroups
@@ -195,7 +190,7 @@ export function TimeLogsPage() {
               activeEntry={activeEntry}
               locale={locale}
               startOfWeek={startOfWeek}
-              onDataChange={reloadData}
+              onDataChange={loadData}
             />
           )}
 
