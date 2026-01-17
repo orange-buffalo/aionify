@@ -271,5 +271,30 @@ class TimeLogsAutocompleteTest : TimeLogsPageTestBase() {
         // Should show "no results" message
         val noResults = page.locator("[data-testid='autocomplete-no-results']")
         assertThat(noResults).isVisible()
+        assertThat(noResults).hasText("No matching entries found")
+    }
+
+    @Test
+    fun `should show no results message in Ukrainian when language is Ukrainian`() {
+        // Switch to Ukrainian language
+        page.evaluate("localStorage.setItem('aionify_language', 'uk')")
+        page.reload()
+
+        // Wait for page to load
+        val timeLogsTitle = page.locator("[data-testid='time-logs-title']")
+        assertThat(timeLogsTitle).hasText("Журнал часу")
+
+        // Type something that doesn't match
+        val input = page.locator("[data-testid='new-entry-input']")
+        input.fill("xyz123")
+
+        // Popover should appear with no results message in Ukrainian
+        val popover = page.locator("[data-testid='autocomplete-popover']")
+        assertThat(popover).isVisible()
+
+        // Should show Ukrainian "no results" message
+        val noResults = page.locator("[data-testid='autocomplete-no-results']")
+        assertThat(noResults).isVisible()
+        assertThat(noResults).hasText("Відповідних записів не знайдено")
     }
 }

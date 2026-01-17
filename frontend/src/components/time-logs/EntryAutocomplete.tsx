@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Loader } from "@/components/ui/loader";
@@ -33,6 +34,7 @@ export function EntryAutocomplete({
   disabled = false,
   testId = "new-entry-input",
 }: EntryAutocompleteProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<AutocompleteEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -174,7 +176,7 @@ export function EntryAutocomplete({
             <Loader className="py-2" size="sm" />
           ) : showNoResults ? (
             <div className="text-center py-2 text-sm text-muted-foreground" data-testid="autocomplete-no-results">
-              No matching entries found
+              {t("timeLogs.autocomplete.noResults")}
             </div>
           ) : (
             <div className="space-y-1">
