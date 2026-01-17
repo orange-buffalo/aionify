@@ -233,6 +233,9 @@ const resources = {
           mustBeAfter: "Time must be after start time",
           mustBeBefore: "Time must be before end time",
         },
+        autocomplete: {
+          noResults: "No matching entries found",
+        },
       },
       // Portal Pages
       portal: {
@@ -647,6 +650,9 @@ const resources = {
         validation: {
           mustBeAfter: "Час має бути після часу початку",
           mustBeBefore: "Час має бути перед часом закінчення",
+        },
+        autocomplete: {
+          noResults: "Відповідних записів не знайдено",
         },
       },
       // Portal Pages
