@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Loader } from "@/components/ui/loader";
 import { apiGet, apiPost, apiPut, apiRequest } from "@/lib/api";
 import { Eye, Copy } from "lucide-react";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
@@ -118,9 +119,7 @@ export function ApiAccessTokenPanel() {
       </CardHeader>
       <CardContent>
         {!initialDataLoaded ? (
-          <div className="text-center py-8 text-foreground" data-testid="api-token-loading">
-            {t("common.loading")}
-          </div>
+          <Loader className="py-8" testId="api-token-loading" />
         ) : (
           <>
             <div className="mb-4">{formMessage}</div>

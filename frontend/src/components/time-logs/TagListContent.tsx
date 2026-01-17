@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Loader } from "@/components/ui/loader";
 import { Plus } from "lucide-react";
 import { apiGet } from "@/lib/api";
 
@@ -145,12 +146,7 @@ export function TagListContent({
       {/* Tags list */}
       <div className="max-h-64 overflow-y-auto">
         {loading ? (
-          <div
-            className="text-center py-4 text-sm text-muted-foreground text-foreground"
-            data-testid={`${testIdPrefix}-loading`}
-          >
-            {t("common.loading")}
-          </div>
+          <Loader className="py-4" size="sm" testId={`${testIdPrefix}-loading`} />
         ) : availableTags.length === 0 ? (
           <div
             className="text-center py-4 text-sm text-muted-foreground text-foreground"

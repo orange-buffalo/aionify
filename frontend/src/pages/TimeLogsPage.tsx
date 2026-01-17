@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { PortalLayout } from "@/components/layout/PortalLayout";
 import { FormMessage } from "@/components/ui/form-message";
+import { Loader } from "@/components/ui/loader";
 import { CurrentEntryPanel } from "@/components/time-logs/CurrentEntryPanel";
 import { WeekNavigation } from "@/components/time-logs/WeekNavigation";
 import { DayGroups } from "@/components/time-logs/DayGroups";
@@ -130,7 +131,7 @@ export function TimeLogsPage() {
       <PortalLayout testId="time-logs-page">
         <div className="p-8">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center py-8 text-foreground">{t("common.loading")}</div>
+            <Loader className="py-8" />
           </div>
         </div>
       </PortalLayout>
@@ -183,7 +184,7 @@ export function TimeLogsPage() {
                because we piggyback on other state updates that happen at the same time
           */}
           {isInitialLoadRef.current ? (
-            <div className="text-center py-8 text-foreground">{t("common.loading")}</div>
+            <Loader className="py-8" />
           ) : (
             <DayGroups
               entries={entries}

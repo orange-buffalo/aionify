@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Loader } from "@/components/ui/loader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -180,9 +181,7 @@ export function SettingsPage() {
                 <div className="mb-4">{tagsFormMessage}</div>
 
                 {!initialDataLoaded ? (
-                  <div className="text-center py-8 text-foreground" data-testid="tags-loading">
-                    {t("common.loading")}
-                  </div>
+                  <Loader className="py-8" testId="tags-loading" />
                 ) : tags.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground" data-testid="tags-empty">
                     {t("settings.tags.noTags")}

@@ -5,6 +5,7 @@ import { PortalLayout } from "@/components/layout/PortalLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Loader } from "@/components/ui/loader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiGet, apiPut, apiPost } from "@/lib/api";
 import { ArrowLeft } from "lucide-react";
@@ -135,9 +136,7 @@ export function EditUserPage() {
           <div className="mb-4">{formMessage}</div>
 
           {!initialDataLoaded ? (
-            <div className="text-center py-8 text-foreground" data-testid="edit-user-loading">
-              {t("common.loading")}
-            </div>
+            <Loader className="py-8" testId="edit-user-loading" />
           ) : user ? (
             <div className="space-y-8">
               {/* Username Form */}
