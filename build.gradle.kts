@@ -350,6 +350,7 @@ jreleaser {
                     contributor("[bot]")
                     contributor("orange-buffalo")
                     contributor("GitHub")
+                    contributor("Copilot")
                 }
             }
         }
