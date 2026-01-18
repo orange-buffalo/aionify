@@ -4,12 +4,11 @@ import io.micronaut.context.annotation.Property
 import io.micronaut.core.order.Ordered
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.MutableHttpResponse
-import io.micronaut.http.annotation.RequestFilter
-import io.micronaut.http.annotation.ServerFilter
-import io.micronaut.http.filter.FilterChain
-import io.micronaut.http.filter.HttpFilter
-import io.micronaut.security.authentication.Authentication
+import io.micronaut.http.annotation.Filter
+import io.micronaut.http.filter.HttpServerFilter
+import io.micronaut.http.filter.ServerFilterChain
 import io.orangebuffalo.aionify.domain.UserRepository
+import org.reactivestreams.Publisher
 import org.slf4j.LoggerFactory
 
 /**
@@ -22,13 +21,14 @@ import org.slf4j.LoggerFactory
  * If successful, it sets the authentication context so the user is automatically
  * logged in without requiring manual login.
  */
-@ServerFilter(patterns = ["/api-ui/**", "/portal/**", "/admin/**"])
+@Filter(patterns = ["/api-ui/**", "/portal/**", "/admin/**"])
 class RememberMeAuthenticationFilter(
     private val rememberMeService: RememberMeService,
     private val userRepository: UserRepository,
     @Property(name = "aionify.auth.remember-me.cookie-name", defaultValue = "aionify_remember_me")
     private val rememberMeCookieName: String,
-) : HttpFilter, Ordered {
+) : HttpServerFilter,
+    Ordered {
     private val log = LoggerFactory.getLogger(RememberMeAuthenticationFilter::class.java)
 
     /**
@@ -37,30 +37,29 @@ class RememberMeAuthenticationFilter(
      */
     override fun getOrder(): Int = Ordered.HIGHEST_PRECEDENCE
 
-    @RequestFilter
-    fun filterRequest(
+    override fun doFilter(
         request: HttpRequest<*>,
-        chain: FilterChain,
-    ): MutableHttpResponse<*>? {
+        chain: ServerFilterChain,
+    ): Publisher<MutableHttpResponse<*>> {
         // Skip if already authenticated via JWT
         val existingAuth = AuthenticationHelper.getAuthenticationOrNull(request)
         if (existingAuth != null) {
             log.trace("Request already authenticated via JWT, skipping remember me")
-            return null // Continue with existing authentication
+            return chain.proceed(request)
         }
 
         // Skip login and logout endpoints to avoid interference
         val path = request.path
         if (path == "/api-ui/auth/login" || path == "/api-ui/auth/logout") {
             log.trace("Skipping remember me for auth endpoint: {}", path)
-            return null
+            return chain.proceed(request)
         }
 
         // Check for remember me cookie
         val rememberMeCookie = request.cookies.get(rememberMeCookieName)
         if (rememberMeCookie == null) {
             log.trace("No remember me cookie found, continuing without authentication")
-            return null
+            return chain.proceed(request)
         }
 
         // Validate remember me token
@@ -70,7 +69,7 @@ class RememberMeAuthenticationFilter(
 
         if (userId == null) {
             log.debug("Invalid or expired remember me token, continuing without authentication")
-            return null
+            return chain.proceed(request)
         }
 
         // Load user from database
@@ -79,19 +78,11 @@ class RememberMeAuthenticationFilter(
             log.warn("Remember me token references non-existent user ID: {}", userId)
             // Invalidate the token since user no longer exists
             rememberMeService.invalidateToken(token)
-            return null
+            return chain.proceed(request)
         }
 
-        // Create authentication and set it on the request
-        val roles = if (user.isAdmin) listOf("admin", "user") else listOf("user")
-        val authentication = Authentication.build(user.userName, roles)
-
-        // We need to set authentication in a way that Micronaut Security will recognize
-        // The proper way is to use SecurityFilter, but since we're a custom filter,
-        // we need to set it via request attributes
-        request.setAttribute("micronaut.security.AUTHENTICATION", authentication)
-
+        // Set authentication on the request
         log.info("User authenticated via remember me token: {}", user.userName)
-        return null // Continue with the request, now authenticated
+        return chain.proceed(AuthenticationHelper.setAuthentication(request, user))
     }
 }

@@ -40,7 +40,7 @@ class RememberMeService(
      *
      * @param userId The ID of the user
      * @param userAgent The user agent string from the request (for additional security)
-     * @return A pair of (token, tokenHash) where token is the plain value to send to client
+     * @return A pair of (token, RememberMeToken) where token is the plain value to send to client
      */
     fun generateToken(
         userId: Long,
@@ -51,8 +51,8 @@ class RememberMeService(
         secureRandom.nextBytes(tokenBytes)
         val token = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes)
 
-        // Hash the token for storage
-        val tokenHash = BCrypt.hashpw(token, BCrypt.gensalt())
+        // Hash the token for storage using SHA-256 for fast lookups
+        val tokenHash = hashTokenForLookup(token)
 
         val now = timeService.now()
         val expiresAt = now.plus(Duration.ofDays(expirationDays.toLong()))
@@ -84,26 +84,7 @@ class RememberMeService(
         userAgent: String?,
     ): Long? {
         try {
-            // Find all tokens and check each one (since we can't query by plain token)
-            // This is necessary because BCrypt hashes are different each time
-            // In practice, we'll need to optimize this by using a lookup table or similar
-            // For now, we'll use a different approach: store a hash that we can look up
-
-            // Actually, we need to rethink this - BCrypt is for passwords where we know the username
-            // For tokens, we should use a different approach: generate a lookup key
-            // Let's use SHA-256 for lookup and BCrypt for validation
-
-            // For simplicity and security, we'll use a single hash approach:
-            // Generate token as: selector:validator
-            // Store hash of validator, use selector for lookup
-
-            // But to keep it simple for now, let's just use BCrypt hash as the identifier
-            // This means we need to store the token differently
-
-            // Actually, the cleanest approach is to make the token itself unique and hashable
-            // Let's use token as-is for lookup (after hashing with a fast hash like SHA-256)
-
-            // For this implementation, we'll hash the token with SHA-256 for lookup
+            // Hash the token with SHA-256 for lookup
             val tokenHash = hashTokenForLookup(token)
 
             val rememberMeToken = rememberMeTokenRepository.findByTokenHash(tokenHash).orElse(null)
