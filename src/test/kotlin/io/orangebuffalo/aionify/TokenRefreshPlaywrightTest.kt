@@ -125,7 +125,7 @@ class TokenRefreshPlaywrightTest : PlaywrightTestBase() {
 
         // When: Navigate to a protected page
         page.navigate("/portal/time-logs")
-        
+
         // Wait for page to load (allows time for background refresh)
         page.waitForLoadState()
 
