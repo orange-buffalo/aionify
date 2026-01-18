@@ -78,9 +78,10 @@ class JwtTokenExpirationTest {
     }
 
     @Test
-    fun `token without expiration should be rejected by validation`() {
-        // This test verifies that our generated tokens always have expiration
-        // The actual rejection of tokens without expiration happens at the Micronaut Security level
+    fun `all generated tokens must have expiration claim`() {
+        // This test verifies that our token generation always includes expiration
+        // Note: Micronaut Security JWT framework validates expiration when present but doesn't
+        // reject tokens without expiration. Our implementation ensures all tokens have expiration.
 
         val user = createTestUser()
         val token = generateTokenForUser(user)

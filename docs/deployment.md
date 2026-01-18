@@ -35,7 +35,7 @@ Configure the application using environment variables:
 | `AIONIFY_DB_USERNAME` | Database username | Yes |
 | `AIONIFY_DB_PASSWORD` | Database password | Yes |
 | `AIONIFY_JWT_SECRET` | Signing secret for JWT (HS256). Must be provided; empty values will cause token generation to fail. Provide a strong base64-encoded secret (32+ bytes / 256 bits) for production. | Yes |
-| `AIONIFY_JWT_EXPIRATION` | JWT token expiration time in seconds. Default is 86400 (24 hours). | No |
+| `AIONIFY_JWT_EXPIRATION_SECONDS` | JWT token expiration time in seconds. Default is 86400 (24 hours). | No |
 
 ### Database URL Format
 
@@ -111,7 +111,7 @@ Aionify uses Flyway for database migrations. Migrations are applied automaticall
 
 Aionify uses JWT (JSON Web Tokens) for authentication. The application requires a valid, non-empty JWT signing secret provided via `AIONIFY_JWT_SECRET`. If the secret is not provided or is empty, token generation and authentication will fail. Ensure `AIONIFY_JWT_SECRET` is set before starting the application in production.
 
-JWT tokens expire after a configurable period (default: 24 hours). You can customize the expiration time by setting `AIONIFY_JWT_EXPIRATION` to the desired number of seconds. For example, set it to `3600` for 1 hour or `604800` for 7 days.
+JWT tokens expire after a configurable period (default: 24 hours). You can customize the expiration time by setting `AIONIFY_JWT_EXPIRATION_SECONDS` to the desired number of seconds. For example, set it to `3600` for 1 hour or `604800` for 7 days.
 
 If you want tokens to remain valid across restarts (or run multiple instances), set `AIONIFY_JWT_SECRET` to a stable, high-entropy secret as described above.
 

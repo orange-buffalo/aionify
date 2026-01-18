@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory
  * Token generation is handled by Micronaut Security JWT library.
  * The signing key is configured in application.yml (JWT_SECRET environment variable or default).
  * Token expiration is configured via micronaut.security.token.jwt.generator.access-token.expiration
- * (AIONIFY_JWT_EXPIRATION environment variable, defaults to 86400 seconds / 24 hours).
+ * (AIONIFY_JWT_EXPIRATION_SECONDS environment variable, defaults to 86400 seconds / 24 hours).
  */
 @Singleton
 class JwtTokenService(
