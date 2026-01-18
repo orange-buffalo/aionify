@@ -59,17 +59,17 @@ class JwtTokenExpirationTest {
         val expirationTime = jwt.jwtClaimsSet.expirationTime
 
         assertNotNull(expirationTime, "Token must have an expiration time")
-        
+
         // Expiration should be in the future
         val now = Date()
         assertTrue(expirationTime.after(now), "Token expiration should be in the future")
-        
+
         // Expiration should be approximately 24 hours from now (default)
         val twentyThreeHours = now.time + (23 * 60 * 60 * 1000)
         val twentyFiveHours = now.time + (25 * 60 * 60 * 1000)
         assertTrue(
             expirationTime.time in twentyThreeHours..twentyFiveHours,
-            "Token expiration should be approximately 24 hours from now"
+            "Token expiration should be approximately 24 hours from now",
         )
     }
 
@@ -78,7 +78,7 @@ class JwtTokenExpirationTest {
         // This test will verify that the JWT validation configuration rejects tokens without expiration
         // For now, we'll just verify that our generated tokens always have expiration
         // The actual rejection happens at the Micronaut Security level
-        
+
         val user =
             testDatabaseSupport.insert(
                 User.create(
@@ -101,7 +101,7 @@ class JwtTokenExpirationTest {
         val jwt = SignedJWT.parse(token)
         assertNotNull(
             jwt.jwtClaimsSet.expirationTime,
-            "All generated tokens must have expiration"
+            "All generated tokens must have expiration",
         )
     }
 }
