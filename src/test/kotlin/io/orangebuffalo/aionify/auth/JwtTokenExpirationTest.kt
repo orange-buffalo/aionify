@@ -31,28 +31,32 @@ class JwtTokenExpirationTest {
         testDatabaseSupport.truncateAllTables()
     }
 
+    private fun createTestUser(): User =
+        testDatabaseSupport.insert(
+            User.create(
+                userName = testUserName,
+                passwordHash = BCrypt.hashpw("password", BCrypt.gensalt()),
+                greeting = testGreeting,
+                isAdmin = false,
+                locale = java.util.Locale.US,
+            ),
+        )
+
+    private fun generateTokenForUser(user: User): String =
+        jwtTokenService.generateToken(
+            userName = user.userName,
+            userId = requireNotNull(user.id),
+            isAdmin = user.isAdmin,
+            greeting = user.greeting,
+        )
+
     @Test
     fun `generated token should have expiration claim`() {
         // Given: A user exists in the database
-        val user =
-            testDatabaseSupport.insert(
-                User.create(
-                    userName = testUserName,
-                    passwordHash = BCrypt.hashpw("password", BCrypt.gensalt()),
-                    greeting = testGreeting,
-                    isAdmin = false,
-                    locale = java.util.Locale.US,
-                ),
-            )
+        val user = createTestUser()
 
         // When: Generating a token
-        val token =
-            jwtTokenService.generateToken(
-                userName = user.userName,
-                userId = requireNotNull(user.id),
-                isAdmin = user.isAdmin,
-                greeting = user.greeting,
-            )
+        val token = generateTokenForUser(user)
 
         // Then: Token should have expiration claim
         val jwt = SignedJWT.parse(token)
@@ -75,28 +79,11 @@ class JwtTokenExpirationTest {
 
     @Test
     fun `token without expiration should be rejected by validation`() {
-        // This test will verify that the JWT validation configuration rejects tokens without expiration
-        // For now, we'll just verify that our generated tokens always have expiration
-        // The actual rejection happens at the Micronaut Security level
+        // This test verifies that our generated tokens always have expiration
+        // The actual rejection of tokens without expiration happens at the Micronaut Security level
 
-        val user =
-            testDatabaseSupport.insert(
-                User.create(
-                    userName = testUserName,
-                    passwordHash = BCrypt.hashpw("password", BCrypt.gensalt()),
-                    greeting = testGreeting,
-                    isAdmin = false,
-                    locale = java.util.Locale.US,
-                ),
-            )
-
-        val token =
-            jwtTokenService.generateToken(
-                userName = user.userName,
-                userId = requireNotNull(user.id),
-                isAdmin = user.isAdmin,
-                greeting = user.greeting,
-            )
+        val user = createTestUser()
+        val token = generateTokenForUser(user)
 
         val jwt = SignedJWT.parse(token)
         assertNotNull(
