@@ -63,6 +63,15 @@ jackson:
     adjust-dates-to-context-time-zone: false
   serialization-inclusion: non-absent
 
+aionify:
+  auth:
+    remember-me:
+      cookie-name: aionify_remember_me
+      expiration-days: 30
+      # Set to false for local development to allow non-HTTPS connections
+      # In production, this should always be true
+      secure: ${AIONIFY_REMEMBER_ME_SECURE:true}
+
 netty:
   default:
     allocator:

@@ -14,6 +14,7 @@ const resources = {
         usernamePlaceholder: "Enter your username",
         password: "Password",
         passwordPlaceholder: "Password",
+        rememberMe: "Remember me",
         lostPassword: "Lost password?",
         lostPasswordDialog: {
           title: "Password Reset",
@@ -432,6 +433,7 @@ const resources = {
         usernamePlaceholder: "Введіть ім'я користувача",
         password: "Пароль",
         passwordPlaceholder: "Пароль",
+        rememberMe: "Запам'ятати мене",
         lostPassword: "Забули пароль?",
         lostPasswordDialog: {
           title: "Скидання пароля",

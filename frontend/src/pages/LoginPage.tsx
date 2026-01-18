@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, LogIn, User, KeyRound } from "lucide-react";
@@ -17,6 +18,7 @@ export function LoginPage() {
   const { t } = useTranslation();
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -64,7 +66,7 @@ export function LoginPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userName, password }),
+        body: JSON.stringify({ userName, password, rememberMe }),
       });
 
       if (!response.ok) {
@@ -170,7 +172,18 @@ export function LoginPage() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              <div className="flex justify-end">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="rememberMe"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked === true)}
+                    data-testid="remember-me-checkbox"
+                  />
+                  <Label htmlFor="rememberMe" className="text-sm text-foreground cursor-pointer">
+                    {t("login.rememberMe")}
+                  </Label>
+                </div>
                 <button
                   type="button"
                   className="text-sm text-primary hover:underline text-foreground"

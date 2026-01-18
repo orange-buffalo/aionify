@@ -33,7 +33,19 @@ export function TopNav({ menuItems, userName, greeting }: TopNavProps) {
   const { t } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Call backend logout to clear remember me cookie
+    try {
+      await fetch("/api-ui/auth/logout", {
+        method: "POST",
+        credentials: "include", // Include cookies
+      });
+    } catch (error) {
+      console.error("Logout API call failed:", error);
+      // Continue with logout even if API call fails
+    }
+
+    // Clear local storage
     localStorage.removeItem(TOKEN_KEY);
     navigate("/login");
   };

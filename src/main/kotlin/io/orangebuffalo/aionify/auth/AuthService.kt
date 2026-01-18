@@ -45,6 +45,7 @@ class AuthService(
             greeting = user.greeting,
             admin = user.isAdmin,
             languageCode = user.languageCode,
+            userId = requireNotNull(user.id) { "User must have an ID" },
         )
     }
 
