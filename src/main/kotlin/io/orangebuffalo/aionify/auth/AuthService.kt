@@ -71,4 +71,26 @@ class AuthService(
 
         log.info("Password changed successfully for user: {}", userName)
     }
+
+    fun refreshToken(userName: String): RefreshTokenResponse {
+        log.debug("Attempting to refresh token for user: {}", userName)
+
+        val user = userRepository.findByUserName(userName).orElse(null)
+        if (user == null) {
+            log.debug("Token refresh failed: user not found: {}", userName)
+            throw AuthenticationException("User not found")
+        }
+
+        log.info("Token refreshed successfully for user: {}", userName)
+
+        val token =
+            jwtTokenService.generateToken(
+                userName = user.userName,
+                userId = requireNotNull(user.id) { "User must have an ID" },
+                isAdmin = user.isAdmin,
+                greeting = user.greeting,
+            )
+
+        return RefreshTokenResponse(token = token)
+    }
 }

@@ -65,6 +65,29 @@ open class AuthResource(
             HttpResponse.badRequest(ChangePasswordErrorResponse(e.message ?: "Failed to change password", errorCode))
         }
     }
+
+    @Post("/refresh")
+    @Secured(SecurityRule.IS_AUTHENTICATED)
+    open fun refresh(principal: Principal?): HttpResponse<*> {
+        val userName = principal?.name
+        if (userName == null) {
+            log.debug("Token refresh failed: user not authenticated")
+            return HttpResponse
+                .unauthorized<RefreshTokenErrorResponse>()
+                .body(RefreshTokenErrorResponse("User not authenticated", "USER_NOT_AUTHENTICATED"))
+        }
+
+        return try {
+            val response = authService.refreshToken(userName)
+            log.trace("Token refresh endpoint returned success for user: {}", userName)
+            HttpResponse.ok(response)
+        } catch (e: AuthenticationException) {
+            log.debug("Token refresh failed for user: {}", userName, e)
+            HttpResponse
+                .unauthorized<RefreshTokenErrorResponse>()
+                .body(RefreshTokenErrorResponse(e.message ?: "Token refresh failed", "TOKEN_REFRESH_FAILED"))
+        }
+    }
 }
 
 @Serdeable
@@ -110,6 +133,19 @@ data class ChangePasswordSuccessResponse(
 @Serdeable
 @Introspected
 data class ChangePasswordErrorResponse(
+    val error: String,
+    val errorCode: String,
+)
+
+@Serdeable
+@Introspected
+data class RefreshTokenResponse(
+    val token: String,
+)
+
+@Serdeable
+@Introspected
+data class RefreshTokenErrorResponse(
     val error: String,
     val errorCode: String,
 )

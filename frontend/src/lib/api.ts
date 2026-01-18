@@ -1,11 +1,22 @@
 import { TOKEN_KEY } from "./constants";
+import { isTokenCloseToExpiration, refreshToken } from "./token";
 
 /**
  * Makes an authenticated API request with the stored JWT token.
  * If a 401 Unauthorized response is received, clears the token and redirects to login.
+ * Automatically refreshes the token if it's close to expiration (within 5 minutes).
  */
 export async function apiRequest<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const token = localStorage.getItem(TOKEN_KEY);
+  let token = localStorage.getItem(TOKEN_KEY);
+
+  // Check if token needs refresh before making the request
+  if (token && isTokenCloseToExpiration(token)) {
+    const refreshed = await refreshToken();
+    if (refreshed) {
+      // Get the new token after refresh
+      token = localStorage.getItem(TOKEN_KEY);
+    }
+  }
 
   const headers: HeadersInit = {
     ...options.headers,

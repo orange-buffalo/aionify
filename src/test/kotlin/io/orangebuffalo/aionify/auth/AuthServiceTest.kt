@@ -112,4 +112,40 @@ class AuthServiceTest {
         assertTrue(response.admin)
         assertEquals("Admin User", response.greeting)
     }
+
+    @Test
+    fun `should refresh token for authenticated user`() {
+        // Given: A user exists in the database
+        val user =
+            testDatabaseSupport.insert(
+                User.create(
+                    userName = testUserName,
+                    passwordHash = BCrypt.hashpw(testPassword, BCrypt.gensalt()),
+                    greeting = testGreeting,
+                    isAdmin = false,
+                    locale = java.util.Locale.US,
+                ),
+            )
+
+        // When: Refreshing token
+        val response = authService.refreshToken(testUserName)
+
+        // Then: Response should contain a valid new token
+        assertNotNull(response.token, "Token should not be null")
+        assertTrue(response.token.isNotEmpty(), "Token should not be empty")
+
+        // Verify token contains expected parts (header.payload.signature)
+        val tokenParts = response.token.split(".")
+        assertEquals(3, tokenParts.size, "JWT token should have 3 parts separated by dots")
+    }
+
+    @Test
+    fun `should throw exception when refreshing token for non-existent user`() {
+        // Given: User does not exist
+
+        // When/Then: Token refresh should fail
+        assertThrows(AuthenticationException::class.java) {
+            authService.refreshToken("nonexistent")
+        }
+    }
 }
