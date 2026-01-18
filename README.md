@@ -65,6 +65,7 @@ Manage users, create accounts, and handle activation tokens.
   - Multi-language support (English and Ukrainian)
   - Configurable start of week (Monday/Sunday)
   - Dark mode compatible UI
+  - Remember me option for persistent login sessions
 
 - **API Integration**
   - Generate and manage personal API access tokens

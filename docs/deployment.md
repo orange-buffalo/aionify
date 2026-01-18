@@ -36,6 +36,7 @@ Configure the application using environment variables:
 | `AIONIFY_DB_PASSWORD` | Database password | Yes |
 | `AIONIFY_JWT_SECRET` | Signing secret for JWT (HS256). Must be provided; empty values will cause token generation to fail. Provide a strong base64-encoded secret (32+ bytes / 256 bits) for production. | Yes |
 | `AIONIFY_JWT_EXPIRATION_SECONDS` | JWT token expiration time in seconds. Default is 86400 (24 hours). | No |
+| `AIONIFY_REMEMBER_ME_SECURE` | Set to `false` to disable secure flag on remember me cookie for development (allows HTTP). Default is `true` (requires HTTPS). | No |
 
 ### Database URL Format
 
