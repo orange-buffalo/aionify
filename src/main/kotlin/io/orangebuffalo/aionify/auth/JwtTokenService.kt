@@ -1,5 +1,6 @@
 package io.orangebuffalo.aionify.auth
 
+import io.micronaut.context.annotation.Property
 import io.micronaut.context.event.ApplicationEventListener
 import io.micronaut.runtime.event.ApplicationStartupEvent
 import io.micronaut.security.authentication.Authentication
@@ -12,19 +13,24 @@ import org.slf4j.LoggerFactory
  *
  * Token generation is handled by Micronaut Security JWT library.
  * The signing key is configured in application.yml (JWT_SECRET environment variable or default).
+ * Token expiration is configured via micronaut.security.token.jwt.generator.access-token.expiration
+ * (AIONIFY_JWT_EXPIRATION_SECONDS environment variable, defaults to 86400 seconds / 24 hours).
  */
 @Singleton
 class JwtTokenService(
     private val tokenGenerator: TokenGenerator,
+    @Property(name = "micronaut.security.token.jwt.generator.access-token.expiration", defaultValue = "86400")
+    private val tokenExpirationSeconds: Int,
 ) : ApplicationEventListener<ApplicationStartupEvent> {
     private val log = LoggerFactory.getLogger(JwtTokenService::class.java)
 
     override fun onApplicationEvent(event: ApplicationStartupEvent) {
-        log.info("JWT token service initialized with Micronaut Security")
+        log.info("JWT token service initialized with Micronaut Security (expiration: {} seconds)", tokenExpirationSeconds)
     }
 
     /**
      * Generates a JWT token for the given user.
+     * The token will expire after the configured expiration time (default: 24 hours).
      */
     fun generateToken(
         userName: String,
@@ -43,7 +49,8 @@ class JwtTokenService(
 
         val authentication = Authentication.build(userName, roles, attributes)
 
-        val token = tokenGenerator.generateToken(authentication, null)
+        // Use configured expiration time
+        val token = tokenGenerator.generateToken(authentication, tokenExpirationSeconds)
         return token.orElseThrow {
             RuntimeException("Failed to generate JWT token. Did you provide the secret via AIONIFY_JWT_SECRET?")
         }

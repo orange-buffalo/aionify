@@ -22,7 +22,7 @@ micronaut:
               jws-algorithm: HS256
         generator:
           access-token:
-            expiration: 86400  # 24 hours in seconds
+            expiration: ${AIONIFY_JWT_EXPIRATION_SECONDS:86400}  # 24 hours in seconds by default
     intercept-url-map:
       - pattern: /api-ui/auth/login
         http-method: POST
