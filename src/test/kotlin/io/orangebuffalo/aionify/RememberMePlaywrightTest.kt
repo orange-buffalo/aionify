@@ -145,7 +145,7 @@ class RememberMePlaywrightTest : PlaywrightTestBase() {
     }
 
     @Test
-    fun `should persist remember me cookie across browser contexts`() {
+    fun `should automatically authenticate API requests in new browser context with remember me cookie`() {
         // Login with remember me in first context
         page.navigate("/login")
         page.locator("[data-testid='remember-me-checkbox']").click()
@@ -185,16 +185,27 @@ class RememberMePlaywrightTest : PlaywrightTestBase() {
             // Add the remember me cookie to the new context
             newContext.addCookies(listOf(rememberMeCookie))
 
-            // Verify cookie was added successfully
-            val newCookies = newContext.cookies()
-            val copiedCookie = newCookies.find { it.name == "aionify_remember_me" }
-            assertNotNull(copiedCookie, "Remember me cookie should be copied to new context")
-            assert(copiedCookie!!.value == rememberMeCookie.value) {
-                "Cookie value should match original"
+            // Create a new page in the new context  
+            val newPage = newContext.newPage()
+
+            // Navigate directly to an API endpoint that requires authentication
+            // The remember me filter should authenticate the request using the cookie
+            val response = newPage.navigate("$baseUrl/api-ui/users/profile")
+
+            // Verify the request was authenticated successfully (status 200, not 401)
+            // A 200 status means the remember me cookie successfully authenticated the request
+            val statusCode = response?.status() ?: 0
+            assert(statusCode == 200) {
+                "API request should be authenticated via remember me cookie. Got status: $statusCode"
             }
 
-            // The remember me cookie can now be used for backend authentication in the new context
-            // (This validates the cookie persists and can be transferred between contexts)
+            // The successful 200 response proves that:
+            // 1. The remember me cookie was copied to the new context
+            // 2. The cookie was sent with the API request
+            // 3. The RememberMeAuthenticationFilter validated the token
+            // 4. The backend authenticated the request using the remember me token
+
+            newPage.close()
         } finally {
             newContext.close()
         }
