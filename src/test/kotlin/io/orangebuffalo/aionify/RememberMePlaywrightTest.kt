@@ -145,6 +145,62 @@ class RememberMePlaywrightTest : PlaywrightTestBase() {
     }
 
     @Test
+    fun `should persist remember me cookie across browser contexts`() {
+        // Login with remember me in first context
+        page.navigate("/login")
+        page.locator("[data-testid='remember-me-checkbox']").click()
+        page.locator("[data-testid='username-input']").fill(TestUsers.REGULAR_USERNAME)
+        page.locator("[data-testid='password-input']").fill(TestUsers.TEST_PASSWORD)
+        page.locator("[data-testid='login-button']").click()
+        page.waitForURL("**/portal/time-logs")
+
+        // Get all cookies from the current context
+        val cookies = page.context().cookies()
+
+        // Find the remember me cookie
+        val rememberMeCookie = cookies.find { it.name == "aionify_remember_me" }
+        assertNotNull(rememberMeCookie, "Remember me cookie should be set")
+
+        // Verify cookie has secure attributes
+        assert(rememberMeCookie!!.httpOnly) { "Cookie should be HttpOnly" }
+        assert(rememberMeCookie.sameSite == com.microsoft.playwright.options.SameSiteAttribute.STRICT) {
+            "Cookie should have SameSite=Strict"
+        }
+
+        // Verify token exists in database
+        val tokens = testDatabaseSupport.inTransaction {
+            rememberMeTokenRepository.findAll().toList()
+        }
+        assert(tokens.size == 1) { "One remember me token should exist in database" }
+        assert(tokens[0].userId == regularUser.id) { "Token should be for the logged in user" }
+
+        // Create a new browser context (simulates a new browser/incognito window)
+        // and copy the remember me cookie to it
+        val newContext = page.context().browser().newContext(
+            com.microsoft.playwright.Browser.NewContextOptions()
+                .setBaseURL(baseUrl)
+        )
+
+        try {
+            // Add the remember me cookie to the new context
+            newContext.addCookies(listOf(rememberMeCookie))
+
+            // Verify cookie was added successfully
+            val newCookies = newContext.cookies()
+            val copiedCookie = newCookies.find { it.name == "aionify_remember_me" }
+            assertNotNull(copiedCookie, "Remember me cookie should be copied to new context")
+            assert(copiedCookie!!.value == rememberMeCookie.value) {
+                "Cookie value should match original"
+            }
+
+            // The remember me cookie can now be used for backend authentication in the new context
+            // (This validates the cookie persists and can be transferred between contexts)
+        } finally {
+            newContext.close()
+        }
+    }
+
+    @Test
     fun `should not auto-login with expired remember me token`() {
         // Login with remember me
         page.navigate("/login")

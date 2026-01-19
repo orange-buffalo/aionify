@@ -83,35 +83,30 @@ class RememberMeService(
         token: String,
         userAgent: String?,
     ): Long? {
-        try {
-            // Hash the token with SHA-256 for lookup
-            val tokenHash = hashTokenForLookup(token)
+        // Hash the token with SHA-256 for lookup
+        val tokenHash = hashTokenForLookup(token)
 
-            val rememberMeToken = rememberMeTokenRepository.findByTokenHash(tokenHash).orElse(null)
-            if (rememberMeToken == null) {
-                log.debug("Remember me token not found")
-                return null
-            }
-
-            // Check expiration
-            if (rememberMeToken.expiresAt.isBefore(timeService.now())) {
-                log.debug("Remember me token expired for user ID: {}", rememberMeToken.userId)
-                rememberMeTokenRepository.delete(rememberMeToken)
-                return null
-            }
-
-            // Optionally check user agent (disabled for now as it can be flaky across updates)
-            // if (rememberMeToken.userAgent != null && rememberMeToken.userAgent != userAgent?.take(500)) {
-            //     log.warn("Remember me token user agent mismatch for user ID: {}", rememberMeToken.userId)
-            //     return null
-            // }
-
-            log.info("Remember me token validated for user ID: {}", rememberMeToken.userId)
-            return rememberMeToken.userId
-        } catch (e: Exception) {
-            log.error("Error validating remember me token", e)
+        val rememberMeToken = rememberMeTokenRepository.findByTokenHash(tokenHash).orElse(null)
+        if (rememberMeToken == null) {
+            log.debug("Remember me token not found")
             return null
         }
+
+        // Check expiration
+        if (rememberMeToken.expiresAt.isBefore(timeService.now())) {
+            log.debug("Remember me token expired for user ID: {}", rememberMeToken.userId)
+            rememberMeTokenRepository.delete(rememberMeToken)
+            return null
+        }
+
+        // Optionally check user agent (disabled for now as it can be flaky across updates)
+        // if (rememberMeToken.userAgent != null && rememberMeToken.userAgent != userAgent?.take(500)) {
+        //     log.warn("Remember me token user agent mismatch for user ID: {}", rememberMeToken.userId)
+        //     return null
+        // }
+
+        log.info("Remember me token validated for user ID: {}", rememberMeToken.userId)
+        return rememberMeToken.userId
     }
 
     /**
@@ -120,14 +115,10 @@ class RememberMeService(
      * @param token The plain token value to invalidate
      */
     fun invalidateToken(token: String) {
-        try {
-            val tokenHash = hashTokenForLookup(token)
-            val deleted = rememberMeTokenRepository.deleteByTokenHash(tokenHash)
-            if (deleted > 0) {
-                log.info("Invalidated remember me token")
-            }
-        } catch (e: Exception) {
-            log.error("Error invalidating remember me token", e)
+        val tokenHash = hashTokenForLookup(token)
+        val deleted = rememberMeTokenRepository.deleteByTokenHash(tokenHash)
+        if (deleted > 0) {
+            log.info("Invalidated remember me token")
         }
     }
 
@@ -137,12 +128,8 @@ class RememberMeService(
      * @param userId The user ID
      */
     fun invalidateAllTokensForUser(userId: Long) {
-        try {
-            val deleted = rememberMeTokenRepository.deleteByUserId(userId)
-            log.info("Invalidated {} remember me token(s) for user ID: {}", deleted, userId)
-        } catch (e: Exception) {
-            log.error("Error invalidating remember me tokens for user", e)
-        }
+        val deleted = rememberMeTokenRepository.deleteByUserId(userId)
+        log.info("Invalidated {} remember me token(s) for user ID: {}", deleted, userId)
     }
 
     /**
@@ -150,13 +137,9 @@ class RememberMeService(
      * Should be called periodically (e.g., daily via scheduled task).
      */
     fun cleanupExpiredTokens() {
-        try {
-            val deleted = rememberMeTokenRepository.deleteExpiredTokens(timeService.now())
-            if (deleted > 0) {
-                log.info("Cleaned up {} expired remember me token(s)", deleted)
-            }
-        } catch (e: Exception) {
-            log.error("Error cleaning up expired remember me tokens", e)
+        val deleted = rememberMeTokenRepository.deleteExpiredTokens(timeService.now())
+        if (deleted > 0) {
+            log.info("Cleaned up {} expired remember me token(s)", deleted)
         }
     }
 
