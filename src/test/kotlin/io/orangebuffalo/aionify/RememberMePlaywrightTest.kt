@@ -241,6 +241,11 @@ class RememberMePlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='login-button']").click()
         page.waitForURL("**/portal/time-logs")
 
+        // Get the remember me cookie before expiring it
+        val rememberMeCookie =
+            page.context().cookies().find { it.name == "aionify_remember_me" }
+                ?: throw AssertionError("Remember me cookie not found")
+
         // Manually expire the token in database
         testDatabaseSupport.inTransaction {
             val tokens = rememberMeTokenRepository.findAll().toList()
@@ -248,17 +253,36 @@ class RememberMePlaywrightTest : PlaywrightTestBase() {
             rememberMeTokenRepository.update(expiredToken)
         }
 
-        // Clear JWT token to simulate expired session
-        page.evaluate("localStorage.removeItem('aionify_token')")
+        // Create a new browser context to simulate a new session
+        val newContext =
+            page.context().browser().newContext(
+                com.microsoft.playwright.Browser
+                    .NewContextOptions()
+                    .setBaseURL(baseUrl),
+            )
 
-        // Try to access protected page - should redirect to login due to expired remember me token
-        page.navigate("/portal/time-logs")
-        page.waitForURL("**/login")
+        try {
+            // Add the remember me cookie with expired token
+            newContext.addCookies(listOf(rememberMeCookie))
 
-        val loginPage = page.locator("[data-testid='login-page']")
-        assertThat(loginPage).isVisible()
+            val newPage = newContext.newPage()
 
-        // Verify expired token was deleted
+            // Navigate to login page - should NOT auto-login due to expired token
+            newPage.navigate("/login")
+
+            // Wait a bit for auto-login attempt to complete
+            newPage.waitForTimeout(2000.0)
+
+            // Should still be on login page (not redirected)
+            val loginPage = newPage.locator("[data-testid='login-page']")
+            assertThat(loginPage).isVisible()
+
+            newPage.close()
+        } finally {
+            newContext.close()
+        }
+
+        // Verify expired token was deleted during auto-login attempt
         val tokens =
             testDatabaseSupport.inTransaction {
                 rememberMeTokenRepository.findAll().toList()
@@ -320,21 +344,36 @@ class RememberMePlaywrightTest : PlaywrightTestBase() {
         assert(tokens.size == 1) { "Token should be created for admin" }
         assert(tokens[0].userId == adminUser.id) { "Token should be for admin user" }
 
-        // Clear JWT token
-        page.evaluate("localStorage.removeItem('aionify_token')")
+        // Get the remember me cookie before logout
+        val rememberMeCookie =
+            page.context().cookies().find { it.name == "aionify_remember_me" }
+                ?: throw AssertionError("Remember me cookie not found")
 
-        // Make an API call that requires authentication - should work via remember me
-        val response =
-            page.evaluate(
-                """
-                fetch('/api-ui/users', {
-                    method: 'GET',
-                    credentials: 'include'
-                }).then(r => r.json())
-                """.trimIndent(),
+        // Create a new browser context to simulate a new session
+        val newContext =
+            page.context().browser().newContext(
+                com.microsoft.playwright.Browser
+                    .NewContextOptions()
+                    .setBaseURL(baseUrl),
             )
 
-        // Verify we got a valid response (not 401)
-        assertNotNull(response, "Should receive users data via remember me authentication")
+        try {
+            // Add the remember me cookie to the new context
+            newContext.addCookies(listOf(rememberMeCookie))
+
+            val newPage = newContext.newPage()
+
+            // Navigate to login page - should auto-login and redirect to admin portal
+            newPage.navigate("/login")
+            newPage.waitForURL("**/admin/users")
+
+            // Verify we're on the admin users page (auto-login worked)
+            val adminUsersTitle = newPage.locator("[data-testid='users-title']")
+            assertThat(adminUsersTitle).isVisible()
+
+            newPage.close()
+        } finally {
+            newContext.close()
+        }
     }
 }

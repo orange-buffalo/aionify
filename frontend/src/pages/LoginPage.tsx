@@ -23,6 +23,7 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAutoLoggingIn, setIsAutoLoggingIn] = useState(true);
   const [lastUserGreeting, setLastUserGreeting] = useState<string | null>(null);
   const [showForgotPasswordDialog, setShowForgotPasswordDialog] = useState(false);
 
@@ -93,10 +94,13 @@ export function LoginPage() {
         if (response.ok) {
           const data = await response.json();
           await handleSuccessfulLogin(data);
+        } else {
+          // If auto-login fails (401), show login form
+          setIsAutoLoggingIn(false);
         }
-        // If auto-login fails (401), just ignore and show login form
       } catch {
-        // If auto-login fails, just ignore and show login form
+        // If auto-login fails, show login form
+        setIsAutoLoggingIn(false);
       }
     };
 
@@ -146,7 +150,9 @@ export function LoginPage() {
             {t("login.title")}
           </CardTitle>
           <CardDescription>
-            {lastUserGreeting ? (
+            {isAutoLoggingIn ? (
+              <span data-testid="auto-login-message">{t("login.autoLoggingIn")}</span>
+            ) : lastUserGreeting ? (
               <span data-testid="welcome-back-message">{t("login.welcomeBack", { greeting: lastUserGreeting })}</span>
             ) : (
               t("login.signInPrompt")
@@ -171,6 +177,7 @@ export function LoginPage() {
                   data-testid="username-input"
                   required
                   autoComplete="username"
+                  disabled={isAutoLoggingIn}
                 />
               </div>
             </div>
@@ -191,6 +198,7 @@ export function LoginPage() {
                   data-testid="password-input"
                   required
                   autoComplete="current-password"
+                  disabled={isAutoLoggingIn}
                 />
                 <button
                   type="button"
@@ -231,7 +239,7 @@ export function LoginPage() {
             <Button
               type="submit"
               className="w-full bg-teal-600 hover:bg-teal-700"
-              disabled={isLoading}
+              disabled={isLoading || isAutoLoggingIn}
               data-testid="login-button"
             >
               {isLoading ? (
