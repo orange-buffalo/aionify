@@ -270,8 +270,9 @@ class RememberMePlaywrightTest : PlaywrightTestBase() {
             // Navigate to login page - should NOT auto-login due to expired token
             newPage.navigate("/login")
 
-            // Wait a bit for auto-login attempt to complete
-            newPage.waitForTimeout(2000.0)
+            // Wait for auto-login attempt to complete (auto-login message should disappear)
+            val autoLoginMessage = newPage.locator("[data-testid='auto-login-message']")
+            assertThat(autoLoginMessage).not().isVisible()
 
             // Should still be on login page (not redirected)
             val loginPage = newPage.locator("[data-testid='login-page']")
