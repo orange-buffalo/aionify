@@ -100,6 +100,36 @@ open class AuthResource(
         return httpResponse
     }
 
+    @Post("/auto-login")
+    @Secured(SecurityRule.IS_ANONYMOUS)
+    open fun autoLogin(httpRequest: HttpRequest<*>): HttpResponse<*> {
+        // Check for remember me cookie
+        val rememberMeCookie = httpRequest.cookies.get(rememberMeCookieName)
+        if (rememberMeCookie == null) {
+            log.trace("Auto-login: no remember me cookie found")
+            return HttpResponse
+                .unauthorized<LoginErrorResponse>()
+                .body(LoginErrorResponse("No remember me cookie"))
+        }
+
+        // Validate the remember me token
+        val token = rememberMeCookie.value
+        val userAgent = httpRequest.headers.get("User-Agent")
+        val userId = rememberMeService.validateToken(token, userAgent)
+
+        if (userId == null) {
+            log.debug("Auto-login: invalid or expired remember me token")
+            return HttpResponse
+                .unauthorized<LoginErrorResponse>()
+                .body(LoginErrorResponse("Invalid or expired remember me token"))
+        }
+
+        // Generate a JWT token for the user
+        val response = authService.authenticateById(userId)
+        log.info("Auto-login successful for user ID: {}", userId)
+        return HttpResponse.ok(response)
+    }
+
     @Post("/change-password")
     @Secured(SecurityRule.IS_AUTHENTICATED)
     open fun changePassword(
