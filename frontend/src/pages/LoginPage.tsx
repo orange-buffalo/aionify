@@ -26,6 +26,31 @@ export function LoginPage() {
   const [lastUserGreeting, setLastUserGreeting] = useState<string | null>(null);
   const [showForgotPasswordDialog, setShowForgotPasswordDialog] = useState(false);
 
+  // Common function to handle successful login (both manual and auto-login)
+  const handleSuccessfulLogin = async (data: any) => {
+    // Store token and user info
+    localStorage.setItem(TOKEN_KEY, data.token);
+    localStorage.setItem(
+      LAST_USERNAME_KEY,
+      JSON.stringify({
+        userName: data.userName,
+        greeting: data.greeting,
+      })
+    );
+
+    // Store user's preferred language and switch to it
+    if (data.languageCode) {
+      await initializeLanguage(data.languageCode);
+    }
+
+    // Redirect based on user role (Jackson serializes isAdmin as "admin")
+    if (data.admin) {
+      navigate("/admin/users");
+    } else {
+      navigate("/portal/time-logs");
+    }
+  };
+
   useEffect(() => {
     // Check if session expired (set by API request handler)
     const sessionExpired = sessionStorage.getItem("sessionExpired");
@@ -67,28 +92,7 @@ export function LoginPage() {
 
         if (response.ok) {
           const data = await response.json();
-
-          // Store token and user info
-          localStorage.setItem(TOKEN_KEY, data.token);
-          localStorage.setItem(
-            LAST_USERNAME_KEY,
-            JSON.stringify({
-              userName: data.userName,
-              greeting: data.greeting,
-            })
-          );
-
-          // Store user's preferred language and switch to it
-          if (data.languageCode) {
-            await initializeLanguage(data.languageCode);
-          }
-
-          // Redirect based on user role
-          if (data.admin) {
-            navigate("/admin/users");
-          } else {
-            navigate("/portal/time-logs");
-          }
+          await handleSuccessfulLogin(data);
         }
         // If auto-login fails (401), just ignore and show login form
       } catch {
@@ -97,7 +101,8 @@ export function LoginPage() {
     };
 
     attemptAutoLogin();
-  }, [navigate, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,27 +126,7 @@ export function LoginPage() {
 
       const data = await response.json();
 
-      // Store token and user info
-      localStorage.setItem(TOKEN_KEY, data.token);
-      localStorage.setItem(
-        LAST_USERNAME_KEY,
-        JSON.stringify({
-          userName: data.userName,
-          greeting: data.greeting,
-        })
-      );
-
-      // Store user's preferred language and switch to it
-      if (data.languageCode) {
-        await initializeLanguage(data.languageCode);
-      }
-
-      // Redirect based on user role (Jackson serializes isAdmin as "admin")
-      if (data.admin) {
-        navigate("/admin/users");
-      } else {
-        navigate("/portal/time-logs");
-      }
+      await handleSuccessfulLogin(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.error"));
     } finally {
