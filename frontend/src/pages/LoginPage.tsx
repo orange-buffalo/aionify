@@ -53,7 +53,51 @@ export function LoginPage() {
         setUserName(lastUsername);
       }
     }
-  }, []);
+
+    // Try auto-login if remember me cookie exists
+    const attemptAutoLogin = async () => {
+      try {
+        const response = await fetch("/api-ui/auth/auto-login", {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+
+          // Store token and user info
+          localStorage.setItem(TOKEN_KEY, data.token);
+          localStorage.setItem(
+            LAST_USERNAME_KEY,
+            JSON.stringify({
+              userName: data.userName,
+              greeting: data.greeting,
+            })
+          );
+
+          // Store user's preferred language and switch to it
+          if (data.languageCode) {
+            await initializeLanguage(data.languageCode);
+          }
+
+          // Redirect based on user role
+          if (data.admin) {
+            navigate("/admin/users");
+          } else {
+            navigate("/portal/time-logs");
+          }
+        }
+        // If auto-login fails (401), just ignore and show login form
+      } catch {
+        // If auto-login fails, just ignore and show login form
+      }
+    };
+
+    attemptAutoLogin();
+  }, [navigate, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
