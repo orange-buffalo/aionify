@@ -281,7 +281,7 @@ class TimeLogsAutocompleteTest : TimeLogsPageTestBase() {
         page.reload()
 
         // Wait for page to load - check for a visible element
-        val currentEntryPanelTitle = page.locator("text=Поточний запис")
+        val currentEntryPanelTitle = page.locator("text=Над чим ви працюєте?")
         assertThat(currentEntryPanelTitle).isVisible()
 
         // Type something that doesn't match

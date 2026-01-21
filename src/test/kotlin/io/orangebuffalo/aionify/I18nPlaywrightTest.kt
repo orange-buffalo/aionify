@@ -101,7 +101,7 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         page.waitForURL("**/portal/time-logs")
 
         // Verify UI switched to Ukrainian - check a visible element with translation
-        val currentEntryPanelTitle = page.locator("text=Поточний запис")
+        val currentEntryPanelTitle = page.locator("text=Над чим ви працюєте?")
         assertThat(currentEntryPanelTitle).isVisible()
 
         // Verify language was saved to local storage
@@ -135,7 +135,7 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         page.waitForURL("**/portal/time-logs")
 
         // Verify UI is in English - check a visible element with translation
-        val currentEntryPanelTitle = page.locator("text=Current Entry")
+        val currentEntryPanelTitle = page.locator("text=What are you working on?")
         assertThat(currentEntryPanelTitle).isVisible()
 
         // Verify language was saved to local storage
@@ -308,7 +308,7 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         page.navigate("/portal/time-logs")
 
         // Verify time logs page is also in Ukrainian - check a visible element
-        val currentEntryPanelTitle = page.locator("text=Поточний запис")
+        val currentEntryPanelTitle = page.locator("text=Над чим ви працюєте?")
         assertThat(currentEntryPanelTitle).isVisible()
     }
 }
