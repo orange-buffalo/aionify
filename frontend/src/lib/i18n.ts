@@ -47,8 +47,6 @@ const resources = {
       },
       // Profile Page (formerly Settings)
       profile: {
-        title: "Profile",
-        subtitle: "Manage your profile settings",
         profile: {
           title: "My Profile",
           subtitle: "View and manage your profile information",
@@ -78,8 +76,6 @@ const resources = {
       },
       // Settings Page (operational settings like tags)
       settings: {
-        title: "Settings",
-        subtitle: "Manage operational settings",
         tags: {
           title: "Tags",
           subtitle: "View tags used in your time log entries",
@@ -166,8 +162,6 @@ const resources = {
       },
       // Time Logs Page
       timeLogs: {
-        title: "Time Log",
-        subtitle: "Track and manage your time log entries",
         previousWeek: "Previous Week",
         nextWeek: "Next Week",
         today: "Today",
@@ -243,8 +237,6 @@ const resources = {
       portal: {
         admin: {
           users: {
-            title: "Users",
-            subtitle: "View and manage system users",
             deleteSuccess: "User deleted successfully",
             createUser: "Create User",
             listTitle: "Users List",
@@ -272,8 +264,6 @@ const resources = {
               page: "Page {{page}} of {{total}}",
             },
             create: {
-              title: "Create User",
-              subtitle: "Add a new user to the system",
               back: "Back to Users",
               username: "Username",
               usernamePlaceholder: "Enter username",
@@ -288,8 +278,6 @@ const resources = {
                 "User created successfully! Share the activation link below with the user to allow them to set their password.",
             },
             edit: {
-              title: "Edit User",
-              subtitle: "Manage user account details",
               back: "Back to Users",
               usernameSection: "Username",
               username: "Username",
@@ -467,8 +455,6 @@ const resources = {
       },
       // Profile Page (formerly Settings)
       profile: {
-        title: "Профіль",
-        subtitle: "Керуйте налаштуваннями профілю",
         profile: {
           title: "Мій профіль",
           subtitle: "Перегляд та керування інформацією профілю",
@@ -498,8 +484,6 @@ const resources = {
       },
       // Settings Page (operational settings like tags)
       settings: {
-        title: "Налаштування",
-        subtitle: "Керуйте операційними налаштуваннями",
         tags: {
           title: "Теги",
           subtitle: "Перегляд тегів у ваших записах часу",
@@ -586,8 +570,6 @@ const resources = {
       },
       // Time Logs Page
       timeLogs: {
-        title: "Журнал часу",
-        subtitle: "Відстежуйте та керуйте записами часу",
         previousWeek: "Попередній тиждень",
         nextWeek: "Наступний тиждень",
         today: "Сьогодні",
@@ -663,8 +645,6 @@ const resources = {
       portal: {
         admin: {
           users: {
-            title: "Користувачі",
-            subtitle: "Перегляд та керування користувачами системи",
             deleteSuccess: "Користувача успішно видалено",
             createUser: "Створити користувача",
             listTitle: "Список користувачів",
@@ -692,8 +672,6 @@ const resources = {
               page: "Сторінка {{page}} з {{total}}",
             },
             create: {
-              title: "Створити користувача",
-              subtitle: "Додайте нового користувача до системи",
               back: "Назад до користувачів",
               username: "Ім'я користувача",
               usernamePlaceholder: "Введіть ім'я користувача",
@@ -708,8 +686,6 @@ const resources = {
                 "Користувача успішно створено! Поділіться посиланням для активації нижче з користувачем, щоб дозволити йому встановити пароль.",
             },
             edit: {
-              title: "Редагувати користувача",
-              subtitle: "Керування обліковим записом",
               back: "Назад до користувачів",
               usernameSection: "Ім'я користувача",
               username: "Ім'я користувача",

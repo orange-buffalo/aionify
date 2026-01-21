@@ -280,9 +280,9 @@ class TimeLogsAutocompleteTest : TimeLogsPageTestBase() {
         page.evaluate("localStorage.setItem('aionify_language', 'uk')")
         page.reload()
 
-        // Wait for page to load
-        val timeLogsTitle = page.locator("[data-testid='time-logs-title']")
-        assertThat(timeLogsTitle).hasText("Журнал часу")
+        // Wait for page to load - check for a visible element
+        val currentEntryPanelTitle = page.locator("text=Поточний запис")
+        assertThat(currentEntryPanelTitle).isVisible()
 
         // Type something that doesn't match
         val input = page.locator("[data-testid='new-entry-input']")

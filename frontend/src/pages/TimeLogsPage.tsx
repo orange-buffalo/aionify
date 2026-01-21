@@ -145,14 +145,6 @@ export function TimeLogsPage() {
     <PortalLayout testId="time-logs-page">
       <div className="p-8">
         <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2" data-testid="time-logs-title">
-              {t("timeLogs.title")}
-            </h1>
-            <div className="text-muted-foreground">{t("timeLogs.subtitle")}</div>
-          </div>
-
           {/* Error Message */}
           {error && <FormMessage type="error" message={error} testId="time-logs-error" />}
 

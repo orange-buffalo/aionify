@@ -116,9 +116,6 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
         // Verify we're on the time logs page
         val timeLogsPage = page.locator("[data-testid='time-logs-page']")
         assertThat(timeLogsPage).isVisible()
-
-        val pageTitle = page.locator("[data-testid='time-logs-title']")
-        assertThat(pageTitle).hasText("Time Log")
     }
 
     @Test
@@ -136,9 +133,6 @@ class LoginPlaywrightTest : PlaywrightTestBase() {
         // Verify we're on the users page
         val usersPage = page.locator("[data-testid='users-page']")
         assertThat(usersPage).isVisible()
-
-        val pageTitle = page.locator("[data-testid='users-title']")
-        assertThat(pageTitle).hasText("Users")
     }
 
     @Test

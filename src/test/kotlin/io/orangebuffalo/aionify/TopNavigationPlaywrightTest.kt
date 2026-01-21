@@ -254,9 +254,8 @@ class TopNavigationPlaywrightTest : PlaywrightTestBase() {
         val usersPage = page.locator("[data-testid='users-page']")
         assertThat(usersPage).isVisible()
 
-        // Verify the Users page title
-        val usersTitle = page.locator("[data-testid='users-title']")
-        assertThat(usersTitle).isVisible()
-        assertThat(usersTitle).containsText("Users")
+        // Verify we're on the correct page by checking the card title
+        val usersCardTitle = page.locator("text=User Management")
+        assertThat(usersCardTitle).isVisible()
     }
 }

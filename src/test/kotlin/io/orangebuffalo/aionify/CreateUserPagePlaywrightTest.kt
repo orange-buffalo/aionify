@@ -50,11 +50,6 @@ class CreateUserPagePlaywrightTest : PlaywrightTestBase() {
         val createPage = page.locator("[data-testid='create-user-page']")
         assertThat(createPage).isVisible()
 
-        // Verify title
-        val title = page.locator("[data-testid='create-user-title']")
-        assertThat(title).isVisible()
-        assertThat(title).hasText("Create User")
-
         // Verify form fields are present
         val usernameInput = page.locator("[data-testid='username-input']")
         assertThat(usernameInput).isVisible()

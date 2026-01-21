@@ -369,8 +369,8 @@ class RememberMePlaywrightTest : PlaywrightTestBase() {
             newPage.waitForURL("**/admin/users")
 
             // Verify we're on the admin users page (auto-login worked)
-            val adminUsersTitle = newPage.locator("[data-testid='users-title']")
-            assertThat(adminUsersTitle).isVisible()
+            val adminUsersPage = newPage.locator("[data-testid='users-page']")
+            assertThat(adminUsersPage).isVisible()
 
             newPage.close()
         } finally {
