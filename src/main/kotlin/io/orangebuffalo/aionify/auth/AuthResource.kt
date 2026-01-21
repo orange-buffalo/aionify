@@ -1,10 +1,13 @@
 package io.orangebuffalo.aionify.auth
 
+import io.micronaut.context.annotation.Property
 import io.micronaut.core.annotation.Introspected
+import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Post
+import io.micronaut.http.cookie.Cookie
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule
 import io.micronaut.serde.annotation.Serdeable
@@ -13,11 +16,19 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import java.security.Principal
+import java.time.Duration
 
 @Controller("/api-ui/auth")
 @Hidden
 open class AuthResource(
     private val authService: AuthService,
+    private val rememberMeService: RememberMeService,
+    @Property(name = "aionify.auth.remember-me.cookie-name", defaultValue = "aionify_remember_me")
+    private val rememberMeCookieName: String,
+    @Property(name = "aionify.auth.remember-me.expiration-days", defaultValue = "30")
+    private val rememberMeExpirationDays: Int,
+    @Property(name = "aionify.auth.remember-me.secure", defaultValue = "true")
+    private val rememberMeSecure: Boolean,
 ) {
     private val log = org.slf4j.LoggerFactory.getLogger(AuthResource::class.java)
 
@@ -25,17 +36,99 @@ open class AuthResource(
     @Secured(SecurityRule.IS_ANONYMOUS)
     open fun login(
         @Valid @Body request: LoginRequest,
+        httpRequest: HttpRequest<*>,
     ): HttpResponse<*> =
         try {
             val response = authService.authenticate(request.userName, request.password)
             log.trace("Login endpoint returned success for user: {}", request.userName)
-            HttpResponse.ok(response)
+
+            var httpResponse = HttpResponse.ok(response)
+
+            // Handle remember me
+            if (request.rememberMe) {
+                val userAgent = httpRequest.headers.get("User-Agent")
+                val (token, _) = rememberMeService.generateToken(response.userId, userAgent)
+
+                val cookie =
+                    Cookie
+                        .of(rememberMeCookieName, token)
+                        .httpOnly(true)
+                        .secure(rememberMeSecure)
+                        .sameSite(io.micronaut.http.cookie.SameSite.Strict)
+                        .maxAge(Duration.ofDays(rememberMeExpirationDays.toLong()))
+                        .path("/")
+
+                httpResponse = httpResponse.cookie(cookie)
+                log.debug("Set remember me cookie for user: {}", request.userName)
+            }
+
+            httpResponse
         } catch (e: AuthenticationException) {
             log.trace("Login endpoint returned unauthorized for user: {}", request.userName)
             HttpResponse
                 .unauthorized<LoginErrorResponse>()
                 .body(LoginErrorResponse(e.message ?: "Authentication failed"))
         }
+
+    @Post("/logout")
+    @Secured(SecurityRule.IS_ANONYMOUS)
+    open fun logout(
+        httpRequest: HttpRequest<*>,
+        principal: Principal?,
+    ): HttpResponse<*> {
+        // Clear remember me cookie if present
+        val rememberMeCookie = httpRequest.cookies.get(rememberMeCookieName)
+        var httpResponse = HttpResponse.ok<Unit>()
+
+        if (rememberMeCookie != null) {
+            rememberMeService.invalidateToken(rememberMeCookie.value)
+
+            // Clear the cookie
+            val clearCookie =
+                Cookie
+                    .of(rememberMeCookieName, "")
+                    .httpOnly(true)
+                    .secure(rememberMeSecure)
+                    .sameSite(io.micronaut.http.cookie.SameSite.Strict)
+                    .maxAge(Duration.ZERO)
+                    .path("/")
+
+            httpResponse = httpResponse.cookie(clearCookie)
+            log.debug("Cleared remember me cookie for user: {}", principal?.name)
+        }
+
+        return httpResponse
+    }
+
+    @Post("/auto-login")
+    @Secured(SecurityRule.IS_ANONYMOUS)
+    open fun autoLogin(httpRequest: HttpRequest<*>): HttpResponse<*> {
+        // Check for remember me cookie
+        val rememberMeCookie = httpRequest.cookies.get(rememberMeCookieName)
+        if (rememberMeCookie == null) {
+            log.trace("Auto-login: no remember me cookie found")
+            return HttpResponse
+                .unauthorized<LoginErrorResponse>()
+                .body(LoginErrorResponse("No remember me cookie"))
+        }
+
+        // Validate the remember me token
+        val token = rememberMeCookie.value
+        val userAgent = httpRequest.headers.get("User-Agent")
+        val userId = rememberMeService.validateToken(token, userAgent)
+
+        if (userId == null) {
+            log.debug("Auto-login: invalid or expired remember me token")
+            return HttpResponse
+                .unauthorized<LoginErrorResponse>()
+                .body(LoginErrorResponse("Invalid or expired remember me token"))
+        }
+
+        // Generate a JWT token for the user
+        val response = authService.authenticateById(userId)
+        log.info("Auto-login successful for user ID: {}", userId)
+        return HttpResponse.ok(response)
+    }
 
     @Post("/change-password")
     @Secured(SecurityRule.IS_AUTHENTICATED)
@@ -95,6 +188,7 @@ open class AuthResource(
 data class LoginRequest(
     val userName: String,
     val password: String,
+    val rememberMe: Boolean = false,
 )
 
 @Serdeable
@@ -105,6 +199,7 @@ data class LoginResponse(
     val greeting: String,
     val admin: Boolean,
     val languageCode: String,
+    val userId: Long,
 )
 
 @Serdeable

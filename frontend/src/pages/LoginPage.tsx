@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, LogIn, User, KeyRound } from "lucide-react";
@@ -17,12 +18,39 @@ export function LoginPage() {
   const { t } = useTranslation();
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAutoLoggingIn, setIsAutoLoggingIn] = useState(true);
   const [lastUserGreeting, setLastUserGreeting] = useState<string | null>(null);
   const [showForgotPasswordDialog, setShowForgotPasswordDialog] = useState(false);
+
+  // Common function to handle successful login (both manual and auto-login)
+  const handleSuccessfulLogin = async (data: any) => {
+    // Store token and user info
+    localStorage.setItem(TOKEN_KEY, data.token);
+    localStorage.setItem(
+      LAST_USERNAME_KEY,
+      JSON.stringify({
+        userName: data.userName,
+        greeting: data.greeting,
+      })
+    );
+
+    // Store user's preferred language and switch to it
+    if (data.languageCode) {
+      await initializeLanguage(data.languageCode);
+    }
+
+    // Redirect based on user role (Jackson serializes isAdmin as "admin")
+    if (data.admin) {
+      navigate("/admin/users");
+    } else {
+      navigate("/portal/time-logs");
+    }
+  };
 
   useEffect(() => {
     // Check if session expired (set by API request handler)
@@ -51,7 +79,34 @@ export function LoginPage() {
         setUserName(lastUsername);
       }
     }
-  }, []);
+
+    // Try auto-login if remember me cookie exists
+    const attemptAutoLogin = async () => {
+      try {
+        const response = await fetch("/api-ui/auth/auto-login", {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          await handleSuccessfulLogin(data);
+        } else {
+          // If auto-login fails (401), show login form
+          setIsAutoLoggingIn(false);
+        }
+      } catch {
+        // If auto-login fails, show login form
+        setIsAutoLoggingIn(false);
+      }
+    };
+
+    attemptAutoLogin();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +119,7 @@ export function LoginPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userName, password }),
+        body: JSON.stringify({ userName, password, rememberMe }),
       });
 
       if (!response.ok) {
@@ -75,27 +130,7 @@ export function LoginPage() {
 
       const data = await response.json();
 
-      // Store token and user info
-      localStorage.setItem(TOKEN_KEY, data.token);
-      localStorage.setItem(
-        LAST_USERNAME_KEY,
-        JSON.stringify({
-          userName: data.userName,
-          greeting: data.greeting,
-        })
-      );
-
-      // Store user's preferred language and switch to it
-      if (data.languageCode) {
-        await initializeLanguage(data.languageCode);
-      }
-
-      // Redirect based on user role (Jackson serializes isAdmin as "admin")
-      if (data.admin) {
-        navigate("/admin/users");
-      } else {
-        navigate("/portal/time-logs");
-      }
+      await handleSuccessfulLogin(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.error"));
     } finally {
@@ -115,7 +150,9 @@ export function LoginPage() {
             {t("login.title")}
           </CardTitle>
           <CardDescription>
-            {lastUserGreeting ? (
+            {isAutoLoggingIn ? (
+              <span data-testid="auto-login-message">{t("login.autoLoggingIn")}</span>
+            ) : lastUserGreeting ? (
               <span data-testid="welcome-back-message">{t("login.welcomeBack", { greeting: lastUserGreeting })}</span>
             ) : (
               t("login.signInPrompt")
@@ -140,6 +177,7 @@ export function LoginPage() {
                   data-testid="username-input"
                   required
                   autoComplete="username"
+                  disabled={isAutoLoggingIn}
                 />
               </div>
             </div>
@@ -160,6 +198,7 @@ export function LoginPage() {
                   data-testid="password-input"
                   required
                   autoComplete="current-password"
+                  disabled={isAutoLoggingIn}
                 />
                 <button
                   type="button"
@@ -170,7 +209,18 @@ export function LoginPage() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              <div className="flex justify-end">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="rememberMe"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked === true)}
+                    data-testid="remember-me-checkbox"
+                  />
+                  <Label htmlFor="rememberMe" className="text-sm text-foreground cursor-pointer">
+                    {t("login.rememberMe")}
+                  </Label>
+                </div>
                 <button
                   type="button"
                   className="text-sm text-primary hover:underline text-foreground"
@@ -189,7 +239,7 @@ export function LoginPage() {
             <Button
               type="submit"
               className="w-full bg-teal-600 hover:bg-teal-700"
-              disabled={isLoading}
+              disabled={isLoading || isAutoLoggingIn}
               data-testid="login-button"
             >
               {isLoading ? (

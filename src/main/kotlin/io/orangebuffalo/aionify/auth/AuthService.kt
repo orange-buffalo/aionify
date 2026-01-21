@@ -45,6 +45,7 @@ class AuthService(
             greeting = user.greeting,
             admin = user.isAdmin,
             languageCode = user.languageCode,
+            userId = requireNotNull(user.id) { "User must have an ID" },
         )
     }
 
@@ -92,5 +93,34 @@ class AuthService(
             )
 
         return RefreshTokenResponse(token = token)
+    }
+
+    fun authenticateById(userId: Long): LoginResponse {
+        log.debug("Attempting authentication by user ID: {}", userId)
+
+        val user = userRepository.findById(userId).orElse(null)
+        if (user == null) {
+            log.debug("Authentication failed: user ID not found: {}", userId)
+            throw AuthenticationException("User not found")
+        }
+
+        log.info("User authenticated successfully by ID: {}", user.userName)
+
+        val token =
+            jwtTokenService.generateToken(
+                userName = user.userName,
+                userId = requireNotNull(user.id) { "User must have an ID" },
+                isAdmin = user.isAdmin,
+                greeting = user.greeting,
+            )
+
+        return LoginResponse(
+            token = token,
+            userName = user.userName,
+            greeting = user.greeting,
+            admin = user.isAdmin,
+            languageCode = user.languageCode,
+            userId = requireNotNull(user.id) { "User must have an ID" },
+        )
     }
 }
