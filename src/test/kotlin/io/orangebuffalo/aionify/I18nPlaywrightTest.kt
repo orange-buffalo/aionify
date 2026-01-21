@@ -166,8 +166,9 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         val successMessage = page.locator("[data-testid='profile-success']")
         assertThat(successMessage).isVisible()
 
-        // Verify UI switched to Ukrainian immediately
-        assertThat(profileTitle).hasText("Профіль")
+        // Verify UI switched to Ukrainian immediately - check card title
+        val profileCardTitleUk = page.locator("text=Мій профіль")
+        assertThat(profileCardTitleUk).isVisible()
         assertThat(successMessage).containsText("успішно оновлено")
 
         // Verify the locale dropdown now shows Ukrainian locale in Ukrainian
