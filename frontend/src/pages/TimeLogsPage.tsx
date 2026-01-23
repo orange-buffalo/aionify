@@ -143,7 +143,7 @@ export function TimeLogsPage() {
 
   return (
     <PortalLayout testId="time-logs-page">
-      <div className="p-8">
+      <div className="p-8 pt-16">
         <div className="max-w-6xl mx-auto">
           {/* Error Message */}
           {error && <FormMessage type="error" message={error} testId="time-logs-error" />}

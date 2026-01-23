@@ -102,7 +102,7 @@ export function UsersPage() {
 
   return (
     <PortalLayout testId="users-page">
-      <div className="p-8">
+      <div className="p-8 pt-16">
         <div className="max-w-6xl mx-auto">
           {error && (
             <div className="mb-4">

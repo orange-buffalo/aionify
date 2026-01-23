@@ -65,7 +65,12 @@ export function InlineTagsEdit({ currentTags, onSave, testIdPrefix = "inline-tag
           <Tag className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="dark w-80 p-0" align="start" data-testid={`${testIdPrefix}-popover`}>
+      <PopoverContent
+        className="dark w-80 p-0"
+        align="start"
+        collisionPadding={20}
+        data-testid={`${testIdPrefix}-popover`}
+      >
         <TagListContent
           selectedTags={selectedTags}
           onTagsChange={setSelectedTags}
