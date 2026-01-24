@@ -100,9 +100,9 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         // Wait for redirect to time logs page
         page.waitForURL("**/portal/time-logs")
 
-        // Verify UI switched to Ukrainian
-        val timeLogsTitle = page.locator("[data-testid='time-logs-title']")
-        assertThat(timeLogsTitle).hasText("Журнал часу")
+        // Verify UI switched to Ukrainian - check a visible element with translation
+        val currentEntryPanelTitle = page.locator("text=Над чим ви працюєте?")
+        assertThat(currentEntryPanelTitle).isVisible()
 
         // Verify language was saved to local storage
         val savedLanguage = page.evaluate("localStorage.getItem('aionify_language')")
@@ -134,9 +134,9 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         // Wait for redirect to time logs page
         page.waitForURL("**/portal/time-logs")
 
-        // Verify UI is in English
-        val timeLogsTitle = page.locator("[data-testid='time-logs-title']")
-        assertThat(timeLogsTitle).hasText("Time Log")
+        // Verify UI is in English - check a visible element with translation
+        val currentEntryPanelTitle = page.locator("text=What are you working on?")
+        assertThat(currentEntryPanelTitle).isVisible()
 
         // Verify language was saved to local storage
         val savedLanguage = page.evaluate("localStorage.getItem('aionify_language')")
@@ -151,9 +151,9 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         val greetingInput = page.locator("[data-testid='profile-greeting-input']")
         assertThat(greetingInput).isVisible()
 
-        // Verify page is initially in English
-        val profileTitle = page.locator("[data-testid='profile-title']")
-        assertThat(profileTitle).hasText("Profile")
+        // Verify page is initially in English - check card title
+        val profileCardTitle = page.locator("text=My Profile")
+        assertThat(profileCardTitle).isVisible()
 
         // Change locale to Ukrainian (which also changes UI language)
         page.locator("[data-testid='profile-locale-select']").click()
@@ -166,8 +166,9 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         val successMessage = page.locator("[data-testid='profile-success']")
         assertThat(successMessage).isVisible()
 
-        // Verify UI switched to Ukrainian immediately
-        assertThat(profileTitle).hasText("Профіль")
+        // Verify UI switched to Ukrainian immediately - check card title
+        val profileCardTitleUk = page.locator("text=Мій профіль")
+        assertThat(profileCardTitleUk).isVisible()
         assertThat(successMessage).containsText("успішно оновлено")
 
         // Verify the locale dropdown now shows Ukrainian locale in Ukrainian
@@ -299,15 +300,15 @@ class I18nPlaywrightTest : PlaywrightTestBase() {
         // Reload the page
         page.reload()
 
-        // Verify UI is still in Ukrainian
-        val settingsTitle = page.locator("[data-testid='profile-title']")
-        assertThat(settingsTitle).hasText("Профіль")
+        // Verify UI is still in Ukrainian - check card title
+        val profileCardTitle = page.locator("text=Мій профіль")
+        assertThat(profileCardTitle).isVisible()
 
         // Navigate to time logs page
         page.navigate("/portal/time-logs")
 
-        // Verify time logs page is also in Ukrainian
-        val timeLogsTitle = page.locator("[data-testid='time-logs-title']")
-        assertThat(timeLogsTitle).hasText("Журнал часу")
+        // Verify time logs page is also in Ukrainian - check a visible element
+        val currentEntryPanelTitle = page.locator("text=Над чим ви працюєте?")
+        assertThat(currentEntryPanelTitle).isVisible()
     }
 }

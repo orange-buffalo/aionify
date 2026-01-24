@@ -62,11 +62,6 @@ class UsersPagePlaywrightTest : PlaywrightTestBase() {
         val usersPage = page.locator("[data-testid='users-page']")
         assertThat(usersPage).isVisible()
 
-        // Verify title
-        val title = page.locator("[data-testid='users-title']")
-        assertThat(title).isVisible()
-        assertThat(title).hasText("Users")
-
         // Verify table is displayed
         val tableContainer = page.locator("[data-testid='users-table-container']")
         assertThat(tableContainer).isVisible()

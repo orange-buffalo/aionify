@@ -71,11 +71,6 @@ class ProfilePlaywrightTest : PlaywrightTestBase() {
         // Verify profile page is displayed
         val profilePage = page.locator("[data-testid='profile-page']")
         assertThat(profilePage).isVisible()
-
-        // Verify profile title
-        val profileTitle = page.locator("[data-testid='profile-title']")
-        assertThat(profileTitle).isVisible()
-        assertThat(profileTitle).hasText("Profile")
     }
 
     // === Profile Management Tests ===

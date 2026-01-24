@@ -169,8 +169,9 @@ class DockerLoginE2ETest {
                             val usersPage = page.locator("[data-testid='users-page']")
                             assertThat(usersPage).isVisible()
 
-                            val pageTitle = page.locator("[data-testid='users-title']")
-                            assertThat(pageTitle).hasText("Users")
+                            // Verify we can see the card title
+                            val cardTitle = page.locator("text=Users List")
+                            assertThat(cardTitle).isVisible()
 
                             log.info("✓ Login successful - admin portal loaded")
                         }

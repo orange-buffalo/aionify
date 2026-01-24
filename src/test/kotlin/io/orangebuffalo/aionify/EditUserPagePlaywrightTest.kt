@@ -65,11 +65,6 @@ class EditUserPagePlaywrightTest : PlaywrightTestBase() {
         val editPage = page.locator("[data-testid='edit-user-page']")
         assertThat(editPage).isVisible()
 
-        // Verify title
-        val title = page.locator("[data-testid='edit-user-title']")
-        assertThat(title).isVisible()
-        assertThat(title).hasText("Edit User")
-
         // Verify username input is populated
         val usernameInput = page.locator("[data-testid='username-input']")
         assertThat(usernameInput).isVisible()

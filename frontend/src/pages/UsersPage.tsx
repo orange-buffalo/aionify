@@ -102,15 +102,8 @@ export function UsersPage() {
 
   return (
     <PortalLayout testId="users-page">
-      <div className="p-8">
+      <div className="p-8 pt-16">
         <div className="max-w-6xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground" data-testid="users-title">
-              {t("portal.admin.users.title")}
-            </h1>
-            <p className="text-muted-foreground">{t("portal.admin.users.subtitle")}</p>
-          </div>
-
           {error && (
             <div className="mb-4">
               <FormMessage type="error" message={error} testId="users-error" />

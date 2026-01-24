@@ -83,17 +83,12 @@ export function CreateUserPage() {
               variant="ghost"
               size="sm"
               onClick={handleBack}
-              className="mb-4 text-foreground"
+              className="mb-8 text-foreground"
               data-testid="back-button"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               {t("portal.admin.users.create.back")}
             </Button>
-
-            <h1 className="text-3xl font-bold text-foreground" data-testid="create-user-title">
-              {t("portal.admin.users.create.title")}
-            </h1>
-            <p className="text-muted-foreground">{t("portal.admin.users.create.subtitle")}</p>
           </div>
 
           <div className="mb-4">{formMessage}</div>
