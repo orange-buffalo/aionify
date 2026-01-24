@@ -20,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mindrot.jbcrypt.BCrypt
+import java.time.Instant
 
 /**
  * Tests for time log entry public API.
@@ -719,13 +720,12 @@ class TimeLogEntryApiResourceTest {
         @Test
         fun `should list entries in time range`() {
             // Given: User has multiple entries in and out of range
-            val baseTime = timeService.now()
             testDatabaseSupport.inTransaction {
                 // Entry outside range (too old)
                 timeLogEntryRepository.save(
                     TimeLogEntry(
-                        startTime = baseTime.minusSeconds(20000), // Way before range
-                        endTime = baseTime.minusSeconds(19000),
+                        startTime = Instant.parse("2026-01-10T10:00:00Z"), // Way before range
+                        endTime = Instant.parse("2026-01-10T11:00:00Z"),
                         title = "Entry Too Old",
                         ownerId = testUser1.id!!,
                     ),
@@ -733,8 +733,8 @@ class TimeLogEntryApiResourceTest {
                 // Entry 1 in range
                 timeLogEntryRepository.save(
                     TimeLogEntry(
-                        startTime = baseTime.minusSeconds(7200), // 2 hours ago
-                        endTime = baseTime.minusSeconds(3600), // 1 hour ago
+                        startTime = Instant.parse("2026-01-15T10:00:00Z"), // 2 hours ago
+                        endTime = Instant.parse("2026-01-15T11:00:00Z"), // 1 hour ago
                         title = "Entry 1",
                         ownerId = testUser1.id!!,
                         tags = arrayOf("tag1"),
@@ -744,8 +744,8 @@ class TimeLogEntryApiResourceTest {
                 // Entry 2 in range
                 timeLogEntryRepository.save(
                     TimeLogEntry(
-                        startTime = baseTime.minusSeconds(3600), // 1 hour ago
-                        endTime = baseTime.minusSeconds(1800), // 30 mins ago
+                        startTime = Instant.parse("2026-01-15T11:00:00Z"), // 1 hour ago
+                        endTime = Instant.parse("2026-01-15T11:30:00Z"), // 30 mins ago
                         title = "Entry 2",
                         ownerId = testUser1.id!!,
                         tags = arrayOf("tag2"),
@@ -755,17 +755,17 @@ class TimeLogEntryApiResourceTest {
                 // Entry outside range (too new)
                 timeLogEntryRepository.save(
                     TimeLogEntry(
-                        startTime = baseTime.plusSeconds(1000), // After range
-                        endTime = baseTime.plusSeconds(2000),
+                        startTime = Instant.parse("2026-01-20T10:00:00Z"), // After range
+                        endTime = Instant.parse("2026-01-20T11:00:00Z"),
                         title = "Entry Too New",
                         ownerId = testUser1.id!!,
                     ),
                 )
             }
 
-            // When: Listing entries
-            val startTimeFrom = baseTime.minusSeconds(10000).toString()
-            val startTimeTo = baseTime.toString()
+            // When: Listing entries - using predefined ISO strings for clarity
+            val startTimeFrom = "2026-01-15T00:00:00Z"
+            val startTimeTo = "2026-01-16T00:00:00Z"
             val request =
                 HttpRequest
                     .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo")
@@ -798,13 +798,13 @@ class TimeLogEntryApiResourceTest {
         @Test
         fun `should paginate results correctly`() {
             // Given: User has many entries
-            val baseTime = timeService.now()
             testDatabaseSupport.inTransaction {
                 for (i in 1..10) {
+                    val hour = String.format("%02d", 10 + i)
                     timeLogEntryRepository.save(
                         TimeLogEntry(
-                            startTime = baseTime.minusSeconds(i * 600L),
-                            endTime = baseTime.minusSeconds(i * 600L - 300),
+                            startTime = Instant.parse("2026-01-15T$hour:00:00Z"),
+                            endTime = Instant.parse("2026-01-15T$hour:05:00Z"),
                             title = "Entry $i",
                             ownerId = testUser1.id!!,
                         ),
@@ -812,9 +812,9 @@ class TimeLogEntryApiResourceTest {
                 }
             }
 
-            // When: Fetching first page with pageSize 3
-            val startTimeFrom = baseTime.minusSeconds(10000).toString()
-            val startTimeTo = baseTime.toString()
+            // When: Fetching first page with pageSize 3 - using predefined ISO strings
+            val startTimeFrom = "2026-01-15T00:00:00Z"
+            val startTimeTo = "2026-01-16T00:00:00Z"
             val request1 =
                 HttpRequest
                     .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&page=0&pageSize=3")
@@ -829,9 +829,10 @@ class TimeLogEntryApiResourceTest {
             assertEquals(0, body1.page)
             assertEquals(3, body1.size)
             assertEquals(3, body1.entries.size)
-            assertEquals("Entry 1", body1.entries[0].title)
-            assertEquals("Entry 2", body1.entries[1].title)
-            assertEquals("Entry 3", body1.entries[2].title)
+            // Entries are sorted by start time descending (newest first), so Entry 10, 9, 8
+            assertEquals("Entry 10", body1.entries[0].title)
+            assertEquals("Entry 9", body1.entries[1].title)
+            assertEquals("Entry 8", body1.entries[2].title)
 
             // When: Fetching second page
             val request2 =
@@ -848,9 +849,9 @@ class TimeLogEntryApiResourceTest {
             assertEquals(1, body2.page)
             assertEquals(3, body2.size)
             assertEquals(3, body2.entries.size)
-            assertEquals("Entry 4", body2.entries[0].title)
-            assertEquals("Entry 5", body2.entries[1].title)
-            assertEquals("Entry 6", body2.entries[2].title)
+            assertEquals("Entry 7", body2.entries[0].title)
+            assertEquals("Entry 6", body2.entries[1].title)
+            assertEquals("Entry 5", body2.entries[2].title)
 
             // When: Fetching last page
             val request3 =
@@ -867,27 +868,26 @@ class TimeLogEntryApiResourceTest {
             assertEquals(3, body3.page)
             assertEquals(3, body3.size)
             assertEquals(1, body3.entries.size)
-            assertEquals("Entry 10", body3.entries[0].title)
+            assertEquals("Entry 1", body3.entries[0].title)
         }
 
         @Test
         fun `should return empty page when requesting beyond last page`() {
             // Given: User has 2 entries
-            val baseTime = timeService.now()
             testDatabaseSupport.inTransaction {
                 timeLogEntryRepository.save(
                     TimeLogEntry(
-                        startTime = baseTime.minusSeconds(3600),
-                        endTime = baseTime.minusSeconds(1800),
+                        startTime = Instant.parse("2026-01-15T10:00:00Z"),
+                        endTime = Instant.parse("2026-01-15T10:30:00Z"),
                         title = "Entry 1",
                         ownerId = testUser1.id!!,
                     ),
                 )
             }
 
-            // When: Fetching page 5
-            val startTimeFrom = baseTime.minusSeconds(10000).toString()
-            val startTimeTo = baseTime.toString()
+            // When: Fetching page 5 - using predefined ISO strings
+            val startTimeFrom = "2026-01-15T00:00:00Z"
+            val startTimeTo = "2026-01-16T00:00:00Z"
             val request =
                 HttpRequest
                     .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&page=5&pageSize=100")
@@ -907,21 +907,20 @@ class TimeLogEntryApiResourceTest {
         @Test
         fun `should return empty results when no entries in range`() {
             // Given: User has entries outside the time range
-            val baseTime = timeService.now()
             testDatabaseSupport.inTransaction {
                 timeLogEntryRepository.save(
                     TimeLogEntry(
-                        startTime = baseTime.plusSeconds(3600), // 1 hour in future
-                        endTime = baseTime.plusSeconds(7200),
+                        startTime = Instant.parse("2026-01-20T10:00:00Z"), // 1 hour in future
+                        endTime = Instant.parse("2026-01-20T12:00:00Z"),
                         title = "Future Entry",
                         ownerId = testUser1.id!!,
                     ),
                 )
             }
 
-            // When: Querying past time range
-            val startTimeFrom = baseTime.minusSeconds(10000).toString()
-            val startTimeTo = baseTime.minusSeconds(5000).toString()
+            // When: Querying past time range - using predefined ISO strings
+            val startTimeFrom = "2026-01-10T00:00:00Z"
+            val startTimeTo = "2026-01-12T00:00:00Z"
             val request =
                 HttpRequest
                     .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo")
@@ -941,29 +940,28 @@ class TimeLogEntryApiResourceTest {
         @Test
         fun `should only return current user entries`() {
             // Given: Both users have entries
-            val baseTime = timeService.now()
             testDatabaseSupport.inTransaction {
                 timeLogEntryRepository.save(
                     TimeLogEntry(
-                        startTime = baseTime.minusSeconds(3600),
-                        endTime = baseTime.minusSeconds(1800),
+                        startTime = Instant.parse("2026-01-15T10:00:00Z"),
+                        endTime = Instant.parse("2026-01-15T10:30:00Z"),
                         title = "User1 Entry",
                         ownerId = testUser1.id!!,
                     ),
                 )
                 timeLogEntryRepository.save(
                     TimeLogEntry(
-                        startTime = baseTime.minusSeconds(3600),
-                        endTime = baseTime.minusSeconds(1800),
+                        startTime = Instant.parse("2026-01-15T10:00:00Z"),
+                        endTime = Instant.parse("2026-01-15T10:30:00Z"),
                         title = "User2 Entry",
                         ownerId = testUser2.id!!,
                     ),
                 )
             }
 
-            // When: User1 lists entries
-            val startTimeFrom = baseTime.minusSeconds(10000).toString()
-            val startTimeTo = baseTime.toString()
+            // When: User1 lists entries - using predefined ISO strings
+            val startTimeFrom = "2026-01-15T00:00:00Z"
+            val startTimeTo = "2026-01-16T00:00:00Z"
             val request =
                 HttpRequest
                     .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo")
@@ -981,10 +979,9 @@ class TimeLogEntryApiResourceTest {
 
         @Test
         fun `should reject request without authentication`() {
-            // When: Listing entries without token
-            val baseTime = timeService.now()
-            val startTimeFrom = baseTime.minusSeconds(10000).toString()
-            val startTimeTo = baseTime.toString()
+            // When: Listing entries without token - using predefined ISO strings
+            val startTimeFrom = "2026-01-15T00:00:00Z"
+            val startTimeTo = "2026-01-16T00:00:00Z"
             val request =
                 HttpRequest.GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo")
 
@@ -999,10 +996,9 @@ class TimeLogEntryApiResourceTest {
 
         @Test
         fun `should reject invalid time range`() {
-            // When: Providing invalid time range (startTimeFrom after startTimeTo)
-            val baseTime = timeService.now()
-            val startTimeFrom = baseTime.toString()
-            val startTimeTo = baseTime.minusSeconds(10000).toString()
+            // When: Providing invalid time range (startTimeFrom after startTimeTo) - using predefined ISO strings
+            val startTimeFrom = "2026-01-16T00:00:00Z"
+            val startTimeTo = "2026-01-15T00:00:00Z"
             val request =
                 HttpRequest
                     .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo")
@@ -1019,9 +1015,8 @@ class TimeLogEntryApiResourceTest {
 
         @Test
         fun `should reject equal start and end times`() {
-            // When: Providing equal start and end times
-            val baseTime = timeService.now()
-            val timestamp = baseTime.toString()
+            // When: Providing equal start and end times - using predefined ISO strings
+            val timestamp = "2026-01-15T12:00:00Z"
             val request =
                 HttpRequest
                     .GET<Any>("/api/time-log-entries?startTimeFrom=$timestamp&startTimeTo=$timestamp")
@@ -1039,13 +1034,15 @@ class TimeLogEntryApiResourceTest {
         @Test
         fun `should respect max page size limit`() {
             // Given: User has many entries
-            val baseTime = timeService.now()
             testDatabaseSupport.inTransaction {
                 for (i in 1..600) {
+                    // Create timestamps that are properly formatted
+                    val startTime = Instant.parse("2026-01-15T10:00:00Z").plusSeconds(i * 10L)
+                    val endTime = startTime.plusSeconds(5)
                     timeLogEntryRepository.save(
                         TimeLogEntry(
-                            startTime = baseTime.minusSeconds(i * 10L),
-                            endTime = baseTime.minusSeconds(i * 10L - 5),
+                            startTime = startTime,
+                            endTime = endTime,
                             title = "Entry $i",
                             ownerId = testUser1.id!!,
                         ),
@@ -1053,9 +1050,9 @@ class TimeLogEntryApiResourceTest {
                 }
             }
 
-            // When: Requesting with pageSize > 500
-            val startTimeFrom = baseTime.minusSeconds(10000).toString()
-            val startTimeTo = baseTime.toString()
+            // When: Requesting with pageSize > 500 - using predefined ISO strings
+            val startTimeFrom = "2026-01-15T00:00:00Z"
+            val startTimeTo = "2026-01-16T00:00:00Z"
             val exception =
                 assertThrows(HttpClientResponseException::class.java) {
                     val request =
@@ -1072,13 +1069,15 @@ class TimeLogEntryApiResourceTest {
         @Test
         fun `should allow max page size of 500`() {
             // Given: User has many entries
-            val baseTime = timeService.now()
             testDatabaseSupport.inTransaction {
                 for (i in 1..600) {
+                    // Create timestamps that are properly formatted
+                    val startTime = Instant.parse("2026-01-15T10:00:00Z").plusSeconds(i * 10L)
+                    val endTime = startTime.plusSeconds(5)
                     timeLogEntryRepository.save(
                         TimeLogEntry(
-                            startTime = baseTime.minusSeconds(i * 10L),
-                            endTime = baseTime.minusSeconds(i * 10L - 5),
+                            startTime = startTime,
+                            endTime = endTime,
                             title = "Entry $i",
                             ownerId = testUser1.id!!,
                         ),
@@ -1086,9 +1085,9 @@ class TimeLogEntryApiResourceTest {
                 }
             }
 
-            // When: Requesting with pageSize = 500
-            val startTimeFrom = baseTime.minusSeconds(10000).toString()
-            val startTimeTo = baseTime.toString()
+            // When: Requesting with pageSize = 500 - using predefined ISO strings
+            val startTimeFrom = "2026-01-15T00:00:00Z"
+            val startTimeTo = "2026-01-16T00:00:00Z"
             val request =
                 HttpRequest
                     .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo&pageSize=500")
@@ -1108,19 +1107,18 @@ class TimeLogEntryApiResourceTest {
         @Test
         fun `should include active entries without end time`() {
             // Given: User has active and stopped entries
-            val baseTime = timeService.now()
             testDatabaseSupport.inTransaction {
                 timeLogEntryRepository.save(
                     TimeLogEntry(
-                        startTime = baseTime.minusSeconds(3600),
-                        endTime = baseTime.minusSeconds(1800),
+                        startTime = Instant.parse("2026-01-15T10:00:00Z"),
+                        endTime = Instant.parse("2026-01-15T10:30:00Z"),
                         title = "Stopped Entry",
                         ownerId = testUser1.id!!,
                     ),
                 )
                 timeLogEntryRepository.save(
                     TimeLogEntry(
-                        startTime = baseTime.minusSeconds(1800),
+                        startTime = Instant.parse("2026-01-15T10:30:00Z"),
                         endTime = null,
                         title = "Active Entry",
                         ownerId = testUser1.id!!,
@@ -1128,9 +1126,9 @@ class TimeLogEntryApiResourceTest {
                 )
             }
 
-            // When: Listing entries
-            val startTimeFrom = baseTime.minusSeconds(10000).toString()
-            val startTimeTo = baseTime.toString()
+            // When: Listing entries - using predefined ISO strings
+            val startTimeFrom = "2026-01-15T00:00:00Z"
+            val startTimeTo = "2026-01-16T00:00:00Z"
             val request =
                 HttpRequest
                     .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo")
@@ -1154,13 +1152,13 @@ class TimeLogEntryApiResourceTest {
         @Test
         fun `should use default page size when not specified`() {
             // Given: User has entries
-            val baseTime = timeService.now()
             testDatabaseSupport.inTransaction {
                 for (i in 1..5) {
+                    val hour = String.format("%02d", 10 + i)
                     timeLogEntryRepository.save(
                         TimeLogEntry(
-                            startTime = baseTime.minusSeconds(i * 600L),
-                            endTime = baseTime.minusSeconds(i * 600L - 300),
+                            startTime = Instant.parse("2026-01-15T$hour:00:00Z"),
+                            endTime = Instant.parse("2026-01-15T$hour:05:00Z"),
                             title = "Entry $i",
                             ownerId = testUser1.id!!,
                         ),
@@ -1168,9 +1166,9 @@ class TimeLogEntryApiResourceTest {
                 }
             }
 
-            // When: Listing entries without size parameter
-            val startTimeFrom = baseTime.minusSeconds(10000).toString()
-            val startTimeTo = baseTime.toString()
+            // When: Listing entries without size parameter - using predefined ISO strings
+            val startTimeFrom = "2026-01-15T00:00:00Z"
+            val startTimeTo = "2026-01-16T00:00:00Z"
             val request =
                 HttpRequest
                     .GET<Any>("/api/time-log-entries?startTimeFrom=$startTimeFrom&startTimeTo=$startTimeTo")
@@ -1187,13 +1185,12 @@ class TimeLogEntryApiResourceTest {
 
         @Test
         fun `should accept ISO date time format with timezone offset`() {
-            // Given: User has entries
-            val baseTime = timeService.now()
+            // Given: User has entries at specific times
             testDatabaseSupport.inTransaction {
                 timeLogEntryRepository.save(
                     TimeLogEntry(
-                        startTime = baseTime.minusSeconds(3600),
-                        endTime = baseTime.minusSeconds(1800),
+                        startTime = Instant.parse("2026-01-15T10:00:00Z"),
+                        endTime = Instant.parse("2026-01-15T11:00:00Z"),
                         title = "Test Entry",
                         ownerId = testUser1.id!!,
                     ),
@@ -1201,12 +1198,9 @@ class TimeLogEntryApiResourceTest {
             }
 
             // When: Listing entries with ISO 8601 format including timezone offset
-            // Format: 2026-01-01T00:00:00+11:00
-            val startTimeFrom = baseTime.minusSeconds(10000)
-            val startTimeTo = baseTime
-            // Create ISO format with timezone offset (+11:00 for testing)
-            val startTimeFromStr = startTimeFrom.atZone(java.time.ZoneOffset.of("+11:00")).toString()
-            val startTimeToStr = startTimeTo.atZone(java.time.ZoneOffset.of("+11:00")).toString()
+            // Using predefined strings to clearly show the format
+            val startTimeFromStr = "2026-01-15T09:00:00+11:00" // 2026-01-14T22:00:00Z in UTC
+            val startTimeToStr = "2026-01-15T23:00:00+11:00" // 2026-01-15T12:00:00Z in UTC
 
             // URL encode the parameters to handle special characters like + and :
             val encodedStartTimeFrom = java.net.URLEncoder.encode(startTimeFromStr, "UTF-8")
@@ -1224,6 +1218,31 @@ class TimeLogEntryApiResourceTest {
             val body = response.body()!!
             assertEquals(1, body.totalElements)
             assertEquals("Test Entry", body.entries[0].title)
+        }
+
+        @Test
+        fun `should reject invalid ISO date time format with meaningful error`() {
+            // When: Providing invalid datetime format
+            val invalidFormat = "not-a-valid-datetime"
+            val encodedInvalidFormat = java.net.URLEncoder.encode(invalidFormat, "UTF-8")
+            val validFormat = java.net.URLEncoder.encode("2026-01-15T10:00:00Z", "UTF-8")
+
+            val exception =
+                assertThrows(HttpClientResponseException::class.java) {
+                    val request =
+                        HttpRequest
+                            .GET<Any>("/api/time-log-entries?startTimeFrom=$encodedInvalidFormat&startTimeTo=$validFormat")
+                            .bearerAuth(validToken1)
+                    client.toBlocking().exchange(request, ListTimeLogEntriesResponse::class.java)
+                }
+
+            // Then: Request is rejected with 400 and meaningful error message
+            assertEquals(HttpStatus.BAD_REQUEST, exception.status)
+            val errorBody = exception.response.getBody(String::class.java).orElse("")
+            assertTrue(
+                errorBody.contains("startTimeFrom") || errorBody.contains("Bad Request"),
+                "Error message should mention the problematic parameter or be a Bad Request",
+            )
         }
     }
 }
