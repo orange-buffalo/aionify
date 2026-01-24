@@ -1184,5 +1184,46 @@ class TimeLogEntryApiResourceTest {
             assertEquals(100, body.size)
             assertEquals(5, body.totalElements)
         }
+
+        @Test
+        fun `should accept ISO date time format with timezone offset`() {
+            // Given: User has entries
+            val baseTime = timeService.now()
+            testDatabaseSupport.inTransaction {
+                timeLogEntryRepository.save(
+                    TimeLogEntry(
+                        startTime = baseTime.minusSeconds(3600),
+                        endTime = baseTime.minusSeconds(1800),
+                        title = "Test Entry",
+                        ownerId = testUser1.id!!,
+                    ),
+                )
+            }
+
+            // When: Listing entries with ISO 8601 format including timezone offset
+            // Format: 2026-01-01T00:00:00+11:00
+            val startTimeFrom = baseTime.minusSeconds(10000)
+            val startTimeTo = baseTime
+            // Create ISO format with timezone offset (+11:00 for testing)
+            val startTimeFromStr = startTimeFrom.atZone(java.time.ZoneId.of("+11:00")).toString()
+            val startTimeToStr = startTimeTo.atZone(java.time.ZoneId.of("+11:00")).toString()
+            
+            // URL encode the parameters to handle special characters like + and :
+            val encodedStartTimeFrom = java.net.URLEncoder.encode(startTimeFromStr, "UTF-8")
+            val encodedStartTimeTo = java.net.URLEncoder.encode(startTimeToStr, "UTF-8")
+            
+            val request =
+                HttpRequest
+                    .GET<Any>("/api/time-log-entries?startTimeFrom=$encodedStartTimeFrom&startTimeTo=$encodedStartTimeTo")
+                    .bearerAuth(validToken1)
+
+            val response = client.toBlocking().exchange(request, ListTimeLogEntriesResponse::class.java)
+
+            // Then: Request succeeds
+            assertEquals(HttpStatus.OK, response.status)
+            val body = response.body()!!
+            assertEquals(1, body.totalElements)
+            assertEquals("Test Entry", body.entries[0].title)
+        }
     }
 }
