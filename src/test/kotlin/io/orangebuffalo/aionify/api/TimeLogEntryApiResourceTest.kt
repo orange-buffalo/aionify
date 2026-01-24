@@ -1207,11 +1207,11 @@ class TimeLogEntryApiResourceTest {
             // Create ISO format with timezone offset (+11:00 for testing)
             val startTimeFromStr = startTimeFrom.atZone(java.time.ZoneId.of("+11:00")).toString()
             val startTimeToStr = startTimeTo.atZone(java.time.ZoneId.of("+11:00")).toString()
-            
+
             // URL encode the parameters to handle special characters like + and :
             val encodedStartTimeFrom = java.net.URLEncoder.encode(startTimeFromStr, "UTF-8")
             val encodedStartTimeTo = java.net.URLEncoder.encode(startTimeToStr, "UTF-8")
-            
+
             val request =
                 HttpRequest
                     .GET<Any>("/api/time-log-entries?startTimeFrom=$encodedStartTimeFrom&startTimeTo=$encodedStartTimeTo")
