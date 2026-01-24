@@ -7,8 +7,6 @@ jobs:
   release:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout repository
@@ -17,7 +15,7 @@ jobs:
           # Ensure full git history is available for version management
           fetch-depth: 0
           # Use a token that can trigger workflows
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.AIONIFY_MAINTENANCE_TOKEN }}
 
       - name: Setup environment
         uses: ./.github/actions/setup-environment
