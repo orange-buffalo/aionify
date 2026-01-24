@@ -1205,8 +1205,8 @@ class TimeLogEntryApiResourceTest {
             val startTimeFrom = baseTime.minusSeconds(10000)
             val startTimeTo = baseTime
             // Create ISO format with timezone offset (+11:00 for testing)
-            val startTimeFromStr = startTimeFrom.atZone(java.time.ZoneId.of("+11:00")).toString()
-            val startTimeToStr = startTimeTo.atZone(java.time.ZoneId.of("+11:00")).toString()
+            val startTimeFromStr = startTimeFrom.atZone(java.time.ZoneOffset.of("+11:00")).toString()
+            val startTimeToStr = startTimeTo.atZone(java.time.ZoneOffset.of("+11:00")).toString()
 
             // URL encode the parameters to handle special characters like + and :
             val encodedStartTimeFrom = java.net.URLEncoder.encode(startTimeFromStr, "UTF-8")

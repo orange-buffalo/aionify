@@ -21,14 +21,12 @@ class InstantTypeConverter : TypeConverter<String, Instant> {
         context: ConversionContext,
     ): Optional<Instant> =
         try {
-            // Try parsing as ISO-8601 instant (handles both Z and offset formats)
-            // DateTimeFormatter.ISO_INSTANT only handles Z format
-            // DateTimeFormatter.ISO_OFFSET_DATE_TIME handles offset formats
-            // We first try ISO_INSTANT (for backward compatibility), then ISO_OFFSET_DATE_TIME
+            // Try parsing as standard ISO-8601 instant (Z format) for backward compatibility
+            // If that fails, try parsing as ISO-8601 with timezone offset (e.g., +11:00, -05:00)
             try {
                 Optional.of(Instant.parse(value))
             } catch (e: DateTimeParseException) {
-                // If standard parsing fails, try parsing as ZonedDateTime and convert to Instant
+                // Parse as ZonedDateTime/OffsetDateTime and convert to Instant
                 val instant = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(value, Instant::from)
                 Optional.of(instant)
             }
