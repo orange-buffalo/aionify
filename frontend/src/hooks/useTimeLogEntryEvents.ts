@@ -18,7 +18,9 @@ export function useTimeLogEntryEvents(onEvent: (event: TimeLogEntryEvent) => voi
   const eventSourceRef = useRef<EventSource | null>(null);
   const onEventRef = useRef(onEvent);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const heartbeatTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectDelayMs = 5000; // 5 seconds
+  const heartbeatTimeoutMs = 45000; // 45 seconds = 1.5x backend heartbeat interval (30s)
 
   // Keep callback ref up to date
   useEffect(() => {
@@ -31,11 +33,38 @@ export function useTimeLogEntryEvents(onEvent: (event: TimeLogEntryEvent) => voi
       clearTimeout(reconnectTimeoutRef.current);
     }
 
+    // Clear heartbeat timeout as we're reconnecting
+    if (heartbeatTimeoutRef.current) {
+      clearTimeout(heartbeatTimeoutRef.current);
+      heartbeatTimeoutRef.current = null;
+    }
+
     console.log(`[SSE] Scheduling reconnection in ${reconnectDelayMs / 1000} seconds...`);
     reconnectTimeoutRef.current = setTimeout(() => {
       connect();
     }, reconnectDelayMs);
   }, []);
+
+  const resetHeartbeatTimeout = useCallback(() => {
+    // Clear any existing heartbeat timeout
+    if (heartbeatTimeoutRef.current) {
+      clearTimeout(heartbeatTimeoutRef.current);
+    }
+
+    // Set a new timeout to detect missing heartbeats
+    heartbeatTimeoutRef.current = setTimeout(() => {
+      console.log("[SSE] Heartbeat timeout - no heartbeat received, reconnecting...");
+
+      // Close the stale connection
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+
+      // Schedule reconnection
+      scheduleReconnect();
+    }, heartbeatTimeoutMs);
+  }, [scheduleReconnect]);
 
   const connect = useCallback(async () => {
     if (!enabled) return;
@@ -63,14 +92,20 @@ export function useTimeLogEntryEvents(onEvent: (event: TimeLogEntryEvent) => voi
           const data = JSON.parse(event.data) as TimeLogEntryEvent;
           console.log("[SSE] Received event:", data);
           onEventRef.current(data);
+
+          // Reset heartbeat timeout on any message (data events count as activity)
+          resetHeartbeatTimeout();
         } catch (error) {
           console.debug("[SSE] Failed to parse event data:", error);
         }
       };
 
       eventSource.addEventListener("heartbeat", () => {
-        // Heartbeat event to keep connection alive - no action needed
+        // Heartbeat event to keep connection alive
         console.debug("[SSE] Heartbeat received");
+
+        // Reset the timeout since we received a heartbeat
+        resetHeartbeatTimeout();
       });
 
       eventSource.onerror = () => {
@@ -88,6 +123,9 @@ export function useTimeLogEntryEvents(onEvent: (event: TimeLogEntryEvent) => voi
 
       eventSource.onopen = () => {
         console.log("[SSE] Connection established");
+
+        // Start heartbeat monitoring when connection opens
+        resetHeartbeatTimeout();
       };
 
       eventSourceRef.current = eventSource;
@@ -98,13 +136,19 @@ export function useTimeLogEntryEvents(onEvent: (event: TimeLogEntryEvent) => voi
       // Schedule reconnection to try again later
       scheduleReconnect();
     }
-  }, [enabled, scheduleReconnect]);
+  }, [enabled, scheduleReconnect, resetHeartbeatTimeout]);
 
   const disconnect = useCallback(() => {
     // Clear any pending reconnect timeout
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
+    }
+
+    // Clear heartbeat timeout
+    if (heartbeatTimeoutRef.current) {
+      clearTimeout(heartbeatTimeoutRef.current);
+      heartbeatTimeoutRef.current = null;
     }
 
     if (eventSourceRef.current) {
