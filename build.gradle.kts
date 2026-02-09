@@ -2,7 +2,7 @@ import org.jreleaser.model.Active
 import java.time.Duration
 
 plugins {
-    kotlin("jvm") version "2.3.0"
+    kotlin("jvm") version "2.3.10"
     kotlin("plugin.allopen") version "2.3.10"
     id("com.google.devtools.ksp") version "2.3.5"
     id("io.micronaut.application") version "4.6.2"
