@@ -3,6 +3,8 @@ package io.orangebuffalo.aionify.timelogs
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.TimeLogEntry
 import io.orangebuffalo.aionify.withLocalTime
+import org.awaitility.kotlin.await
+import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -61,10 +63,10 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         page.locator("[data-testid='time-entry-inline-tags-checkbox-frontend']").click()
 
         // Wait for async save to complete by polling database
-        page.waitForCondition {
+        await untilAsserted {
             testDatabaseSupport.inTransaction {
                 val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
-                updatedEntry.tags.toSet() == setOf("backend", "frontend")
+                assertEquals(setOf("backend", "frontend"), updatedEntry.tags.toSet())
             }
         }
 
@@ -122,10 +124,10 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         assertThat(page.locator("[data-testid='time-entry-inline-tags-checkbox-urgent']")).isChecked()
 
         // Wait for async save to complete by polling database
-        page.waitForCondition {
+        await untilAsserted {
             testDatabaseSupport.inTransaction {
                 val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
-                updatedEntry.tags.toSet() == setOf("backend", "urgent")
+                assertEquals(setOf("backend", "urgent"), updatedEntry.tags.toSet())
             }
         }
 
@@ -204,14 +206,14 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         page.locator("[data-testid='grouped-entry-inline-tags-add-tag-button']").click()
 
         // Wait for async save to complete by polling database
-        page.waitForCondition {
+        await untilAsserted {
             testDatabaseSupport.inTransaction {
                 val updated1 = timeLogEntryRepository.findById(requireNotNull(entry1.id)).orElseThrow()
                 val updated2 = timeLogEntryRepository.findById(requireNotNull(entry2.id)).orElseThrow()
                 val updated3 = timeLogEntryRepository.findById(requireNotNull(entry3.id)).orElseThrow()
-                updated1.tags.toSet() == setOf("backend", "feature") &&
-                    updated2.tags.toSet() == setOf("backend", "feature") &&
-                    updated3.tags.toSet() == setOf("backend", "feature")
+                assertEquals(setOf("backend", "feature"), updated1.tags.toSet())
+                assertEquals(setOf("backend", "feature"), updated2.tags.toSet())
+                assertEquals(setOf("backend", "feature"), updated3.tags.toSet())
             }
         }
 
@@ -351,10 +353,10 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         assertThat(page.locator("[data-testid='time-entry-inline-tags-checkbox-urgent']")).isChecked()
 
         // Wait for async save to complete by polling database
-        page.waitForCondition {
+        await untilAsserted {
             testDatabaseSupport.inTransaction {
                 val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
-                updatedEntry.tags.toSet() == setOf("urgent")
+                assertEquals(setOf("urgent"), updatedEntry.tags.toSet())
             }
         }
 
@@ -434,10 +436,10 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         page.locator("[data-testid='time-entry-inline-tags-add-tag-button']").click()
 
         // Wait for auto-save to complete by polling database
-        page.waitForCondition {
+        await untilAsserted {
             testDatabaseSupport.inTransaction {
                 val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
-                updatedEntry.tags.toSet() == setOf("backend", "urgent")
+                assertEquals(setOf("backend", "urgent"), updatedEntry.tags.toSet())
             }
         }
 
@@ -481,10 +483,10 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         page.locator("[data-testid='time-entry-inline-tags-checkbox-urgent']").click()
 
         // Wait for async save to complete by polling database
-        page.waitForCondition {
+        await untilAsserted {
             testDatabaseSupport.inTransaction {
                 val updatedEntry = timeLogEntryRepository.findById(requireNotNull(entry.id)).orElseThrow()
-                updatedEntry.tags.toSet() == emptySet<String>()
+                assertEquals(emptySet<String>(), updatedEntry.tags.toSet())
             }
         }
 
