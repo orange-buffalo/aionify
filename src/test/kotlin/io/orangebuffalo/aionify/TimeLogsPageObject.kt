@@ -299,18 +299,17 @@ class TimeLogsPageObject(
             val durationLocators = entryLocator.locator("[data-testid='entry-duration']")
             assertThat(durationLocators).containsText(expectedDurations.toTypedArray())
 
-            // Assert tags for each entry
+            // Assert tag button highlight for each entry
             for (i in regularEntries.indices) {
                 val entry = regularEntries[i]
                 val entryElement = entryLocator.nth(i)
 
-                val tagLocators = entryElement.locator("[data-testid^='entry-tag-']")
+                val tagsButton = entryElement.locator("[data-testid='time-entry-inline-tags-button']")
+                val buttonClass = tagsButton.getAttribute("class") ?: ""
                 if (entry.tags.isNotEmpty()) {
-                    // Assert tag text content matches expected tags using array-based assertion
-                    assertThat(tagLocators).containsText(entry.tags.toTypedArray())
+                    assertTrue(buttonClass.contains("bg-teal-600"), "Tag button should be highlighted when tags are selected")
                 } else {
-                    // Tags container should not be visible when there are no tags
-                    assertThat(tagLocators).isHidden()
+                    assertFalse(buttonClass.contains("bg-teal-600"), "Tag button should not be highlighted when no tags are selected")
                 }
             }
 
@@ -380,12 +379,13 @@ class TimeLogsPageObject(
         assertThat(groupedEntryLocator.locator("[data-testid='entry-title']"))
             .containsText(expectedGroupedEntry.title)
 
-        // Assert tags
-        val tagLocators = groupedEntryLocator.locator("[data-testid^='entry-tag-']")
+        // Assert tag button highlight
+        val tagsButton = groupedEntryLocator.locator("[data-testid='grouped-entry-inline-tags-button']")
+        val buttonClass = tagsButton.getAttribute("class") ?: ""
         if (expectedGroupedEntry.tags.isNotEmpty()) {
-            assertThat(tagLocators).containsText(expectedGroupedEntry.tags.toTypedArray())
+            assertTrue(buttonClass.contains("bg-teal-600"), "Tag button should be highlighted when tags are selected")
         } else {
-            assertThat(tagLocators).isHidden()
+            assertFalse(buttonClass.contains("bg-teal-600"), "Tag button should not be highlighted when no tags are selected")
         }
 
         // Assert time range
@@ -468,8 +468,17 @@ class TimeLogsPageObject(
                 assertThat(entryElement.locator("[data-testid='entry-title']")).isVisible()
                 assertThat(entryElement.locator("[data-testid='entry-title']")).containsText(entry.title)
 
-                // Tags should NOT be visible
-                assertThat(entryElement.locator("[data-testid='entry-tags']")).not().isVisible()
+                // Tag edit button should be highlighted if entry has tags
+                val expandedTagsButton = entryElement.locator("[data-testid='time-entry-inline-tags-button']")
+                val expandedButtonClass = expandedTagsButton.getAttribute("class") ?: ""
+                if (entry.tags.isNotEmpty()) {
+                    assertTrue(expandedButtonClass.contains("bg-teal-600"), "Tag button should be highlighted when tags are selected")
+                } else {
+                    assertFalse(
+                        expandedButtonClass.contains("bg-teal-600"),
+                        "Tag button should not be highlighted when no tags are selected",
+                    )
+                }
 
                 // Continue button should NOT be visible
                 assertThat(entryElement.locator("[data-testid='continue-button']")).not().isVisible()

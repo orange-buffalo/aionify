@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,7 +27,6 @@ interface TimeEntryProps {
   startOfWeek: number;
   onDataChange: () => Promise<void>;
   hideTitle?: boolean;
-  hideTags?: boolean;
   hideContinue?: boolean;
   overlap?: EntryOverlap;
 }
@@ -39,7 +37,6 @@ export function TimeEntry({
   startOfWeek,
   onDataChange,
   hideTitle = false,
-  hideTags = false,
   hideContinue = false,
   overlap,
 }: TimeEntryProps) {
@@ -119,15 +116,6 @@ export function TimeEntry({
               onSave={handleInlineTitleUpdate}
               testIdPrefix="time-entry-inline-title"
             />
-          </div>
-        )}
-        {!hideTags && entry.tags && entry.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1.5" data-testid="entry-tags">
-            {entry.tags.sort().map((tag, index) => (
-              <Badge key={index} variant="default" className="text-[0.7rem]" data-testid={`entry-tag-${index}`}>
-                {tag}
-              </Badge>
-            ))}
           </div>
         )}
       </div>

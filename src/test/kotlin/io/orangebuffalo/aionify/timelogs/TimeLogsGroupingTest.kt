@@ -3,6 +3,8 @@ package io.orangebuffalo.aionify.timelogs
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.*
 import io.orangebuffalo.aionify.domain.TimeLogEntry
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 /**
@@ -175,8 +177,10 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         assertThat(expandedEntries.first().locator("[data-testid='entry-title']")).isVisible()
         assertThat(expandedEntries.first().locator("[data-testid='entry-title']")).containsText("Code Review")
 
-        // Verify tags are NOT shown for detailed entries
-        assertThat(expandedEntries.first().locator("[data-testid='entry-tags']")).not().isVisible()
+        // Verify tag edit button is highlighted on detailed entries (entries have "review" tag)
+        val firstEntryButtonClass =
+            expandedEntries.first().locator("[data-testid='time-entry-inline-tags-button']").getAttribute("class") ?: ""
+        assertTrue(firstEntryButtonClass.contains("bg-teal-600"), "Tag button should be highlighted when tags are selected")
 
         // Verify continue button is NOT visible on detailed entries
         assertThat(expandedEntries.first().locator("[data-testid='continue-button']")).not().isVisible()
@@ -530,8 +534,9 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         assertThat(groupedEntry).isVisible()
         assertThat(groupedEntry.locator("[data-testid='entry-count-badge']")).containsText("2")
 
-        // Verify no tags are displayed
-        assertThat(groupedEntry.locator("[data-testid='entry-tags']")).not().isVisible()
+        // Verify tag button is not highlighted (no tags set)
+        val buttonClass = groupedEntry.locator("[data-testid='grouped-entry-inline-tags-button']").getAttribute("class") ?: ""
+        assertFalse(buttonClass.contains("bg-teal-600"), "Tag button should not be highlighted when no tags are selected")
     }
 
     @Test

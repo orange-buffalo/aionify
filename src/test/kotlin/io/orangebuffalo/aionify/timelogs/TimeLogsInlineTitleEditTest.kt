@@ -5,6 +5,7 @@ import io.orangebuffalo.aionify.domain.TimeLogEntry
 import io.orangebuffalo.aionify.timeInTestTz
 import io.orangebuffalo.aionify.withLocalTime
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 /**
@@ -355,9 +356,9 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
         // Wait for save to complete
         assertThat(page.locator("[data-testid='time-entry-inline-title-popover']")).not().isVisible()
 
-        // Verify tags are still visible in UI
-        val tags = page.locator("[data-testid='entry-tags']").locator("[data-testid^='entry-tag-']")
-        assertThat(tags).containsText(arrayOf("backend", "feature", "urgent"))
+        // Verify tags are still indicated in UI (button highlighted)
+        val tagsButtonClass = page.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("class") ?: ""
+        assertTrue(tagsButtonClass.contains("bg-teal-600"), "Tag button should be highlighted when tags are selected")
 
         // Verify tags in database
         testDatabaseSupport.inTransaction {

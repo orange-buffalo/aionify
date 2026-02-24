@@ -41,7 +41,7 @@ export function InlineTagsEdit({ currentTags, onSave, testIdPrefix = "inline-tag
         <Button
           variant="ghost"
           size="sm"
-          className="text-foreground"
+          className={`text-foreground${currentTags.length > 0 ? " bg-teal-600 hover:bg-teal-700 text-white" : ""}`}
           data-testid={`${testIdPrefix}-button`}
           title={t("timeLogs.edit")}
         >

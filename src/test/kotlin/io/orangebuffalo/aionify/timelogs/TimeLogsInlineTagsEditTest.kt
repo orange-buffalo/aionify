@@ -6,6 +6,8 @@ import io.orangebuffalo.aionify.withLocalTime
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 /**
@@ -82,9 +84,9 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         page.keyboard().press("Escape")
         assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).not().isVisible()
 
-        // Verify tags are updated in the UI
-        val tags = timeEntry.locator("[data-testid='entry-tags']").locator("[data-testid^='entry-tag-']")
-        assertThat(tags).containsText(arrayOf("backend", "frontend"))
+        // Verify tags are updated in the UI (button should be highlighted)
+        val tagsButtonClass = timeEntry.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("class") ?: ""
+        assertTrue(tagsButtonClass.contains("bg-teal-600"), "Tag button should be highlighted when tags are selected")
     }
 
     @Test
@@ -141,9 +143,9 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         // Close popover (safe now that save is confirmed)
         page.keyboard().press("Escape")
 
-        // Verify update in UI (auto-saved on selection change)
-        val tags = dailyEntry.locator("[data-testid='entry-tags']").locator("[data-testid^='entry-tag-']")
-        assertThat(tags).containsText(arrayOf("backend", "urgent"))
+        // Verify update in UI (auto-saved on selection change, button highlighted)
+        val tagsButtonClass = dailyEntry.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("class") ?: ""
+        assertTrue(tagsButtonClass.contains("bg-teal-600"), "Tag button should be highlighted when tags are selected")
     }
 
     @Test
@@ -240,9 +242,9 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         page.keyboard().press("Escape")
         assertThat(page.locator("[data-testid='grouped-entry-inline-tags-popover']")).not().isVisible()
 
-        // Verify UI updated
-        val tags = groupedEntry.locator("[data-testid='entry-tags']").locator("[data-testid^='entry-tag-']")
-        assertThat(tags).containsText(arrayOf("backend", "feature"))
+        // Verify UI updated (button should be highlighted)
+        val tagsButtonClass = groupedEntry.locator("[data-testid='grouped-entry-inline-tags-button']").getAttribute("class") ?: ""
+        assertTrue(tagsButtonClass.contains("bg-teal-600"), "Tag button should be highlighted when tags are selected")
     }
 
     @Test
@@ -285,9 +287,9 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         // Popover should stay open (auto-save doesn't close it)
         assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).isVisible()
 
-        // Verify the tags were updated in the UI
-        val tags = timeEntry.locator("[data-testid='entry-tags']").locator("[data-testid^='entry-tag-']")
-        assertThat(tags).containsText(arrayOf("backend", "frontend"))
+        // Verify the tags were updated in the UI (button should be highlighted)
+        val tagsButtonClass = timeEntry.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("class") ?: ""
+        assertTrue(tagsButtonClass.contains("bg-teal-600"), "Tag button should be highlighted when tags are selected")
 
         // Close popover
         page.keyboard().press("Escape")
@@ -364,9 +366,9 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         page.keyboard().press("Escape")
         assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).not().isVisible()
 
-        // Verify tags updated
-        val tags = page.locator("[data-testid='entry-tags']").locator("[data-testid^='entry-tag-']")
-        assertThat(tags).containsText(arrayOf("urgent"))
+        // Verify tags updated (button should be highlighted)
+        val tagsButtonClass = page.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("class") ?: ""
+        assertTrue(tagsButtonClass.contains("bg-teal-600"), "Tag button should be highlighted when tags are selected")
     }
 
     @Test
@@ -394,9 +396,11 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         newTagInput.fill("urgent")
         page.locator("[data-testid='time-entry-inline-tags-add-tag-button']").click()
 
-        // Wait for save to complete (verify tag appears in UI outside popover)
-        val tags = page.locator("[data-testid='entry-tags']").locator("[data-testid^='entry-tag-']")
-        assertThat(tags).containsText(arrayOf("backend", "urgent"))
+        // Wait for save to complete (verify button is highlighted in UI outside popover)
+        await untilAsserted {
+            val buttonClass = page.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("class") ?: ""
+            assertTrue(buttonClass.contains("bg-teal-600"), "Tag button should be highlighted after save")
+        }
 
         // Close popover
         page.keyboard().press("Escape")
@@ -494,7 +498,8 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         page.keyboard().press("Escape")
         assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).not().isVisible()
 
-        // Verify no tags are displayed
-        assertThat(page.locator("[data-testid='entry-tags']")).not().isVisible()
+        // Verify no tags are set (button should not be highlighted)
+        val tagsButtonClass = page.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("class") ?: ""
+        assertFalse(tagsButtonClass.contains("bg-teal-600"), "Tag button should not be highlighted when no tags are selected")
     }
 }
