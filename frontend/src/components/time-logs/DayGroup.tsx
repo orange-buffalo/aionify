@@ -41,7 +41,10 @@ export function DayGroup({ group, locale, startOfWeek, onDataChange }: DayGroupP
             if (isGroupedEntry(item)) {
               return (
                 <GroupedTimeEntry
-                  key={item.groupId}
+                  key={item.entries
+                    .map((e) => e.id)
+                    .sort((a, b) => a - b)
+                    .join(",")}
                   groupedEntry={item}
                   locale={locale}
                   startOfWeek={startOfWeek}

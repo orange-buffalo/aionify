@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Loader } from "@/components/ui/loader";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { apiGet } from "@/lib/api";
 
 interface TagStat {
@@ -17,6 +17,7 @@ interface TagListContentProps {
   selectedTags: string[];
   onTagsChange: (tags: string[]) => void;
   disabled?: boolean;
+  saving?: boolean;
   testIdPrefix?: string;
   isOpen: boolean;
   onEnterWithEmptyInput?: () => void;
@@ -32,6 +33,7 @@ export function TagListContent({
   selectedTags,
   onTagsChange,
   disabled = false,
+  saving = false,
   testIdPrefix = "tag-list",
   isOpen,
   onEnterWithEmptyInput,
@@ -139,7 +141,11 @@ export function TagListContent({
           type="button"
           variant="ghost"
         >
-          <Plus className="h-4 w-4" />
+          {saving ? (
+            <Loader2 className="h-4 w-4 animate-spin" data-testid={`${testIdPrefix}-saving-icon`} />
+          ) : (
+            <Plus className="h-4 w-4" />
+          )}
         </Button>
       </div>
 

@@ -79,6 +79,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:2.0.3")
     testImplementation("org.testcontainers:testcontainers-postgresql:2.0.3")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.3")
+    testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
 }
 
 // E2E tests source set
