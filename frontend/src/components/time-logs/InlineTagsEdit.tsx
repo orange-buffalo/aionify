@@ -44,6 +44,7 @@ export function InlineTagsEdit({ currentTags, onSave, testIdPrefix = "inline-tag
           className={`text-foreground${currentTags.length > 0 ? " bg-teal-600 hover:bg-teal-700 text-white" : ""}`}
           data-testid={`${testIdPrefix}-button`}
           title={t("timeLogs.edit")}
+          aria-label={t("timeLogs.edit")}
         >
           <Tag className="h-4 w-4" />
         </Button>
