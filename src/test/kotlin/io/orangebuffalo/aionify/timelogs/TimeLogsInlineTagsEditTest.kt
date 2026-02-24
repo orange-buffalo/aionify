@@ -2,14 +2,13 @@ package io.orangebuffalo.aionify.timelogs
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.domain.TimeLogEntry
-import io.orangebuffalo.aionify.timeInTestTz
 import io.orangebuffalo.aionify.withLocalTime
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 /**
  * Tests for inline tags editing functionality.
- * Verifies that users can edit tags inline using a popover with a save button.
+ * Verifies that users can edit tags inline using a popover with auto-save on selection change.
  */
 class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
     @Test
@@ -61,18 +60,13 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         page.locator("[data-testid='time-entry-inline-tags-checkbox-urgent']").click()
         page.locator("[data-testid='time-entry-inline-tags-checkbox-frontend']").click()
 
-        // Verify save button is enabled (tags have changed)
-        assertThat(page.locator("[data-testid='time-entry-inline-tags-save-button']")).isEnabled()
-
-        // Click save button
-        page.locator("[data-testid='time-entry-inline-tags-save-button']").click()
-
-        // Verify popover is closed
-        assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).not().isVisible()
-
-        // Verify tags are updated in the UI
+        // Verify tags are updated in the UI (auto-saved on selection change)
         val tags = timeEntry.locator("[data-testid='entry-tags']").locator("[data-testid^='entry-tag-']")
         assertThat(tags).containsText(arrayOf("backend", "frontend"))
+
+        // Close popover
+        page.keyboard().press("Escape")
+        assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).not().isVisible()
 
         // Verify database was updated
         testDatabaseSupport.inTransaction {
@@ -121,12 +115,12 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         // Verify the new tag is now in the list and selected
         assertThat(page.locator("[data-testid='time-entry-inline-tags-checkbox-urgent']")).isChecked()
 
-        // Save
-        page.locator("[data-testid='time-entry-inline-tags-save-button']").click()
-
-        // Verify update in UI
+        // Verify update in UI (auto-saved on selection change)
         val tags = dailyEntry.locator("[data-testid='entry-tags']").locator("[data-testid^='entry-tag-']")
         assertThat(tags).containsText(arrayOf("backend", "urgent"))
+
+        // Close popover
+        page.keyboard().press("Escape")
 
         // Verify database
         testDatabaseSupport.inTransaction {
@@ -196,10 +190,8 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         newTagInput.fill("feature")
         page.locator("[data-testid='grouped-entry-inline-tags-add-tag-button']").click()
 
-        // Save
-        page.locator("[data-testid='grouped-entry-inline-tags-save-button']").click()
-
-        // Verify popover closed
+        // Close popover (tags auto-saved on selection change)
+        page.keyboard().press("Escape")
         assertThat(page.locator("[data-testid='grouped-entry-inline-tags-popover']")).not().isVisible()
 
         // Verify UI updated
@@ -232,44 +224,7 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
     }
 
     @Test
-    fun `should disable save button when tags are unchanged`() {
-        // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
-        val baseTime = setBaseTime("2024-03-16", "03:30")
-
-        testDatabaseSupport.insert(
-            TimeLogEntry(
-                startTime = baseTime.withLocalTime("02:30"),
-                endTime = baseTime.withLocalTime("03:00"),
-                title = "Task",
-                ownerId = requireNotNull(testUser.id),
-                tags = arrayOf("backend"),
-            ),
-        )
-
-        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
-
-        // Open popover
-        page.locator("[data-testid='time-entry-inline-tags-button']").click()
-        assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).isVisible()
-
-        // Verify save button is disabled (no changes)
-        assertThat(page.locator("[data-testid='time-entry-inline-tags-save-button']")).isDisabled()
-
-        // Make a change
-        page.locator("[data-testid='time-entry-inline-tags-checkbox-backend']").click()
-
-        // Verify save button is enabled
-        assertThat(page.locator("[data-testid='time-entry-inline-tags-save-button']")).isEnabled()
-
-        // Revert the change
-        page.locator("[data-testid='time-entry-inline-tags-checkbox-backend']").click()
-
-        // Verify save button is disabled again
-        assertThat(page.locator("[data-testid='time-entry-inline-tags-save-button']")).isDisabled()
-    }
-
-    @Test
-    fun `should disable inputs during save operation`() {
+    fun `should keep popover open during auto-save`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
         val baseTime = setBaseTime("2024-03-16", "03:30")
 
@@ -302,18 +257,19 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         // Open popover
         timeEntry.locator("[data-testid='time-entry-inline-tags-button']").click()
 
-        // Make a change
+        // Make a change (auto-saves immediately)
         page.locator("[data-testid='time-entry-inline-tags-checkbox-frontend']").click()
 
-        // Save and wait for popover to close
-        page.locator("[data-testid='time-entry-inline-tags-save-button']").click()
-
-        // Popover should close after save
-        assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).not().isVisible()
+        // Popover should stay open (auto-save doesn't close it)
+        assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).isVisible()
 
         // Verify the tags were updated in the UI
         val tags = timeEntry.locator("[data-testid='entry-tags']").locator("[data-testid^='entry-tag-']")
         assertThat(tags).containsText(arrayOf("backend", "frontend"))
+
+        // Close popover
+        page.keyboard().press("Escape")
+        assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).not().isVisible()
     }
 
     @Test
@@ -374,10 +330,8 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         // Verify tag was added to the list and is selected
         assertThat(page.locator("[data-testid='time-entry-inline-tags-checkbox-urgent']")).isChecked()
 
-        // Now press Enter again (with empty input) to save
-        newTagInput.press("Enter")
-
-        // Verify popover closed
+        // Close popover (tags auto-saved when added via Enter)
+        page.keyboard().press("Escape")
         assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).not().isVisible()
 
         // Verify tags updated
@@ -392,7 +346,7 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
     }
 
     @Test
-    fun `should reset tags when reopening after unsaved changes`() {
+    fun `should reflect auto-saved tags when reopening popover`() {
         // Set base time: Saturday, March 16, 2024 at 03:30:00 NZDT
         val baseTime = setBaseTime("2024-03-16", "03:30")
 
@@ -411,20 +365,24 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         // Open popover
         page.locator("[data-testid='time-entry-inline-tags-button']").click()
 
-        // Make a change but don't save
-        page.locator("[data-testid='time-entry-inline-tags-checkbox-backend']").click()
+        // Add a new tag (auto-saves immediately)
+        val newTagInput = page.locator("[data-testid='time-entry-inline-tags-new-tag-input']")
+        newTagInput.fill("urgent")
+        page.locator("[data-testid='time-entry-inline-tags-add-tag-button']").click()
 
-        // Close popover with Escape
+        // Wait for save to complete (verify tag appears in UI outside popover)
+        val tags = page.locator("[data-testid='entry-tags']").locator("[data-testid^='entry-tag-']")
+        assertThat(tags).containsText(arrayOf("backend", "urgent"))
+
+        // Close popover
         page.keyboard().press("Escape")
 
         // Reopen popover
         page.locator("[data-testid='time-entry-inline-tags-button']").click()
 
-        // Verify backend is still checked (changes were reset)
+        // Verify saved state is reflected (both tags are checked)
         assertThat(page.locator("[data-testid='time-entry-inline-tags-checkbox-backend']")).isChecked()
-
-        // Verify save button is disabled (no changes)
-        assertThat(page.locator("[data-testid='time-entry-inline-tags-save-button']")).isDisabled()
+        assertThat(page.locator("[data-testid='time-entry-inline-tags-checkbox-urgent']")).isChecked()
     }
 
     @Test
@@ -453,13 +411,13 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         newTagInput.fill("urgent")
         page.locator("[data-testid='time-entry-inline-tags-add-tag-button']").click()
 
-        // Save
-        page.locator("[data-testid='time-entry-inline-tags-save-button']").click()
+        // Wait for auto-save to complete (verify tags in UI)
+        val entryTags = page.locator("[data-testid='entry-tags']").locator("[data-testid^='entry-tag-']")
+        assertThat(entryTags).containsText(arrayOf("backend", "urgent"))
 
-        // Wait for save to complete
+        // Close popover
+        page.keyboard().press("Escape")
         assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).not().isVisible()
-
-        // Verify title is still visible in UI
         assertThat(page.locator("[data-testid='time-entry-inline-title-trigger']")).containsText("Important Task")
 
         // Verify database
@@ -493,18 +451,16 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         // Open tags popover
         page.locator("[data-testid='time-entry-inline-tags-button']").click()
 
-        // Uncheck all tags
+        // Uncheck all tags (each triggers auto-save)
         page.locator("[data-testid='time-entry-inline-tags-checkbox-backend']").click()
         page.locator("[data-testid='time-entry-inline-tags-checkbox-urgent']").click()
 
-        // Save
-        page.locator("[data-testid='time-entry-inline-tags-save-button']").click()
-
-        // Wait for save to complete
-        assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).not().isVisible()
-
-        // Verify no tags are displayed
+        // Verify no tags are displayed (auto-saved)
         assertThat(page.locator("[data-testid='entry-tags']")).not().isVisible()
+
+        // Close popover
+        page.keyboard().press("Escape")
+        assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).not().isVisible()
 
         // Verify database
         testDatabaseSupport.inTransaction {
