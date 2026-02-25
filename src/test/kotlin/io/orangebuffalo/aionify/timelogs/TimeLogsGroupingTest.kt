@@ -3,8 +3,6 @@ package io.orangebuffalo.aionify.timelogs
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import io.orangebuffalo.aionify.*
 import io.orangebuffalo.aionify.domain.TimeLogEntry
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 /**
@@ -178,9 +176,7 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         assertThat(expandedEntries.first().locator("[data-testid='entry-title']")).containsText("Code Review")
 
         // Verify tag edit button shows Tags icon on detailed entries (entries have "review" tag)
-        val firstEntryHasTags =
-            expandedEntries.first().locator("[data-testid='time-entry-inline-tags-button']").getAttribute("data-has-tags") ?: "false"
-        assertTrue(firstEntryHasTags == "true", "Tag button should show tags icon when tags are selected")
+        assertThat(expandedEntries.first().locator("[data-testid='time-entry-inline-tags-button']")).hasAttribute("data-has-tags", "true")
 
         // Verify continue button is NOT visible on detailed entries
         assertThat(expandedEntries.first().locator("[data-testid='continue-button']")).not().isVisible()
@@ -535,8 +531,7 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         assertThat(groupedEntry.locator("[data-testid='entry-count-badge']")).containsText("2")
 
         // Verify tag button shows Tag icon (no tags set)
-        val hasTagsAttr = groupedEntry.locator("[data-testid='grouped-entry-inline-tags-button']").getAttribute("data-has-tags") ?: "false"
-        assertFalse(hasTagsAttr == "true", "Tag button should show tag icon when no tags are selected")
+        assertThat(groupedEntry.locator("[data-testid='grouped-entry-inline-tags-button']")).not().hasAttribute("data-has-tags", "true")
     }
 
     @Test

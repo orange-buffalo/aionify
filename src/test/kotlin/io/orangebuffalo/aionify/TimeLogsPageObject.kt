@@ -305,11 +305,10 @@ class TimeLogsPageObject(
                 val entryElement = entryLocator.nth(i)
 
                 val tagsButton = entryElement.locator("[data-testid='time-entry-inline-tags-button']")
-                val hasTagsAttr = tagsButton.getAttribute("data-has-tags") ?: "false"
                 if (entry.tags.isNotEmpty()) {
-                    assertTrue(hasTagsAttr == "true", "Tag button should show tags icon when tags are selected")
+                    assertThat(tagsButton).hasAttribute("data-has-tags", "true")
                 } else {
-                    assertFalse(hasTagsAttr == "true", "Tag button should show tag icon when no tags are selected")
+                    assertThat(tagsButton).not().hasAttribute("data-has-tags", "true")
                 }
             }
 
@@ -381,11 +380,10 @@ class TimeLogsPageObject(
 
         // Assert tag button icon
         val tagsButton = groupedEntryLocator.locator("[data-testid='grouped-entry-inline-tags-button']")
-        val hasTagsAttr = tagsButton.getAttribute("data-has-tags") ?: "false"
         if (expectedGroupedEntry.tags.isNotEmpty()) {
-            assertTrue(hasTagsAttr == "true", "Tag button should show tags icon when tags are selected")
+            assertThat(tagsButton).hasAttribute("data-has-tags", "true")
         } else {
-            assertFalse(hasTagsAttr == "true", "Tag button should show tag icon when no tags are selected")
+            assertThat(tagsButton).not().hasAttribute("data-has-tags", "true")
         }
 
         // Assert time range
@@ -470,14 +468,10 @@ class TimeLogsPageObject(
 
                 // Tag edit button should show tags icon if entry has tags
                 val expandedTagsButton = entryElement.locator("[data-testid='time-entry-inline-tags-button']")
-                val hasTagsAttr = expandedTagsButton.getAttribute("data-has-tags") ?: "false"
                 if (entry.tags.isNotEmpty()) {
-                    assertTrue(hasTagsAttr == "true", "Tag button should show tags icon when tags are selected")
+                    assertThat(expandedTagsButton).hasAttribute("data-has-tags", "true")
                 } else {
-                    assertFalse(
-                        hasTagsAttr == "true",
-                        "Tag button should show tag icon when no tags are selected",
-                    )
+                    assertThat(expandedTagsButton).not().hasAttribute("data-has-tags", "true")
                 }
 
                 // Continue button should NOT be visible

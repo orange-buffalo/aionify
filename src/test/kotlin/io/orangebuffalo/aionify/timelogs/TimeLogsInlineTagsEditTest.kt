@@ -6,8 +6,6 @@ import io.orangebuffalo.aionify.withLocalTime
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 /**
@@ -85,8 +83,7 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).not().isVisible()
 
         // Verify tags are updated in the UI (button shows Tags icon)
-        val hasTagsAttr = timeEntry.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("data-has-tags") ?: "false"
-        assertTrue(hasTagsAttr == "true", "Tag button should show tags icon when tags are selected")
+        assertThat(timeEntry.locator("[data-testid='time-entry-inline-tags-button']")).hasAttribute("data-has-tags", "true")
     }
 
     @Test
@@ -144,8 +141,7 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         page.keyboard().press("Escape")
 
         // Verify update in UI (auto-saved on selection change, button shows Tags icon)
-        val hasTagsAttr = dailyEntry.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("data-has-tags") ?: "false"
-        assertTrue(hasTagsAttr == "true", "Tag button should show tags icon when tags are selected")
+        assertThat(dailyEntry.locator("[data-testid='time-entry-inline-tags-button']")).hasAttribute("data-has-tags", "true")
     }
 
     @Test
@@ -243,8 +239,7 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         assertThat(page.locator("[data-testid='grouped-entry-inline-tags-popover']")).not().isVisible()
 
         // Verify UI updated (button shows Tags icon)
-        val hasTagsAttr = groupedEntry.locator("[data-testid='grouped-entry-inline-tags-button']").getAttribute("data-has-tags") ?: "false"
-        assertTrue(hasTagsAttr == "true", "Tag button should show tags icon when tags are selected")
+        assertThat(groupedEntry.locator("[data-testid='grouped-entry-inline-tags-button']")).hasAttribute("data-has-tags", "true")
     }
 
     @Test
@@ -288,8 +283,7 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).isVisible()
 
         // Verify the tags were updated in the UI (button shows Tags icon)
-        val hasTagsAttr = timeEntry.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("data-has-tags") ?: "false"
-        assertTrue(hasTagsAttr == "true", "Tag button should show tags icon when tags are selected")
+        assertThat(timeEntry.locator("[data-testid='time-entry-inline-tags-button']")).hasAttribute("data-has-tags", "true")
 
         // Close popover
         page.keyboard().press("Escape")
@@ -367,8 +361,7 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).not().isVisible()
 
         // Verify tags updated (button shows Tags icon)
-        val hasTagsAttr = page.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("data-has-tags") ?: "false"
-        assertTrue(hasTagsAttr == "true", "Tag button should show tags icon when tags are selected")
+        assertThat(page.locator("[data-testid='time-entry-inline-tags-button']")).hasAttribute("data-has-tags", "true")
     }
 
     @Test
@@ -397,10 +390,7 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         page.locator("[data-testid='time-entry-inline-tags-add-tag-button']").click()
 
         // Wait for save to complete (verify button shows Tags icon in UI outside popover)
-        await untilAsserted {
-            val hasTagsAttr = page.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("data-has-tags") ?: "false"
-            assertTrue(hasTagsAttr == "true", "Tag button should show tags icon after save")
-        }
+        assertThat(page.locator("[data-testid='time-entry-inline-tags-button']")).hasAttribute("data-has-tags", "true")
 
         // Close popover
         page.keyboard().press("Escape")
@@ -499,7 +489,6 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).not().isVisible()
 
         // Verify no tags are set (button shows Tag icon, not Tags)
-        val hasTagsAttr = page.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("data-has-tags") ?: "false"
-        assertFalse(hasTagsAttr == "true", "Tag button should show tag icon when no tags are selected")
+        assertThat(page.locator("[data-testid='time-entry-inline-tags-button']")).not().hasAttribute("data-has-tags", "true")
     }
 }

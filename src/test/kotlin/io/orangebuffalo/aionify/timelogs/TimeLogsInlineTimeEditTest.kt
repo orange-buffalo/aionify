@@ -7,7 +7,6 @@ import io.orangebuffalo.aionify.withLocalDate
 import io.orangebuffalo.aionify.withLocalTime
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 /**
@@ -287,8 +286,7 @@ class TimeLogsInlineTimeEditTest : TimeLogsPageTestBase() {
         assertThat(page.locator("[data-testid='time-entry-inline-title-trigger']")).containsText("Important Task")
 
         // Verify tags are still indicated in UI (button shows Tags icon)
-        val hasTagsAttr = page.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("data-has-tags") ?: "false"
-        assertTrue(hasTagsAttr == "true", "Tag button should show tags icon when tags are selected")
+        assertThat(page.locator("[data-testid='time-entry-inline-tags-button']")).hasAttribute("data-has-tags", "true")
 
         // Verify database
         testDatabaseSupport.inTransaction {
