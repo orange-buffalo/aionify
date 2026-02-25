@@ -175,8 +175,8 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         assertThat(expandedEntries.first().locator("[data-testid='entry-title']")).isVisible()
         assertThat(expandedEntries.first().locator("[data-testid='entry-title']")).containsText("Code Review")
 
-        // Verify tags are NOT shown for detailed entries
-        assertThat(expandedEntries.first().locator("[data-testid='entry-tags']")).not().isVisible()
+        // Verify tag edit button shows Tags icon on detailed entries (entries have "review" tag)
+        assertThat(expandedEntries.first().locator("[data-testid='time-entry-inline-tags-button']")).hasAttribute("data-has-tags", "true")
 
         // Verify continue button is NOT visible on detailed entries
         assertThat(expandedEntries.first().locator("[data-testid='continue-button']")).not().isVisible()
@@ -530,8 +530,8 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         assertThat(groupedEntry).isVisible()
         assertThat(groupedEntry.locator("[data-testid='entry-count-badge']")).containsText("2")
 
-        // Verify no tags are displayed
-        assertThat(groupedEntry.locator("[data-testid='entry-tags']")).not().isVisible()
+        // Verify tag button shows Tag icon (no tags set)
+        assertThat(groupedEntry.locator("[data-testid='grouped-entry-inline-tags-button']")).not().hasAttribute("data-has-tags", "true")
     }
 
     @Test

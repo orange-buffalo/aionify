@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Tag } from "lucide-react";
+import { Tag, Tags } from "lucide-react";
 import { TagListContent } from "./TagListContent";
 
 interface InlineTagsEditProps {
@@ -43,9 +43,11 @@ export function InlineTagsEdit({ currentTags, onSave, testIdPrefix = "inline-tag
           size="sm"
           className="text-foreground"
           data-testid={`${testIdPrefix}-button`}
+          data-has-tags={currentTags.length > 0}
           title={t("timeLogs.edit")}
+          aria-label={t("timeLogs.edit")}
         >
-          <Tag className="h-4 w-4" />
+          {currentTags.length > 0 ? <Tags className="h-4 w-4" /> : <Tag className="h-4 w-4" />}
         </Button>
       </PopoverTrigger>
       <PopoverContent

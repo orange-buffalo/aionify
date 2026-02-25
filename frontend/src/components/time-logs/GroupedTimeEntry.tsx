@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Play } from "lucide-react";
 import { formatTime } from "@/lib/date-format";
 import { apiPost, apiPatch } from "@/lib/api";
@@ -98,15 +97,6 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
               />
             </div>
           </div>
-          {groupedEntry.tags && groupedEntry.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-1.5" data-testid="entry-tags">
-              {groupedEntry.tags.map((tag, index) => (
-                <Badge key={index} variant="default" className="text-[0.7rem]" data-testid={`entry-tag-${index}`}>
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          )}
         </div>
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2 text-muted-foreground" data-testid="entry-time-range">
@@ -151,7 +141,6 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
                 startOfWeek={startOfWeek}
                 onDataChange={onDataChange}
                 hideTitle={false}
-                hideTags={true}
                 hideContinue={true}
                 overlap={overlap}
               />

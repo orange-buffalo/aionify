@@ -299,18 +299,16 @@ class TimeLogsPageObject(
             val durationLocators = entryLocator.locator("[data-testid='entry-duration']")
             assertThat(durationLocators).containsText(expectedDurations.toTypedArray())
 
-            // Assert tags for each entry
+            // Assert tag button icon for each entry
             for (i in regularEntries.indices) {
                 val entry = regularEntries[i]
                 val entryElement = entryLocator.nth(i)
 
-                val tagLocators = entryElement.locator("[data-testid^='entry-tag-']")
+                val tagsButton = entryElement.locator("[data-testid='time-entry-inline-tags-button']")
                 if (entry.tags.isNotEmpty()) {
-                    // Assert tag text content matches expected tags using array-based assertion
-                    assertThat(tagLocators).containsText(entry.tags.toTypedArray())
+                    assertThat(tagsButton).hasAttribute("data-has-tags", "true")
                 } else {
-                    // Tags container should not be visible when there are no tags
-                    assertThat(tagLocators).isHidden()
+                    assertThat(tagsButton).not().hasAttribute("data-has-tags", "true")
                 }
             }
 
@@ -380,12 +378,12 @@ class TimeLogsPageObject(
         assertThat(groupedEntryLocator.locator("[data-testid='entry-title']"))
             .containsText(expectedGroupedEntry.title)
 
-        // Assert tags
-        val tagLocators = groupedEntryLocator.locator("[data-testid^='entry-tag-']")
+        // Assert tag button icon
+        val tagsButton = groupedEntryLocator.locator("[data-testid='grouped-entry-inline-tags-button']")
         if (expectedGroupedEntry.tags.isNotEmpty()) {
-            assertThat(tagLocators).containsText(expectedGroupedEntry.tags.toTypedArray())
+            assertThat(tagsButton).hasAttribute("data-has-tags", "true")
         } else {
-            assertThat(tagLocators).isHidden()
+            assertThat(tagsButton).not().hasAttribute("data-has-tags", "true")
         }
 
         // Assert time range
@@ -468,8 +466,13 @@ class TimeLogsPageObject(
                 assertThat(entryElement.locator("[data-testid='entry-title']")).isVisible()
                 assertThat(entryElement.locator("[data-testid='entry-title']")).containsText(entry.title)
 
-                // Tags should NOT be visible
-                assertThat(entryElement.locator("[data-testid='entry-tags']")).not().isVisible()
+                // Tag edit button should show tags icon if entry has tags
+                val expandedTagsButton = entryElement.locator("[data-testid='time-entry-inline-tags-button']")
+                if (entry.tags.isNotEmpty()) {
+                    assertThat(expandedTagsButton).hasAttribute("data-has-tags", "true")
+                } else {
+                    assertThat(expandedTagsButton).not().hasAttribute("data-has-tags", "true")
+                }
 
                 // Continue button should NOT be visible
                 assertThat(entryElement.locator("[data-testid='continue-button']")).not().isVisible()
