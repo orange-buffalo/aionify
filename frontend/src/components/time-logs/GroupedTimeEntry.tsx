@@ -124,6 +124,8 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
             >
               <Play className="h-4 w-4" />
             </Button>
+            {/* Spacer matching the size of the dropdown menu button in individual entries */}
+            <div className="w-9 h-9" aria-hidden="true" />
           </div>
         </div>
       </div>
