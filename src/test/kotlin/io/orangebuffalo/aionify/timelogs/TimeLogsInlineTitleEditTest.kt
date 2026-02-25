@@ -356,9 +356,9 @@ class TimeLogsInlineTitleEditTest : TimeLogsPageTestBase() {
         // Wait for save to complete
         assertThat(page.locator("[data-testid='time-entry-inline-title-popover']")).not().isVisible()
 
-        // Verify tags are still indicated in UI (button highlighted)
-        val tagsButtonClass = page.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("class") ?: ""
-        assertTrue(tagsButtonClass.contains("bg-teal-600"), "Tag button should be highlighted when tags are selected")
+        // Verify tags are still indicated in UI (button shows Tags icon)
+        val hasTagsAttr = page.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("data-has-tags") ?: "false"
+        assertTrue(hasTagsAttr == "true", "Tag button should show tags icon when tags are selected")
 
         // Verify tags in database
         testDatabaseSupport.inTransaction {

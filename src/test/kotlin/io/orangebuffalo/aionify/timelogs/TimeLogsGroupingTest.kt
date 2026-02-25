@@ -177,10 +177,10 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         assertThat(expandedEntries.first().locator("[data-testid='entry-title']")).isVisible()
         assertThat(expandedEntries.first().locator("[data-testid='entry-title']")).containsText("Code Review")
 
-        // Verify tag edit button is highlighted on detailed entries (entries have "review" tag)
-        val firstEntryButtonClass =
-            expandedEntries.first().locator("[data-testid='time-entry-inline-tags-button']").getAttribute("class") ?: ""
-        assertTrue(firstEntryButtonClass.contains("bg-teal-600"), "Tag button should be highlighted when tags are selected")
+        // Verify tag edit button shows Tags icon on detailed entries (entries have "review" tag)
+        val firstEntryHasTags =
+            expandedEntries.first().locator("[data-testid='time-entry-inline-tags-button']").getAttribute("data-has-tags") ?: "false"
+        assertTrue(firstEntryHasTags == "true", "Tag button should show tags icon when tags are selected")
 
         // Verify continue button is NOT visible on detailed entries
         assertThat(expandedEntries.first().locator("[data-testid='continue-button']")).not().isVisible()
@@ -534,9 +534,9 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         assertThat(groupedEntry).isVisible()
         assertThat(groupedEntry.locator("[data-testid='entry-count-badge']")).containsText("2")
 
-        // Verify tag button is not highlighted (no tags set)
-        val buttonClass = groupedEntry.locator("[data-testid='grouped-entry-inline-tags-button']").getAttribute("class") ?: ""
-        assertFalse(buttonClass.contains("bg-teal-600"), "Tag button should not be highlighted when no tags are selected")
+        // Verify tag button shows Tag icon (no tags set)
+        val hasTagsAttr = groupedEntry.locator("[data-testid='grouped-entry-inline-tags-button']").getAttribute("data-has-tags") ?: "false"
+        assertFalse(hasTagsAttr == "true", "Tag button should show tag icon when no tags are selected")
     }
 
     @Test

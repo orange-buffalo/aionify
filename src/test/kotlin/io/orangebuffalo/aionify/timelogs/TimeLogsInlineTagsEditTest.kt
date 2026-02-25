@@ -84,9 +84,9 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         page.keyboard().press("Escape")
         assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).not().isVisible()
 
-        // Verify tags are updated in the UI (button should be highlighted)
-        val tagsButtonClass = timeEntry.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("class") ?: ""
-        assertTrue(tagsButtonClass.contains("bg-teal-600"), "Tag button should be highlighted when tags are selected")
+        // Verify tags are updated in the UI (button shows Tags icon)
+        val hasTagsAttr = timeEntry.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("data-has-tags") ?: "false"
+        assertTrue(hasTagsAttr == "true", "Tag button should show tags icon when tags are selected")
     }
 
     @Test
@@ -143,9 +143,9 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         // Close popover (safe now that save is confirmed)
         page.keyboard().press("Escape")
 
-        // Verify update in UI (auto-saved on selection change, button highlighted)
-        val tagsButtonClass = dailyEntry.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("class") ?: ""
-        assertTrue(tagsButtonClass.contains("bg-teal-600"), "Tag button should be highlighted when tags are selected")
+        // Verify update in UI (auto-saved on selection change, button shows Tags icon)
+        val hasTagsAttr = dailyEntry.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("data-has-tags") ?: "false"
+        assertTrue(hasTagsAttr == "true", "Tag button should show tags icon when tags are selected")
     }
 
     @Test
@@ -242,9 +242,9 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         page.keyboard().press("Escape")
         assertThat(page.locator("[data-testid='grouped-entry-inline-tags-popover']")).not().isVisible()
 
-        // Verify UI updated (button should be highlighted)
-        val tagsButtonClass = groupedEntry.locator("[data-testid='grouped-entry-inline-tags-button']").getAttribute("class") ?: ""
-        assertTrue(tagsButtonClass.contains("bg-teal-600"), "Tag button should be highlighted when tags are selected")
+        // Verify UI updated (button shows Tags icon)
+        val hasTagsAttr = groupedEntry.locator("[data-testid='grouped-entry-inline-tags-button']").getAttribute("data-has-tags") ?: "false"
+        assertTrue(hasTagsAttr == "true", "Tag button should show tags icon when tags are selected")
     }
 
     @Test
@@ -287,9 +287,9 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         // Popover should stay open (auto-save doesn't close it)
         assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).isVisible()
 
-        // Verify the tags were updated in the UI (button should be highlighted)
-        val tagsButtonClass = timeEntry.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("class") ?: ""
-        assertTrue(tagsButtonClass.contains("bg-teal-600"), "Tag button should be highlighted when tags are selected")
+        // Verify the tags were updated in the UI (button shows Tags icon)
+        val hasTagsAttr = timeEntry.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("data-has-tags") ?: "false"
+        assertTrue(hasTagsAttr == "true", "Tag button should show tags icon when tags are selected")
 
         // Close popover
         page.keyboard().press("Escape")
@@ -366,9 +366,9 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         page.keyboard().press("Escape")
         assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).not().isVisible()
 
-        // Verify tags updated (button should be highlighted)
-        val tagsButtonClass = page.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("class") ?: ""
-        assertTrue(tagsButtonClass.contains("bg-teal-600"), "Tag button should be highlighted when tags are selected")
+        // Verify tags updated (button shows Tags icon)
+        val hasTagsAttr = page.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("data-has-tags") ?: "false"
+        assertTrue(hasTagsAttr == "true", "Tag button should show tags icon when tags are selected")
     }
 
     @Test
@@ -396,10 +396,10 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         newTagInput.fill("urgent")
         page.locator("[data-testid='time-entry-inline-tags-add-tag-button']").click()
 
-        // Wait for save to complete (verify button is highlighted in UI outside popover)
+        // Wait for save to complete (verify button shows Tags icon in UI outside popover)
         await untilAsserted {
-            val buttonClass = page.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("class") ?: ""
-            assertTrue(buttonClass.contains("bg-teal-600"), "Tag button should be highlighted after save")
+            val hasTagsAttr = page.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("data-has-tags") ?: "false"
+            assertTrue(hasTagsAttr == "true", "Tag button should show tags icon after save")
         }
 
         // Close popover
@@ -498,8 +498,8 @@ class TimeLogsInlineTagsEditTest : TimeLogsPageTestBase() {
         page.keyboard().press("Escape")
         assertThat(page.locator("[data-testid='time-entry-inline-tags-popover']")).not().isVisible()
 
-        // Verify no tags are set (button should not be highlighted)
-        val tagsButtonClass = page.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("class") ?: ""
-        assertFalse(tagsButtonClass.contains("bg-teal-600"), "Tag button should not be highlighted when no tags are selected")
+        // Verify no tags are set (button shows Tag icon, not Tags)
+        val hasTagsAttr = page.locator("[data-testid='time-entry-inline-tags-button']").getAttribute("data-has-tags") ?: "false"
+        assertFalse(hasTagsAttr == "true", "Tag button should show tag icon when no tags are selected")
     }
 }
