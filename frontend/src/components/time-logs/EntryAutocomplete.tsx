@@ -201,6 +201,9 @@ export function EntryAutocomplete({
                   data-highlighted={highlightedIndex === index ? "true" : "false"}
                 >
                   <div className="font-medium text-foreground text-sm">{entry.title}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5" data-testid="autocomplete-last-started">
+                    {t("timeLogs.autocomplete.lastStarted", { time: formatDateTime(entry.lastStartTime, locale) })}
+                  </div>
                   {entry.tags && entry.tags.length > 0 && (
                     <div className="flex gap-1 mt-1 flex-wrap">
                       {entry.tags.map((tag) => (
@@ -215,9 +218,6 @@ export function EntryAutocomplete({
                       ))}
                     </div>
                   )}
-                  <div className="text-xs text-muted-foreground mt-0.5" data-testid="autocomplete-last-started">
-                    {t("timeLogs.autocomplete.lastStarted", { time: formatDateTime(entry.lastStartTime, locale) })}
-                  </div>
                 </button>
               ))}
             </div>

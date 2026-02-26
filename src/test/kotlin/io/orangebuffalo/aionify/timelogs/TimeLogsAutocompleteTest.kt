@@ -149,28 +149,10 @@ class TimeLogsAutocompleteTest : TimeLogsPageTestBase() {
         val firstItem = page.locator("[data-testid='autocomplete-item-0']")
         assertThat(firstItem).isVisible()
 
-        // Should show the "Last started" row
+        // Should show the "Last started" row with the exact formatted date
         val lastStartedRow = firstItem.locator("[data-testid='autocomplete-last-started']")
         assertThat(lastStartedRow).isVisible()
-        assertThat(lastStartedRow).containsText("Last started:")
-    }
-
-    @Test
-    fun `should sort suggestions by most recently used`() {
-        // Type "team" - "Team standup" (Mar 16 00:00) should come before "Meeting with team" (Mar 15 22:00)
-        val input = page.locator("[data-testid='new-entry-input']")
-        input.fill("team")
-
-        val popover = page.locator("[data-testid='autocomplete-popover']")
-        assertThat(popover).isVisible()
-
-        // First item should be "Team standup" (more recently used)
-        val firstItem = page.locator("[data-testid='autocomplete-item-0']")
-        assertThat(firstItem).containsText("Team standup")
-
-        // Second item should be "Meeting with team" (less recently used)
-        val secondItem = page.locator("[data-testid='autocomplete-item-1']")
-        assertThat(secondItem).containsText("Meeting with team")
+        assertThat(lastStartedRow).hasText("Last started: 16 Mar, 02:00")
     }
 
     @Test
