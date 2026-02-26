@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Play, Trash2, AlertCircle } from "lucide-react";
 import { formatTime, formatTimeWithWeekday, formatDate } from "@/lib/date-format";
 import { isDifferentDay } from "@/lib/time-utils";
-import { apiDelete, apiPost, apiPatch } from "@/lib/api";
+import { apiDelete, apiPost, apiPatch, apiPut } from "@/lib/api";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 import { InlineTitleEdit } from "./InlineTitleEdit";
@@ -72,10 +72,9 @@ export function TimeEntry({
   };
 
   const handleAutocompleteSelect = async (title: string, tags: string[]) => {
-    await apiPatch<TimeEntry>(`/api-ui/time-log-entries/${entry.id}/title`, {
+    await apiPut(`/api-ui/time-log-entries/bulk-update`, {
+      entryIds: [entry.id],
       title,
-    });
-    await apiPatch<TimeEntry>(`/api-ui/time-log-entries/${entry.id}/tags`, {
       tags,
     });
     await onDataChange();
