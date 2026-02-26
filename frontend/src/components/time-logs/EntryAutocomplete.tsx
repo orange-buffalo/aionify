@@ -1,14 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Loader } from "@/components/ui/loader";
 import { apiGet } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { formatDateTime } from "@/lib/date-format";
 
 interface AutocompleteEntry {
   title: string;
   tags: string[];
+  lastStartTime: string;
 }
 
 interface EntryAutocompleteProps {
@@ -19,6 +20,7 @@ interface EntryAutocompleteProps {
   placeholder?: string;
   disabled?: boolean;
   testId?: string;
+  locale: string;
 }
 
 /**
@@ -33,6 +35,7 @@ export function EntryAutocomplete({
   placeholder,
   disabled = false,
   testId = "new-entry-input",
+  locale,
 }: EntryAutocompleteProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -197,18 +200,12 @@ export function EntryAutocomplete({
                   data-highlighted={highlightedIndex === index ? "true" : "false"}
                 >
                   <div className="font-medium text-foreground text-sm">{entry.title}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5" data-testid="autocomplete-last-started">
+                    {t("timeLogs.autocomplete.lastStarted", { time: formatDateTime(entry.lastStartTime, locale) })}
+                  </div>
                   {entry.tags && entry.tags.length > 0 && (
-                    <div className="flex gap-1 mt-1 flex-wrap">
-                      {entry.tags.map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="secondary"
-                          className="text-xs"
-                          data-testid={`autocomplete-tag-${tag}`}
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
+                    <div className="text-xs text-muted-foreground mt-0.5" data-testid="autocomplete-tags">
+                      {t("timeLogs.autocomplete.tags", { tags: entry.tags.join(", ") })}
                     </div>
                   )}
                 </button>

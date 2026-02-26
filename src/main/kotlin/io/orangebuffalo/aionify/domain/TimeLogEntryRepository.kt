@@ -83,15 +83,18 @@ interface TimeLogEntryRepository : CrudRepository<TimeLogEntry, Long> {
      * Searches for entries where the title contains all the provided tokens.
      */
     @Query(
-        """SELECT DISTINCT ON (title) *
-           FROM time_log_entry
-           WHERE owner_id = :ownerId
-           AND (:searchTokens = '' OR (
-               SELECT bool_and(LOWER(title) LIKE LOWER('%' || token || '%'))
-               FROM unnest(string_to_array(:searchTokens, ' ')) AS token
-               WHERE token != ''
-           ))
-           ORDER BY title, start_time DESC""",
+        """SELECT * FROM (
+               SELECT DISTINCT ON (title) *
+               FROM time_log_entry
+               WHERE owner_id = :ownerId
+               AND (:searchTokens = '' OR (
+                   SELECT bool_and(LOWER(title) LIKE LOWER('%' || token || '%'))
+                   FROM unnest(string_to_array(:searchTokens, ' ')) AS token
+                   WHERE token != ''
+               ))
+               ORDER BY title, start_time DESC
+           ) AS deduped
+           ORDER BY start_time DESC""",
     )
     fun searchByTitleTokens(
         ownerId: Long,

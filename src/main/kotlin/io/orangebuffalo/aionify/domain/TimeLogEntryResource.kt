@@ -522,6 +522,7 @@ open class TimeLogEntryResource(
         AutocompleteEntryDto(
             title = this.title,
             tags = this.tags.toList(),
+            lastStartTime = this.startTime,
         )
 }
 
@@ -594,6 +595,7 @@ data class AutocompleteResponse(
 data class AutocompleteEntryDto(
     val title: String,
     val tags: List<String> = emptyList(),
+    val lastStartTime: Instant,
 )
 
 @Serdeable
