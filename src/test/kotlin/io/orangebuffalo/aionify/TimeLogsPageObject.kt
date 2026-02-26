@@ -117,7 +117,7 @@ data class EntryState(
     val duration: String,
     val tags: List<String> = emptyList(),
     val continueButtonVisible: Boolean = true,
-    val menuButtonVisible: Boolean = true,
+    val deleteButtonVisible: Boolean = true,
     val hasDifferentDayWarning: Boolean = false,
     val hasOverlapWarning: Boolean = false,
     val overlappingEntryTitle: String? = null,
@@ -323,10 +323,10 @@ class TimeLogsPageObject(
                     assertThat(entryElement.locator("[data-testid='continue-button']")).not().isVisible()
                 }
 
-                if (entry.menuButtonVisible) {
-                    assertThat(entryElement.locator("[data-testid='entry-menu-button']")).isVisible()
+                if (entry.deleteButtonVisible) {
+                    assertThat(entryElement.locator("[data-testid='delete-button']")).isVisible()
                 } else {
-                    assertThat(entryElement.locator("[data-testid='entry-menu-button']")).not().isVisible()
+                    assertThat(entryElement.locator("[data-testid='delete-button']")).not().isVisible()
                 }
 
                 // Assert different day warning icon visibility
@@ -401,8 +401,8 @@ class TimeLogsPageObject(
             assertThat(groupedEntryLocator.locator("[data-testid='continue-button']")).not().isVisible()
         }
 
-        // Assert burger menu is NOT visible on grouped entry
-        assertThat(groupedEntryLocator.locator("[data-testid='entry-menu-button']")).not().isVisible()
+        // Assert delete button is NOT visible on grouped entry (no individual delete for grouped)
+        assertThat(groupedEntryLocator.locator("[data-testid='delete-button']")).not().isVisible()
 
         // If grouped entries are specified, verify them regardless of expansion state
         // This allows us to verify the logical composition of the group even when collapsed
@@ -477,8 +477,8 @@ class TimeLogsPageObject(
                 // Continue button should NOT be visible
                 assertThat(entryElement.locator("[data-testid='continue-button']")).not().isVisible()
 
-                // Burger menu SHOULD be visible
-                assertThat(entryElement.locator("[data-testid='entry-menu-button']")).isVisible()
+                // Delete button SHOULD be visible
+                assertThat(entryElement.locator("[data-testid='delete-button']")).isVisible()
             }
         } else {
             assertThat(groupedEntryLocator.locator("[data-testid='grouped-entries-expanded']")).not().isVisible()
@@ -535,11 +535,8 @@ class TimeLogsPageObject(
         val matchingEntries = page.locator("[data-testid='time-entry']:has-text('$entryTitle')")
 
         // For midnight-spanning entries, there will be multiple matches (same entry split across days)
-        // Click the menu button for the first occurrence
-        matchingEntries.first().locator("[data-testid='entry-menu-button']").click()
-
-        // Click delete in the menu
-        page.locator("[data-testid='delete-menu-item']").click()
+        // Click the delete button for the first occurrence
+        matchingEntries.first().locator("[data-testid='delete-button']").click()
 
         // Confirm deletion
         val confirmButton = page.locator("[data-testid='confirm-delete-button']")

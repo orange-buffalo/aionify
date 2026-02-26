@@ -181,9 +181,9 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         // Verify continue button is NOT visible on detailed entries
         assertThat(expandedEntries.first().locator("[data-testid='continue-button']")).not().isVisible()
 
-        // Verify burger menu IS visible on detailed entries
-        assertThat(expandedEntries.first().locator("[data-testid='entry-menu-button']")).isVisible()
-        assertThat(expandedEntries.nth(1).locator("[data-testid='entry-menu-button']")).isVisible()
+        // Verify delete button IS visible on detailed entries
+        assertThat(expandedEntries.first().locator("[data-testid='delete-button']")).isVisible()
+        assertThat(expandedEntries.nth(1).locator("[data-testid='delete-button']")).isVisible()
 
         // Click the count badge again to collapse
         groupedEntry.locator("[data-testid='entry-count-badge']").click()
@@ -566,15 +566,9 @@ class TimeLogsGroupingTest : TimeLogsPageTestBase() {
         val groupedEntry = page.locator("[data-testid='grouped-time-entry']")
         groupedEntry.locator("[data-testid='entry-count-badge']").click()
 
-        // Find the first expanded entry and open its menu
+        // Find the first expanded entry and click its delete button
         val expandedEntries = page.locator("[data-testid='grouped-entries-expanded']").locator("[data-testid='time-entry']")
-        expandedEntries.first().locator("[data-testid='entry-menu-button']").click()
-
-        // Verify delete option is available (edit menu item was removed with form-based editing)
-        assertThat(page.locator("[data-testid='delete-menu-item']")).isVisible()
-
-        // Click delete
-        page.locator("[data-testid='delete-menu-item']").click()
+        expandedEntries.first().locator("[data-testid='delete-button']").click()
 
         // Confirm deletion
         assertThat(page.locator("[data-testid='confirm-delete-button']")).isVisible()

@@ -1,14 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Play, MoreVertical, Trash2, AlertCircle } from "lucide-react";
+import { Play, Trash2, AlertCircle } from "lucide-react";
 import { formatTime, formatTimeWithWeekday, formatDate } from "@/lib/date-format";
 import { isDifferentDay } from "@/lib/time-utils";
 import { apiDelete, apiPost, apiPatch } from "@/lib/api";
@@ -170,6 +164,17 @@ export function TimeEntry({
           <DurationDisplay startTime={entry.startTime} endTime={entry.endTime} />
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setDeleteDialogOpen(true)}
+            disabled={isDeleting}
+            data-testid="delete-button"
+            className="text-foreground"
+            title={t("timeLogs.delete")}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
           <InlineTagsEdit
             currentTags={entry.tags || []}
             onSave={handleInlineTagsUpdate}
@@ -188,23 +193,6 @@ export function TimeEntry({
               <Play className="h-4 w-4" />
             </Button>
           )}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" data-testid="entry-menu-button" className="text-foreground">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="dark" align="end">
-              <DropdownMenuItem
-                onClick={() => setDeleteDialogOpen(true)}
-                data-testid="delete-menu-item"
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                {t("timeLogs.delete")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
 
