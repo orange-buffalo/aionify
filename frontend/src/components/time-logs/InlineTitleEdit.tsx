@@ -4,14 +4,23 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send, Loader2 } from "lucide-react";
+import { EntryAutocomplete } from "./EntryAutocomplete";
 
 interface InlineTitleEditProps {
   currentTitle: string;
   onSave: (newTitle: string) => Promise<void>;
+  onAutocompleteSelect?: (title: string, tags: string[]) => Promise<void>;
+  locale?: string;
   testIdPrefix?: string;
 }
 
-export function InlineTitleEdit({ currentTitle, onSave, testIdPrefix = "inline-title-edit" }: InlineTitleEditProps) {
+export function InlineTitleEdit({
+  currentTitle,
+  onSave,
+  onAutocompleteSelect,
+  locale,
+  testIdPrefix = "inline-title-edit",
+}: InlineTitleEditProps) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState(currentTitle);
@@ -37,6 +46,18 @@ export function InlineTitleEdit({ currentTitle, onSave, testIdPrefix = "inline-t
     }
   };
 
+  const handleAutocompleteSelect = async (entry: { title: string; tags: string[] }) => {
+    if (!onAutocompleteSelect || isSaving) return;
+
+    setIsSaving(true);
+    try {
+      await onAutocompleteSelect(entry.title, entry.tags);
+      setIsOpen(false);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -47,6 +68,7 @@ export function InlineTitleEdit({ currentTitle, onSave, testIdPrefix = "inline-t
   };
 
   const isInvalid = !title.trim() || title.length > 1000;
+  const useAutocomplete = !!onAutocompleteSelect && !!locale;
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -70,16 +92,30 @@ export function InlineTitleEdit({ currentTitle, onSave, testIdPrefix = "inline-t
         }}
       >
         <div className="flex items-center gap-2">
-          <Input
-            ref={inputRef}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={isSaving}
-            className="flex-1 text-foreground"
-            data-testid={`${testIdPrefix}-input`}
-            placeholder={t("timeLogs.currentEntry.placeholder")}
-          />
+          {useAutocomplete ? (
+            <EntryAutocomplete
+              value={title}
+              onChange={setTitle}
+              onSelect={handleAutocompleteSelect}
+              onKeyDown={handleKeyDown}
+              disabled={isSaving}
+              testId={`${testIdPrefix}-input`}
+              locale={locale}
+              placeholder={t("timeLogs.currentEntry.placeholder")}
+              focusAfterSelect=""
+            />
+          ) : (
+            <Input
+              ref={inputRef}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={isSaving}
+              className="flex-1 text-foreground"
+              data-testid={`${testIdPrefix}-input`}
+              placeholder={t("timeLogs.currentEntry.placeholder")}
+            />
+          )}
           <Button
             onClick={handleSave}
             disabled={isInvalid || isSaving}

@@ -71,6 +71,16 @@ export function TimeEntry({
     await onDataChange();
   };
 
+  const handleAutocompleteSelect = async (title: string, tags: string[]) => {
+    await apiPatch<TimeEntry>(`/api-ui/time-log-entries/${entry.id}/title`, {
+      title,
+    });
+    await apiPatch<TimeEntry>(`/api-ui/time-log-entries/${entry.id}/tags`, {
+      tags,
+    });
+    await onDataChange();
+  };
+
   const handleInlineStartTimeUpdate = async (newDateTime: Date) => {
     await apiPatch<TimeEntry>(`/api-ui/time-log-entries/${entry.id}/start-time`, {
       startTime: newDateTime.toISOString(),
@@ -108,6 +118,8 @@ export function TimeEntry({
             <InlineTitleEdit
               currentTitle={entry.title}
               onSave={handleInlineTitleUpdate}
+              onAutocompleteSelect={handleAutocompleteSelect}
+              locale={locale}
               testIdPrefix="time-entry-inline-title"
             />
           </div>
