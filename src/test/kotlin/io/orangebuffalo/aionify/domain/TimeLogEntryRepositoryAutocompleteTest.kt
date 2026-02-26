@@ -70,8 +70,8 @@ class TimeLogEntryRepositoryAutocompleteTest {
             }
 
         assertEquals(2, results.size, "Should find 2 entries with 'team'")
-        assertEquals("Meeting with team", results[0].title)
-        assertEquals("Team standup", results[1].title)
+        assertEquals("Team standup", results[0].title)
+        assertEquals("Meeting with team", results[1].title)
     }
 
     @Test

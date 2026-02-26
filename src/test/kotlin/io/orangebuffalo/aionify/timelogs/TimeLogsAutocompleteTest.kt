@@ -83,8 +83,8 @@ class TimeLogsAutocompleteTest : TimeLogsPageTestBase() {
         val suggestions = page.locator("[data-testid^='autocomplete-item-']")
         assertThat(suggestions).not().hasCount(0)
 
-        // Should show "Meeting with team" and "Team standup"
-        assertThat(suggestions).containsText(arrayOf("Meeting with team", "Team standup"))
+        // Should show "Team standup" first (most recently used), then "Meeting with team"
+        assertThat(suggestions).containsText(arrayOf("Team standup", "Meeting with team"))
     }
 
     @Test
@@ -113,7 +113,7 @@ class TimeLogsAutocompleteTest : TimeLogsPageTestBase() {
         assertThat(popover).isVisible()
 
         val suggestions = page.locator("[data-testid^='autocomplete-item-']")
-        assertThat(suggestions).containsText(arrayOf("Meeting with team", "Team standup"))
+        assertThat(suggestions).containsText(arrayOf("Team standup", "Meeting with team"))
     }
 
     @Test
@@ -135,6 +135,42 @@ class TimeLogsAutocompleteTest : TimeLogsPageTestBase() {
         assertThat(firstItem.locator("[data-testid^='autocomplete-tag-']")).containsText(
             arrayOf("work", "meeting"),
         )
+    }
+
+    @Test
+    fun `should display last started time for each suggestion`() {
+        // Type "code review" which matches only one entry with startTime 2024-03-16 02:00
+        val input = page.locator("[data-testid='new-entry-input']")
+        input.fill("code review")
+
+        val popover = page.locator("[data-testid='autocomplete-popover']")
+        assertThat(popover).isVisible()
+
+        val firstItem = page.locator("[data-testid='autocomplete-item-0']")
+        assertThat(firstItem).isVisible()
+
+        // Should show the "Last started" row
+        val lastStartedRow = firstItem.locator("[data-testid='autocomplete-last-started']")
+        assertThat(lastStartedRow).isVisible()
+        assertThat(lastStartedRow).containsText("Last started:")
+    }
+
+    @Test
+    fun `should sort suggestions by most recently used`() {
+        // Type "team" - "Team standup" (Mar 16 00:00) should come before "Meeting with team" (Mar 15 22:00)
+        val input = page.locator("[data-testid='new-entry-input']")
+        input.fill("team")
+
+        val popover = page.locator("[data-testid='autocomplete-popover']")
+        assertThat(popover).isVisible()
+
+        // First item should be "Team standup" (more recently used)
+        val firstItem = page.locator("[data-testid='autocomplete-item-0']")
+        assertThat(firstItem).containsText("Team standup")
+
+        // Second item should be "Meeting with team" (less recently used)
+        val secondItem = page.locator("[data-testid='autocomplete-item-1']")
+        assertThat(secondItem).containsText("Meeting with team")
     }
 
     @Test
@@ -199,13 +235,13 @@ class TimeLogsAutocompleteTest : TimeLogsPageTestBase() {
         // Second item should be highlighted
         val secondItem = page.locator("[data-testid='autocomplete-item-1']")
         assertThat(secondItem).hasAttribute("data-highlighted", "true")
-        assertThat(secondItem).containsText("Team standup")
+        assertThat(secondItem).containsText("Meeting with team")
 
         // Press Enter to select
         input.press("Enter")
 
         // Input should be filled with the second item's title
-        assertThat(input).hasValue("Team standup")
+        assertThat(input).hasValue("Meeting with team")
 
         // Popover should be closed
         assertThat(popover).not().isVisible()
@@ -255,7 +291,7 @@ class TimeLogsAutocompleteTest : TimeLogsPageTestBase() {
         // Should not show other user's entry
         val suggestions = page.locator("[data-testid^='autocomplete-item-']")
         // Should only show current user's entries
-        assertThat(suggestions).containsText(arrayOf("Meeting with team", "Team standup"))
+        assertThat(suggestions).containsText(arrayOf("Team standup", "Meeting with team"))
     }
 
     @Test

@@ -5,10 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Loader } from "@/components/ui/loader";
 import { apiGet } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { formatDateTime } from "@/lib/date-format";
 
 interface AutocompleteEntry {
   title: string;
   tags: string[];
+  lastStartTime: string;
 }
 
 interface EntryAutocompleteProps {
@@ -19,6 +21,7 @@ interface EntryAutocompleteProps {
   placeholder?: string;
   disabled?: boolean;
   testId?: string;
+  locale: string;
 }
 
 /**
@@ -33,6 +36,7 @@ export function EntryAutocomplete({
   placeholder,
   disabled = false,
   testId = "new-entry-input",
+  locale,
 }: EntryAutocompleteProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -211,6 +215,9 @@ export function EntryAutocomplete({
                       ))}
                     </div>
                   )}
+                  <div className="text-xs text-muted-foreground mt-0.5" data-testid="autocomplete-last-started">
+                    {t("timeLogs.autocomplete.lastStarted", { time: formatDateTime(entry.lastStartTime, locale) })}
+                  </div>
                 </button>
               ))}
             </div>

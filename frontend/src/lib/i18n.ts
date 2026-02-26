@@ -231,6 +231,7 @@ const resources = {
         },
         autocomplete: {
           noResults: "No matching entries found",
+          lastStarted: "Last started: {{time}}",
         },
       },
       // Portal Pages
@@ -639,6 +640,7 @@ const resources = {
         },
         autocomplete: {
           noResults: "Відповідних записів не знайдено",
+          lastStarted: "Останній старт: {{time}}",
         },
       },
       // Portal Pages

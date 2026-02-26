@@ -112,6 +112,7 @@ export function CurrentEntryPanel({
               placeholder={t("timeLogs.currentEntry.placeholder")}
               disabled={isStarting}
               testId="new-entry-input"
+              locale={locale}
             />
             <TagSelector
               selectedTags={selectedTags}
