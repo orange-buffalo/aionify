@@ -108,6 +108,8 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
             <TotalDurationDisplay entries={groupedEntry.entries} />
           </div>
           <div className="flex items-center gap-2">
+            {/* Spacer matching the size of the delete button in individual entries */}
+            <div className="w-9 h-9" aria-hidden="true" />
             <InlineTagsEdit
               currentTags={groupedEntry.tags || []}
               onSave={handleInlineTagsUpdate}
@@ -124,8 +126,6 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
             >
               <Play className="h-4 w-4" />
             </Button>
-            {/* Spacer matching the size of the dropdown menu button in individual entries */}
-            <div className="w-9 h-9" aria-hidden="true" />
           </div>
         </div>
       </div>
