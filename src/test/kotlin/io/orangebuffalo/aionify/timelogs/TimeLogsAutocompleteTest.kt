@@ -132,9 +132,7 @@ class TimeLogsAutocompleteTest : TimeLogsPageTestBase() {
 
         // Should show tags from the latest entry (work, meeting)
         val firstItem = suggestions.first()
-        assertThat(firstItem.locator("[data-testid^='autocomplete-tag-']")).containsText(
-            arrayOf("work", "meeting"),
-        )
+        assertThat(firstItem.locator("[data-testid='autocomplete-tags']")).hasText("Tags: work, meeting")
     }
 
     @Test

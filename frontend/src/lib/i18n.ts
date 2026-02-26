@@ -232,6 +232,7 @@ const resources = {
         autocomplete: {
           noResults: "No matching entries found",
           lastStarted: "Last started: {{time}}",
+          tags: "Tags: {{tags}}",
         },
       },
       // Portal Pages
@@ -641,6 +642,7 @@ const resources = {
         autocomplete: {
           noResults: "Відповідних записів не знайдено",
           lastStarted: "Останній старт: {{time}}",
+          tags: "Теги: {{tags}}",
         },
       },
       // Portal Pages
