@@ -21,7 +21,6 @@ interface EntryAutocompleteProps {
   disabled?: boolean;
   testId?: string;
   locale: string;
-  focusAfterSelect?: string;
 }
 
 /**
@@ -37,7 +36,6 @@ export function EntryAutocomplete({
   disabled = false,
   testId = "new-entry-input",
   locale,
-  focusAfterSelect = '[data-testid="start-button"]',
 }: EntryAutocompleteProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -107,12 +105,10 @@ export function EntryAutocomplete({
     setSuggestions([]);
     setHighlightedIndex(-1);
     selectedEntryTitleRef.current = entry.title;
-    // Switch focus to the configured target
-    if (focusAfterSelect) {
-      const focusTarget = document.querySelector(focusAfterSelect) as HTMLElement;
-      if (focusTarget) {
-        focusTarget.focus();
-      }
+    // Switch focus to the start button
+    const startButton = document.querySelector('[data-testid="start-button"]') as HTMLElement;
+    if (startButton) {
+      startButton.focus();
     }
   };
 

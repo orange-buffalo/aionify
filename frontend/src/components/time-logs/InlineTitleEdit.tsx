@@ -1,7 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send, Loader2 } from "lucide-react";
 import { EntryAutocomplete } from "./EntryAutocomplete";
@@ -9,8 +8,8 @@ import { EntryAutocomplete } from "./EntryAutocomplete";
 interface InlineTitleEditProps {
   currentTitle: string;
   onSave: (newTitle: string) => Promise<void>;
-  onAutocompleteSelect?: (title: string, tags: string[]) => Promise<void>;
-  locale?: string;
+  onAutocompleteSelect: (title: string, tags: string[]) => Promise<void>;
+  locale: string;
   testIdPrefix?: string;
 }
 
@@ -25,7 +24,6 @@ export function InlineTitleEdit({
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState(currentTitle);
   const [isSaving, setIsSaving] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   // Reset title when popover opens
   useEffect(() => {
@@ -47,7 +45,7 @@ export function InlineTitleEdit({
   };
 
   const handleAutocompleteSelect = async (entry: { title: string; tags: string[] }) => {
-    if (!onAutocompleteSelect || isSaving) return;
+    if (isSaving) return;
 
     setIsSaving(true);
     try {
@@ -68,7 +66,6 @@ export function InlineTitleEdit({
   };
 
   const isInvalid = !title.trim() || title.length > 1000;
-  const useAutocomplete = !!onAutocompleteSelect && !!locale;
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -82,40 +79,18 @@ export function InlineTitleEdit({
         align="start"
         side="bottom"
         data-testid={`${testIdPrefix}-popover`}
-        onOpenAutoFocus={(e) => {
-          e.preventDefault();
-          // Focus the input after the popover opens
-          setTimeout(() => {
-            inputRef.current?.focus();
-            inputRef.current?.select();
-          }, 0);
-        }}
       >
         <div className="flex items-center gap-2">
-          {useAutocomplete ? (
-            <EntryAutocomplete
-              value={title}
-              onChange={setTitle}
-              onSelect={handleAutocompleteSelect}
-              onKeyDown={handleKeyDown}
-              disabled={isSaving}
-              testId={`${testIdPrefix}-input`}
-              locale={locale}
-              placeholder={t("timeLogs.currentEntry.placeholder")}
-              focusAfterSelect=""
-            />
-          ) : (
-            <Input
-              ref={inputRef}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={isSaving}
-              className="flex-1 text-foreground"
-              data-testid={`${testIdPrefix}-input`}
-              placeholder={t("timeLogs.currentEntry.placeholder")}
-            />
-          )}
+          <EntryAutocomplete
+            value={title}
+            onChange={setTitle}
+            onSelect={handleAutocompleteSelect}
+            onKeyDown={handleKeyDown}
+            disabled={isSaving}
+            testId={`${testIdPrefix}-input`}
+            locale={locale}
+            placeholder={t("timeLogs.currentEntry.placeholder")}
+          />
           <Button
             onClick={handleSave}
             disabled={isInvalid || isSaving}
