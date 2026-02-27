@@ -64,7 +64,7 @@ class DemoScreenshotTest : PlaywrightTestBase() {
         //
         // Data is structured to showcase:
         //   - Grouped entries WITH tags (Package sorting ×2 on Monday)
-        //   - Grouped entries WITHOUT tags (Team standup ×2 on Wednesday)
+        //   - Grouped entries WITHOUT tags (Planet Express crew briefing ×2 on Wednesday)
         //   - Individual entries WITH tags (Delivery to the Moon, etc.)
         //   - Individual entries WITHOUT tags (Write delivery report on Monday, Review mission notes on Thursday)
 
@@ -138,7 +138,7 @@ class DemoScreenshotTest : PlaywrightTestBase() {
             TimeLogEntry(
                 startTime = wednesday.minusSeconds(9 * 3600),
                 endTime = wednesday.minusSeconds(8 * 3600),
-                title = "Team standup",
+                title = "Planet Express crew briefing",
                 ownerId = fryId,
                 tags = arrayOf(),
             ),
@@ -147,7 +147,7 @@ class DemoScreenshotTest : PlaywrightTestBase() {
             TimeLogEntry(
                 startTime = wednesday.minusSeconds(5 * 3600),
                 endTime = wednesday.minusSeconds(4 * 3600),
-                title = "Team standup",
+                title = "Planet Express crew briefing",
                 ownerId = fryId,
                 tags = arrayOf(),
             ),
