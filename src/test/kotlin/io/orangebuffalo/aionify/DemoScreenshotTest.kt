@@ -61,29 +61,56 @@ class DemoScreenshotTest : PlaywrightTestBase() {
 
         // setBaseTime("2024-03-16", "03:30") is Saturday, March 16, 2024 at 03:30 NZDT (Friday Mar 15 14:30 UTC)
         // Week is Mon Mar 11 - Sun Mar 17
+        //
+        // Data is structured to showcase:
+        //   - Grouped entries WITH tags (Package sorting ×2 on Monday)
+        //   - Grouped entries WITHOUT tags (Planet Express crew briefing ×2 on Wednesday)
+        //   - Individual entries WITH tags (Delivery to the Moon, etc.)
+        //   - Individual entries WITHOUT tags (Write delivery report on Monday, Review mission notes on Thursday)
 
-        // Monday (Mar 11) - Package deliveries
+        // Monday (Mar 11) - Grouped entries with tags + individual entries with and without tags
         val monday = setBaseTime("2024-03-16", "03:30").minusSeconds(5 * 24 * 3600)
+        // Individual WITH tags
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = monday.minusSeconds(7 * 3600),
-                endTime = monday.minusSeconds(5 * 3600),
+                startTime = monday.minusSeconds(8 * 3600),
+                endTime = monday.minusSeconds(6 * 3600),
                 title = "Delivery to the Moon",
                 ownerId = fryId,
                 tags = arrayOf("delivery", "space-travel"),
             ),
         )
+        // Group WITH tags (2 entries, same title+tags → will be grouped in UI)
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = monday.minusSeconds(4 * 3600),
+                startTime = monday.minusSeconds(5 * 3600),
+                endTime = monday.minusSeconds(4 * 3600),
+                title = "Package sorting at Planet Express",
+                ownerId = fryId,
+                tags = arrayOf("delivery"),
+            ),
+        )
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = monday.minusSeconds(3 * 3600),
                 endTime = monday.minusSeconds(2 * 3600),
                 title = "Package sorting at Planet Express",
                 ownerId = fryId,
                 tags = arrayOf("delivery"),
             ),
         )
+        // Individual WITHOUT tags
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = monday.minusSeconds(1 * 3600 + 1800),
+                endTime = monday.minusSeconds(1 * 3600),
+                title = "Write delivery report",
+                ownerId = fryId,
+                tags = arrayOf(),
+            ),
+        )
 
-        // Tuesday (Mar 12) - More deliveries
+        // Tuesday (Mar 12) - Regular entries
         val tuesday = setBaseTime("2024-03-16", "03:30").minusSeconds(4 * 24 * 3600)
         testDatabaseSupport.insert(
             TimeLogEntry(
@@ -104,21 +131,32 @@ class DemoScreenshotTest : PlaywrightTestBase() {
             ),
         )
 
-        // Wednesday (Mar 13) - Mixed tasks
+        // Wednesday (Mar 13) - Grouped entries WITHOUT tags + individual WITH tags
         val wednesday = setBaseTime("2024-03-16", "03:30").minusSeconds(3 * 24 * 3600)
+        // Group WITHOUT tags (2 entries, same title, no tags → will be grouped in UI)
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = wednesday.minusSeconds(9 * 3600),
-                endTime = wednesday.minusSeconds(7 * 3600),
-                title = "Attend crew meeting",
+                endTime = wednesday.minusSeconds(8 * 3600),
+                title = "Planet Express crew briefing",
                 ownerId = fryId,
-                tags = arrayOf("meeting", "delivery"),
+                tags = arrayOf(),
             ),
         )
         testDatabaseSupport.insert(
             TimeLogEntry(
-                startTime = wednesday.minusSeconds(6 * 3600),
-                endTime = wednesday.minusSeconds(3 * 3600 + 1800),
+                startTime = wednesday.minusSeconds(5 * 3600),
+                endTime = wednesday.minusSeconds(4 * 3600),
+                title = "Planet Express crew briefing",
+                ownerId = fryId,
+                tags = arrayOf(),
+            ),
+        )
+        // Individual WITH tags
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = wednesday.minusSeconds(3 * 3600),
+                endTime = wednesday.minusSeconds(1 * 3600 + 1800),
                 title = "Help Bender with brewery plans",
                 ownerId = fryId,
                 tags = arrayOf("learning", "break"),
@@ -136,10 +174,20 @@ class DemoScreenshotTest : PlaywrightTestBase() {
                 tags = arrayOf("learning"),
             ),
         )
+        // Individual WITHOUT tags
         testDatabaseSupport.insert(
             TimeLogEntry(
                 startTime = thursday.minusSeconds(4 * 3600),
-                endTime = thursday.minusSeconds(2 * 3600 + 1800),
+                endTime = thursday.minusSeconds(3 * 3600),
+                title = "Review mission notes",
+                ownerId = fryId,
+                tags = arrayOf(),
+            ),
+        )
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = thursday.minusSeconds(2 * 3600 + 1800),
+                endTime = thursday.minusSeconds(1 * 3600),
                 title = "Watch TV with Bender",
                 ownerId = fryId,
                 tags = arrayOf("break"),

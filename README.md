@@ -63,9 +63,11 @@ Manage users, create accounts, and handle activation tokens.
 - **Personalization**
   - Customizable user greeting
   - Multi-language support (English and Ukrainian)
-  - Configurable start of week (Monday/Sunday)
+  - Configurable locale for date and time formatting (many regional variants)
+  - Configurable start of week (any day of the week)
   - Dark mode compatible UI
   - Remember me option for persistent login sessions
+  - Self-service password change from profile page
 
 - **API Integration**
   - Generate and manage personal API access tokens
