@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Play, Trash2, AlertCircle } from "lucide-react";
 import { formatTime, formatTimeWithWeekday, formatDate } from "@/lib/date-format";
 import { isDifferentDay } from "@/lib/time-utils";
-import { apiDelete, apiPost, apiPatch } from "@/lib/api";
+import { apiDelete, apiPost, apiPatch, apiPut } from "@/lib/api";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 import { InlineTitleEdit } from "./InlineTitleEdit";
@@ -71,6 +71,15 @@ export function TimeEntry({
     await onDataChange();
   };
 
+  const handleAutocompleteSelect = async (title: string, tags: string[]) => {
+    await apiPut(`/api-ui/time-log-entries/bulk-update`, {
+      entryIds: [entry.id],
+      title,
+      tags,
+    });
+    await onDataChange();
+  };
+
   const handleInlineStartTimeUpdate = async (newDateTime: Date) => {
     await apiPatch<TimeEntry>(`/api-ui/time-log-entries/${entry.id}/start-time`, {
       startTime: newDateTime.toISOString(),
@@ -108,6 +117,8 @@ export function TimeEntry({
             <InlineTitleEdit
               currentTitle={entry.title}
               onSave={handleInlineTitleUpdate}
+              onAutocompleteSelect={handleAutocompleteSelect}
+              locale={locale}
               testIdPrefix="time-entry-inline-title"
             />
           </div>

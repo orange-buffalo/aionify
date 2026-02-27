@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
 import { formatTime } from "@/lib/date-format";
-import { apiPost, apiPatch } from "@/lib/api";
+import { apiPost, apiPatch, apiPut } from "@/lib/api";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
 import { InlineTitleEdit } from "./InlineTitleEdit";
 import { InlineTagsEdit } from "./InlineTagsEdit";
@@ -46,6 +46,16 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
     await apiPatch(`/api-ui/time-log-entries/bulk-update-title`, {
       entryIds,
       title: newTitle,
+    });
+    await onDataChange();
+  };
+
+  const handleAutocompleteSelect = async (title: string, tags: string[]) => {
+    const entryIds = groupedEntry.entries.map((e) => e.id);
+    await apiPut(`/api-ui/time-log-entries/bulk-update`, {
+      entryIds,
+      title,
+      tags,
     });
     await onDataChange();
   };
@@ -93,6 +103,8 @@ export function GroupedTimeEntry({ groupedEntry, locale, startOfWeek, onDataChan
               <InlineTitleEdit
                 currentTitle={groupedEntry.title}
                 onSave={handleInlineTitleUpdate}
+                onAutocompleteSelect={handleAutocompleteSelect}
+                locale={locale}
                 testIdPrefix="grouped-entry-inline-title"
               />
             </div>

@@ -1,22 +1,29 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send, Loader2 } from "lucide-react";
+import { EntryAutocomplete } from "./EntryAutocomplete";
 
 interface InlineTitleEditProps {
   currentTitle: string;
   onSave: (newTitle: string) => Promise<void>;
+  onAutocompleteSelect: (title: string, tags: string[]) => Promise<void>;
+  locale: string;
   testIdPrefix?: string;
 }
 
-export function InlineTitleEdit({ currentTitle, onSave, testIdPrefix = "inline-title-edit" }: InlineTitleEditProps) {
+export function InlineTitleEdit({
+  currentTitle,
+  onSave,
+  onAutocompleteSelect,
+  locale,
+  testIdPrefix = "inline-title-edit",
+}: InlineTitleEditProps) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState(currentTitle);
   const [isSaving, setIsSaving] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   // Reset title when popover opens
   useEffect(() => {
@@ -31,6 +38,18 @@ export function InlineTitleEdit({ currentTitle, onSave, testIdPrefix = "inline-t
     setIsSaving(true);
     try {
       await onSave(title.trim());
+      setIsOpen(false);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleAutocompleteSelect = async (entry: { title: string; tags: string[] }) => {
+    if (isSaving) return;
+
+    setIsSaving(true);
+    try {
+      await onAutocompleteSelect(entry.title, entry.tags);
       setIsOpen(false);
     } finally {
       setIsSaving(false);
@@ -60,24 +79,16 @@ export function InlineTitleEdit({ currentTitle, onSave, testIdPrefix = "inline-t
         align="start"
         side="bottom"
         data-testid={`${testIdPrefix}-popover`}
-        onOpenAutoFocus={(e) => {
-          e.preventDefault();
-          // Focus the input after the popover opens
-          setTimeout(() => {
-            inputRef.current?.focus();
-            inputRef.current?.select();
-          }, 0);
-        }}
       >
         <div className="flex items-center gap-2">
-          <Input
-            ref={inputRef}
+          <EntryAutocomplete
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={setTitle}
+            onSelect={handleAutocompleteSelect}
             onKeyDown={handleKeyDown}
             disabled={isSaving}
-            className="flex-1 text-foreground"
-            data-testid={`${testIdPrefix}-input`}
+            testId={`${testIdPrefix}-input`}
+            locale={locale}
             placeholder={t("timeLogs.currentEntry.placeholder")}
           />
           <Button
