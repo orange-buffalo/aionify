@@ -9,7 +9,7 @@ plugins {
     id("io.micronaut.docker") version "4.6.2"
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
     id("com.github.jmongard.git-semver-plugin") version "0.13.0"
-    id("org.jreleaser") version "1.22.0"
+    id("org.jreleaser") version "1.23.0"
 }
 
 val micronautVersion: String by project
