@@ -76,9 +76,9 @@ dependencies {
     testImplementation("io.micronaut:micronaut-http-client")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.rest-assured:kotlin-extensions")
-    testImplementation("org.testcontainers:testcontainers:2.0.3")
-    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.3")
-    testImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.3")
+    testImplementation("org.testcontainers:testcontainers:2.0.4")
+    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.4")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.4")
     testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
 }
 
@@ -102,8 +102,8 @@ val e2eTestImplementation by configurations.getting {
 }
 
 dependencies {
-    e2eTestImplementation("org.testcontainers:testcontainers:2.0.3")
-    e2eTestImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.3")
+    e2eTestImplementation("org.testcontainers:testcontainers:2.0.4")
+    e2eTestImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.4")
     e2eTestImplementation("com.microsoft.playwright:playwright:1.58.0")
     e2eTestImplementation("org.junit.jupiter:junit-jupiter:6.0.3")
     e2eTestImplementation("org.junit.platform:junit-platform-launcher:6.0.3")
