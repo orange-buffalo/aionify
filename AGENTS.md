@@ -14,7 +14,7 @@ Project documentation is organized as follows:
 - `docs/i18n.md` - Internationalization guide
 - `docs/public-api.md` - Public API guide
 - `docs/images/` - Images used in documentation
-- `.github/copilot-instructions.md` - This file, containing coding guidelines and conventions
+- `AGENTS.md` - This file, containing coding guidelines and conventions
 
 **When making changes that affect deployment or development workflows, update the corresponding documentation files.**
 
@@ -183,7 +183,7 @@ Playwright tests should extend `PlaywrightTestBase` which provides:
   - This pattern has auto-waiting behavior and catches implementation errors where extra items appear on the page
 - **CRITICAL: Always verify that elements that should NOT be visible are actually not visible**:
   - When testing a state, verify both what SHOULD be visible AND what should NOT be visible
-  - Example: When testing "no token" state, verify generate button IS visible AND token input is NOT visible
+  - Example: When testing "no token" state, verify generate button IS visible AND token input IS NOT visible
   - This prevents regressions where multiple states show at once
 - **CRITICAL: Always verify database state in addition to UI state where applicable**:
   - After operations that modify the database (create, update, delete), verify the database state
