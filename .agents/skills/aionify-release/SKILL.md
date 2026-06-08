@@ -161,25 +161,25 @@ The notes must follow the current JReleaser-style output used by the project:
 ```markdown
 ## What's Changed
 
-### New Features
+### 🚀 New Features
 - Clear user-facing feature description (#123)
 
-### Bug Fixes
+### 🐛 Bug Fixes
 - Clear user-facing bug fix description (#124)
 
-### Build & CI
+### 🏗️ Build & CI
 - Build or CI change that matters to maintainers (#125)
 
-### Documentation
+### 📚 Documentation
 - Documentation update (#126)
 
-### Refactorings
+### 🧹 Refactorings
 - Refactoring summary only when useful for maintainers (#128)
 
-### Tests
+### ✅ Tests
 - Test-only change summary only when useful for maintainers (#129)
 
-### Dependency Updates
+### 📦 Dependency Updates
 - Dependency update summary (#127)
 ```
 
@@ -187,7 +187,7 @@ Formatting rules:
 
 - Start with `## What's Changed`.
 - Use Markdown headings exactly as shown above.
-- Use plain ASCII headings; do not add emoji.
+- Use emoji-prefixed headings exactly as shown above.
 - Keep `Dependency Updates` as the last section when present.
 - Omit empty categories.
 - Skip merge commits.

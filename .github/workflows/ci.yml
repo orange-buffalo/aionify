@@ -140,21 +140,26 @@ jobs:
           detailed_summary: true
           fail_on_failure: true
 
+      - name: Detect release version
+        id: release_version
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          version="$(./gradlew -q printVersion | grep -E '^[0-9]+\.[0-9]+\.[0-9]+' | tail -n 1)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [[ "$version" == *-SNAPSHOT ]]; then
+            echo "is_release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_release=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Log in to Container registry
         uses: docker/login-action@v4
-        if: ${{ github.ref == 'refs/heads/main' }}
+        if: ${{ github.ref == 'refs/heads/main' && steps.release_version.outputs.is_release == 'true' }}
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Publish (Pre-) Release"
-        if: ${{ github.ref == 'refs/heads/main' }}
-        run: |
-          version="$(./gradlew -q printVersion | grep -E '^[0-9]+\.[0-9]+\.[0-9]+' | tail -n 1)"
-          if [[ "$version" == *-SNAPSHOT ]]; then
-            echo "Version $version is not a release version; skipping image publishing."
-            exit 0
-          fi
-
-          ./gradlew dockerPushNative --console=plain
+        if: ${{ github.ref == 'refs/heads/main' && steps.release_version.outputs.is_release == 'true' }}
+        run: ./gradlew dockerPushNative --console=plain
