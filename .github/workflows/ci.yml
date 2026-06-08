@@ -160,6 +160,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: "Publish (Pre-) Release"
+      - name: "Publish Release Image"
         if: ${{ github.ref == 'refs/heads/main' && steps.release_version.outputs.is_release == 'true' }}
         run: ./gradlew dockerPushNative --console=plain
