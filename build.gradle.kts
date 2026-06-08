@@ -1,4 +1,3 @@
-import org.jreleaser.model.Active
 import java.time.Duration
 
 plugins {
@@ -8,8 +7,7 @@ plugins {
     id("io.micronaut.application") version "4.6.2"
     id("io.micronaut.docker") version "4.6.2"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
-    id("com.github.jmongard.git-semver-plugin") version "0.13.0"
-    id("org.jreleaser") version "1.24.0"
+    id("com.github.jmongard.git-semver-plugin") version "0.19.1"
 }
 
 val micronautVersion: String by project
@@ -17,8 +15,8 @@ val micronautVersion: String by project
 group = "io.orange-buffalo"
 
 semver {
-    // tags managed by jreleaser
-    createReleaseTag = false
+    createReleaseTag = true
+    releaseTagNameFormat = "v%s"
 }
 val ver = semver.version
 allprojects {
@@ -329,37 +327,5 @@ val e2eTest by tasks.registering(Test::class) {
 
     testLogging {
         events("passed", "skipped", "failed", "standardOut", "standardError")
-    }
-}
-
-jreleaser {
-    gitRootSearch = true
-    release {
-        github {
-            dryrun = project.version.get().endsWith("-SNAPSHOT")
-
-            uploadAssets = Active.NEVER
-            prerelease {
-                enabled = true
-            }
-            changelog {
-                formatted = Active.ALWAYS
-                preset = "conventional-commits"
-                skipMergeCommits = true
-                hide {
-                    uncategorized = true
-                    contributor("[bot]")
-                    contributor("orange-buffalo")
-                    contributor("GitHub")
-                    contributor("Copilot")
-                }
-            }
-        }
-    }
-    signing {
-        active = Active.NEVER
-    }
-    deploy {
-        active = Active.NEVER
     }
 }

@@ -105,7 +105,7 @@ Manage users, create accounts, and handle activation tokens.
 
 See [Deployment Guide](docs/deployment.md) for production deployment instructions.
 
-See [Copilot Instructions](.github/copilot-instructions.md) for development guidelines.
+See [Agents Instructions](AGENTS.md) for development guidelines.
 
 ## Documentation
 
@@ -114,7 +114,7 @@ See [Copilot Instructions](.github/copilot-instructions.md) for development guid
 - [Public API Guide](docs/public-api.md) - Programmatic access via REST API
 - [Browser Integrations Guide](docs/browser-integrations.md) - Tampermonkey scripts for GitHub and Jira
 - [Internationalization Guide](docs/i18n.md) - Working with translations
-- [Copilot Instructions](.github/copilot-instructions.md) - Development guidelines
+- [Agents Instructions](AGENTS.md) - Development guidelines
 
 ## License
 
