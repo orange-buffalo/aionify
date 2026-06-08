@@ -18,7 +18,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          # Ensure full git history is available for JReleaser
+          # Ensure full git history is available for release versioning
           fetch-depth: 0
 
       - name: Setup environment
@@ -150,8 +150,11 @@ jobs:
 
       - name: "Publish (Pre-) Release"
         if: ${{ github.ref == 'refs/heads/main' }}
-        env:
-          JRELEASER_GITHUB_TOKEN: ${{ secrets.AIONIFY_MAINTENANCE_TOKEN }}
         run: |
-          git status
-          ./gradlew dockerPushNative jreleaserFullRelease --console=plain
+          version="$(./gradlew -q printVersion | grep -E '^[0-9]+\.[0-9]+\.[0-9]+' | tail -n 1)"
+          if [[ "$version" == *-SNAPSHOT ]]; then
+            echo "Version $version is not a release version; skipping image publishing."
+            exit 0
+          fi
+
+          ./gradlew dockerPushNative --console=plain
