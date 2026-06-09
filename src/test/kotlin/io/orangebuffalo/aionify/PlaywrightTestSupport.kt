@@ -80,6 +80,7 @@ abstract class PlaywrightTestBase {
 
     companion object {
         private const val TRACES_DIR = "build/playwright-traces"
+        private const val UI_REVIEW_SCREENSHOTS_DIR = "build/ui-review-screenshots"
         private val SANITIZE_REGEX = Regex("[^a-zA-Z0-9_-]")
 
         // Local storage keys matching frontend constants
@@ -267,6 +268,35 @@ abstract class PlaywrightTestBase {
         return instant
     }
 
+    /**
+     * Captures a screenshot for manual UI review.
+     * Screenshots are stored under build/ui-review-screenshots/<test-class>/<test-method>/.
+     */
+    protected fun captureUiReviewScreenshot(
+        name: String,
+        viewportWidth: Int = 1280,
+        viewportHeight: Int? = null,
+    ) {
+        if (viewportHeight == null) {
+            val currentHeight = page.viewportSize()?.height ?: 720
+            page.setViewportSize(viewportWidth, currentHeight)
+        }
+        val resolvedHeight = viewportHeight ?: (page.evaluate("document.documentElement.scrollHeight") as Int)
+        page.setViewportSize(viewportWidth, resolvedHeight)
+
+        val className = sanitizeForFileName(this::class.java.simpleName)
+        val methodName = sanitizeForFileName(testInfo.testMethod.map { it.name }.orElse("unknownMethod"))
+        val screenshotsDir = Paths.get(UI_REVIEW_SCREENSHOTS_DIR, className, methodName)
+        Files.createDirectories(screenshotsDir)
+
+        page.screenshot(
+            Page
+                .ScreenshotOptions()
+                .setPath(screenshotsDir.resolve("${sanitizeForFileName(name)}.png"))
+                .setFullPage(false),
+        )
+    }
+
     @AfterEach
     fun teardownPlaywright() {
         try {
@@ -295,9 +325,11 @@ abstract class PlaywrightTestBase {
         val className = this::class.java.simpleName
         val methodName = testInfo.testMethod.map { it.name }.orElse("unknownMethod")
         // Sanitize method name (replace special characters)
-        val sanitizedMethodName = methodName.replace(SANITIZE_REGEX, "_")
+        val sanitizedMethodName = sanitizeForFileName(methodName)
         return "${className}_$sanitizedMethodName.zip"
     }
+
+    private fun sanitizeForFileName(value: String): String = value.replace(SANITIZE_REGEX, "_")
 
     /**
      * Verifies that no browser console errors or warnings were logged during the test.

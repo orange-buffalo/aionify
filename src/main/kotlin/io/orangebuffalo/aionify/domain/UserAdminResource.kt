@@ -28,6 +28,7 @@ open class UserAdminResource(
     private val userRepository: UserRepository,
     private val userService: UserService,
     private val userSettingsRepository: UserSettingsRepository,
+    private val goalsSettingsRepository: GoalsSettingsRepository,
     private val activationTokenRepository: ActivationTokenRepository,
     private val activationTokenService: ActivationTokenService,
     private val timeService: TimeService,
@@ -107,6 +108,7 @@ open class UserAdminResource(
 
         // Create default user settings
         userSettingsRepository.save(UserSettings.create(userId = requireNotNull(user.id)))
+        goalsSettingsRepository.save(GoalsSettings.create(userId = requireNotNull(user.id)))
 
         // Create activation token with 10 days (240 hours) expiration
         val activationToken = activationTokenService.createToken(requireNotNull(user.id))

@@ -4,6 +4,8 @@ import io.micronaut.context.ApplicationContext
 import io.micronaut.transaction.TransactionDefinition
 import io.micronaut.transaction.annotation.Transactional
 import io.orangebuffalo.aionify.domain.ActivationToken
+import io.orangebuffalo.aionify.domain.DailyGoalBreak
+import io.orangebuffalo.aionify.domain.GoalsSettings
 import io.orangebuffalo.aionify.domain.LegacyTag
 import io.orangebuffalo.aionify.domain.TimeLogEntry
 import io.orangebuffalo.aionify.domain.User
@@ -93,6 +95,8 @@ open class TestDatabaseSupport(
             is User -> genericRepository.save(entity) as T
             is TimeLogEntry -> genericRepository.save(entity) as T
             is ActivationToken -> genericRepository.save(entity) as T
+            is GoalsSettings -> genericRepository.save(entity) as T
+            is DailyGoalBreak -> genericRepository.save(entity) as T
             is LegacyTag -> genericRepository.save(entity) as T
             is UserSettings -> genericRepository.save(entity) as T
             is UserApiAccessToken -> genericRepository.save(entity) as T
@@ -116,6 +120,8 @@ open class TestDatabaseSupport(
             is User -> genericRepository.update(entity) as T
             is TimeLogEntry -> genericRepository.update(entity) as T
             is ActivationToken -> genericRepository.update(entity) as T
+            is GoalsSettings -> genericRepository.update(entity) as T
+            is DailyGoalBreak -> genericRepository.update(entity) as T
             is LegacyTag -> genericRepository.update(entity) as T
             is UserSettings -> genericRepository.update(entity) as T
             is UserApiAccessToken -> genericRepository.update(entity) as T
