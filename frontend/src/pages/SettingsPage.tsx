@@ -18,6 +18,7 @@ import { apiGet, apiPost, apiRequest, apiPut } from "@/lib/api";
 import { MoreVertical, Archive, ArchiveRestore } from "lucide-react";
 import { ImportDataPanel } from "@/components/settings/ImportDataPanel";
 import { ApiAccessTokenPanel } from "@/components/settings/ApiAccessTokenPanel";
+import { GoalsManagementPanel } from "@/components/settings/GoalsManagementPanel";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
 
 interface TagStat {
@@ -96,8 +97,7 @@ export function SettingsPage() {
 
   useEffect(() => {
     const loadInitialData = async () => {
-      await loadTags();
-      await loadPreferences();
+      await Promise.all([loadTags(), loadPreferences()]);
       setInitialDataLoaded(true);
     };
     loadInitialData();
@@ -163,6 +163,8 @@ export function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
+
+            <GoalsManagementPanel />
 
             {/* Tags Card */}
             <Card className="border-none shadow-md">

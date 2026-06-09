@@ -13,6 +13,7 @@ Project documentation is organized as follows:
 - `docs/deployment.md` - Production deployment guide (configuration, Docker, admin setup)
 - `docs/i18n.md` - Internationalization guide
 - `docs/public-api.md` - Public API guide
+- `docs/ui-review.md` - UI screenshot review workflow for frontend changes
 - `docs/images/` - Images used in documentation
 - `AGENTS.md` - This file, containing coding guidelines and conventions
 
@@ -48,17 +49,31 @@ The `check` task automatically verifies formatting and will fail if code is not 
 
 **CRITICAL: This is an unbreakable rule - Always run tests locally before pushing changes:**
 
+Start with the most relevant tests for the files and behavior you changed. Prefer the smallest targeted test set that is likely to catch regressions in the touched area.
+
+Examples:
+```bash
+./gradlew test --tests "io.orangebuffalo.aionify.SettingsPagePreferencesPlaywrightTest"
+./gradlew test --tests "io.orangebuffalo.aionify.domain.UserAdminResourceTest"
+```
+
+Run the full build for broad, cross-cutting, or higher-risk changes, and before pushing when targeted coverage is not sufficient:
+
 ```bash
 ./gradlew build --console=plain
 ```
 
-This ensures:
+Targeted test runs ensure:
+- The changed area is verified quickly
+- Feedback stays fast during development
+
+The full build ensures:
 - Code compiles correctly
 - All tests pass
 - Code is properly formatted
 - No regressions are introduced
 
-**You MUST verify that all tests pass locally before marking any task as complete or ready for review. Never hide failing test results. If tests fail locally, you must fix them before proceeding.**
+**You MUST verify the most relevant tests for the changed area before marking any task as complete or ready for review. Never hide failing test results. If tests fail locally, you must fix them before proceeding. Expand to broader coverage when the scope or risk warrants it, and use the full build for broad or high-risk changes.**
 
 **After every task implementation, the E2E tests must pass:**
 
@@ -150,6 +165,11 @@ Conventional Commits provide a standardized way to communicate the nature of cha
   - Add `text-foreground` class to Buttons with ghost variant via className prop
   - Add `dark` class to DropdownMenuContent (like DialogContent has)
   - All form elements must have explicit text color classes for dark theme compatibility
+- **CRITICAL: When changing UI, always take and review screenshots before considering the work complete**:
+  - Verify there are no visual issues or styling glitches
+  - Verify styling is consistent with the existing app
+  - Verify the final result looks elegant on the affected screen sizes
+  - Use relevant screenshot review tests and inspect the generated images; see `docs/ui-review.md`
 
 ## Testing Guidelines
 

@@ -13,7 +13,7 @@ Track your time with an intuitive interface showing active tasks and weekly view
 ![Time Logs Page](docs/images/time-logs-page.png)
 
 ### Settings
-View tag usage statistics and manage your API access token for programmatic access.
+Manage personal preferences, daily goals, tag usage statistics, data imports, and your API access token.
 
 ![Settings Page](docs/images/settings-page.png)
 
@@ -65,6 +65,7 @@ Manage users, create accounts, and handle activation tokens.
   - Multi-language support (English and Ukrainian)
   - Configurable locale for date and time formatting (many regional variants)
   - Configurable start of week (any day of the week)
+  - Daily time goals with typical break planning
   - Dark mode compatible UI
   - Remember me option for persistent login sessions
   - Self-service password change from profile page
