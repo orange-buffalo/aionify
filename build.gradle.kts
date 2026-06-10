@@ -4,7 +4,7 @@ plugins {
     kotlin("jvm") version "2.3.21"
     kotlin("plugin.allopen") version "2.3.21"
     id("com.google.devtools.ksp") version "2.3.8"
-    id("io.micronaut.application") version "4.6.2"
+    id("io.micronaut.application") version "5.0.0"
     id("io.micronaut.docker") version "4.6.2"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     id("com.github.jmongard.git-semver-plugin") version "0.19.1"
