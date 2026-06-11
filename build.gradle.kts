@@ -1,7 +1,7 @@
 import java.time.Duration
 
 plugins {
-    kotlin("jvm") version "2.3.21"
+    kotlin("jvm") version "2.4.0"
     kotlin("plugin.allopen") version "2.3.21"
     id("com.google.devtools.ksp") version "2.3.8"
     id("io.micronaut.application") version "4.6.2"
