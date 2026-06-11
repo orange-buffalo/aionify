@@ -65,7 +65,7 @@ Manage users, create accounts, and handle activation tokens.
   - Multi-language support (English and Ukrainian)
   - Configurable locale for date and time formatting (many regional variants)
   - Configurable start of week (any day of the week)
-  - Daily time goals with typical break planning
+  - Daily time goals with typical break planning and current-day progress visualization
   - Dark mode compatible UI
   - Remember me option for persistent login sessions
   - Self-service password change from profile page

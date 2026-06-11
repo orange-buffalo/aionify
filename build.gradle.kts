@@ -265,9 +265,22 @@ tasks.register<Exec>("prettierFormat") {
     dependsOn("bunInstall")
 }
 
+tasks.register<Exec>("bunTest") {
+    description = "Run frontend unit tests with Bun"
+    group = "verification"
+    workingDir = file("frontend")
+    commandLine("bun", "test")
+    dependsOn("bunInstall")
+
+    inputs
+        .dir("frontend/src")
+        .withPropertyName("frontendSourceFiles")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
 // Make check task depend on prettier check
 tasks.named("check") {
-    dependsOn("prettierCheck")
+    dependsOn("prettierCheck", "bunTest")
 }
 
 // Combined formatting task

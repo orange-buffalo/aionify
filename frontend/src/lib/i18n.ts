@@ -229,6 +229,11 @@ const resources = {
         duration: "Duration",
         totalDuration: "Total",
         weeklyTotal: "Weekly total",
+        dailyGoal: {
+          achievement: "Goal achievement: {{percent}}%",
+          estimatedCompletion: "Estimated completion: {{time}}",
+          met: "Daily goal met",
+        },
         inProgress: "in progress",
         differentDayWarning: "This entry finishes on another day - {{date}}",
         overlapWarning: "This entry overlaps with '{{title}}'",
@@ -669,6 +674,11 @@ const resources = {
         duration: "Тривалість",
         totalDuration: "Всього",
         weeklyTotal: "Всього за тиждень",
+        dailyGoal: {
+          achievement: "Досягнення цілі: {{percent}}%",
+          estimatedCompletion: "Орієнтовне завершення: {{time}}",
+          met: "Денну ціль досягнуто",
+        },
         inProgress: "виконується",
         differentDayWarning: "Цей запис закінчується в інший день - {{date}}",
         overlapWarning: "Цей запис перетинається з '{{title}}'",
