@@ -5,6 +5,7 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.orangebuffalo.aionify.domain.DailyGoalBreakRepository
 import io.orangebuffalo.aionify.domain.GoalsSettingsRepository
 import io.orangebuffalo.aionify.domain.User
+import io.orangebuffalo.aionify.domain.WeekDay
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -105,7 +106,7 @@ class GoalsSettingsPlaywrightTest : PlaywrightTestBase() {
             assertEquals(465, settings.dailyGoalMinutes)
             assertTrue(settings.weeklyEnabled)
             assertEquals(2_295, settings.weeklyGoalMinutes)
-            assertEquals("TUESDAY,THURSDAY,SATURDAY", settings.weeklyWorkingDays)
+            assertEquals(setOf(WeekDay.TUESDAY, WeekDay.THURSDAY, WeekDay.SATURDAY), settings.weeklyWorkingDays)
 
             val breaks = dailyGoalBreakRepository.findByGoalsSettingsIdOrderBySortOrderAsc(requireNotNull(settings.id))
             assertEquals(2, breaks.size)
@@ -190,7 +191,7 @@ class GoalsSettingsPlaywrightTest : PlaywrightTestBase() {
             assertEquals(390, settings.dailyGoalMinutes)
             assertTrue(settings.weeklyEnabled)
             assertEquals(1_800, settings.weeklyGoalMinutes)
-            assertEquals("MONDAY,TUESDAY,WEDNESDAY,THURSDAY", settings.weeklyWorkingDays)
+            assertEquals(setOf(WeekDay.MONDAY, WeekDay.TUESDAY, WeekDay.WEDNESDAY, WeekDay.THURSDAY), settings.weeklyWorkingDays)
 
             val breaks = dailyGoalBreakRepository.findByGoalsSettingsIdOrderBySortOrderAsc(requireNotNull(settings.id))
             assertEquals(1, breaks.size)

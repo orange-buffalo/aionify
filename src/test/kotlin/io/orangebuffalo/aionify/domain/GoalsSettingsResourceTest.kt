@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.DayOfWeek
 import java.time.LocalTime
 
 @MicronautTest(transactional = false)
@@ -86,7 +85,7 @@ class GoalsSettingsResourceTest {
         assertFalse(body.weeklyGoal.enabled)
         assertEquals(0, body.weeklyGoal.goalMinutes)
         assertEquals(
-            listOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY),
+            listOf(WeekDay.MONDAY, WeekDay.TUESDAY, WeekDay.WEDNESDAY, WeekDay.THURSDAY, WeekDay.FRIDAY),
             body.weeklyGoal.workingDays,
         )
     }
@@ -101,7 +100,7 @@ class GoalsSettingsResourceTest {
                     dailyGoalMinutes = 450,
                     weeklyEnabled = true,
                     weeklyGoalMinutes = 1_800,
-                    weeklyWorkingDays = "MONDAY,WEDNESDAY,FRIDAY",
+                    weeklyWorkingDays = setOf(WeekDay.MONDAY, WeekDay.WEDNESDAY, WeekDay.FRIDAY),
                 ),
             )
         testDatabaseSupport.insert(
@@ -154,7 +153,7 @@ class GoalsSettingsResourceTest {
                                 UpdateWeeklyGoalRequest(
                                     enabled = true,
                                     goalMinutes = 2_250,
-                                    workingDays = listOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.THURSDAY),
+                                    workingDays = setOf(WeekDay.MONDAY, WeekDay.TUESDAY, WeekDay.THURSDAY),
                                 ),
                         ),
                     ).bearerAuth(token),
@@ -169,7 +168,7 @@ class GoalsSettingsResourceTest {
             assertEquals(450, settings.dailyGoalMinutes)
             assertTrue(settings.weeklyEnabled)
             assertEquals(2_250, settings.weeklyGoalMinutes)
-            assertEquals("MONDAY,TUESDAY,THURSDAY", settings.weeklyWorkingDays)
+            assertEquals(setOf(WeekDay.MONDAY, WeekDay.TUESDAY, WeekDay.THURSDAY), settings.weeklyWorkingDays)
 
             val breaks = dailyGoalBreakRepository.findByGoalsSettingsIdOrderBySortOrderAsc(requireNotNull(settings.id))
             assertEquals(2, breaks.size)
@@ -195,7 +194,7 @@ class GoalsSettingsResourceTest {
         assertEquals("12:30", body.dailyGoal.typicalBreaks[0].to)
         assertTrue(body.weeklyGoal.enabled)
         assertEquals(2_250, body.weeklyGoal.goalMinutes)
-        assertEquals(listOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.THURSDAY), body.weeklyGoal.workingDays)
+        assertEquals(listOf(WeekDay.MONDAY, WeekDay.TUESDAY, WeekDay.THURSDAY), body.weeklyGoal.workingDays)
     }
 
     @Test
@@ -275,7 +274,7 @@ class GoalsSettingsResourceTest {
                                     UpdateWeeklyGoalRequest(
                                         enabled = true,
                                         goalMinutes = 0,
-                                        workingDays = listOf(DayOfWeek.MONDAY),
+                                        workingDays = setOf(WeekDay.MONDAY),
                                     ),
                             ),
                         ).bearerAuth(token),

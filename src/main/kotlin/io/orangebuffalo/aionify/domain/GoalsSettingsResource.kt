@@ -14,7 +14,6 @@ import jakarta.transaction.Transactional
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotNull
-import java.time.DayOfWeek
 import java.time.LocalTime
 
 @Controller("/api-ui/users/goals-settings")
@@ -63,8 +62,7 @@ open class GoalsSettingsResource(
         val weeklyGoalMinutes = request.weeklyGoal.goalMinutes
         val weeklyWorkingDays =
             request.weeklyGoal.workingDays
-                .distinct()
-                .sortedBy { it.value }
+                .toSortedSet(compareBy { it.ordinal })
         if (request.weeklyGoal.enabled && (weeklyGoalMinutes <= 0 || weeklyWorkingDays.isEmpty())) {
             return invalidWeeklyGoal()
         }
@@ -140,7 +138,7 @@ data class TypicalBreakResponse(
 data class WeeklyGoalResponse(
     val enabled: Boolean,
     val goalMinutes: Int,
-    val workingDays: List<DayOfWeek>,
+    val workingDays: List<WeekDay>,
 )
 
 @Serdeable
@@ -174,7 +172,7 @@ data class UpdateWeeklyGoalRequest(
     val enabled: Boolean,
     @field:Min(0)
     val goalMinutes: Int,
-    val workingDays: List<DayOfWeek> = GoalsSettingsView.defaultWeeklyWorkingDays,
+    val workingDays: Set<WeekDay> = GoalsSettingsView.defaultWeeklyWorkingDays.toSet(),
 )
 
 @Serdeable

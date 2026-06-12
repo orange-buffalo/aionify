@@ -1,7 +1,6 @@
 package io.orangebuffalo.aionify.domain
 
 import jakarta.inject.Singleton
-import java.time.DayOfWeek
 import java.time.LocalTime
 
 @Singleton
@@ -26,7 +25,7 @@ class GoalsSettingsService(
             breaks = breaks,
             weeklyEnabled = settings.weeklyEnabled,
             weeklyGoalMinutes = settings.weeklyGoalMinutes,
-            weeklyWorkingDays = parseWeeklyWorkingDays(settings.weeklyWorkingDays),
+            weeklyWorkingDays = settings.weeklyWorkingDays.sortedBy { it.ordinal },
         )
     }
 
@@ -37,7 +36,7 @@ class GoalsSettingsService(
         breaks: List<DailyGoalBreakView>,
         weeklyEnabled: Boolean,
         weeklyGoalMinutes: Int,
-        weeklyWorkingDays: List<DayOfWeek>,
+        weeklyWorkingDays: Set<WeekDay>,
     ) {
         val settings = goalsSettingsRepository.findByUserId(userId).orElse(null)
         val persistedSettings =
@@ -49,7 +48,7 @@ class GoalsSettingsService(
                         dailyGoalMinutes = dailyGoalMinutes,
                         weeklyEnabled = weeklyEnabled,
                         weeklyGoalMinutes = weeklyGoalMinutes,
-                        weeklyWorkingDays = formatWeeklyWorkingDays(weeklyWorkingDays),
+                        weeklyWorkingDays = weeklyWorkingDays,
                     ),
                 )
             } else {
@@ -59,7 +58,7 @@ class GoalsSettingsService(
                         dailyGoalMinutes = dailyGoalMinutes,
                         weeklyEnabled = weeklyEnabled,
                         weeklyGoalMinutes = weeklyGoalMinutes,
-                        weeklyWorkingDays = formatWeeklyWorkingDays(weeklyWorkingDays),
+                        weeklyWorkingDays = weeklyWorkingDays,
                     ),
                 )
             }
@@ -77,14 +76,6 @@ class GoalsSettingsService(
             )
         }
     }
-
-    private fun parseWeeklyWorkingDays(value: String): List<DayOfWeek> =
-        value
-            .split(',')
-            .filter { it.isNotBlank() }
-            .map { DayOfWeek.valueOf(it) }
-
-    private fun formatWeeklyWorkingDays(days: List<DayOfWeek>): String = days.joinToString(",") { it.name }
 }
 
 data class GoalsSettingsView(
@@ -93,16 +84,16 @@ data class GoalsSettingsView(
     val breaks: List<DailyGoalBreakView>,
     val weeklyEnabled: Boolean,
     val weeklyGoalMinutes: Int,
-    val weeklyWorkingDays: List<DayOfWeek>,
+    val weeklyWorkingDays: List<WeekDay>,
 ) {
     companion object {
         val defaultWeeklyWorkingDays =
             listOf(
-                DayOfWeek.MONDAY,
-                DayOfWeek.TUESDAY,
-                DayOfWeek.WEDNESDAY,
-                DayOfWeek.THURSDAY,
-                DayOfWeek.FRIDAY,
+                WeekDay.MONDAY,
+                WeekDay.TUESDAY,
+                WeekDay.WEDNESDAY,
+                WeekDay.THURSDAY,
+                WeekDay.FRIDAY,
             )
 
         fun default() =

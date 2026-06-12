@@ -4,8 +4,17 @@ import io.micronaut.data.annotation.GeneratedValue
 import io.micronaut.data.annotation.Id
 import io.micronaut.data.annotation.MappedEntity
 import io.micronaut.data.annotation.MappedProperty
+import io.micronaut.data.annotation.TypeDef
+import io.micronaut.data.model.DataType
 
-private const val DEFAULT_WEEKLY_WORKING_DAYS = "MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY"
+private val DEFAULT_WEEKLY_WORKING_DAYS =
+    setOf(
+        WeekDay.MONDAY,
+        WeekDay.TUESDAY,
+        WeekDay.WEDNESDAY,
+        WeekDay.THURSDAY,
+        WeekDay.FRIDAY,
+    )
 
 @MappedEntity("goals_settings")
 data class GoalsSettings(
@@ -23,7 +32,8 @@ data class GoalsSettings(
     @field:MappedProperty("weekly_goal_minutes")
     val weeklyGoalMinutes: Int = 0,
     @field:MappedProperty("weekly_working_days")
-    val weeklyWorkingDays: String = DEFAULT_WEEKLY_WORKING_DAYS,
+    @field:TypeDef(type = DataType.STRING, converter = WeeklyWorkingDaysConverter::class)
+    val weeklyWorkingDays: Set<WeekDay> = DEFAULT_WEEKLY_WORKING_DAYS,
 ) {
     companion object {
         fun create(userId: Long) = GoalsSettings(userId = userId)
