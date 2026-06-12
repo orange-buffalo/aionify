@@ -22,7 +22,12 @@ export function DailyGoalProgressBar({ entries, dailyGoal, locale }: DailyGoalPr
 
   if (!dailyGoal.enabled) return null;
 
-  const progress = calculateDailyGoalProgress(entries, dailyGoal.goalMinutes, dailyGoal.typicalBreaks, now);
+  const progress = calculateDailyGoalProgress({
+    entries,
+    goalMinutes: dailyGoal.goalMinutes,
+    typicalBreaks: dailyGoal.typicalBreaks,
+    now,
+  });
   if (!progress) return null;
 
   const estimatedCompletionTime = new Intl.DateTimeFormat(locale, {
@@ -52,11 +57,13 @@ export function DailyGoalProgressBar({ entries, dailyGoal, locale }: DailyGoalPr
         </TooltipTrigger>
         <TooltipContent data-testid="daily-goal-progress-tooltip">
           <div className="space-y-1">
-            <div>{t("timeLogs.dailyGoal.achievement", { percent: progress.progressPercent })}</div>
             {progress.progressPercent >= 100 ? (
               <div>{t("timeLogs.dailyGoal.met")}</div>
             ) : (
-              <div>{t("timeLogs.dailyGoal.estimatedCompletion", { time: estimatedCompletionTime })}</div>
+              <>
+                <div>{t("timeLogs.dailyGoal.achievement", { percent: progress.progressPercent })}</div>
+                <div>{t("timeLogs.dailyGoal.estimatedCompletion", { time: estimatedCompletionTime })}</div>
+              </>
             )}
           </div>
         </TooltipContent>

@@ -104,9 +104,35 @@ class TimeLogsDailyGoalProgressTest : TimeLogsPageTestBase() {
         page.clock().runFor(1000)
         val tooltip = page.locator("[data-testid='daily-goal-progress-tooltip']")
         assertThat(tooltip).isVisible()
-        assertThat(tooltip).containsText("Goal achievement: 100%")
         assertThat(tooltip).containsText("Daily goal met")
+        assertThat(tooltip).not().containsText("Goal achievement")
         assertThat(tooltip).not().containsText("Estimated completion")
+    }
+
+    @Test
+    fun `should not render daily goal progress for non-today entries when enabled`() {
+        val baseTime = setBaseTime("2024-03-16", "11:30")
+        val userId = requireNotNull(testUser.id)
+
+        testDatabaseSupport.insert(
+            GoalsSettings(
+                userId = userId,
+                dailyEnabled = true,
+                dailyGoalMinutes = 240,
+            ),
+        )
+        testDatabaseSupport.insert(
+            TimeLogEntry(
+                startTime = baseTime.withLocalDate("2024-03-15").withLocalTime("09:00"),
+                endTime = baseTime.withLocalDate("2024-03-15").withLocalTime("10:00"),
+                title = "Yesterday Task",
+                ownerId = userId,
+            ),
+        )
+
+        loginViaToken("/portal/time-logs", testUser, testAuthSupport)
+
+        assertThat(page.locator("[data-testid='daily-goal-progress']")).not().isVisible()
     }
 
     @Test

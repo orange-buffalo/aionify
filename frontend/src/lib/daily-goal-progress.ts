@@ -11,14 +11,21 @@ export interface DailyGoalProgress {
   estimatedCompletionTime: Date;
 }
 
+export interface CalculateDailyGoalProgressArgs {
+  entries: TimeLogEntry[];
+  goalMinutes: number;
+  typicalBreaks: DailyGoalBreak[];
+  now: Date;
+}
+
 const MINUTE_MS = 60 * 1000;
 
-export function calculateDailyGoalProgress(
-  entries: TimeLogEntry[],
-  goalMinutes: number,
-  typicalBreaks: DailyGoalBreak[],
-  now: Date
-): DailyGoalProgress | null {
+export function calculateDailyGoalProgress({
+  entries,
+  goalMinutes,
+  typicalBreaks,
+  now,
+}: CalculateDailyGoalProgressArgs): DailyGoalProgress | null {
   if (goalMinutes <= 0) return null;
 
   const totalMs = entries.reduce((sum, entry) => sum + calculateEntryDuration(entry, now), 0);
