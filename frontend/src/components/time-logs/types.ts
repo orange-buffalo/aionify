@@ -18,6 +18,16 @@ export interface DayGroup {
   displayTitle: string;
   entries: TimeLogEntry[];
   totalDuration: number;
+  isToday: boolean;
+}
+
+export interface DailyGoalSettings {
+  enabled: boolean;
+  goalMinutes: number;
+  typicalBreaks: {
+    from: string;
+    to: string;
+  }[];
 }
 
 /**

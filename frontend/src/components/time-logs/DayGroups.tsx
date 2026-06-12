@@ -3,17 +3,18 @@ import { useTranslation } from "react-i18next";
 import { DayGroup } from "./DayGroup";
 import { formatISODate, calculateDuration } from "@/lib/time-utils";
 import { formatDate } from "@/lib/date-format";
-import type { TimeLogEntry, DayGroup as DayGroupType } from "./types";
+import type { DailyGoalSettings, TimeLogEntry, DayGroup as DayGroupType } from "./types";
 
 interface DayGroupsProps {
   entries: TimeLogEntry[];
   activeEntry: TimeLogEntry | null;
   locale: string;
   startOfWeek: number;
+  dailyGoal: DailyGoalSettings | null;
   onDataChange: () => Promise<void>;
 }
 
-export function DayGroups({ entries, activeEntry, locale, startOfWeek, onDataChange }: DayGroupsProps) {
+export function DayGroups({ entries, activeEntry, locale, startOfWeek, dailyGoal, onDataChange }: DayGroupsProps) {
   const { t } = useTranslation();
   const [dayGroups, setDayGroups] = useState<DayGroupType[]>([]);
 
@@ -64,6 +65,7 @@ export function DayGroups({ entries, activeEntry, locale, startOfWeek, onDataCha
           displayTitle: getDayTitle(date, locale),
           entries: entries.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()),
           totalDuration,
+          isToday: date === formatISODate(new Date()),
         };
       })
       .sort((a, b) => {
@@ -97,6 +99,7 @@ export function DayGroups({ entries, activeEntry, locale, startOfWeek, onDataCha
           group={group}
           locale={locale}
           startOfWeek={startOfWeek}
+          dailyGoal={dailyGoal}
           onDataChange={onDataChange}
         />
       ))}

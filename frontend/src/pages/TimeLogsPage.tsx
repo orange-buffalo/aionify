@@ -10,7 +10,11 @@ import { apiGet } from "@/lib/api";
 import { weekDayToNumber } from "@/lib/time-utils";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useTimeLogEntryEvents } from "@/hooks/useTimeLogEntryEvents";
-import type { TimeEntry, TimeLogEntry } from "@/components/time-logs/types";
+import type { DailyGoalSettings, TimeEntry, TimeLogEntry } from "@/components/time-logs/types";
+
+interface GoalsSettingsResponse {
+  dailyGoal: DailyGoalSettings;
+}
 
 export function TimeLogsPage() {
   const { t, i18n } = useTranslation();
@@ -20,6 +24,7 @@ export function TimeLogsPage() {
   const [error, setError] = useState<string | null>(null);
   const [userLocale, setUserLocale] = useState<string | null>(null);
   const [startOfWeek, setStartOfWeek] = useState<number>(1); // Default to Monday
+  const [dailyGoal, setDailyGoal] = useState<DailyGoalSettings | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const isInitialLoadRef = useRef(true);
 
@@ -117,13 +122,23 @@ export function TimeLogsPage() {
   // Load user's locale and start of week preference on mount
   useEffect(() => {
     async function loadUserProfile() {
-      const profile = await apiGet<{ locale: string; startOfWeek: string }>("/api-ui/users/profile");
+      const [profile, goalsSettings] = await Promise.all([
+        apiGet<{ locale: string; startOfWeek: string }>("/api-ui/users/profile"),
+        apiGet<GoalsSettingsResponse>("/api-ui/users/goals-settings"),
+      ]);
       setUserLocale(profile.locale);
       const startOfWeekNum = weekDayToNumber(profile.startOfWeek);
       setStartOfWeek(startOfWeekNum);
+      setDailyGoal({
+        ...goalsSettings.dailyGoal,
+        typicalBreaks: goalsSettings.dailyGoal.typicalBreaks ?? [],
+      });
     }
-    loadUserProfile();
-  }, []);
+    loadUserProfile().catch((err: any) => {
+      const errorCode = err.errorCode;
+      setError(errorCode ? t(`errorCodes.${errorCode}`) : err.message || t("common.error"));
+    });
+  }, [t]);
 
   // Don't render page elements until we have the user locale
   if (!userLocale) {
@@ -183,6 +198,7 @@ export function TimeLogsPage() {
               activeEntry={activeEntry}
               locale={locale}
               startOfWeek={startOfWeek}
+              dailyGoal={dailyGoal}
               onDataChange={loadData}
             />
           )}
