@@ -1,6 +1,7 @@
 package io.orangebuffalo.aionify.domain
 
 import jakarta.inject.Singleton
+import java.time.DayOfWeek
 import java.time.LocalTime
 
 @Singleton
@@ -19,7 +20,14 @@ class GoalsSettingsService(
                 .let(dailyGoalBreakRepository::findByGoalsSettingsIdOrderBySortOrderAsc)
                 .map { DailyGoalBreakView(it.fromTime, it.toTime) }
 
-        return GoalsSettingsView(settings.dailyEnabled, settings.dailyGoalMinutes, breaks)
+        return GoalsSettingsView(
+            dailyEnabled = settings.dailyEnabled,
+            dailyGoalMinutes = settings.dailyGoalMinutes,
+            breaks = breaks,
+            weeklyEnabled = settings.weeklyEnabled,
+            weeklyGoalMinutes = settings.weeklyGoalMinutes,
+            weeklyWorkingDays = parseWeeklyWorkingDays(settings.weeklyWorkingDays),
+        )
     }
 
     fun saveForUser(
@@ -27,16 +35,32 @@ class GoalsSettingsService(
         dailyEnabled: Boolean,
         dailyGoalMinutes: Int,
         breaks: List<DailyGoalBreakView>,
+        weeklyEnabled: Boolean,
+        weeklyGoalMinutes: Int,
+        weeklyWorkingDays: List<DayOfWeek>,
     ) {
         val settings = goalsSettingsRepository.findByUserId(userId).orElse(null)
         val persistedSettings =
             if (settings == null) {
                 goalsSettingsRepository.save(
-                    GoalsSettings(userId = userId, dailyEnabled = dailyEnabled, dailyGoalMinutes = dailyGoalMinutes),
+                    GoalsSettings(
+                        userId = userId,
+                        dailyEnabled = dailyEnabled,
+                        dailyGoalMinutes = dailyGoalMinutes,
+                        weeklyEnabled = weeklyEnabled,
+                        weeklyGoalMinutes = weeklyGoalMinutes,
+                        weeklyWorkingDays = formatWeeklyWorkingDays(weeklyWorkingDays),
+                    ),
                 )
             } else {
                 goalsSettingsRepository.update(
-                    settings.copy(dailyEnabled = dailyEnabled, dailyGoalMinutes = dailyGoalMinutes),
+                    settings.copy(
+                        dailyEnabled = dailyEnabled,
+                        dailyGoalMinutes = dailyGoalMinutes,
+                        weeklyEnabled = weeklyEnabled,
+                        weeklyGoalMinutes = weeklyGoalMinutes,
+                        weeklyWorkingDays = formatWeeklyWorkingDays(weeklyWorkingDays),
+                    ),
                 )
             }
 
@@ -53,15 +77,43 @@ class GoalsSettingsService(
             )
         }
     }
+
+    private fun parseWeeklyWorkingDays(value: String): List<DayOfWeek> =
+        value
+            .split(',')
+            .filter { it.isNotBlank() }
+            .map { DayOfWeek.valueOf(it) }
+
+    private fun formatWeeklyWorkingDays(days: List<DayOfWeek>): String = days.joinToString(",") { it.name }
 }
 
 data class GoalsSettingsView(
     val dailyEnabled: Boolean,
     val dailyGoalMinutes: Int,
     val breaks: List<DailyGoalBreakView>,
+    val weeklyEnabled: Boolean,
+    val weeklyGoalMinutes: Int,
+    val weeklyWorkingDays: List<DayOfWeek>,
 ) {
     companion object {
-        fun default() = GoalsSettingsView(dailyEnabled = false, dailyGoalMinutes = 0, breaks = emptyList())
+        val defaultWeeklyWorkingDays =
+            listOf(
+                DayOfWeek.MONDAY,
+                DayOfWeek.TUESDAY,
+                DayOfWeek.WEDNESDAY,
+                DayOfWeek.THURSDAY,
+                DayOfWeek.FRIDAY,
+            )
+
+        fun default() =
+            GoalsSettingsView(
+                dailyEnabled = false,
+                dailyGoalMinutes = 0,
+                breaks = emptyList(),
+                weeklyEnabled = false,
+                weeklyGoalMinutes = 0,
+                weeklyWorkingDays = defaultWeeklyWorkingDays,
+            )
     }
 }
 

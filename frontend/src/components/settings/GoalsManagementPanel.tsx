@@ -22,7 +22,16 @@ interface GoalsSettingsResponse {
     goalMinutes: number;
     typicalBreaks?: TypicalBreak[];
   };
+  weeklyGoal: {
+    enabled: boolean;
+    goalMinutes: number;
+    workingDays: WeekDay[];
+  };
 }
+
+type WeekDay = "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
+
+const weekDays: WeekDay[] = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
 
 export function GoalsManagementPanel() {
   const { t } = useTranslation();
@@ -32,6 +41,16 @@ export function GoalsManagementPanel() {
   const [dailyGoalHours, setDailyGoalHours] = useState(0);
   const [dailyGoalMinutes, setDailyGoalMinutes] = useState(0);
   const [typicalBreaks, setTypicalBreaks] = useState<TypicalBreak[]>([]);
+  const [weeklyGoalEnabled, setWeeklyGoalEnabled] = useState(false);
+  const [weeklyGoalHours, setWeeklyGoalHours] = useState(0);
+  const [weeklyGoalMinutes, setWeeklyGoalMinutes] = useState(0);
+  const [weeklyWorkingDays, setWeeklyWorkingDays] = useState<WeekDay[]>([
+    "MONDAY",
+    "TUESDAY",
+    "WEDNESDAY",
+    "THURSDAY",
+    "FRIDAY",
+  ]);
 
   const loadGoalsSettings = async () => {
     const [data, profile] = await Promise.all([
@@ -43,6 +62,10 @@ export function GoalsManagementPanel() {
     setDailyGoalHours(Math.floor(data.dailyGoal.goalMinutes / 60));
     setDailyGoalMinutes(data.dailyGoal.goalMinutes % 60);
     setTypicalBreaks(data.dailyGoal.typicalBreaks ?? []);
+    setWeeklyGoalEnabled(data.weeklyGoal.enabled);
+    setWeeklyGoalHours(Math.floor(data.weeklyGoal.goalMinutes / 60));
+    setWeeklyGoalMinutes(data.weeklyGoal.goalMinutes % 60);
+    setWeeklyWorkingDays(data.weeklyGoal.workingDays);
   };
 
   useEffect(() => {
@@ -63,6 +86,12 @@ export function GoalsManagementPanel() {
     setTypicalBreaks(typicalBreaks.filter((_, entryIndex) => entryIndex !== index));
   };
 
+  const handleWeeklyWorkingDayChange = (day: WeekDay, checked: boolean) => {
+    setWeeklyWorkingDays(
+      checked ? [...weeklyWorkingDays, day] : weeklyWorkingDays.filter((workingDay) => workingDay !== day)
+    );
+  };
+
   const localTimeToDate = (value: string): Date => {
     const [hours, minutes] = value.split(":").map(Number);
     const date = new Date(2024, 0, 1, 0, 0, 0, 0);
@@ -81,6 +110,11 @@ export function GoalsManagementPanel() {
           enabled: dailyGoalEnabled,
           goalMinutes: dailyGoalHours * 60 + dailyGoalMinutes,
           typicalBreaks,
+        },
+        weeklyGoal: {
+          enabled: weeklyGoalEnabled,
+          goalMinutes: weeklyGoalHours * 60 + weeklyGoalMinutes,
+          workingDays: weekDays.filter((day) => weeklyWorkingDays.includes(day)),
         },
       });
       return t("settings.goals.updateSuccess");
@@ -246,6 +280,100 @@ export function GoalsManagementPanel() {
                       )}
                     </TableBody>
                   </Table>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div
+            className="space-y-4 rounded-md border border-input bg-background/30 p-4"
+            data-testid="weekly-goal-panel"
+          >
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="weekly-goal-enabled"
+                checked={weeklyGoalEnabled}
+                onCheckedChange={(checked) => setWeeklyGoalEnabled(checked === true)}
+                disabled={apiCallInProgress}
+                data-testid="weekly-goal-toggle"
+              />
+              <div className="-mt-0.5 space-y-1">
+                <Label htmlFor="weekly-goal-enabled" className="cursor-pointer leading-none text-foreground">
+                  {t("settings.goals.weeklyGoal.title")}
+                </Label>
+                <p className="text-sm text-muted-foreground">{t("settings.goals.weeklyGoal.subtitle")}</p>
+                <p className="text-sm text-muted-foreground" data-testid="weekly-goal-checkbox-description">
+                  {t("settings.goals.weeklyGoal.description")}
+                </p>
+              </div>
+            </div>
+
+            {weeklyGoalEnabled && (
+              <div className="space-y-4" data-testid="weekly-goal-section">
+                <div className="flex flex-wrap items-end gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="weekly-goal-hours" className="text-foreground">
+                      {t("settings.goals.weeklyGoal.goalHours")}
+                    </Label>
+                    <Input
+                      id="weekly-goal-hours"
+                      type="number"
+                      min={0}
+                      value={weeklyGoalHours}
+                      onChange={(e) => setWeeklyGoalHours(Math.max(0, Number(e.target.value) || 0))}
+                      disabled={apiCallInProgress}
+                      className="w-20 text-center font-mono text-foreground [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      data-testid="weekly-goal-hours-input"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="weekly-goal-minutes" className="text-foreground">
+                      {t("settings.goals.weeklyGoal.goalMinutes")}
+                    </Label>
+                    <Input
+                      id="weekly-goal-minutes"
+                      type="number"
+                      min={0}
+                      max={59}
+                      value={weeklyGoalMinutes}
+                      onChange={(e) => setWeeklyGoalMinutes(Math.min(59, Math.max(0, Number(e.target.value) || 0)))}
+                      disabled={apiCallInProgress}
+                      className="w-20 text-center font-mono text-foreground [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      data-testid="weekly-goal-minutes-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="text-sm font-medium text-foreground">
+                      {t("settings.goals.weeklyGoal.workingDays.title")}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {t("settings.goals.weeklyGoal.workingDays.description")}
+                    </p>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-testid="weekly-goal-working-days">
+                    {weekDays.map((day) => (
+                      <div
+                        key={day}
+                        className="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2"
+                      >
+                        <Checkbox
+                          id={`weekly-working-day-${day}`}
+                          checked={weeklyWorkingDays.includes(day)}
+                          onCheckedChange={(checked) => handleWeeklyWorkingDayChange(day, checked === true)}
+                          disabled={apiCallInProgress}
+                          data-testid={`weekly-goal-working-day-${day}`}
+                        />
+                        <Label htmlFor={`weekly-working-day-${day}`} className="cursor-pointer text-sm text-foreground">
+                          {t(`settings.preferences.weekDays.${day}`)}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}

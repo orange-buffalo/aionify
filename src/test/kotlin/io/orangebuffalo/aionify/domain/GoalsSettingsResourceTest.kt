@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.DayOfWeek
 import java.time.LocalTime
 
 @MicronautTest(transactional = false)
@@ -82,6 +83,12 @@ class GoalsSettingsResourceTest {
         assertFalse(body.dailyGoal.enabled)
         assertEquals(0, body.dailyGoal.goalMinutes)
         assertTrue(body.dailyGoal.typicalBreaks.isEmpty())
+        assertFalse(body.weeklyGoal.enabled)
+        assertEquals(0, body.weeklyGoal.goalMinutes)
+        assertEquals(
+            listOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY),
+            body.weeklyGoal.workingDays,
+        )
     }
 
     @Test
@@ -92,6 +99,9 @@ class GoalsSettingsResourceTest {
                     userId = requireNotNull(user2.id),
                     dailyEnabled = true,
                     dailyGoalMinutes = 450,
+                    weeklyEnabled = true,
+                    weeklyGoalMinutes = 1_800,
+                    weeklyWorkingDays = "MONDAY,WEDNESDAY,FRIDAY",
                 ),
             )
         testDatabaseSupport.insert(
@@ -116,6 +126,8 @@ class GoalsSettingsResourceTest {
         val body = response.body()!!
         assertFalse(body.dailyGoal.enabled)
         assertTrue(body.dailyGoal.typicalBreaks.isEmpty())
+        assertFalse(body.weeklyGoal.enabled)
+        assertEquals(0, body.weeklyGoal.goalMinutes)
     }
 
     @Test
@@ -138,6 +150,12 @@ class GoalsSettingsResourceTest {
                                             UpdateTypicalBreakRequest(from = LocalTime.parse("15:00"), to = LocalTime.parse("15:15")),
                                         ),
                                 ),
+                            weeklyGoal =
+                                UpdateWeeklyGoalRequest(
+                                    enabled = true,
+                                    goalMinutes = 2_250,
+                                    workingDays = listOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.THURSDAY),
+                                ),
                         ),
                     ).bearerAuth(token),
                 GoalsSettingsSuccessResponse::class.java,
@@ -149,6 +167,9 @@ class GoalsSettingsResourceTest {
             val settings = goalsSettingsRepository.findByUserId(requireNotNull(user1.id)).orElseThrow()
             assertTrue(settings.dailyEnabled)
             assertEquals(450, settings.dailyGoalMinutes)
+            assertTrue(settings.weeklyEnabled)
+            assertEquals(2_250, settings.weeklyGoalMinutes)
+            assertEquals("MONDAY,TUESDAY,THURSDAY", settings.weeklyWorkingDays)
 
             val breaks = dailyGoalBreakRepository.findByGoalsSettingsIdOrderBySortOrderAsc(requireNotNull(settings.id))
             assertEquals(2, breaks.size)
@@ -172,6 +193,9 @@ class GoalsSettingsResourceTest {
         assertEquals(2, body.dailyGoal.typicalBreaks.size)
         assertEquals("12:00", body.dailyGoal.typicalBreaks[0].from)
         assertEquals("12:30", body.dailyGoal.typicalBreaks[0].to)
+        assertTrue(body.weeklyGoal.enabled)
+        assertEquals(2_250, body.weeklyGoal.goalMinutes)
+        assertEquals(listOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.THURSDAY), body.weeklyGoal.workingDays)
     }
 
     @Test
@@ -190,6 +214,7 @@ class GoalsSettingsResourceTest {
                                         enabled = true,
                                         goalMinutes = 0,
                                     ),
+                                weeklyGoal = UpdateWeeklyGoalRequest(enabled = false, goalMinutes = 0),
                             ),
                         ).bearerAuth(token),
                     GoalsSettingsErrorResponse::class.java,
@@ -222,6 +247,7 @@ class GoalsSettingsResourceTest {
                                                 UpdateTypicalBreakRequest(from = LocalTime.parse("12:15"), to = LocalTime.parse("12:45")),
                                             ),
                                     ),
+                                weeklyGoal = UpdateWeeklyGoalRequest(enabled = false, goalMinutes = 0),
                             ),
                         ).bearerAuth(token),
                     GoalsSettingsErrorResponse::class.java,
@@ -231,5 +257,34 @@ class GoalsSettingsResourceTest {
         assertEquals(HttpStatus.BAD_REQUEST, exception.status)
         val body = exception.response.getBody(GoalsSettingsErrorResponse::class.java).orElseThrow()
         assertEquals("INVALID_TYPICAL_BREAK", body.errorCode)
+    }
+
+    @Test
+    fun `should reject invalid weekly goal`() {
+        val token = testAuthSupport.generateToken(user1)
+
+        val exception =
+            assertThrows(HttpClientResponseException::class.java) {
+                client.toBlocking().exchange(
+                    HttpRequest
+                        .PUT(
+                            "/api-ui/users/goals-settings",
+                            UpdateGoalsSettingsRequest(
+                                dailyGoal = UpdateDailyGoalRequest(enabled = false, goalMinutes = 0),
+                                weeklyGoal =
+                                    UpdateWeeklyGoalRequest(
+                                        enabled = true,
+                                        goalMinutes = 0,
+                                        workingDays = listOf(DayOfWeek.MONDAY),
+                                    ),
+                            ),
+                        ).bearerAuth(token),
+                    GoalsSettingsErrorResponse::class.java,
+                )
+            }
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.status)
+        val body = exception.response.getBody(GoalsSettingsErrorResponse::class.java).orElseThrow()
+        assertEquals("INVALID_WEEKLY_GOAL", body.errorCode)
     }
 }

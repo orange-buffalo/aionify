@@ -113,7 +113,7 @@ const resources = {
         },
         goals: {
           title: "Goals Management",
-          subtitle: "Define daily time goals and typical breaks",
+          subtitle: "Define daily and weekly time goals",
           description:
             "This feature helps you observe how much time you planned to spend and compare it with recorded work.",
           save: "Save Goals",
@@ -136,6 +136,17 @@ const resources = {
                 to: "To",
                 actions: "Actions",
               },
+            },
+          },
+          weeklyGoal: {
+            title: "Weekly goal",
+            subtitle: "Enable a weekly time target",
+            description: "Tracks your planned working time across selected working days.",
+            goalHours: "Goal hours",
+            goalMinutes: "Goal minutes",
+            workingDays: {
+              title: "Working days",
+              description: "Choose which days count toward your weekly goal.",
             },
           },
         },
@@ -558,7 +569,7 @@ const resources = {
         },
         goals: {
           title: "Керування цілями",
-          subtitle: "Визначайте щоденні цілі часу та типові перерви",
+          subtitle: "Визначайте щоденні та тижневі цілі часу",
           description:
             "Ця функція допомагає краще спостерігати за бажаним часом, який ви планували витратити, і порівнювати його з фактично записаною роботою.",
           save: "Зберегти цілі",
@@ -581,6 +592,17 @@ const resources = {
                 to: "До",
                 actions: "Дії",
               },
+            },
+          },
+          weeklyGoal: {
+            title: "Тижнева ціль",
+            subtitle: "Увімкнути тижневу ціль часу",
+            description: "Відстежує запланований робочий час у вибрані робочі дні.",
+            goalHours: "Години цілі",
+            goalMinutes: "Хвилини цілі",
+            workingDays: {
+              title: "Робочі дні",
+              description: "Виберіть дні, які враховуються у тижневій цілі.",
             },
           },
         },

@@ -13,7 +13,7 @@ Track your time with an intuitive interface showing active tasks and weekly view
 ![Time Logs Page](docs/images/time-logs-page.png)
 
 ### Settings
-Manage personal preferences, daily goals, tag usage statistics, data imports, and your API access token.
+Manage personal preferences, daily and weekly goals, tag usage statistics, data imports, and your API access token.
 
 ![Settings Page](docs/images/settings-page.png)
 
@@ -66,6 +66,7 @@ Manage users, create accounts, and handle activation tokens.
   - Configurable locale for date and time formatting (many regional variants)
   - Configurable start of week (any day of the week)
   - Daily time goals with typical break planning and current-day progress visualization
+  - Weekly time goals with configurable working days
   - Dark mode compatible UI
   - Remember me option for persistent login sessions
   - Self-service password change from profile page
