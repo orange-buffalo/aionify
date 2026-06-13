@@ -40,6 +40,12 @@ open class GoalsSettingsResource(
                                 )
                             },
                     ),
+                weeklyGoal =
+                    WeeklyGoalResponse(
+                        enabled = settings.weeklyEnabled,
+                        goalMinutes = settings.weeklyGoalMinutes,
+                        workingDays = settings.weeklyWorkingDays,
+                    ),
             ),
         )
     }
@@ -52,6 +58,13 @@ open class GoalsSettingsResource(
         val goalMinutes = request.dailyGoal.goalMinutes
         if (request.dailyGoal.enabled && goalMinutes <= 0) {
             return invalidDailyGoal()
+        }
+        val weeklyGoalMinutes = request.weeklyGoal.goalMinutes
+        val weeklyWorkingDays =
+            request.weeklyGoal.workingDays
+                .toSortedSet(compareBy { it.ordinal })
+        if (request.weeklyGoal.enabled && (weeklyGoalMinutes <= 0 || weeklyWorkingDays.isEmpty())) {
+            return invalidWeeklyGoal()
         }
 
         val validatedBreaks = mutableListOf<DailyGoalBreakView>()
@@ -74,6 +87,9 @@ open class GoalsSettingsResource(
             dailyEnabled = request.dailyGoal.enabled,
             dailyGoalMinutes = goalMinutes,
             breaks = validatedBreaks,
+            weeklyEnabled = request.weeklyGoal.enabled,
+            weeklyGoalMinutes = weeklyGoalMinutes,
+            weeklyWorkingDays = weeklyWorkingDays,
         )
 
         return HttpResponse.ok(GoalsSettingsSuccessResponse("Goals settings updated successfully"))
@@ -88,12 +104,18 @@ open class GoalsSettingsResource(
         HttpResponse.badRequest(
             GoalsSettingsErrorResponse("Invalid typical break", "INVALID_TYPICAL_BREAK"),
         )
+
+    private fun invalidWeeklyGoal() =
+        HttpResponse.badRequest(
+            GoalsSettingsErrorResponse("Invalid weekly goal", "INVALID_WEEKLY_GOAL"),
+        )
 }
 
 @Serdeable
 @Introspected
 data class GoalsSettingsResponse(
     val dailyGoal: DailyGoalResponse,
+    val weeklyGoal: WeeklyGoalResponse,
 )
 
 @Serdeable
@@ -113,9 +135,19 @@ data class TypicalBreakResponse(
 
 @Serdeable
 @Introspected
+data class WeeklyGoalResponse(
+    val enabled: Boolean,
+    val goalMinutes: Int,
+    val workingDays: List<WeekDay>,
+)
+
+@Serdeable
+@Introspected
 data class UpdateGoalsSettingsRequest(
     @field:NotNull
     val dailyGoal: UpdateDailyGoalRequest,
+    @field:NotNull
+    val weeklyGoal: UpdateWeeklyGoalRequest,
 )
 
 @Serdeable
@@ -132,6 +164,15 @@ data class UpdateDailyGoalRequest(
 data class UpdateTypicalBreakRequest(
     val from: LocalTime,
     val to: LocalTime,
+)
+
+@Serdeable
+@Introspected
+data class UpdateWeeklyGoalRequest(
+    val enabled: Boolean,
+    @field:Min(0)
+    val goalMinutes: Int,
+    val workingDays: Set<WeekDay> = GoalsSettingsView.defaultWeeklyWorkingDays.toSet(),
 )
 
 @Serdeable

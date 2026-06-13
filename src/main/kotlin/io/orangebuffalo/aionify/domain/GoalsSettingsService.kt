@@ -19,7 +19,14 @@ class GoalsSettingsService(
                 .let(dailyGoalBreakRepository::findByGoalsSettingsIdOrderBySortOrderAsc)
                 .map { DailyGoalBreakView(it.fromTime, it.toTime) }
 
-        return GoalsSettingsView(settings.dailyEnabled, settings.dailyGoalMinutes, breaks)
+        return GoalsSettingsView(
+            dailyEnabled = settings.dailyEnabled,
+            dailyGoalMinutes = settings.dailyGoalMinutes,
+            breaks = breaks,
+            weeklyEnabled = settings.weeklyEnabled,
+            weeklyGoalMinutes = settings.weeklyGoalMinutes,
+            weeklyWorkingDays = settings.weeklyWorkingDays.sortedBy { it.ordinal },
+        )
     }
 
     fun saveForUser(
@@ -27,16 +34,32 @@ class GoalsSettingsService(
         dailyEnabled: Boolean,
         dailyGoalMinutes: Int,
         breaks: List<DailyGoalBreakView>,
+        weeklyEnabled: Boolean,
+        weeklyGoalMinutes: Int,
+        weeklyWorkingDays: Set<WeekDay>,
     ) {
         val settings = goalsSettingsRepository.findByUserId(userId).orElse(null)
         val persistedSettings =
             if (settings == null) {
                 goalsSettingsRepository.save(
-                    GoalsSettings(userId = userId, dailyEnabled = dailyEnabled, dailyGoalMinutes = dailyGoalMinutes),
+                    GoalsSettings(
+                        userId = userId,
+                        dailyEnabled = dailyEnabled,
+                        dailyGoalMinutes = dailyGoalMinutes,
+                        weeklyEnabled = weeklyEnabled,
+                        weeklyGoalMinutes = weeklyGoalMinutes,
+                        weeklyWorkingDays = weeklyWorkingDays,
+                    ),
                 )
             } else {
                 goalsSettingsRepository.update(
-                    settings.copy(dailyEnabled = dailyEnabled, dailyGoalMinutes = dailyGoalMinutes),
+                    settings.copy(
+                        dailyEnabled = dailyEnabled,
+                        dailyGoalMinutes = dailyGoalMinutes,
+                        weeklyEnabled = weeklyEnabled,
+                        weeklyGoalMinutes = weeklyGoalMinutes,
+                        weeklyWorkingDays = weeklyWorkingDays,
+                    ),
                 )
             }
 
@@ -59,9 +82,29 @@ data class GoalsSettingsView(
     val dailyEnabled: Boolean,
     val dailyGoalMinutes: Int,
     val breaks: List<DailyGoalBreakView>,
+    val weeklyEnabled: Boolean,
+    val weeklyGoalMinutes: Int,
+    val weeklyWorkingDays: List<WeekDay>,
 ) {
     companion object {
-        fun default() = GoalsSettingsView(dailyEnabled = false, dailyGoalMinutes = 0, breaks = emptyList())
+        val defaultWeeklyWorkingDays =
+            listOf(
+                WeekDay.MONDAY,
+                WeekDay.TUESDAY,
+                WeekDay.WEDNESDAY,
+                WeekDay.THURSDAY,
+                WeekDay.FRIDAY,
+            )
+
+        fun default() =
+            GoalsSettingsView(
+                dailyEnabled = false,
+                dailyGoalMinutes = 0,
+                breaks = emptyList(),
+                weeklyEnabled = false,
+                weeklyGoalMinutes = 0,
+                weeklyWorkingDays = defaultWeeklyWorkingDays,
+            )
     }
 }
 

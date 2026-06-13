@@ -75,9 +75,7 @@ The full build ensures:
 
 **You MUST verify the most relevant tests for the changed area before marking any task as complete or ready for review. Never hide failing test results. If tests fail locally, you must fix them before proceeding. Expand to broader coverage when the scope or risk warrants it, and use the full build for broad or high-risk changes.**
 
-**After every task implementation, the E2E tests must pass:**
-
-The E2E tests validate the application running from the Docker image. To run them locally:
+For changes that affect Docker packaging, native-image behavior, production startup, authentication bootstrapping, or other production-only behavior, run the E2E tests when the local environment supports GraalVM native-image:
 
 ```bash
 # First, build the Docker image
