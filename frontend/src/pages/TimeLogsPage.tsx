@@ -10,10 +10,11 @@ import { apiGet } from "@/lib/api";
 import { weekDayToNumber } from "@/lib/time-utils";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useTimeLogEntryEvents } from "@/hooks/useTimeLogEntryEvents";
-import type { DailyGoalSettings, TimeEntry, TimeLogEntry } from "@/components/time-logs/types";
+import type { DailyGoalSettings, TimeEntry, TimeLogEntry, WeeklyGoalSettings } from "@/components/time-logs/types";
 
 interface GoalsSettingsResponse {
   dailyGoal: DailyGoalSettings;
+  weeklyGoal: WeeklyGoalSettings;
 }
 
 export function TimeLogsPage() {
@@ -25,6 +26,7 @@ export function TimeLogsPage() {
   const [userLocale, setUserLocale] = useState<string | null>(null);
   const [startOfWeek, setStartOfWeek] = useState<number>(1); // Default to Monday
   const [dailyGoal, setDailyGoal] = useState<DailyGoalSettings | null>(null);
+  const [weeklyGoal, setWeeklyGoal] = useState<WeeklyGoalSettings | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const isInitialLoadRef = useRef(true);
 
@@ -133,6 +135,7 @@ export function TimeLogsPage() {
         ...goalsSettings.dailyGoal,
         typicalBreaks: goalsSettings.dailyGoal.typicalBreaks ?? [],
       });
+      setWeeklyGoal(goalsSettings.weeklyGoal);
     }
     loadUserProfile().catch((err: any) => {
       const errorCode = err.errorCode;
@@ -178,6 +181,8 @@ export function TimeLogsPage() {
             activeEntry={activeEntry}
             locale={locale}
             startOfWeek={startOfWeek}
+            dailyGoal={dailyGoal}
+            weeklyGoal={weeklyGoal}
             onTimeRangeChange={updateDisplayedDataTimeRange}
           />
 

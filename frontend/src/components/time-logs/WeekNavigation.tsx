@@ -5,17 +5,28 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getWeekStart } from "@/lib/time-utils";
 import { TotalDurationDisplay } from "./TotalDurationDisplay";
-import type { TimeLogEntry, TimeEntry } from "./types";
+import { WeeklyGoalProgressBar } from "./WeeklyGoalProgressBar";
+import type { DailyGoalSettings, TimeLogEntry, TimeEntry, WeeklyGoalSettings } from "./types";
 
 interface WeekNavigationProps {
   entries: TimeLogEntry[];
   activeEntry: TimeEntry | null;
   locale: string;
   startOfWeek: number;
+  dailyGoal: DailyGoalSettings | null;
+  weeklyGoal: WeeklyGoalSettings | null;
   onTimeRangeChange: (from: Date, to: Date) => void;
 }
 
-export function WeekNavigation({ entries, activeEntry, locale, startOfWeek, onTimeRangeChange }: WeekNavigationProps) {
+export function WeekNavigation({
+  entries,
+  activeEntry,
+  locale,
+  startOfWeek,
+  dailyGoal,
+  weeklyGoal,
+  onTimeRangeChange,
+}: WeekNavigationProps) {
   const { t } = useTranslation();
   const [weekStart, setWeekStart] = useState<Date | null>(null);
 
@@ -85,8 +96,22 @@ export function WeekNavigation({ entries, activeEntry, locale, startOfWeek, onTi
           <h2 className="text-xl font-semibold text-foreground" data-testid="week-range">
             {weekRange}
           </h2>
-          <div className="text-sm text-muted-foreground mt-1" data-testid="weekly-total">
-            {t("timeLogs.weeklyTotal")}: <TotalDurationDisplay entries={entries} />
+          <div
+            className="mt-1 flex flex-col items-center gap-2 text-sm text-muted-foreground"
+            data-testid="weekly-total"
+          >
+            <div>
+              {t("timeLogs.weeklyTotal")}: <TotalDurationDisplay entries={entries} />
+            </div>
+            {weeklyGoal?.enabled && (
+              <WeeklyGoalProgressBar
+                entries={entries}
+                weeklyGoal={weeklyGoal}
+                dailyGoal={dailyGoal}
+                weekStart={weekStart}
+                startOfWeek={startOfWeek}
+              />
+            )}
           </div>
         </div>
         <Button variant="ghost" onClick={handleNextWeek} data-testid="next-week-button" className="text-foreground">

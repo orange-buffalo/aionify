@@ -1,12 +1,18 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, Trash2 } from "lucide-react";
+import { ChevronDown, Plus, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { TimePicker } from "@/components/ui/time-picker";
 import { apiGet, apiPut } from "@/lib/api";
 import { useApiExecutor } from "@/hooks/useApiExecutor";
@@ -91,6 +97,11 @@ export function GoalsManagementPanel() {
       checked ? [...weeklyWorkingDays, day] : weeklyWorkingDays.filter((workingDay) => workingDay !== day)
     );
   };
+
+  const selectedWeeklyWorkingDaysLabel = weekDays
+    .filter((day) => weeklyWorkingDays.includes(day))
+    .map((day) => t(`settings.preferences.weekDays.${day}`))
+    .join(", ");
 
   const localTimeToDate = (value: string): Date => {
     const [hours, minutes] = value.split(":").map(Number);
@@ -345,36 +356,48 @@ export function GoalsManagementPanel() {
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <div>
-                    <h3 className="text-sm font-medium text-foreground">
-                      {t("settings.goals.weeklyGoal.workingDays.title")}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {t("settings.goals.weeklyGoal.workingDays.description")}
-                    </p>
-                  </div>
+                {dailyGoalEnabled && (
+                  <div className="space-y-3" data-testid="weekly-goal-working-days-section">
+                    <div>
+                      <h3 className="text-sm font-medium text-foreground">
+                        {t("settings.goals.weeklyGoal.workingDays.title")}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {t("settings.goals.weeklyGoal.workingDays.description")}
+                      </p>
+                    </div>
 
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-testid="weekly-goal-working-days">
-                    {weekDays.map((day) => (
-                      <div
-                        key={day}
-                        className="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2"
-                      >
-                        <Checkbox
-                          id={`weekly-working-day-${day}`}
-                          checked={weeklyWorkingDays.includes(day)}
-                          onCheckedChange={(checked) => handleWeeklyWorkingDayChange(day, checked === true)}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
                           disabled={apiCallInProgress}
-                          data-testid={`weekly-goal-working-day-${day}`}
-                        />
-                        <Label htmlFor={`weekly-working-day-${day}`} className="cursor-pointer text-sm text-foreground">
-                          {t(`settings.preferences.weekDays.${day}`)}
-                        </Label>
-                      </div>
-                    ))}
+                          className="min-h-10 w-full justify-between text-left font-normal text-foreground sm:w-[360px]"
+                          data-testid="weekly-goal-working-days-trigger"
+                        >
+                          <span className="truncate" data-testid="weekly-goal-working-days-summary">
+                            {selectedWeeklyWorkingDaysLabel || t("settings.goals.weeklyGoal.workingDays.placeholder")}
+                          </span>
+                          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-70" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="dark w-[var(--radix-dropdown-menu-trigger-width)]" align="start">
+                        {weekDays.map((day) => (
+                          <DropdownMenuCheckboxItem
+                            key={day}
+                            checked={weeklyWorkingDays.includes(day)}
+                            onCheckedChange={(checked) => handleWeeklyWorkingDayChange(day, checked === true)}
+                            onSelect={(event) => event.preventDefault()}
+                            data-testid={`weekly-goal-working-day-${day}`}
+                          >
+                            {t(`settings.preferences.weekDays.${day}`)}
+                          </DropdownMenuCheckboxItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>

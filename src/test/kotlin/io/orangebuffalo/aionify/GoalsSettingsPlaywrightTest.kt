@@ -82,15 +82,20 @@ class GoalsSettingsPlaywrightTest : PlaywrightTestBase() {
 
         page.locator("[data-testid='weekly-goal-toggle']").click()
         assertThat(page.locator("[data-testid='weekly-goal-section']")).isVisible()
+        page.locator("[data-testid='weekly-goal-working-days-trigger']").click()
         assertThat(page.locator("[data-testid='weekly-goal-working-day-MONDAY']")).hasAttribute("data-state", "checked")
         assertThat(page.locator("[data-testid='weekly-goal-working-day-FRIDAY']")).hasAttribute("data-state", "checked")
         assertThat(page.locator("[data-testid='weekly-goal-working-day-SATURDAY']")).hasAttribute("data-state", "unchecked")
+        page.keyboard().press("Escape")
         page.locator("[data-testid='weekly-goal-hours-input']").fill("38")
         page.locator("[data-testid='weekly-goal-minutes-input']").fill("15")
+        page.locator("[data-testid='weekly-goal-working-days-trigger']").click()
         page.locator("[data-testid='weekly-goal-working-day-MONDAY']").click()
         page.locator("[data-testid='weekly-goal-working-day-WEDNESDAY']").click()
         page.locator("[data-testid='weekly-goal-working-day-FRIDAY']").click()
         page.locator("[data-testid='weekly-goal-working-day-SATURDAY']").click()
+        assertThat(page.locator("[data-testid='weekly-goal-working-days-summary']")).containsText("Tuesday, Thursday, Saturday")
+        page.keyboard().press("Escape")
 
         page.locator("[data-testid='save-goals-button']").click()
 
@@ -126,6 +131,8 @@ class GoalsSettingsPlaywrightTest : PlaywrightTestBase() {
         assertThat(page.locator("[data-testid='weekly-goal-toggle']")).hasAttribute("data-state", "checked")
         assertThat(page.locator("[data-testid='weekly-goal-hours-input']")).hasValue("38")
         assertThat(page.locator("[data-testid='weekly-goal-minutes-input']")).hasValue("15")
+        assertThat(page.locator("[data-testid='weekly-goal-working-days-summary']")).containsText("Tuesday, Thursday, Saturday")
+        page.locator("[data-testid='weekly-goal-working-days-trigger']").click()
         assertThat(page.locator("[data-testid='weekly-goal-working-day-MONDAY']")).hasAttribute("data-state", "unchecked")
         assertThat(page.locator("[data-testid='weekly-goal-working-day-TUESDAY']")).hasAttribute("data-state", "checked")
         assertThat(page.locator("[data-testid='weekly-goal-working-day-THURSDAY']")).hasAttribute("data-state", "checked")
@@ -135,6 +142,21 @@ class GoalsSettingsPlaywrightTest : PlaywrightTestBase() {
         assertTrue(page.locator("[data-testid='daily-goal-break-from-1-input']").inputValue().startsWith("16:00"))
         assertTrue(page.locator("[data-testid='daily-goal-break-to-1-input']").inputValue().startsWith("16:10"))
         assertThat(page.locator("[data-testid='daily-goal-break-row-2']")).not().isVisible()
+    }
+
+    @Test
+    fun `should show weekly working days only when daily goal is enabled`() {
+        navigateToSettingsViaToken()
+
+        page.locator("[data-testid='weekly-goal-toggle']").click()
+        assertThat(page.locator("[data-testid='weekly-goal-section']")).isVisible()
+        assertThat(page.locator("[data-testid='weekly-goal-working-days-section']")).not().isVisible()
+        assertThat(page.locator("[data-testid='weekly-goal-working-days-trigger']")).not().isVisible()
+
+        page.locator("[data-testid='daily-goal-toggle']").click()
+        assertThat(page.locator("[data-testid='daily-goal-section']")).isVisible()
+        assertThat(page.locator("[data-testid='weekly-goal-working-days-section']")).isVisible()
+        assertThat(page.locator("[data-testid='weekly-goal-working-days-trigger']")).isVisible()
     }
 
     @Test
@@ -153,7 +175,9 @@ class GoalsSettingsPlaywrightTest : PlaywrightTestBase() {
         assertThat(page.locator("[data-testid='weekly-goal-section']")).isVisible()
         page.locator("[data-testid='weekly-goal-hours-input']").fill("30")
         page.locator("[data-testid='weekly-goal-minutes-input']").fill("0")
+        page.locator("[data-testid='weekly-goal-working-days-trigger']").click()
         page.locator("[data-testid='weekly-goal-working-day-FRIDAY']").click()
+        page.keyboard().press("Escape")
         page.locator("[data-testid='save-goals-button']").click()
 
         assertThat(page.locator("[data-testid='goals-settings-success']")).isVisible()
@@ -167,8 +191,10 @@ class GoalsSettingsPlaywrightTest : PlaywrightTestBase() {
         page.locator("[data-testid='daily-goal-break-to-1-input']").fill("17:10")
         page.locator("[data-testid='weekly-goal-hours-input']").fill("12")
         page.locator("[data-testid='weekly-goal-minutes-input']").fill("45")
+        page.locator("[data-testid='weekly-goal-working-days-trigger']").click()
         page.locator("[data-testid='weekly-goal-working-day-MONDAY']").click()
         page.locator("[data-testid='weekly-goal-working-day-SATURDAY']").click()
+        page.keyboard().press("Escape")
 
         page.locator("[data-testid='discard-goals-button']").click()
 
@@ -181,6 +207,8 @@ class GoalsSettingsPlaywrightTest : PlaywrightTestBase() {
         assertThat(page.locator("[data-testid='weekly-goal-toggle']")).hasAttribute("data-state", "checked")
         assertThat(page.locator("[data-testid='weekly-goal-hours-input']")).hasValue("30")
         assertThat(page.locator("[data-testid='weekly-goal-minutes-input']")).hasValue("0")
+        assertThat(page.locator("[data-testid='weekly-goal-working-days-summary']")).containsText("Monday, Tuesday, Wednesday, Thursday")
+        page.locator("[data-testid='weekly-goal-working-days-trigger']").click()
         assertThat(page.locator("[data-testid='weekly-goal-working-day-MONDAY']")).hasAttribute("data-state", "checked")
         assertThat(page.locator("[data-testid='weekly-goal-working-day-FRIDAY']")).hasAttribute("data-state", "unchecked")
         assertThat(page.locator("[data-testid='weekly-goal-working-day-SATURDAY']")).hasAttribute("data-state", "unchecked")

@@ -30,6 +30,14 @@ export interface DailyGoalSettings {
   }[];
 }
 
+export type WeekDay = "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
+
+export interface WeeklyGoalSettings {
+  enabled: boolean;
+  goalMinutes: number;
+  workingDays: WeekDay[];
+}
+
 /**
  * Represents a group of time log entries with the same title and tags
  */
