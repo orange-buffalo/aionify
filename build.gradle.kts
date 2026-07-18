@@ -4,8 +4,8 @@ plugins {
     kotlin("jvm") version "2.4.0"
     kotlin("plugin.allopen") version "2.4.0"
     id("com.google.devtools.ksp") version "2.3.8"
-    id("io.micronaut.application") version "4.6.2"
-    id("io.micronaut.docker") version "4.6.2"
+    id("io.micronaut.application") version "5.0.2"
+    id("io.micronaut.docker") version "5.0.2"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     id("com.github.jmongard.git-semver-plugin") version "0.19.2"
 }
@@ -62,6 +62,7 @@ dependencies {
     // OpenAPI / Swagger
     implementation("io.micronaut.openapi:micronaut-openapi")
     ksp("io.micronaut.openapi:micronaut-openapi")
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
 
     // Logging
     implementation("ch.qos.logback:logback-classic")
@@ -108,8 +109,9 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
 }
 
 micronaut {
@@ -169,7 +171,7 @@ allOpen {
 
 kotlin {
     compilerOptions {
-        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
         javaParameters = true
     }
 }

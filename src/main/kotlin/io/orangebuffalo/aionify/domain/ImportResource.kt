@@ -34,7 +34,7 @@ open class ImportResource(
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     open fun importTogglCsv(
         @io.micronaut.http.annotation.Part("file") csvContent: String,
-        @io.micronaut.http.annotation.Part("metadata") metadata: ImportMetadata,
+        @io.micronaut.http.annotation.Part("timezone") timezone: String?,
         currentUser: UserWithId,
     ): HttpResponse<*> {
         log.debug("Starting Toggl import for user: {}", currentUser.user.userName)
@@ -46,9 +46,9 @@ open class ImportResource(
             // Use browser timezone if provided, otherwise fallback to UTC
             val userZoneId =
                 try {
-                    ZoneId.of(metadata.timezone ?: "UTC")
+                    ZoneId.of(timezone ?: "UTC")
                 } catch (e: Exception) {
-                    log.warn("Invalid timezone provided: {}, using UTC", metadata.timezone)
+                    log.warn("Invalid timezone provided: {}, using UTC", timezone)
                     ZoneId.of("UTC")
                 }
 
@@ -232,12 +232,6 @@ class InvalidCsvFormatException(
     message: String,
     cause: Throwable? = null,
 ) : Exception(message, cause)
-
-@Serdeable
-@Introspected
-data class ImportMetadata(
-    val timezone: String?,
-)
 
 @Serdeable
 @Introspected

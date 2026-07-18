@@ -8,8 +8,7 @@ import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule
 import io.swagger.v3.oas.annotations.Hidden
 import io.swagger.v3.oas.models.OpenAPI
-import org.yaml.snakeyaml.Yaml
-import java.io.InputStreamReader
+import tools.jackson.dataformat.yaml.YAMLMapper
 
 /**
  * Serves the OpenAPI schema for the public API.
@@ -27,13 +26,13 @@ open class OpenApiSchemaController(
             Thread
                 .currentThread()
                 .contextClassLoader
-                .getResourceAsStream("META-INF/swagger/aionify-1.0.0.yml")
+                .getResourceAsStream("META-INF/swagger/service-1.0.0.yml")
                 ?: return HttpResponse.notFound()
 
-        val yaml = Yaml()
+        val yamlMapper = YAMLMapper()
 
         @Suppress("UNCHECKED_CAST")
-        val schema = yaml.load<MutableMap<String, Any>>(InputStreamReader(inputStream))
+        val schema = yamlMapper.readValue(inputStream, MutableMap::class.java) as MutableMap<String, Any>
 
         // Merge custom OpenAPI configuration
         if (openApiConfig.info != null) {
@@ -63,7 +62,7 @@ open class OpenApiSchemaController(
             }
         }
 
-        val content = yaml.dump(schema)
+        val content = yamlMapper.writeValueAsString(schema)
         return HttpResponse.ok(content).contentType(MediaType.TEXT_PLAIN_TYPE)
     }
 }

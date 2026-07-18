@@ -1,5 +1,6 @@
 package io.orangebuffalo.aionify.api
 
+import io.micronaut.http.HttpMethod
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.client.HttpClient
@@ -391,7 +392,7 @@ class TimeLogEntryApiResourceTest {
             // When: Stopping the entry
             val request =
                 HttpRequest
-                    .POST<Any>("/api/time-log-entries/stop", null)
+                    .create<Any>(HttpMethod.POST, "/api/time-log-entries/stop")
                     .bearerAuth(validToken1)
 
             val response = client.toBlocking().exchange(request, StopTimeLogEntryResponse::class.java)
@@ -415,7 +416,7 @@ class TimeLogEntryApiResourceTest {
             // When: Stopping (no active entry exists)
             val request =
                 HttpRequest
-                    .POST<Any>("/api/time-log-entries/stop", null)
+                    .create<Any>(HttpMethod.POST, "/api/time-log-entries/stop")
                     .bearerAuth(validToken1)
 
             val response = client.toBlocking().exchange(request, StopTimeLogEntryResponse::class.java)
@@ -428,7 +429,7 @@ class TimeLogEntryApiResourceTest {
         @Test
         fun `should reject request without authentication`() {
             // When: Stopping without token
-            val request = HttpRequest.POST<Any>("/api/time-log-entries/stop", null)
+            val request = HttpRequest.create<Any>(HttpMethod.POST, "/api/time-log-entries/stop")
 
             val exception =
                 assertThrows(HttpClientResponseException::class.java) {
@@ -464,7 +465,7 @@ class TimeLogEntryApiResourceTest {
             // When: User1 stops their entry
             val request =
                 HttpRequest
-                    .POST<Any>("/api/time-log-entries/stop", null)
+                    .create<Any>(HttpMethod.POST, "/api/time-log-entries/stop")
                     .bearerAuth(validToken1)
 
             client.toBlocking().exchange(request, StopTimeLogEntryResponse::class.java)
