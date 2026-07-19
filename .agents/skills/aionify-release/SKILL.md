@@ -4,7 +4,7 @@ description: >
   Creates an Aionify release locally: verifies GitHub CLI and git state,
   runs the Gradle semver release task, generates JReleaser-style notes, pushes
   the release tag, and creates a draft GitHub release.
-compatibility: "requires: gh CLI, git, Java 21, Gradle wrapper"
+compatibility: "requires: gh CLI, git, Java 25, Gradle wrapper"
 ---
 
 # Aionify Release Skill

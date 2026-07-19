@@ -47,10 +47,7 @@ export function TogglImportPanel() {
       // Create multipart form data
       const formData = new FormData();
       formData.append("file", new Blob([fileContent], { type: "text/csv" }), selectedFile.name);
-      formData.append(
-        "metadata",
-        new Blob([JSON.stringify({ timezone: userTimezone || "UTC" })], { type: "application/json" })
-      );
+      formData.append("timezone", userTimezone || "UTC");
 
       // Use fetch directly for multipart
       const token = localStorage.getItem("aionify_token");

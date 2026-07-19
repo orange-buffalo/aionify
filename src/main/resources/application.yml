@@ -57,10 +57,10 @@ flyway:
       enabled: true
 
 jackson:
-  serialization:
+  serialization-features:
     writeDatesAsTimestamps: false
-  deserialization:
-    adjust-dates-to-context-time-zone: false
+  deserialization-features:
+    adjustDatesToContextTimeZone: false
   serialization-inclusion: non-absent
 
 aionify:

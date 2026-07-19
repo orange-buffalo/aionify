@@ -1,6 +1,7 @@
 package io.orangebuffalo.aionify.timelogs
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
+import io.micronaut.http.HttpMethod
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.annotation.Client
@@ -89,7 +90,7 @@ class TimeLogsBrowserTitleTest : TimeLogsPageTestBase() {
         // When: Stop the entry via public API
         val stopRequest =
             HttpRequest
-                .POST<Any>("/api/time-log-entries/stop", null)
+                .create<Any>(HttpMethod.POST, "/api/time-log-entries/stop")
                 .bearerAuth(apiToken)
 
         val stopResponse = httpClient.toBlocking().exchange(stopRequest, Map::class.java)
