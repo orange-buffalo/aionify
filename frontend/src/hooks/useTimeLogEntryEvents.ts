@@ -17,6 +17,7 @@ export interface TimeLogEntryEvent {
 export function useTimeLogEntryEvents(onEvent: (event: TimeLogEntryEvent) => void, enabled: boolean = true) {
   const eventSourceRef = useRef<EventSource | null>(null);
   const onEventRef = useRef(onEvent);
+  const tokenRequestRef = useRef<AbortController | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const heartbeatTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectDelayMs = 5000; // 5 seconds
@@ -69,16 +70,24 @@ export function useTimeLogEntryEvents(onEvent: (event: TimeLogEntryEvent) => voi
   const connect = useCallback(async () => {
     if (!enabled) return;
 
-    // Don't create duplicate connections
-    if (eventSourceRef.current) {
+    // Don't create duplicate connections, including while a token request is still in flight
+    if (eventSourceRef.current || tokenRequestRef.current) {
       return;
     }
 
     console.log("[SSE] Connecting to time log entry events...");
 
+    const tokenRequest = new AbortController();
+    tokenRequestRef.current = tokenRequest;
+
     try {
       // Generate a short-lived SSE token
-      const { token } = await apiPost<{ token: string }>("/api-ui/time-log-entries/sse-token", {});
+      const { token } = await apiPost<{ token: string }>("/api-ui/time-log-entries/sse-token", {}, tokenRequest.signal);
+
+      // The connection was disconnected while the token was being fetched - don't open a stale stream
+      if (tokenRequest.signal.aborted) {
+        return;
+      }
 
       // Pass token as query parameter since EventSource doesn't support custom headers
       const url = `/api-ui/time-log-entries/events?token=${encodeURIComponent(token)}`;
@@ -130,11 +139,21 @@ export function useTimeLogEntryEvents(onEvent: (event: TimeLogEntryEvent) => voi
 
       eventSourceRef.current = eventSource;
     } catch (error) {
-      // Token fetch failed (e.g., server is down)
-      console.error("[SSE] Failed to fetch token:", error);
+      // The request was cancelled because we disconnected - nothing to recover from
+      if (tokenRequest.signal.aborted) {
+        return;
+      }
+
+      // Token fetch failed (e.g., server is down). This is a transient condition that is
+      // recovered from by reconnecting, same as a dropped connection, so it is not an error.
+      console.log("[SSE] Failed to fetch token, will retry:", error);
 
       // Schedule reconnection to try again later
       scheduleReconnect();
+    } finally {
+      if (tokenRequestRef.current === tokenRequest) {
+        tokenRequestRef.current = null;
+      }
     }
   }, [enabled, scheduleReconnect, resetHeartbeatTimeout]);
 
@@ -149,6 +168,13 @@ export function useTimeLogEntryEvents(onEvent: (event: TimeLogEntryEvent) => voi
     if (heartbeatTimeoutRef.current) {
       clearTimeout(heartbeatTimeoutRef.current);
       heartbeatTimeoutRef.current = null;
+    }
+
+    // Cancel an in-flight token request so it neither opens a stale connection nor
+    // reports a failure caused by the page going away
+    if (tokenRequestRef.current) {
+      tokenRequestRef.current.abort();
+      tokenRequestRef.current = null;
     }
 
     if (eventSourceRef.current) {

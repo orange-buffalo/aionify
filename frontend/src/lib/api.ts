@@ -69,11 +69,15 @@ export async function apiGet<T>(url: string, signal?: AbortSignal): Promise<T> {
 
 /**
  * POST request helper
+ * @param url URL to post to
+ * @param body Request body
+ * @param signal Optional AbortSignal to cancel the request
  */
-export async function apiPost<T>(url: string, body: unknown): Promise<T> {
+export async function apiPost<T>(url: string, body: unknown, signal?: AbortSignal): Promise<T> {
   return apiRequest<T>(url, {
     method: "POST",
     body: JSON.stringify(body),
+    signal,
   });
 }
 
