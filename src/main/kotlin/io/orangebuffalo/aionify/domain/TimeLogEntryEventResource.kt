@@ -125,7 +125,7 @@ class SseTokenFilter(
     io.micronaut.core.order.Ordered {
     private val log = LoggerFactory.getLogger(SseTokenFilter::class.java)
 
-    override fun getOrder(): Int = io.micronaut.core.order.Ordered.HIGHEST_PRECEDENCE
+    override fun getOrder(): Int = io.micronaut.core.order.Ordered.HIGHEST_PRECEDENCE + 1
 
     override fun doFilter(
         request: HttpRequest<*>,

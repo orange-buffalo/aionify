@@ -31,7 +31,7 @@ class ApiAuthenticationFilter(
     Ordered {
     private val log = LoggerFactory.getLogger(ApiAuthenticationFilter::class.java)
 
-    override fun getOrder(): Int = Ordered.HIGHEST_PRECEDENCE
+    override fun getOrder(): Int = Ordered.HIGHEST_PRECEDENCE + 1
 
     override fun doFilter(
         request: HttpRequest<*>,

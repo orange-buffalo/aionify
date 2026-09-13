@@ -127,6 +127,7 @@ Conventional Commits provide a standardized way to communicate the nature of cha
 - Use data classes for domain models annotated with `@MappedEntity` for Micronaut Data
 - Use `@Singleton` for dependency injection (Micronaut CDI)
 - Use Micronaut Data JDBC with repository interfaces (`@JdbcRepository`)
+- Security headers are applied centrally by `config/SecurityHeadersFilter`; endpoint-specific policies must not replace them with weaker values
 - Follow Kotlin naming conventions (camelCase for functions/properties)
 - All DTOs used in REST endpoints must have `@Introspected` annotation for serialization/validation
 - **CRITICAL: All error responses MUST include an `errorCode` field** for frontend internationalization (see UserResource.kt and UserAdminResource.kt for examples)

@@ -5,6 +5,7 @@ import com.microsoft.playwright.BrowserType
 import com.microsoft.playwright.Playwright
 import com.microsoft.playwright.Tracing
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.ComposeContainer
@@ -149,7 +150,11 @@ class DockerLoginE2ETest {
 
                         page.use {
                             // Navigate to login page
-                            page.navigate("$appUrl/login")
+                            val response = page.navigate("$appUrl/login")
+
+                            assertEquals("frame-ancestors 'none'", response?.headerValue("Content-Security-Policy"))
+                            assertEquals("DENY", response?.headerValue("X-Frame-Options"))
+                            assertEquals("same-origin", response?.headerValue("Cross-Origin-Opener-Policy"))
 
                             // Verify login page is displayed
                             val loginPage = page.locator("[data-testid='login-page']")
