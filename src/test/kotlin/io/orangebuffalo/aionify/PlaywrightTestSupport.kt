@@ -139,14 +139,19 @@ abstract class PlaywrightTestBase {
         _page.onResponse { response ->
             if (response.url().contains("/api-ui/")) {
                 log.debug("[RESPONSE] ${response.status()} ${response.url()}")
-                // Don't try to read SSE response bodies as they stream indefinitely
-                if (!response.url().contains("/events")) {
-                    try {
-                        val body = response.text()
-                        log.debug("[RESPONSE BODY] $body")
-                    } catch (e: Exception) {
-                        log.debug("[RESPONSE BODY] (unable to read: ${e.message})")
-                    }
+            }
+        }
+
+        // Read response bodies only once the request has finished: the body is fully loaded by then, so reading it
+        // does not block the event dispatch. Blocking on the body in onResponse can deadlock nested event handlers.
+        _page.onRequestFinished { request ->
+            // Don't try to read SSE response bodies as they stream indefinitely
+            if (request.url().contains("/api-ui/") && !request.url().contains("/events")) {
+                try {
+                    val body = request.response()?.text()
+                    log.debug("[RESPONSE BODY] $body")
+                } catch (e: Exception) {
+                    log.debug("[RESPONSE BODY] (unable to read: ${e.message})")
                 }
             }
         }
