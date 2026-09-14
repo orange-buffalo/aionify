@@ -1,18 +1,18 @@
 package io.orangebuffalo.aionify.domain
 
 import io.micronaut.context.event.ApplicationEventPublisher
-import io.micronaut.http.sse.Event
 import io.micronaut.serde.annotation.Serdeable
 import io.micronaut.transaction.annotation.TransactionalEventListener
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import org.slf4j.LoggerFactory
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Sinks
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Service for managing Server-Sent Events (SSE) related to time log entry changes.
- * Allows broadcasting events to subscribed clients when entries are started or stopped.
+ * Service for broadcasting time log entry changes to subscribers (e.g. Server-Sent Events streams).
+ * Subscribers receive the changed entries and map them to their own event representation.
  */
 @Singleton
 open class TimeLogEntryEventService {
@@ -22,7 +22,7 @@ open class TimeLogEntryEventService {
     lateinit var eventPublisher: ApplicationEventPublisher<Any>
 
     // Map of userId to Sink for broadcasting events to that user's subscribers
-    private val userEventSinks = ConcurrentHashMap<Long, Sinks.Many<Event<TimeLogEntryEvent>>>()
+    private val userEventSinks = ConcurrentHashMap<Long, Sinks.Many<TimeLogEntryEventToEmit>>()
 
     /**
      * Emits an event to all subscribers for the given user after the current transaction commits.
@@ -51,18 +51,10 @@ open class TimeLogEntryEventService {
             return
         }
 
-        val sseEvent =
-            TimeLogEntryEvent(
-                type = event.eventType,
-                entryId = requireNotNull(event.entry.id) { "Entry ID must not be null" },
-                title = event.entry.title,
-            )
-
-        log.debug("Emitting event to user {}: {}", event.userId, sseEvent)
+        log.debug("Emitting event to user {}: {} for entry {}", event.userId, event.eventType, event.entry.id)
 
         try {
-            val ev = Event.of(sseEvent)
-            sink.tryEmitNext(ev)
+            sink.tryEmitNext(event)
         } catch (e: Exception) {
             log.error("Failed to emit event for user {}", event.userId, e)
         }
@@ -72,12 +64,12 @@ open class TimeLogEntryEventService {
      * Gets or creates a Sink for the given user.
      * Returns the sink's asFlux() for subscription.
      */
-    fun getEventFlux(userId: Long): reactor.core.publisher.Flux<Event<TimeLogEntryEvent>> {
+    fun getEventFlux(userId: Long): Flux<TimeLogEntryEventToEmit> {
         val sink =
             userEventSinks.computeIfAbsent(userId) {
                 log.debug("Creating new event sink for user {}", userId)
                 // Limit buffer size to 100 events to prevent memory issues
-                Sinks.many().multicast().onBackpressureBuffer<Event<TimeLogEntryEvent>>(100, false)
+                Sinks.many().multicast().onBackpressureBuffer<TimeLogEntryEventToEmit>(100, false)
             }
 
         return sink.asFlux()
@@ -102,7 +94,7 @@ enum class TimeLogEntryEventType {
 }
 
 /**
- * Event data sent via SSE when time log entries change.
+ * Event data sent via the web UI SSE stream when time log entries change.
  */
 @Serdeable
 data class TimeLogEntryEvent(

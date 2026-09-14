@@ -73,30 +73,25 @@ class TimeLogEntryEventResource(
         val eventFlux =
             eventService
                 .getEventFlux(userId)
-                .doOnCancel {
+                .map { change ->
+                    Event.of(
+                        TimeLogEntryEvent(
+                            type = change.eventType,
+                            entryId = requireNotNull(change.entry.id) { "Entry ID must not be null" },
+                            title = change.entry.title,
+                        ),
+                    )
+                }.doOnCancel {
                     log.debug("User {} unsubscribed from events", userId)
                     // Note: We don't cleanup here as user might have multiple tabs open
                 }.doOnError { error ->
                     log.error("Error in event stream for user {}", userId, error)
                 }
 
-        // Send heartbeat events: immediately on connection, then every 30 seconds (if enabled)
-        // The immediate heartbeat helps establish the connection and verify it's working
-        val heartbeatFlux =
-            if (heartbeatEnabled) {
-                Flux
-                    .concat(
-                        Flux.just(Event.of<String>("heartbeat").name("heartbeat")),
-                        Flux
-                            .interval(java.time.Duration.ofSeconds(30))
-                            .map { Event.of<String>("heartbeat").name("heartbeat") },
-                    )
-            } else {
-                Flux.empty()
-            }
+        val heartbeatFlux = if (heartbeatEnabled) SseHeartbeat.flux() else Flux.empty()
 
         // Merge event stream with heartbeat
-        return Flux.merge(eventFlux, heartbeatFlux)
+        return Flux.merge<Event<*>>(eventFlux, heartbeatFlux)
     }
 }
 

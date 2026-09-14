@@ -19,6 +19,7 @@ interface ConfirmationDialogProps {
   cancelLabel: string;
   onConfirm: () => Promise<void> | void;
   confirmVariant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  confirmClassName?: string;
   isConfirming?: boolean;
   confirmTestId?: string;
   cancelTestId?: string;
@@ -35,6 +36,7 @@ export function ConfirmationDialog({
   cancelLabel,
   onConfirm,
   confirmVariant = "destructive",
+  confirmClassName,
   isConfirming = false,
   confirmTestId,
   cancelTestId,
@@ -68,7 +70,13 @@ export function ConfirmationDialog({
           >
             {cancelLabel}
           </Button>
-          <Button variant={confirmVariant} onClick={handleConfirm} disabled={isConfirming} data-testid={confirmTestId}>
+          <Button
+            variant={confirmVariant}
+            onClick={handleConfirm}
+            disabled={isConfirming}
+            data-testid={confirmTestId}
+            className={confirmClassName}
+          >
             {confirmLabel}
           </Button>
         </DialogFooter>

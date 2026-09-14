@@ -47,6 +47,8 @@ class TimeLogsAutomaticUpdateTest : TimeLogsPageTestBase() {
             UserApiAccessToken(
                 userId = requireNotNull(testUser.id),
                 token = apiToken,
+                name = "Test Integration",
+                createdAt = timeInTestTz("2024-03-16", "03:30"),
             ),
         )
 
@@ -141,6 +143,8 @@ class TimeLogsAutomaticUpdateTest : TimeLogsPageTestBase() {
             UserApiAccessToken(
                 userId = requireNotNull(testUser.id),
                 token = apiToken,
+                name = "Test Integration",
+                createdAt = timeInTestTz("2024-03-16", "03:30"),
             ),
         )
 
@@ -229,6 +233,8 @@ class TimeLogsAutomaticUpdateTest : TimeLogsPageTestBase() {
             UserApiAccessToken(
                 userId = requireNotNull(testUser.id),
                 token = apiToken,
+                name = "Test Integration",
+                createdAt = timeInTestTz("2024-03-16", "03:30"),
             ),
         )
 

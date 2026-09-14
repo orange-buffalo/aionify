@@ -242,6 +242,8 @@ class DemoScreenshotTest : PlaywrightTestBase() {
             UserApiAccessToken(
                 userId = fryId,
                 token = "demo1234567890abcdefghijklmnopqrstuvwxyz1234567890",
+                name = "Planet Express delivery tracker",
+                createdAt = timeInTestTz("2024-03-11", "09:00"),
             ),
         )
     }

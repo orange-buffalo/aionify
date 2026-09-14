@@ -12,7 +12,8 @@ Project documentation is organized as follows:
 - `docs/browser-integrations.md` - Browser integrations guide (Tampermonkey scripts for GitHub and Jira)
 - `docs/deployment.md` - Production deployment guide (configuration, Docker, admin setup)
 - `docs/i18n.md` - Internationalization guide
-- `docs/public-api.md` - Public API guide
+- `docs/os-wrappers.md` - Guide for OS-specific wrappers (host bridge protocol and platform setup)
+- `docs/public-api.md` - Public API guide (including event stream and API stability rules)
 - `docs/ui-review.md` - UI screenshot review workflow for frontend changes
 - `docs/images/` - Images used in documentation
 - `AGENTS.md` - This file, containing coding guidelines and conventions
@@ -143,9 +144,19 @@ Conventional Commits provide a standardized way to communicate the nature of cha
   - Use `@SecurityRequirement(name = "BearerAuth")` to indicate authentication is required
   - Use `@Tag` to group related endpoints
   - Use `@Schema` on DTOs to describe fields
-- Public API uses Bearer token authentication (UserApiAccessToken)
+- Public API uses Bearer token authentication (UserApiAccessToken); users can have multiple named tokens
 - Rate limiting is automatically applied (10 failed attempts = 10 minute block)
 - OpenAPI schema is available at `/api/schema` without authentication
+- **CRITICAL: Public API changes must be backwards-compatible** (additive only) - external clients such as OS wrappers and browser integrations rely on it. Clients are required to ignore unknown fields and event types (see "API Stability" in `docs/public-api.md`)
+- Real-time changes are published via the SSE stream at `/api/time-log-entries/events` (`TimeLogEntryEventsApiResource`); reuse `TimeLogEntryEventService` and `SseHeartbeat` for new streams
+
+### Host Bridge (OS Wrappers)
+
+- The host bridge (`frontend/src/lib/host-bridge.ts`, `frontend/src/components/host-bridge/`) is the only integration point between the web app and OS-specific wrappers
+- Bridge methods are an explicit allowlist - never add generic proxies (e.g. arbitrary API calls) and never expose the JWT or other session data
+- Data, actions and events for wrappers belong to the public API, not the bridge
+- Any change to bridge methods, events or payloads must be reflected in `docs/os-wrappers.md`; breaking changes require a new protocol version
+- Test bridge behavior with a fake host injected via `page.addInitScript` (see `HostBridgePlaywrightTest`)
 
 ### TypeScript/Frontend
 
