@@ -38,6 +38,7 @@ open class UserApiAccessTokenResource(
     companion object {
         const val MAX_TOKENS_PER_USER = 20
         const val MAX_NAME_LENGTH = 100
+        const val LEGACY_TOKEN_NAME = "Default"
         private const val TOKEN_LENGTH = 50
         private const val TOKEN_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
     }
@@ -172,6 +173,55 @@ open class UserApiAccessTokenResource(
         )
 }
 
+/** Keeps browser tabs opened before the named-token upgrade functional until they are refreshed. */
+@Controller("/api-ui/users/api-token")
+@Secured(SecurityRule.IS_AUTHENTICATED)
+@Transactional
+@Hidden
+open class LegacyUserApiAccessTokenResource(
+    private val userApiAccessTokenRepository: UserApiAccessTokenRepository,
+    private val userApiAccessTokenResource: UserApiAccessTokenResource,
+) {
+    @Get("/status")
+    open fun getTokenStatus(currentUser: UserWithId): HttpResponse<*> =
+        HttpResponse.ok(LegacyApiAccessTokenStatusResponse(exists = findToken(currentUser) != null))
+
+    @Get
+    open fun getToken(currentUser: UserWithId): HttpResponse<*> {
+        val token = findToken(currentUser) ?: return tokenNotFound()
+        return HttpResponse.ok(ApiAccessTokenValueResponse(token.token))
+    }
+
+    @Post
+    open fun createToken(currentUser: UserWithId): HttpResponse<*> =
+        userApiAccessTokenResource.createToken(
+            CreateApiAccessTokenRequest(name = UserApiAccessTokenResource.LEGACY_TOKEN_NAME),
+            currentUser,
+        )
+
+    @Put
+    open fun regenerateToken(currentUser: UserWithId): HttpResponse<*> {
+        val token = findToken(currentUser) ?: return tokenNotFound()
+        return userApiAccessTokenResource.regenerateToken(requireNotNull(token.id), currentUser)
+    }
+
+    @Delete
+    open fun deleteToken(currentUser: UserWithId): HttpResponse<*> {
+        val token = findToken(currentUser) ?: return HttpResponse.ok(ApiAccessTokenSuccessResponse("API token deleted successfully"))
+        return userApiAccessTokenResource.deleteToken(requireNotNull(token.id), currentUser)
+    }
+
+    private fun findToken(currentUser: UserWithId): UserApiAccessToken? =
+        userApiAccessTokenRepository
+            .findByUserIdAndName(currentUser.id, UserApiAccessTokenResource.LEGACY_TOKEN_NAME)
+            .orElse(null)
+
+    private fun tokenNotFound(): HttpResponse<ApiAccessTokenErrorResponse> =
+        HttpResponse
+            .notFound<ApiAccessTokenErrorResponse>()
+            .body(ApiAccessTokenErrorResponse("API token not found", "API_TOKEN_NOT_FOUND"))
+}
+
 @Serdeable
 @Introspected
 data class ApiAccessTokenSummary(
@@ -223,4 +273,10 @@ data class ApiAccessTokenSuccessResponse(
 data class ApiAccessTokenErrorResponse(
     val error: String,
     val errorCode: String,
+)
+
+@Serdeable
+@Introspected
+data class LegacyApiAccessTokenStatusResponse(
+    val exists: Boolean,
 )
