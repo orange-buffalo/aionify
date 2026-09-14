@@ -1,6 +1,7 @@
-import { mkdir, rm, cp } from "fs/promises";
+import { mkdir, rm, cp, rename } from "fs/promises";
 import { existsSync } from "fs";
-import { join } from "path";
+import { createHash } from "crypto";
+import { basename, join } from "path";
 
 const outDir = join(import.meta.dir, "dist");
 const publicDir = join(import.meta.dir, "public");
@@ -26,9 +27,9 @@ const buildResult = await Bun.build({
   format: "esm",
   sourcemap: true,
   naming: {
-    entry: "[name].[ext]",
-    chunk: "[name].[ext]",
-    asset: "[name].[ext]",
+    entry: "[name]-[hash].[ext]",
+    chunk: "[name]-[hash].[ext]",
+    asset: "[name]-[hash].[ext]",
   },
 });
 
@@ -39,6 +40,13 @@ if (!buildResult.success) {
   }
   process.exit(1);
 }
+
+const scriptOutput = buildResult.outputs.find((output) => output.path.endsWith(".js"));
+if (!scriptOutput) {
+  console.error("Build failed: JavaScript bundle was not generated");
+  process.exit(1);
+}
+const scriptFileName = basename(scriptOutput.path);
 
 const cssInput = join(import.meta.dir, "src/styles.css");
 const cssOutput = join(outDir, "styles.css");
@@ -51,6 +59,16 @@ const cssProcess = Bun.spawn(["bunx", "@tailwindcss/cli", "-i", cssInput, "-o", 
 
 await cssProcess.exited;
 
+if (cssProcess.exitCode !== 0) {
+  console.error("Build failed: Tailwind CSS compilation failed");
+  process.exit(1);
+}
+
+const cssContents = await Bun.file(cssOutput).arrayBuffer();
+const cssHash = createHash("sha256").update(new Uint8Array(cssContents)).digest("hex").slice(0, 16);
+const stylesFileName = `styles-${cssHash}.css`;
+await rename(cssOutput, join(outDir, stylesFileName));
+
 // Create HTML file
 const html = `<!DOCTYPE html>
 <html lang="en">
@@ -59,11 +77,11 @@ const html = `<!DOCTYPE html>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Aionify - Time Tracking</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/${stylesFileName}">
 </head>
 <body>
   <div id="root"></div>
-  <script type="module" src="/main.js"></script>
+  <script type="module" src="/${scriptFileName}"></script>
 </body>
 </html>`;
 
@@ -75,4 +93,4 @@ for (const output of buildResult.outputs) {
   console.log(`  - ${output.path.split("/").pop()}`);
 }
 console.log("  - index.html");
-console.log("  - styles.css");
+console.log(`  - ${stylesFileName}`);

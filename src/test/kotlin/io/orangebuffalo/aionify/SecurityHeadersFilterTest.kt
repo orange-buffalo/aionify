@@ -50,6 +50,19 @@ class SecurityHeadersFilterTest {
         assertResponse("/api/time-log-entries/active", HttpStatus.TOO_MANY_REQUESTS)
     }
 
+    @Test
+    fun `should prevent stale frontend bundles after deployments`() {
+        val htmlResponse = exchange("/")
+        assertEquals("no-cache", htmlResponse.headers["Cache-Control"])
+
+        val html = htmlResponse.body() as String
+        val scriptPath = requireNotNull(Regex("""src="(/main-[^"]+\.js)"""").find(html)?.groupValues?.get(1))
+        val stylesPath = requireNotNull(Regex("""href="(/styles-[^"]+\.css)"""").find(html)?.groupValues?.get(1))
+
+        assertImmutableAsset(scriptPath)
+        assertImmutableAsset(stylesPath)
+    }
+
     private fun assertResponse(
         path: String,
         expectedStatus: HttpStatus,
@@ -60,6 +73,13 @@ class SecurityHeadersFilterTest {
         assertEquals("frame-ancestors 'none'", response.headers["Content-Security-Policy"], path)
         assertEquals("DENY", response.headers["X-Frame-Options"], path)
         assertEquals("same-origin", response.headers["Cross-Origin-Opener-Policy"], path)
+    }
+
+    private fun assertImmutableAsset(path: String) {
+        val response = exchange(path)
+
+        assertEquals(HttpStatus.OK, response.status, path)
+        assertEquals("public, max-age=31536000, immutable", response.headers["Cache-Control"], path)
     }
 
     private fun exchange(path: String): HttpResponse<*> =

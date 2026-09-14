@@ -152,6 +152,8 @@ Aionify sets the following security headers on every response:
 
 Do not configure the reverse proxy to send duplicate or conflicting `X-Frame-Options` or CSP `frame-ancestors` values, such as `SAMEORIGIN`. Additional CSP directives can be configured at the proxy only if they preserve Aionify's `frame-ancestors 'none'` policy and produce a single unambiguous header value.
 
+Do not override Aionify's `Cache-Control` response headers. HTML responses use `no-cache` so clients discover new deployments immediately, while content-hashed JavaScript and CSS assets use long-lived immutable caching.
+
 Note about Server-Sent Events (SSE): Aionify uses SSE to deliver realtime updates (event streams are exposed at `/api-ui/time-log-entries/events` for the web UI and at `/api/time-log-entries/events` for integrations). When you front the application with nginx (or other proxies), you must keep SSE connections open and disable buffering so events are delivered immediately. The nginx snippet below shows the required proxy settings (HTTP/1.1, no buffering, and an increased read timeout). If you use a different proxy, apply equivalent settings for SSE support.
 
 Example nginx configuration:
