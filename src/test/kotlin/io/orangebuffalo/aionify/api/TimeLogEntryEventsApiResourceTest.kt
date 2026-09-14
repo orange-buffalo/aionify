@@ -230,6 +230,16 @@ class TimeLogEntryEventsApiResourceTest {
     }
 
     @Test
+    fun `should close event stream when token value changes without a revocation notification`() {
+        val subscription = subscribe(USER1_TOKEN)
+
+        testDatabaseSupport.update(user1Token.copy(token = "replacementToken"))
+
+        await().atMost(AWAIT_TIMEOUT).until { subscription.terminated.get() }
+        assertStreamRejected(USER1_TOKEN)
+    }
+
+    @Test
     fun `should keep event stream open when another token is revoked`() {
         val otherToken = insertToken(user1, "eventsApiTokenUser1Other", "Other Integration")
         val subscription = subscribe(USER1_TOKEN)

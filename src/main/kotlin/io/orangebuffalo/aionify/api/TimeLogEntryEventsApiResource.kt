@@ -1,5 +1,6 @@
 package io.orangebuffalo.aionify.api
 
+import io.micronaut.context.annotation.Property
 import io.micronaut.core.annotation.Introspected
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.MediaType
@@ -36,12 +37,10 @@ open class TimeLogEntryEventsApiResource(
     private val eventService: TimeLogEntryEventService,
     private val tokenRevocationService: ApiAccessTokenRevocationService,
     private val userApiAccessTokenRepository: UserApiAccessTokenRepository,
+    @Property(name = "aionify.api.token-revalidation-interval", defaultValue = "30s")
+    private val tokenRevalidationInterval: Duration,
 ) {
     private val log = LoggerFactory.getLogger(TimeLogEntryEventsApiResource::class.java)
-
-    companion object {
-        private val TOKEN_REVALIDATION_INTERVAL: Duration = Duration.ofSeconds(30)
-    }
 
     @Get(uri = "/events", produces = [MediaType.TEXT_EVENT_STREAM])
     @Operation(
@@ -87,17 +86,21 @@ open class TimeLogEntryEventsApiResource(
             request
                 .getAttribute(ApiAuthenticationFilter.API_ACCESS_TOKEN_ID_ATTRIBUTE, Long::class.javaObjectType)
                 .orElseThrow { IllegalStateException("Event stream request is not authenticated with an API token") }
+        val tokenValue =
+            request
+                .getAttribute(ApiAuthenticationFilter.API_ACCESS_TOKEN_VALUE_ATTRIBUTE, String::class.java)
+                .orElseThrow { IllegalStateException("Event stream request is not authenticated with an API token") }
         log.debug("User {} subscribing to public time log entry events with API token {}", userId, tokenId)
 
         // Access is granted by the token the stream was opened with, so the stream must end once the token is revoked.
-        // Revalidation covers tokens that become invalid without a revocation notification (e.g. deleted users).
+        // Revalidation covers tokens that change without a revocation notification and notifications missed at startup.
         val tokenRevoked =
             Flux.merge(
                 tokenRevocationService.revocations(tokenId),
                 Flux
-                    .interval(TOKEN_REVALIDATION_INTERVAL)
+                    .interval(Duration.ZERO, tokenRevalidationInterval)
                     .publishOn(Schedulers.boundedElastic())
-                    .filter { !userApiAccessTokenRepository.existsById(tokenId) },
+                    .filter { !userApiAccessTokenRepository.existsByIdAndToken(tokenId, tokenValue) },
             )
 
         val entryEvents =

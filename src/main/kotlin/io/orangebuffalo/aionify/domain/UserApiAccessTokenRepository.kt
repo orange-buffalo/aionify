@@ -17,6 +17,11 @@ interface UserApiAccessTokenRepository : CrudRepository<UserApiAccessToken, Long
 
     fun findByToken(token: String): Optional<UserApiAccessToken>
 
+    fun existsByIdAndToken(
+        id: Long,
+        token: String,
+    ): Boolean
+
     fun existsByUserIdAndName(
         userId: Long,
         name: String,

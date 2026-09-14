@@ -27,3 +27,7 @@ flyway:
   datasources:
     default:
       enabled: true
+
+aionify:
+  api:
+    token-revalidation-interval: 100ms
