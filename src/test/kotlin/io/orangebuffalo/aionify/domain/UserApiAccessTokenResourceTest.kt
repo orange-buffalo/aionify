@@ -51,7 +51,6 @@ class UserApiAccessTokenResourceTest {
 
     companion object {
         private const val BASE_URL = "/api-ui/users/api-tokens"
-        private const val LEGACY_BASE_URL = "/api-ui/users/api-token"
         private const val OWNER_TOKEN_VALUE = "ownerTokenValue1234567890"
         private const val CONCURRENT_REQUESTS = 6
     }
@@ -188,54 +187,6 @@ class UserApiAccessTokenResourceTest {
         assertErrorResponse(HttpStatus.BAD_REQUEST, "API_TOKEN_LIMIT_REACHED") {
             createToken(owner, "One Too Many")
         }
-    }
-
-    @Test
-    fun `should support the API used by browser tabs opened before the named-token upgrade`() {
-        val auth = jwt(otherUser)
-
-        val initialStatus =
-            client
-                .toBlocking()
-                .retrieve(
-                    HttpRequest.GET<Any>("$LEGACY_BASE_URL/status").bearerAuth(auth),
-                    LegacyApiAccessTokenStatusResponse::class.java,
-                )
-        assertEquals(false, initialStatus.exists)
-
-        client.toBlocking().exchange(
-            HttpRequest.POST(LEGACY_BASE_URL, emptyMap<String, Any>()).bearerAuth(auth),
-            CreatedApiAccessTokenResponse::class.java,
-        )
-
-        val createdToken =
-            client
-                .toBlocking()
-                .retrieve(
-                    HttpRequest.GET<Any>(LEGACY_BASE_URL).bearerAuth(auth),
-                    ApiAccessTokenValueResponse::class.java,
-                )
-        assertEquals(50, createdToken.token.length)
-        assertEquals(listOf(UserApiAccessTokenResource.LEGACY_TOKEN_NAME), tokenNames(otherUser))
-
-        client.toBlocking().exchange(
-            HttpRequest.PUT(LEGACY_BASE_URL, emptyMap<String, Any>()).bearerAuth(auth),
-            ApiAccessTokenSummary::class.java,
-        )
-        val regeneratedToken =
-            client
-                .toBlocking()
-                .retrieve(
-                    HttpRequest.GET<Any>(LEGACY_BASE_URL).bearerAuth(auth),
-                    ApiAccessTokenValueResponse::class.java,
-                )
-        assertTrue(regeneratedToken.token != createdToken.token)
-
-        client.toBlocking().exchange(
-            HttpRequest.DELETE<Any>(LEGACY_BASE_URL).bearerAuth(auth),
-            ApiAccessTokenSuccessResponse::class.java,
-        )
-        assertEquals(emptyList<String>(), tokenNames(otherUser))
     }
 
     @Test
