@@ -2,6 +2,7 @@ package io.orangebuffalo.aionify.domain
 
 import io.micronaut.core.annotation.Introspected
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Delete
@@ -29,6 +30,7 @@ import java.time.Instant
 open class UserApiAccessTokenResource(
     private val userApiAccessTokenRepository: UserApiAccessTokenRepository,
     private val timeService: TimeService,
+    private val tokenRevocationService: ApiAccessTokenRevocationService,
 ) {
     private val log = LoggerFactory.getLogger(UserApiAccessTokenResource::class.java)
     private val secureRandom = SecureRandom()
@@ -56,6 +58,13 @@ open class UserApiAccessTokenResource(
         @Body request: CreateApiAccessTokenRequest,
         currentUser: UserWithId,
     ): HttpResponse<*> {
+        if (request.expectedUserId != null && request.expectedUserId != currentUser.id) {
+            log.debug("Create API token failed: expected user {} but authenticated as {}", request.expectedUserId, currentUser.id)
+            return HttpResponse
+                .status<ApiAccessTokenErrorResponse>(HttpStatus.CONFLICT)
+                .body(ApiAccessTokenErrorResponse("The authenticated user has changed", "AUTH_CHANGED"))
+        }
+
         val name = request.name?.trim() ?: ""
         if (name.isEmpty()) {
             return HttpResponse.badRequest(ApiAccessTokenErrorResponse("Token name is required", "API_TOKEN_NAME_REQUIRED"))
@@ -65,6 +74,9 @@ open class UserApiAccessTokenResource(
                 ApiAccessTokenErrorResponse("Token name cannot exceed $MAX_NAME_LENGTH characters", "API_TOKEN_NAME_TOO_LONG"),
             )
         }
+        // Serializes token creation per user until the transaction ends, so that name and limit checks are reliable
+        userApiAccessTokenRepository.lockUserForUpdate(currentUser.id)
+
         if (userApiAccessTokenRepository.existsByUserIdAndName(currentUser.id, name)) {
             log.debug("Create API token failed: name '{}' already used by user: {}", name, currentUser.user.userName)
             return HttpResponse.badRequest(
@@ -117,6 +129,7 @@ open class UserApiAccessTokenResource(
         val token = findOwnedToken(id, currentUser) ?: return tokenNotFound()
 
         val updatedToken = userApiAccessTokenRepository.update(token.copy(token = generateRandomToken()))
+        tokenRevocationService.tokenRevoked(requireNotNull(token.id))
         log.info("API token '{}' regenerated for user: {}", token.name, currentUser.user.userName)
 
         return HttpResponse.ok(updatedToken.toSummary())
@@ -130,6 +143,7 @@ open class UserApiAccessTokenResource(
         val token = findOwnedToken(id, currentUser) ?: return tokenNotFound()
 
         userApiAccessTokenRepository.delete(token)
+        tokenRevocationService.tokenRevoked(requireNotNull(token.id))
         log.info("API token '{}' deleted for user: {}", token.name, currentUser.user.userName)
 
         return HttpResponse.ok(ApiAccessTokenSuccessResponse("API token deleted successfully"))
@@ -176,6 +190,11 @@ data class ApiAccessTokensResponse(
 @Introspected
 data class CreateApiAccessTokenRequest(
     val name: String? = null,
+    /**
+     * If set, the token is only created when the request is authenticated as this user.
+     * Protects consent-based flows from creating a token for a different user who logged in meanwhile.
+     */
+    val expectedUserId: Long? = null,
 )
 
 @Serdeable

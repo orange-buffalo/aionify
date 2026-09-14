@@ -30,7 +30,6 @@ open class TimeLogEntryResource(
     private val timeLogEntryRepository: TimeLogEntryRepository,
     private val userRepository: UserRepository,
     private val timeLogEntryService: TimeLogEntryService,
-    private val timeService: TimeService,
 ) {
     private val log = org.slf4j.LoggerFactory.getLogger(TimeLogEntryResource::class.java)
 
@@ -136,12 +135,7 @@ open class TimeLogEntryResource(
             )
         }
 
-        val stoppedEntry =
-            timeLogEntryRepository.update(
-                entry.copy(endTime = timeService.now()),
-            )
-
-        log.info("Time log entry stopped: {} for user: {}", id, currentUser.user.userName)
+        val stoppedEntry = timeLogEntryService.stopEntry(entry)
 
         return HttpResponse.ok(stoppedEntry.toDto())
     }

@@ -189,6 +189,76 @@ class HostBridgePlaywrightTest : PlaywrightTestBase() {
         assertThat(page.locator("[data-testid='host-token-consent-dialog']")).not().isVisible()
     }
 
+    @Test
+    fun `should cancel token request when another user logs in`() {
+        val otherUser = testUsers.createRegularUser("otherBridgeUser", "Other Bridge User")
+        installFakeHost()
+        loginViaToken("/portal/time-logs", regularUser, testAuthSupport)
+        awaitAuthState(authenticated = true)
+
+        sendToApp(
+            """{"type":"request","id":"host-1","method":"auth.provisionApiToken","params":{"name":"Aionify for macOS"}}""",
+        )
+        val dialog = page.locator("[data-testid='host-token-consent-dialog']")
+        assertThat(dialog).isVisible()
+
+        // Another tab of the same origin logs in as a different user
+        switchSessionUser(otherUser, notifyOtherTabs = true)
+
+        val response = awaitResponse("host-1")
+        assertEquals("AUTH_CHANGED", (response["error"] as Map<*, *>)["code"])
+        assertThat(dialog).not().isVisible()
+        assertNoTokens(regularUser, otherUser)
+    }
+
+    @Test
+    fun `should not provision API token when user changed before approval`() {
+        val otherUser = testUsers.createRegularUser("otherBridgeUser", "Other Bridge User")
+        installFakeHost()
+        loginViaToken("/portal/time-logs", regularUser, testAuthSupport)
+        awaitAuthState(authenticated = true)
+
+        sendToApp(
+            """{"type":"request","id":"host-1","method":"auth.provisionApiToken","params":{"name":"Aionify for macOS"}}""",
+        )
+        val dialog = page.locator("[data-testid='host-token-consent-dialog']")
+        assertThat(dialog).isVisible()
+
+        // The session changes without a notification the app could observe before the user approves
+        switchSessionUser(otherUser, notifyOtherTabs = false)
+        page.locator("[data-testid='host-token-consent-approve-button']").click()
+
+        val response = awaitResponse("host-1")
+        assertEquals("AUTH_CHANGED", (response["error"] as Map<*, *>)["code"])
+        assertThat(dialog).not().isVisible()
+        assertNoTokens(regularUser, otherUser)
+    }
+
+    private fun switchSessionUser(
+        user: User,
+        notifyOtherTabs: Boolean,
+    ) {
+        page.evaluate(
+            """
+            ({ token, notify }) => {
+              localStorage.setItem('$TOKEN_KEY', token);
+              if (notify) {
+                window.dispatchEvent(new StorageEvent('storage', { key: '$TOKEN_KEY' }));
+              }
+            }
+            """.trimIndent(),
+            mapOf("token" to testAuthSupport.generateToken(user), "notify" to notifyOtherTabs),
+        )
+    }
+
+    private fun assertNoTokens(vararg users: User) {
+        testDatabaseSupport.inTransaction {
+            users.forEach { user ->
+                assertEquals(emptyList<Any>(), userApiAccessTokenRepository.findAllByUserId(requireNotNull(user.id)))
+            }
+        }
+    }
+
     private fun installFakeHost() {
         page.addInitScript(FAKE_HOST_SCRIPT)
     }

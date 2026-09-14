@@ -1,5 +1,6 @@
 package io.orangebuffalo.aionify.domain
 
+import io.micronaut.data.annotation.Query
 import io.micronaut.data.jdbc.annotation.JdbcRepository
 import io.micronaut.data.model.query.builder.sql.Dialect
 import io.micronaut.data.repository.CrudRepository
@@ -22,4 +23,11 @@ interface UserApiAccessTokenRepository : CrudRepository<UserApiAccessToken, Long
     ): Boolean
 
     fun countByUserId(userId: Long): Long
+
+    /**
+     * Locks the user's row until the end of the current transaction,
+     * so that concurrent token changes of the same user are processed one after another.
+     */
+    @Query(value = "SELECT id FROM app_user WHERE id = :userId FOR UPDATE", nativeQuery = true)
+    fun lockUserForUpdate(userId: Long): Long?
 }

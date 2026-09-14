@@ -21,6 +21,8 @@ interface ProvisionedApiToken {
 
 interface PendingTokenConsent {
   name: string;
+  // The user the request was made for - it must not be approved on behalf of anyone else
+  userId: number;
   resolve: (token: ProvisionedApiToken) => void;
   reject: (error: HostBridgeError) => void;
 }
@@ -43,6 +45,7 @@ function ActiveHostBridgeIntegration({ bridge }: { bridge: HostBridge }) {
   const [tokenConsentName, setTokenConsentName] = useState("");
   const [isProvisioningToken, setIsProvisioningToken] = useState(false);
   const tokenConsentRef = useRef<PendingTokenConsent | null>(null);
+  const isProvisioningTokenRef = useRef(false);
   const navigateRef = useRef(navigate);
   const lastPublishedAuthStateRef = useRef<string | null>(null);
 
@@ -66,14 +69,15 @@ function ActiveHostBridgeIntegration({ bridge }: { bridge: HostBridge }) {
       if (name.length === 0 || name.length > MAX_TOKEN_NAME_LENGTH) {
         throw new HostBridgeError("INVALID_PARAMS", `'name' must be 1 to ${MAX_TOKEN_NAME_LENGTH} characters long`);
       }
-      if (!getAuthState().authenticated) {
+      const userId = getAuthenticatedUserId();
+      if (userId === null) {
         throw new HostBridgeError("NOT_AUTHENTICATED", "The user is not logged in");
       }
       if (tokenConsentRef.current) {
         throw new HostBridgeError("REQUEST_IN_PROGRESS", "Another token request is awaiting the user's decision");
       }
       return new Promise<ProvisionedApiToken>((resolve, reject) => {
-        tokenConsentRef.current = { name, resolve, reject };
+        tokenConsentRef.current = { name, userId, resolve, reject };
         setTokenConsentName(name);
         setTokenConsentOpen(true);
       });
@@ -107,6 +111,21 @@ function ActiveHostBridgeIntegration({ bridge }: { bridge: HostBridge }) {
     return () => window.removeEventListener("storage", publishAuthState);
   }, [ready, location, bridge]);
 
+  // A pending token request is cancelled as soon as the logged in user changes (logout, login or another tab)
+  useEffect(() => {
+    const cancelTokenConsentOnUserChange = () => {
+      const consent = tokenConsentRef.current;
+      // Once provisioning has started, the server binds the request to the user (see handleApproveToken)
+      if (!consent || isProvisioningTokenRef.current || consent.userId === getAuthenticatedUserId()) return;
+      takeTokenConsent();
+      consent.reject(userChangedError());
+    };
+
+    cancelTokenConsentOnUserChange();
+    window.addEventListener("storage", cancelTokenConsentOnUserChange);
+    return () => window.removeEventListener("storage", cancelTokenConsentOnUserChange);
+  }, [location]);
+
   const takeTokenConsent = () => {
     const consent = tokenConsentRef.current;
     tokenConsentRef.current = null;
@@ -118,9 +137,20 @@ function ActiveHostBridgeIntegration({ bridge }: { bridge: HostBridge }) {
     const consent = tokenConsentRef.current;
     if (!consent) return;
 
+    if (consent.userId !== getAuthenticatedUserId()) {
+      takeTokenConsent();
+      consent.reject(userChangedError());
+      return;
+    }
+
+    isProvisioningTokenRef.current = true;
     setIsProvisioningToken(true);
     try {
-      const createdToken = await apiPost<ProvisionedApiToken>("/api-ui/users/api-tokens", { name: consent.name });
+      // The server rejects the request if the session belongs to a different user by the time it is processed
+      const createdToken = await apiPost<ProvisionedApiToken>("/api-ui/users/api-tokens", {
+        name: consent.name,
+        expectedUserId: consent.userId,
+      });
       consent.resolve({ name: createdToken.name, token: createdToken.token });
     } catch (error: any) {
       // The host requested the token, so it receives the failure and decides how to present it
@@ -129,12 +159,13 @@ function ActiveHostBridgeIntegration({ bridge }: { bridge: HostBridge }) {
       );
     } finally {
       takeTokenConsent();
+      isProvisioningTokenRef.current = false;
       setIsProvisioningToken(false);
     }
   };
 
   const handleRejectToken = () => {
-    if (isProvisioningToken) return;
+    if (isProvisioningTokenRef.current) return;
     takeTokenConsent()?.reject(new HostBridgeError("USER_REJECTED", "The user rejected the token request"));
   };
 
@@ -159,13 +190,30 @@ function ActiveHostBridgeIntegration({ bridge }: { bridge: HostBridge }) {
   );
 }
 
-function getAuthState(): AuthState {
+function getValidJwtPayload() {
   const token = localStorage.getItem(TOKEN_KEY);
   const payload = token ? decodeJwt(token) : null;
   if (!payload || (typeof payload.exp === "number" && payload.exp * 1000 <= Date.now())) {
+    return null;
+  }
+  return payload;
+}
+
+function getAuthState(): AuthState {
+  const payload = getValidJwtPayload();
+  if (!payload) {
     return { authenticated: false };
   }
   return typeof payload.sub === "string" ? { authenticated: true, userName: payload.sub } : { authenticated: true };
+}
+
+function getAuthenticatedUserId(): number | null {
+  const userId = getValidJwtPayload()?.userId;
+  return typeof userId === "number" ? userId : null;
+}
+
+function userChangedError() {
+  return new HostBridgeError("AUTH_CHANGED", "The logged in user has changed");
 }
 
 function getStringParam(params: unknown, name: string): string {

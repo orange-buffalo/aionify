@@ -103,6 +103,17 @@ class ApiAuthenticationFilter(
 
         log.trace("API authentication: Successful for user {} from IP {}", user.userName, ipAddress)
 
-        return chain.proceed(AuthenticationHelper.setAuthentication(request, user))
+        return chain.proceed(
+            AuthenticationHelper
+                .setAuthentication(request, user)
+                .setAttribute(API_ACCESS_TOKEN_ID_ATTRIBUTE, requireNotNull(apiAccessToken.id)),
+        )
+    }
+
+    companion object {
+        /**
+         * Request attribute with the ID of the API access token the request was authenticated with.
+         */
+        const val API_ACCESS_TOKEN_ID_ATTRIBUTE = "aionify.apiAccessTokenId"
     }
 }

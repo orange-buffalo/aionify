@@ -15,6 +15,10 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.util.concurrent.Callable
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 /**
  * Security tests for API access token management: users must not be able to access tokens of other users,
@@ -48,6 +52,7 @@ class UserApiAccessTokenResourceTest {
     companion object {
         private const val BASE_URL = "/api-ui/users/api-tokens"
         private const val OWNER_TOKEN_VALUE = "ownerTokenValue1234567890"
+        private const val CONCURRENT_REQUESTS = 6
     }
 
     @BeforeEach
@@ -184,7 +189,89 @@ class UserApiAccessTokenResourceTest {
         }
     }
 
+    @Test
+    fun `should not create token when authenticated as a different user than expected`() {
+        assertErrorResponse(HttpStatus.CONFLICT, "AUTH_CHANGED") {
+            client.toBlocking().exchange(
+                HttpRequest
+                    .POST(BASE_URL, CreateApiAccessTokenRequest(name = "Wrapper", expectedUserId = requireNotNull(owner.id)))
+                    .bearerAuth(jwt(otherUser)),
+                CreatedApiAccessTokenResponse::class.java,
+            )
+        }
+
+        assertEquals(emptyList<String>(), tokenNames(otherUser))
+    }
+
+    @Test
+    fun `should create only one token when the same name is requested concurrently`() {
+        val outcomes = createTokensConcurrently(otherUser, List(CONCURRENT_REQUESTS) { "Concurrent Integration" })
+
+        assertEquals(List(CONCURRENT_REQUESTS - 1) { "API_TOKEN_NAME_ALREADY_EXISTS" } + "CREATED", outcomes.sorted())
+        assertEquals(listOf("Concurrent Integration"), tokenNames(otherUser))
+    }
+
+    @Test
+    fun `should not exceed token limit with concurrent requests`() {
+        val userId = requireNotNull(otherUser.id)
+        repeat(UserApiAccessTokenResource.MAX_TOKENS_PER_USER - 1) { index ->
+            testDatabaseSupport.insert(
+                UserApiAccessToken(
+                    userId = userId,
+                    token = "concurrentLimitToken$index",
+                    name = "Integration $index",
+                    createdAt = timeService.now(),
+                ),
+            )
+        }
+
+        val outcomes = createTokensConcurrently(otherUser, List(CONCURRENT_REQUESTS) { "Concurrent Integration $it" })
+
+        assertEquals(List(CONCURRENT_REQUESTS - 1) { "API_TOKEN_LIMIT_REACHED" } + "CREATED", outcomes.sorted())
+        assertEquals(UserApiAccessTokenResource.MAX_TOKENS_PER_USER, tokenNames(otherUser).size)
+    }
+
     private fun jwt(user: User) = testAuthSupport.generateToken(user)
+
+    private fun tokenNames(user: User): List<String> =
+        testDatabaseSupport.inTransaction {
+            userApiAccessTokenRepository.findAllByUserId(requireNotNull(user.id)).map { it.name }
+        }
+
+    /**
+     * Sends token creation requests at the same time and returns their outcomes:
+     * "CREATED" for successful requests, otherwise the error code (or HTTP status if there is none).
+     */
+    private fun createTokensConcurrently(
+        user: User,
+        names: List<String>,
+    ): List<String> {
+        val executor = Executors.newFixedThreadPool(names.size)
+        try {
+            val startGate = CountDownLatch(1)
+            val results =
+                names.map { name ->
+                    executor.submit(
+                        Callable {
+                            startGate.await()
+                            try {
+                                createToken(user, name)
+                                "CREATED"
+                            } catch (e: HttpClientResponseException) {
+                                e.response
+                                    .getBody(ApiAccessTokenErrorResponse::class.java)
+                                    .map { it.errorCode }
+                                    .orElse(e.status.name)
+                            }
+                        },
+                    )
+                }
+            startGate.countDown()
+            return results.map { it.get(30, TimeUnit.SECONDS) }
+        } finally {
+            executor.shutdownNow()
+        }
+    }
 
     private fun createToken(
         user: User,

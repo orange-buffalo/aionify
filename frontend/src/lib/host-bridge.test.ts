@@ -55,7 +55,7 @@ describe("HostBridge handshake", () => {
     expect(bridge.emitEvent("auth.changed", { authenticated: false })).toBe(false);
 
     const started = bridge.start();
-    bridge.receive({ type: "response", id: "app-1", result: { protocolVersion: 2 } });
+    bridge.receive({ type: "response", id: "app-1", result: { protocolVersion: 1 } });
     await started;
 
     expect(bridge.emitEvent("auth.changed", { authenticated: false })).toBe(true);
@@ -76,6 +76,17 @@ describe("HostBridge handshake", () => {
 
     const started = bridge.start();
     bridge.receive(JSON.stringify({ type: "response", id: "app-1", result: { protocolVersion: 0 } }));
+
+    await expect(started).rejects.toMatchObject({ code: "UNSUPPORTED_PROTOCOL_VERSION" });
+    expect(bridge.emitEvent("auth.changed")).toBe(false);
+  });
+
+  test("fails when host responds with a newer protocol version", async () => {
+    const host = new FakeHost();
+    const bridge = new HostBridge(host, []);
+
+    const started = bridge.start();
+    bridge.receive(JSON.stringify({ type: "response", id: "app-1", result: { protocolVersion: 2 } }));
 
     await expect(started).rejects.toMatchObject({ code: "UNSUPPORTED_PROTOCOL_VERSION" });
     expect(bridge.emitEvent("auth.changed")).toBe(false);

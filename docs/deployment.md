@@ -148,7 +148,7 @@ Aionify sets the following security headers on every response:
 
 Do not configure the reverse proxy to send duplicate or conflicting `X-Frame-Options` or CSP `frame-ancestors` values, such as `SAMEORIGIN`. Additional CSP directives can be configured at the proxy only if they preserve Aionify's `frame-ancestors 'none'` policy and produce a single unambiguous header value.
 
-Note about Server-Sent Events (SSE): Aionify uses SSE to deliver realtime updates (the event stream is exposed at `/api-ui/time-log-entries/events`). When you front the application with nginx (or other proxies), you must keep SSE connections open and disable buffering so events are delivered immediately. The nginx snippet below shows the required proxy settings (HTTP/1.1, no buffering, and an increased read timeout). If you use a different proxy, apply equivalent settings for SSE support.
+Note about Server-Sent Events (SSE): Aionify uses SSE to deliver realtime updates (event streams are exposed at `/api-ui/time-log-entries/events` for the web UI and at `/api/time-log-entries/events` for integrations). When you front the application with nginx (or other proxies), you must keep SSE connections open and disable buffering so events are delivered immediately. The nginx snippet below shows the required proxy settings (HTTP/1.1, no buffering, and an increased read timeout). If you use a different proxy, apply equivalent settings for SSE support.
 
 Example nginx configuration:
 
@@ -160,8 +160,8 @@ server {
     ssl_certificate /path/to/certificate.pem;
     ssl_certificate_key /path/to/private-key.pem;
 
-    # SSE support
-    location /api-ui/time-log-entries/events {
+    # SSE support (web UI and public API event streams)
+    location ~ ^/(api-ui|api)/time-log-entries/events$ {
         proxy_pass http://localhost:8080;
         
         proxy_set_header Connection '';

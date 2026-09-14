@@ -80,6 +80,8 @@ Fields without a value (e.g. `endTime` of an active entry or empty `tags`) may b
 
 Current event types are `ENTRY_STARTED` and `ENTRY_STOPPED` (starting an entry while another one is active produces both). Events that happen while a client is disconnected are not replayed: after (re)connecting, load the state you need, e.g. via `GET /api/time-log-entries/active`.
 
+The stream is closed as soon as the API token used to open it is deleted or regenerated; reconnecting with that token then fails with `401`. If a token becomes invalid in another way (e.g. its user is deleted), the stream is closed within 30 seconds.
+
 ## API Stability
 
 The public API evolves in a backwards-compatible way:

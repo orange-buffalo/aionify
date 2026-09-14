@@ -78,12 +78,12 @@ Params:
 }
 ```
 
-The wrapper must respond with its own protocol version. Any other fields are optional and ignored by the app:
+If the wrapper supports the announced protocol version, it responds with that version. Any other fields are optional and ignored by the app:
 ```json
 { "protocolVersion": 1, "platform": "macos", "wrapperVersion": "1.2.0" }
 ```
 
-If the response is an error or has no valid `protocolVersion` (an integer ≥ 1), the handshake fails and the app does not send events.
+If the wrapper doesn't support the announced version, it responds with an `UNSUPPORTED_PROTOCOL_VERSION` error. If the response is an error or its `protocolVersion` is not exactly the announced version, the handshake fails and the app does not send events.
 
 ### App Methods (wrapper → app)
 
@@ -107,9 +107,9 @@ Asks the user to allow the wrapper to access their account. If the user agrees, 
 |---|---|
 | Params | `{ "name": string }`: token name shown to the user, 1-100 characters after trimming, unique among the user's tokens |
 | Result | `{ "name": string, "token": string }` |
-| Errors | `INVALID_PARAMS`, `NOT_AUTHENTICATED` (user not logged in), `REQUEST_IN_PROGRESS` (another consent dialog is open), `USER_REJECTED`, `API_TOKEN_NAME_ALREADY_EXISTS`, `API_TOKEN_LIMIT_REACHED`, `TOKEN_PROVISIONING_FAILED` |
+| Errors | `INVALID_PARAMS`, `NOT_AUTHENTICATED` (user not logged in), `REQUEST_IN_PROGRESS` (another consent dialog is open), `USER_REJECTED`, `AUTH_CHANGED` (a different user logged in, or the user logged out, before the request was approved), `API_TOKEN_NAME_ALREADY_EXISTS`, `API_TOKEN_LIMIT_REACHED`, `TOKEN_PROVISIONING_FAILED` |
 
-The response arrives only after the user decides, which can take any amount of time. The wrapper is responsible for showing errors, e.g. asking the user to pick another name.
+The response arrives only after the user decides, which can take any amount of time. The request is bound to the user who was logged in when it was made: it is cancelled with `AUTH_CHANGED` if the logged in user changes before approval, and the token is never created for anyone else. The wrapper is responsible for showing errors, e.g. asking the user to pick another name.
 
 ### Events (app → wrapper)
 
@@ -138,17 +138,26 @@ Wrappers should also respond with `UNKNOWN_METHOD` to app requests they don't su
 
 The snippets below show only the bridge wiring. In every case:
 - inject the bootstrap only into the main frame, and
-- only accept messages that come from your Aionify instance's origin.
+- only accept messages whose origin exactly matches your Aionify instance: compare the parsed scheme, host and effective port. Never compare URL prefixes: a prefix check for `https://aionify.example.com` also accepts `https://aionify.example.com.evil.net`.
 
 ### Windows (WebView2)
 
 ```csharp
+static readonly Uri AionifyUri = new("https://aionify.example.com");
+
+static bool IsAionifyOrigin(string source) =>
+    Uri.TryCreate(source, UriKind.Absolute, out var uri)
+    && uri.Scheme == AionifyUri.Scheme
+    && string.Equals(uri.IdnHost, AionifyUri.IdnHost, StringComparison.OrdinalIgnoreCase)
+    && uri.Port == AionifyUri.Port; // Uri.Port resolves the default port of the scheme
+
 await webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(
     "window.aionifyHost = { postMessage: (message) => window.chrome.webview.postMessage(message) };");
 
+// CoreWebView2.WebMessageReceived only receives messages from the top-level document
 webView.CoreWebView2.WebMessageReceived += (sender, args) =>
 {
-    if (!args.Source.StartsWith(AionifyOrigin)) return;
+    if (!IsAionifyOrigin(args.Source)) return;
     var message = args.TryGetWebMessageAsString();
     // Parse the JSON message and handle it
 };
@@ -168,10 +177,25 @@ let bootstrap = WKUserScript(
 configuration.userContentController.addUserScript(bootstrap)
 configuration.userContentController.add(bridgeHandler, name: "aionify")
 
+let aionifyURL = URL(string: "https://aionify.example.com")!
+
+func defaultPort(forScheme scheme: String?) -> Int {
+    scheme == "https" ? 443 : 80
+}
+
+func isAionifyOrigin(_ origin: WKSecurityOrigin) -> Bool {
+    // WKSecurityOrigin reports port 0 when the default port of the scheme is used
+    let originPort = origin.port == 0 ? defaultPort(forScheme: origin.protocol) : origin.port
+    let expectedPort = aionifyURL.port ?? defaultPort(forScheme: aionifyURL.scheme)
+    return origin.protocol == aionifyURL.scheme
+        && origin.host.caseInsensitiveCompare(aionifyURL.host ?? "") == .orderedSame
+        && originPort == expectedPort
+}
+
 // In bridgeHandler (WKScriptMessageHandler):
 func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
     guard message.frameInfo.isMainFrame,
-          message.frameInfo.securityOrigin.host == aionifyHost,
+          isAionifyOrigin(message.frameInfo.securityOrigin),
           let json = message.body as? String else { return }
     // Parse the JSON message and handle it
 }
@@ -216,8 +240,20 @@ contextBridge.exposeInMainWorld("aionifyHost", {
 });
 
 // main process
+const AIONIFY_ORIGIN = new URL("https://aionify.example.com").origin;
+
+// URL.origin normalizes scheme, host and default port, so exact comparison of origins is safe
+function isAionifyOrigin(url) {
+  try {
+    return new URL(url).origin === AIONIFY_ORIGIN;
+  } catch {
+    return false;
+  }
+}
+
 ipcMain.on("aionify:message", (event, message) => {
-  if (!event.senderFrame.url.startsWith(AIONIFY_ORIGIN)) return;
+  const frame = event.senderFrame;
+  if (!frame || frame.parent !== null || !isAionifyOrigin(frame.url)) return;
   // Parse the JSON message and handle it
 });
 
@@ -230,5 +266,5 @@ function sendToApp(message) {
 
 - The wrapper gets a revocable API token, never the user's web session. Store it only in the OS credential store.
 - Treat all messages from the app as untrusted input: validate them and never execute anything derived from them.
-- Aionify refuses to render inside frames on other sites, and the bridge only activates when the host object is present at startup. Don't load untrusted content into the same webview.
+- The bridge only activates when the host object is present at startup. Don't load untrusted content into the same webview, and only inject the bootstrap for your Aionify origin.
 - Use HTTPS for your Aionify instance.
