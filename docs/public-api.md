@@ -16,25 +16,23 @@ The schema endpoint does not require authentication and provides detailed docume
 
 All API endpoints (except `/api/schema`) require authentication using Bearer tokens.
 
-### Generating an API Token
+### Creating an API Token
 
 1. Log in to your Aionify account
 2. Click on the **Settings** icon (⚙️) in the navigation bar
-3. Scroll down to the **API Access Token** section
-4. Click the **Generate Token** button (or **Regenerate Token** if you already have one)
-
-![API Token Generation](./images/api-token-generation.png)
-
-5. Click the **eye icon** (👁️) to reveal the token
+3. Scroll down to the **API Access Tokens** section
+4. Enter a name for the token, e.g. the integration that will use it (`GitHub userscript`), and click **Create Token**
+5. Click the **eye icon** (👁️) next to the token to reveal it
 6. Click the **copy icon** (📋) to copy the token to your clipboard
 
-![API Token Display](./images/api-token-display.png)
-
 **Important:**
-- Store the token securely - it provides full access to your account
-- Each user can have only one active API token
-- Regenerating the token will invalidate the previous one
-- If you delete the token, all API access will be denied
+- Store tokens securely - each token provides full access to your account
+- Create a separate token for each integration, so that you can revoke access for one integration without affecting the others
+- Each user can have up to 20 tokens; token names must be unique per user
+- Regenerating a token invalidates only that token
+- Deleting a token immediately denies API access for everything that uses it
+
+OS-specific wrappers can also request a token from within the app, with the user's consent - see the [OS Wrappers Guide](./os-wrappers.md).
 
 ### Using the Token
 
@@ -56,6 +54,40 @@ To protect against brute force attacks, the API implements rate limiting:
 ## API Endpoints
 
 The complete API reference is available in the OpenAPI schema at `/api/schema`.
+
+## Event Stream
+
+Integrations can receive real-time updates about time log entries instead of polling. The stream includes changes made in the web UI, via the API or by other integrations.
+
+```bash
+curl -N -H "Authorization: Bearer YOUR_API_TOKEN" \
+  https://your-aionify-instance.com/api/time-log-entries/events
+```
+
+The endpoint uses [Server-Sent Events](https://html.spec.whatwg.org/multipage/server-sent-events.html):
+
+- A `heartbeat` event is sent right after connecting and then every 30 seconds. Reconnect if no heartbeat is received within 45 seconds.
+- Each change is sent as a default (unnamed) event whose data is a JSON object with the change `type` and the `entry` state after the change (same format as other time log entry endpoints):
+
+```
+event: heartbeat
+data: heartbeat
+
+data: {"type":"ENTRY_STARTED","entry":{"startTime":"2024-01-15T10:30:00Z","title":"Working on feature X","metadata":["project:aionify"]}}
+```
+
+Fields without a value (e.g. `endTime` of an active entry or empty `tags`) may be omitted from event data.
+
+Current event types are `ENTRY_STARTED` and `ENTRY_STOPPED` (starting an entry while another one is active produces both). Events that happen while a client is disconnected are not replayed: after (re)connecting, load the state you need, e.g. via `GET /api/time-log-entries/active`.
+
+The stream is closed as soon as the API token used to open it is deleted or regenerated; reconnecting with that token then fails with `401`. If a token becomes invalid in another way (e.g. its user is deleted), the stream is closed within 30 seconds.
+
+## API Stability
+
+The public API evolves in a backwards-compatible way:
+
+- New endpoints, fields and event types may be added at any time - clients must ignore fields and event types they do not know
+- Existing fields and event types are not removed, renamed or changed in meaning; such changes would be introduced as new endpoints
 
 ## Metadata Format
 
@@ -86,4 +118,5 @@ For detailed API usage examples including request/response formats, see the Open
 ## Further Reading
 
 - [Browser Integrations Guide](./browser-integrations.md) - Tampermonkey scripts for GitHub and Jira
+- [OS Wrappers Guide](./os-wrappers.md) - Building native apps that host Aionify
 - [OpenAPI Schema](/api/schema) - Complete API documentation

@@ -173,8 +173,8 @@ This metadata is used to match time entries to the pages you're viewing.
 
 1. **Check API token is valid:**
    - Log in to Aionify
-   - Go to Settings > API Access Token
-   - Regenerate the token if needed
+   - Go to Settings > API Access Tokens
+   - Regenerate the token used by the script if needed
    - Update the script configuration with the new token
 
 2. **Check rate limiting:**
@@ -196,9 +196,9 @@ The scripts extract issue/PR titles directly from the page. If the title is not 
 
 1. **Only install scripts from trusted sources** - verify the script source before installation
 2. **Keep tokens secure** - don't share your configured scripts with others
-3. **Use dedicated API tokens** - create a separate Aionify token for browser integrations
-4. **Rotate tokens regularly** - regenerate your Aionify token periodically
-5. **Revoke unused tokens** - delete the token when you stop using the integration
+3. **Use dedicated API tokens** - create a separate named Aionify token for each browser integration (e.g. "GitHub userscript")
+4. **Rotate tokens regularly** - regenerate your Aionify tokens periodically
+5. **Revoke unused tokens** - delete the integration's token when you stop using it
 6. **Use HTTPS only** - ensure your Aionify instance uses HTTPS
 
 ## Advanced Customization

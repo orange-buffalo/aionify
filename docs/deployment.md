@@ -15,6 +15,10 @@ ghcr.io/orange-buffalo/aionify:<latest stable version>
 - Docker or any OCI-compatible container runtime
 - PostgreSQL 15+ database
 
+## Deployment Topology
+
+Aionify supports a single application instance per deployment. Do not run multiple replicas against the same database or distribute requests across multiple application instances. Realtime event delivery and API token revocation notifications use process-local coordination and are not designed for horizontal scaling. A reverse proxy may front the application, but it must route to that single instance.
+
 ## Database Setup
 
 Aionify requires a PostgreSQL database. Create a database for the application:
@@ -114,7 +118,7 @@ Aionify uses JWT (JSON Web Tokens) for authentication. The application requires 
 
 JWT tokens expire after a configurable period (default: 24 hours). You can customize the expiration time by setting `AIONIFY_JWT_EXPIRATION_SECONDS` to the desired number of seconds. For example, set it to `3600` for 1 hour or `604800` for 7 days.
 
-If you want tokens to remain valid across restarts (or run multiple instances), set `AIONIFY_JWT_SECRET` to a stable, high-entropy secret as described above.
+To keep tokens valid across restarts, set `AIONIFY_JWT_SECRET` to a stable, high-entropy secret as described above.
 
 ## User Administration
 
@@ -137,7 +141,7 @@ After deployment, you'll need to set up user accounts. See the [User Administrat
 
 For production deployments, it's recommended to use a reverse proxy (like nginx, Traefik, or Caddy) to:
 - Terminate TLS/SSL
-- Handle load balancing
+- Forward requests to the single Aionify instance
 - Provide additional security headers
 
 Aionify sets the following security headers on every response:
@@ -148,7 +152,7 @@ Aionify sets the following security headers on every response:
 
 Do not configure the reverse proxy to send duplicate or conflicting `X-Frame-Options` or CSP `frame-ancestors` values, such as `SAMEORIGIN`. Additional CSP directives can be configured at the proxy only if they preserve Aionify's `frame-ancestors 'none'` policy and produce a single unambiguous header value.
 
-Note about Server-Sent Events (SSE): Aionify uses SSE to deliver realtime updates (the event stream is exposed at `/api-ui/time-log-entries/events`). When you front the application with nginx (or other proxies), you must keep SSE connections open and disable buffering so events are delivered immediately. The nginx snippet below shows the required proxy settings (HTTP/1.1, no buffering, and an increased read timeout). If you use a different proxy, apply equivalent settings for SSE support.
+Note about Server-Sent Events (SSE): Aionify uses SSE to deliver realtime updates (event streams are exposed at `/api-ui/time-log-entries/events` for the web UI and at `/api/time-log-entries/events` for integrations). When you front the application with nginx (or other proxies), you must keep SSE connections open and disable buffering so events are delivered immediately. The nginx snippet below shows the required proxy settings (HTTP/1.1, no buffering, and an increased read timeout). If you use a different proxy, apply equivalent settings for SSE support.
 
 Example nginx configuration:
 
@@ -160,8 +164,8 @@ server {
     ssl_certificate /path/to/certificate.pem;
     ssl_certificate_key /path/to/private-key.pem;
 
-    # SSE support
-    location /api-ui/time-log-entries/events {
+    # SSE support (web UI and public API event streams)
+    location ~ ^/(api-ui|api)/time-log-entries/events$ {
         proxy_pass http://localhost:8080;
         
         proxy_set_header Connection '';

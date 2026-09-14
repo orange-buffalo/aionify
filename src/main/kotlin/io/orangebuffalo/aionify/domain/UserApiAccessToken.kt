@@ -4,6 +4,7 @@ import io.micronaut.data.annotation.GeneratedValue
 import io.micronaut.data.annotation.Id
 import io.micronaut.data.annotation.MappedEntity
 import io.micronaut.data.annotation.MappedProperty
+import java.time.Instant
 
 @MappedEntity("user_api_access_token")
 data class UserApiAccessToken(
@@ -13,4 +14,7 @@ data class UserApiAccessToken(
     @field:MappedProperty("user_id")
     val userId: Long,
     val token: String,
+    val name: String,
+    @field:MappedProperty("created_at")
+    val createdAt: Instant,
 )

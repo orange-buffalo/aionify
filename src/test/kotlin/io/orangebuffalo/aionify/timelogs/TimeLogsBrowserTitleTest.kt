@@ -67,6 +67,8 @@ class TimeLogsBrowserTitleTest : TimeLogsPageTestBase() {
             UserApiAccessToken(
                 userId = requireNotNull(testUser.id),
                 token = apiToken,
+                name = "Test Integration",
+                createdAt = io.orangebuffalo.aionify.timeInTestTz("2024-03-16", "03:30"),
             ),
         )
 

@@ -10,6 +10,7 @@ import { TimeLogsPage } from "@/pages/TimeLogsPage";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { RootRedirect } from "@/components/auth/RootRedirect";
 import { useTokenRefresh } from "@/hooks/useTokenRefresh";
+import { HostBridgeIntegration } from "@/components/host-bridge/HostBridgeIntegration";
 
 export function App() {
   // Enable automatic token refresh for all authenticated sessions
@@ -17,6 +18,7 @@ export function App() {
 
   return (
     <BrowserRouter>
+      <HostBridgeIntegration />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/activate" element={<ActivateAccountPage />} />

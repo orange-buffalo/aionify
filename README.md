@@ -72,9 +72,15 @@ Manage users, create accounts, and handle activation tokens.
   - Self-service password change from profile page
 
 - **API Integration**
-  - Generate and manage personal API access tokens
+  - Multiple named API access tokens, revocable independently (e.g. one per integration)
   - Full programmatic access via REST API
+  - Real-time event stream of time entry changes for integrations
   - Rate limiting protection
+
+- **OS Wrapper Support**
+  - Host bridge for native apps embedding Aionify (menu bar, tray, mobile shells)
+  - Login state notifications and in-app navigation for wrappers
+  - API token provisioning for wrappers with explicit user consent
 
 - **Browser Integrations**
   - Tampermonkey scripts for GitHub issues and pull requests
@@ -115,6 +121,7 @@ See [Agents Instructions](AGENTS.md) for development guidelines.
 - [Administration Guide](docs/administration.md) - User management and administration
 - [Public API Guide](docs/public-api.md) - Programmatic access via REST API
 - [Browser Integrations Guide](docs/browser-integrations.md) - Tampermonkey scripts for GitHub and Jira
+- [OS Wrappers Guide](docs/os-wrappers.md) - Building native apps that host Aionify
 - [Internationalization Guide](docs/i18n.md) - Working with translations
 - [Agents Instructions](AGENTS.md) - Development guidelines
 

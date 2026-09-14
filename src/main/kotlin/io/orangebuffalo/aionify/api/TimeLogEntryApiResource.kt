@@ -269,16 +269,16 @@ open class TimeLogEntryApiResource(
             ),
         )
     }
-
-    private fun TimeLogEntry.toApiDto() =
-        TimeLogEntryApiDto(
-            startTime = this.startTime,
-            endTime = this.endTime,
-            title = this.title,
-            tags = this.tags.toList(),
-            metadata = this.metadata.toList(),
-        )
 }
+
+internal fun TimeLogEntry.toApiDto() =
+    TimeLogEntryApiDto(
+        startTime = this.startTime,
+        endTime = this.endTime,
+        title = this.title,
+        tags = this.tags.toList(),
+        metadata = this.metadata.toList(),
+    )
 
 @Serdeable
 @Introspected

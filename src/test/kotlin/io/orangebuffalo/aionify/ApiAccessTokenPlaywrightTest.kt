@@ -1,5 +1,6 @@
 package io.orangebuffalo.aionify
 
+import com.microsoft.playwright.Locator
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import com.microsoft.playwright.options.AriaRole
@@ -8,8 +9,12 @@ import io.orangebuffalo.aionify.domain.User
 import io.orangebuffalo.aionify.domain.UserApiAccessToken
 import io.orangebuffalo.aionify.domain.UserApiAccessTokenRepository
 import jakarta.inject.Inject
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.Instant
 
 @MicronautTest(transactional = false)
 class ApiAccessTokenPlaywrightTest : PlaywrightTestBase() {
@@ -21,465 +26,233 @@ class ApiAccessTokenPlaywrightTest : PlaywrightTestBase() {
 
     private lateinit var regularUser: User
 
+    companion object {
+        private const val MASKED_TOKEN = "••••••••••••••••••••••••••••••••"
+        private const val GITHUB_TOKEN = "githubToken1234567890abcdefghijklmnopqrstuvwxyz12"
+        private const val JIRA_TOKEN = "jiraToken1234567890abcdefghijklmnopqrstuvwxyz1234"
+    }
+
     @BeforeEach
     fun setupTestData() {
-        // Create test user
         regularUser = testUsers.createRegularUser("apiTokenTestUser", "API Token Test User")
     }
 
-    private fun navigateToSettingsViaToken() {
-        loginViaToken("/portal/settings", regularUser, testAuthSupport)
+    private fun navigateToSettings(user: User = regularUser) {
+        loginViaToken("/portal/settings", user, testAuthSupport)
+        assertThat(page.locator("[data-testid='api-token-loading']")).not().isVisible()
     }
 
+    private fun insertToken(
+        name: String,
+        token: String,
+        createdAt: Instant,
+        user: User = regularUser,
+    ): UserApiAccessToken =
+        testDatabaseSupport.insert(
+            UserApiAccessToken(
+                userId = requireNotNull(user.id),
+                token = token,
+                name = name,
+                createdAt = createdAt,
+            ),
+        )
+
+    private fun tokenRow(name: String): Locator =
+        page.locator("[data-testid='api-token-row']").filter(Locator.FilterOptions().setHasText(name))
+
+    private fun findTokens(user: User = regularUser) =
+        testDatabaseSupport.inTransaction {
+            userApiAccessTokenRepository.findAllByUserId(requireNotNull(user.id))
+        }
+
     @Test
-    fun `should display API token panel on settings page`() {
-        navigateToSettingsViaToken()
+    fun `should display API tokens panel with OpenAPI schema link`() {
+        navigateToSettings()
 
-        // Verify settings page is visible
-        val settingsPage = page.locator("[data-testid='settings-page']")
-        assertThat(settingsPage).isVisible()
+        assertThat(page.locator("[data-testid='api-token-title']")).containsText("API Access Tokens")
 
-        // Verify API token title is present
-        assertThat(page.locator("[data-testid='api-token-title']")).isVisible()
-        assertThat(page.locator("[data-testid='api-token-title']")).containsText("API Access Token")
-    }
-
-    @Test
-    fun `should display OpenAPI schema link that opens in new tab`() {
-        navigateToSettingsViaToken()
-
-        // Verify OpenAPI schema link is present
         val schemaLink = page.locator("[data-testid='openapi-schema-link']")
-        assertThat(schemaLink).isVisible()
         assertThat(schemaLink).containsText("View OpenAPI Schema")
-
-        // Verify link has correct href
         assertThat(schemaLink).hasAttribute("href", "/api/schema")
-
-        // Verify link opens in new tab
         assertThat(schemaLink).hasAttribute("target", "_blank")
         assertThat(schemaLink).hasAttribute("rel", "noopener noreferrer")
     }
 
     @Test
-    fun `should show generate button when user has no API token`() {
-        navigateToSettingsViaToken()
+    fun `should show empty state when user has no API tokens`() {
+        navigateToSettings()
 
-        // Wait for loading to complete
-        val apiTokenLoading = page.locator("[data-testid='api-token-loading']")
-        assertThat(apiTokenLoading).not().isVisible()
+        assertThat(page.locator("[data-testid='api-token-no-tokens-message']"))
+            .containsText("You have no API tokens yet")
+        assertThat(page.locator("[data-testid='api-tokens-list']")).not().isVisible()
+        assertThat(page.locator("[data-testid='new-api-token-name-input']")).hasValue("")
+        assertThat(page.locator("[data-testid='create-api-token-button']")).isDisabled()
 
-        // Verify no token message is visible
-        val noTokenMessage = page.locator("[data-testid='api-token-no-token-message']")
-        assertThat(noTokenMessage).isVisible()
-        assertThat(noTokenMessage).containsText("You have not yet set up the API token")
-
-        // Verify generate button is visible
-        val generateButton = page.locator("[data-testid='generate-api-token-button']")
-        assertThat(generateButton).isVisible()
-        assertThat(generateButton).containsText("Generate API Token")
-
-        // Verify token input is not visible (since no token exists)
-        val tokenInput = page.locator("[data-testid='api-token-input']")
-        assertThat(tokenInput).not().isVisible()
-
-        // Verify regenerate button is not visible (since no token exists)
-        val regenerateButton = page.locator("[data-testid='regenerate-api-token-button']")
-        assertThat(regenerateButton).not().isVisible()
-
-        // Verify show/copy buttons are not visible (since no token exists)
-        val showButton = page.locator("[data-testid='show-api-token-button']")
-        assertThat(showButton).not().isVisible()
-        val copyButton = page.locator("[data-testid='copy-api-token-button']")
-        assertThat(copyButton).not().isVisible()
+        captureUiReviewScreenshot("empty-state")
     }
 
     @Test
-    fun `should generate API token when clicking generate button`() {
-        navigateToSettingsViaToken()
+    fun `should create named API token`() {
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+        navigateToSettings()
 
-        // Wait for loading to complete
-        val apiTokenLoading = page.locator("[data-testid='api-token-loading']")
-        assertThat(apiTokenLoading).not().isVisible()
+        page.locator("[data-testid='new-api-token-name-input']").fill("GitHub integration")
+        page.locator("[data-testid='create-api-token-button']").click()
 
-        // Click generate button
-        val generateButton = page.locator("[data-testid='generate-api-token-button']")
-        generateButton.click()
+        assertThat(page.locator("[data-testid='api-token-success']"))
+            .containsText("API token \"GitHub integration\" created successfully")
+        assertThat(page.locator("[data-testid='api-token-name']")).containsText(arrayOf("GitHub integration"))
+        assertThat(tokenRow("GitHub integration").locator("[data-testid='api-token-input']")).hasValue(MASKED_TOKEN)
+        assertThat(tokenRow("GitHub integration").locator("[data-testid='show-api-token-button']")).isVisible()
+        assertThat(tokenRow("GitHub integration").locator("[data-testid='copy-api-token-button']")).not().isVisible()
+        assertThat(page.locator("[data-testid='api-token-no-tokens-message']")).not().isVisible()
+        assertThat(page.locator("[data-testid='new-api-token-name-input']")).hasValue("")
 
-        // Verify success message appears
-        val successMessage = page.locator("[data-testid='api-token-success']")
-        assertThat(successMessage).isVisible()
-        assertThat(successMessage).containsText("API token generated successfully")
-
-        // Verify token input and regenerate button are now visible
-        val tokenInput = page.locator("[data-testid='api-token-input']")
-        assertThat(tokenInput).isVisible()
-        // Wait for the token input to show the masked value, indicating the state has fully updated
-        assertThat(tokenInput).hasValue("••••••••••••••••••••••••••••••••")
-
-        val regenerateButton = page.locator("[data-testid='regenerate-api-token-button']")
-        assertThat(regenerateButton).isVisible()
-        assertThat(regenerateButton).containsText("Re-generate")
-
-        // Verify no token message is no longer visible
-        val noTokenMessage = page.locator("[data-testid='api-token-no-token-message']")
-        assertThat(noTokenMessage).not().isVisible()
-
-        // Verify generate button is no longer visible
-        assertThat(generateButton).not().isVisible()
-
-        // Verify database state - token was created
-        testDatabaseSupport.inTransaction {
-            val userId = requireNotNull(regularUser.id)
-            val token = userApiAccessTokenRepository.findByUserId(userId)
-            assert(token.isPresent) { "Token should exist in database after generation" }
-            assert(token.get().token.length == 50) { "Token should be 50 characters long" }
-            assert(token.get().token.matches(Regex("^[a-zA-Z0-9]+$"))) { "Token should be alphanumeric" }
-        }
+        val tokens = findTokens()
+        assertEquals(listOf("GitHub integration"), tokens.map { it.name })
+        assertTrue(tokens[0].token.matches(Regex("^[a-zA-Z0-9]{50}$")), "Token should be 50 alphanumeric characters")
+        assertEquals(baseTime, tokens[0].createdAt)
     }
 
     @Test
-    fun `should display masked token and show button when user has API token`() {
-        // Create API token for user
-        val userId = requireNotNull(regularUser.id)
-        testDatabaseSupport.insert(
-            UserApiAccessToken(
-                userId = userId,
-                token = "test1234567890abcdefghijklmnopqrstuvwxyz12345678",
-            ),
-        )
+    fun `should list tokens in creation order`() {
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+        insertToken("Jira integration", JIRA_TOKEN, baseTime.minusSeconds(3600))
+        insertToken("GitHub integration", GITHUB_TOKEN, baseTime.minusSeconds(7200))
 
-        navigateToSettingsViaToken()
+        navigateToSettings()
 
-        // Wait for loading to complete
-        val apiTokenLoading = page.locator("[data-testid='api-token-loading']")
-        assertThat(apiTokenLoading).not().isVisible()
+        assertThat(page.locator("[data-testid='api-token-name']"))
+            .containsText(arrayOf("GitHub integration", "Jira integration"))
+        assertThat(page.locator("[data-testid='api-token-created-at']")).containsText(arrayOf("Created", "Created"))
+        assertThat(tokenRow("GitHub integration").locator("[data-testid='api-token-input']")).hasValue(MASKED_TOKEN)
+        assertThat(tokenRow("Jira integration").locator("[data-testid='api-token-input']")).hasValue(MASKED_TOKEN)
+        assertThat(page.locator("[data-testid='api-token-no-tokens-message']")).not().isVisible()
 
-        // Verify token input is visible and masked
-        val tokenInput = page.locator("[data-testid='api-token-input']")
-        assertThat(tokenInput).isVisible()
-        assertThat(tokenInput).hasValue("••••••••••••••••••••••••••••••••")
-
-        // Verify show button (eye icon) is visible
-        val showButton = page.locator("[data-testid='show-api-token-button']")
-        assertThat(showButton).isVisible()
-
-        // Verify regenerate button is visible
-        val regenerateButton = page.locator("[data-testid='regenerate-api-token-button']")
-        assertThat(regenerateButton).isVisible()
-
-        // Verify elements that should not be visible when token exists
-        val noTokenMessage = page.locator("[data-testid='api-token-no-token-message']")
-        assertThat(noTokenMessage).not().isVisible()
-
-        val generateButton = page.locator("[data-testid='generate-api-token-button']")
-        assertThat(generateButton).not().isVisible()
-
-        // Copy button should not be visible yet (token is masked)
-        val copyButton = page.locator("[data-testid='copy-api-token-button']")
-        assertThat(copyButton).not().isVisible()
+        captureUiReviewScreenshot("tokens-list")
+        captureUiReviewScreenshot("tokens-list-mobile", viewportWidth = 390)
     }
 
     @Test
-    fun `should reveal token when clicking show button`() {
-        // Create API token for user
-        val userId = requireNotNull(regularUser.id)
-        val testToken = "test1234567890abcdefghijklmnopqrstuvwxyz12345678"
-        testDatabaseSupport.insert(
-            UserApiAccessToken(
-                userId = userId,
-                token = testToken,
-            ),
-        )
+    fun `should reveal and copy selected token`() {
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+        insertToken("GitHub integration", GITHUB_TOKEN, baseTime.minusSeconds(7200))
+        insertToken("Jira integration", JIRA_TOKEN, baseTime.minusSeconds(3600))
+        navigateToSettings()
 
-        navigateToSettingsViaToken()
+        val githubRow = tokenRow("GitHub integration")
+        githubRow.locator("[data-testid='show-api-token-button']").click()
 
-        // Wait for loading to complete
-        val apiTokenLoading = page.locator("[data-testid='api-token-loading']")
-        assertThat(apiTokenLoading).not().isVisible()
+        assertThat(githubRow.locator("[data-testid='api-token-input']")).hasValue(GITHUB_TOKEN)
+        assertThat(githubRow.locator("[data-testid='show-api-token-button']")).not().isVisible()
+        assertThat(tokenRow("Jira integration").locator("[data-testid='api-token-input']")).hasValue(MASKED_TOKEN)
 
-        // Click show button
-        val showButton = page.locator("[data-testid='show-api-token-button']")
-        showButton.click()
+        githubRow.locator("[data-testid='copy-api-token-button']").click()
 
-        // Verify token is now visible
-        val tokenInput = page.locator("[data-testid='api-token-input']")
-        assertThat(tokenInput).hasValue(testToken)
-
-        // Verify copy button is now visible instead of show button
-        val copyButton = page.locator("[data-testid='copy-api-token-button']")
-        assertThat(copyButton).isVisible()
-        assertThat(showButton).not().isVisible()
+        assertThat(page.locator("[data-testid='api-token-success']")).containsText("API token copied to clipboard")
+        assertEquals(GITHUB_TOKEN, page.evaluate("() => navigator.clipboard.readText()"))
     }
 
     @Test
-    fun `should copy token to clipboard when clicking copy button`() {
-        // Create API token for user
-        val userId = requireNotNull(regularUser.id)
-        val testToken = "test1234567890abcdefghijklmnopqrstuvwxyz12345678"
-        testDatabaseSupport.insert(
-            UserApiAccessToken(
-                userId = userId,
-                token = testToken,
-            ),
-        )
+    fun `should regenerate only selected token`() {
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+        insertToken("GitHub integration", GITHUB_TOKEN, baseTime.minusSeconds(7200))
+        insertToken("Jira integration", JIRA_TOKEN, baseTime.minusSeconds(3600))
+        navigateToSettings()
 
-        navigateToSettingsViaToken()
+        val githubRow = tokenRow("GitHub integration")
+        val githubInput = githubRow.locator("[data-testid='api-token-input']")
+        githubRow.locator("[data-testid='show-api-token-button']").click()
+        assertThat(githubInput).hasValue(GITHUB_TOKEN)
 
-        // Wait for loading to complete
-        val apiTokenLoading = page.locator("[data-testid='api-token-loading']")
-        assertThat(apiTokenLoading).not().isVisible()
+        githubRow.locator("[data-testid='regenerate-api-token-button']").click()
 
-        // Click show button to reveal token
-        val showButton = page.locator("[data-testid='show-api-token-button']")
-        showButton.click()
+        assertThat(page.locator("[data-testid='api-token-success']"))
+            .containsText("API token \"GitHub integration\" regenerated successfully")
+        assertThat(githubInput).hasValue(MASKED_TOKEN)
 
-        // Click copy button
-        val copyButton = page.locator("[data-testid='copy-api-token-button']")
-        copyButton.click()
+        githubRow.locator("[data-testid='show-api-token-button']").click()
+        // Wait for the token value to be loaded before reading it
+        assertThat(githubInput).not().hasValue(MASKED_TOKEN)
+        val newTokenValue = githubInput.inputValue()
 
-        // Verify success message appears
-        val successMessage = page.locator("[data-testid='api-token-success']")
-        assertThat(successMessage).isVisible()
-        assertThat(successMessage).containsText("API token copied to clipboard")
+        assertNotEquals(GITHUB_TOKEN, newTokenValue)
+        val tokensByName = findTokens().associate { it.name to it.token }
+        assertEquals(mapOf("GitHub integration" to newTokenValue, "Jira integration" to JIRA_TOKEN), tokensByName)
     }
 
     @Test
-    fun `should regenerate API token when clicking regenerate button`() {
-        // Create API token for user
-        val userId = requireNotNull(regularUser.id)
-        val oldToken = "old1234567890abcdefghijklmnopqrstuvwxyz1234567"
-        testDatabaseSupport.insert(
-            UserApiAccessToken(
-                userId = userId,
-                token = oldToken,
-            ),
-        )
+    fun `should delete selected token after confirmation`() {
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+        insertToken("GitHub integration", GITHUB_TOKEN, baseTime.minusSeconds(7200))
+        insertToken("Jira integration", JIRA_TOKEN, baseTime.minusSeconds(3600))
+        navigateToSettings()
 
-        navigateToSettingsViaToken()
+        tokenRow("Jira integration").locator("[data-testid='delete-api-token-button']").click()
 
-        // Wait for loading to complete
-        val apiTokenLoading = page.locator("[data-testid='api-token-loading']")
-        assertThat(apiTokenLoading).not().isVisible()
-
-        // Show the old token first
-        val showButton = page.locator("[data-testid='show-api-token-button']")
-        showButton.click()
-
-        // Verify old token is visible
-        val tokenInput = page.locator("[data-testid='api-token-input']")
-        assertThat(tokenInput).hasValue(oldToken)
-
-        // Click regenerate button
-        val regenerateButton = page.locator("[data-testid='regenerate-api-token-button']")
-        regenerateButton.click()
-
-        // Verify success message appears
-        val successMessage = page.locator("[data-testid='api-token-success']")
-        assertThat(successMessage).isVisible()
-        assertThat(successMessage).containsText("API token regenerated successfully")
-
-        // Verify token is now masked again
-        assertThat(tokenInput).hasValue("••••••••••••••••••••••••••••••••")
-
-        // Verify show button is visible again (not copy button)
-        assertThat(showButton).isVisible()
-        val copyButton = page.locator("[data-testid='copy-api-token-button']")
-        assertThat(copyButton).not().isVisible()
-
-        // Show the new token to verify it changed
-        showButton.click()
-
-        // Wait for the token value to be loaded from the API (it should no longer be masked)
-        // This ensures the async API call completes before we read the token value
-        assertThat(tokenInput).not().hasValue("••••••••••••••••••••••••••••••••")
-
-        val newTokenValue = tokenInput.inputValue()
-
-        // Verify the token has been regenerated (it should be different from old token)
-        assert(newTokenValue != oldToken) {
-            "Token should have been regenerated but is still the same: $newTokenValue"
-        }
-
-        // Verify the new token has correct length (50 characters)
-        assert(newTokenValue.length == 50) {
-            "Token should be 50 characters but is ${newTokenValue.length}"
-        }
-
-        // Verify database state - token was updated
-        testDatabaseSupport.inTransaction {
-            val token = userApiAccessTokenRepository.findByUserId(userId)
-            assert(token.isPresent) { "Token should still exist in database" }
-            assert(token.get().token == newTokenValue) { "Token in database should match UI value" }
-            assert(token.get().token != oldToken) { "Token in database should be different from old token" }
-            assert(token.get().token.length == 50) { "Token should be 50 characters long" }
-            assert(token.get().token.matches(Regex("^[a-zA-Z0-9]+$"))) { "Token should be alphanumeric" }
-        }
-    }
-
-    @Test
-    fun `should show different tokens for different users`() {
-        // Create another user
-        val otherUser = testUsers.createRegularUser("otherApiTokenUser", "Other API Token User")
-
-        // Create API tokens for both users
-        val userId1 = requireNotNull(regularUser.id)
-        val userId2 = requireNotNull(otherUser.id)
-        val token1 = "user1token1234567890abcdefghijklmnopqrstuvwxy"
-        val token2 = "user2token1234567890abcdefghijklmnopqrstuvwxy"
-
-        testDatabaseSupport.insert(
-            UserApiAccessToken(
-                userId = userId1,
-                token = token1,
-            ),
-        )
-
-        testDatabaseSupport.insert(
-            UserApiAccessToken(
-                userId = userId2,
-                token = token2,
-            ),
-        )
-
-        // Login as first user and verify token
-        navigateToSettingsViaToken()
-
-        val apiTokenLoading = page.locator("[data-testid='api-token-loading']")
-        assertThat(apiTokenLoading).not().isVisible()
-
-        val showButton = page.locator("[data-testid='show-api-token-button']")
-        showButton.click()
-
-        val tokenInput = page.locator("[data-testid='api-token-input']")
-        assertThat(tokenInput).hasValue(token1)
-
-        // Login as second user and verify different token
-        loginViaToken("/portal/settings", otherUser, testAuthSupport)
-
-        assertThat(apiTokenLoading).not().isVisible()
-
-        val showButton2 = page.locator("[data-testid='show-api-token-button']")
-        showButton2.click()
-
-        val tokenInput2 = page.locator("[data-testid='api-token-input']")
-        assertThat(tokenInput2).hasValue(token2)
-    }
-
-    @Test
-    fun `should delete API token when clicking delete button and confirming`() {
-        // Create API token for user
-        val userId = requireNotNull(regularUser.id)
-        val testToken = "test1234567890abcdefghijklmnopqrstuvwxyz12345678"
-        testDatabaseSupport.insert(
-            UserApiAccessToken(
-                userId = userId,
-                token = testToken,
-            ),
-        )
-
-        navigateToSettingsViaToken()
-
-        // Wait for loading to complete
-        val apiTokenLoading = page.locator("[data-testid='api-token-loading']")
-        assertThat(apiTokenLoading).not().isVisible()
-
-        // Verify token input and delete button are visible
-        val tokenInput = page.locator("[data-testid='api-token-input']")
-        assertThat(tokenInput).isVisible()
-        val deleteButton = page.locator("[data-testid='delete-api-token-button']")
-        assertThat(deleteButton).isVisible()
-
-        // Click delete button
-        deleteButton.click()
-
-        // Verify confirmation dialog appears - use role selector to be specific
         val dialogTitle = page.getByRole(AriaRole.HEADING, Page.GetByRoleOptions().setName("Delete API Token"))
         assertThat(dialogTitle).isVisible()
+        assertThat(page.getByRole(AriaRole.DIALOG))
+            .containsText("Are you sure you want to delete the API token \"Jira integration\"?")
+        captureUiReviewScreenshot("delete-confirmation")
 
-        // Verify dialog message is visible
-        val dialogMessage = page.locator("text=Are you sure you want to delete your API access token?")
-        assertThat(dialogMessage).isVisible()
+        page.locator("[data-testid='confirm-delete-api-token-button']").click()
 
-        // Click confirm button
-        val confirmButton = page.locator("[data-testid='confirm-delete-api-token-button']")
-        confirmButton.click()
-
-        // Verify success message appears
-        val successMessage = page.locator("[data-testid='api-token-success']")
-        assertThat(successMessage).isVisible()
-        assertThat(successMessage).containsText("API token deleted successfully")
-
-        // Verify UI now shows "no token" state
-        val noTokenMessage = page.locator("[data-testid='api-token-no-token-message']")
-        assertThat(noTokenMessage).isVisible()
-
-        val generateButton = page.locator("[data-testid='generate-api-token-button']")
-        assertThat(generateButton).isVisible()
-
-        // Verify token input is not visible
-        assertThat(tokenInput).not().isVisible()
-
-        // Verify delete button is not visible
-        assertThat(deleteButton).not().isVisible()
-
-        // Verify database state - token was deleted
-        testDatabaseSupport.inTransaction {
-            val token = userApiAccessTokenRepository.findByUserId(userId)
-            assert(!token.isPresent) { "Token should not exist in database after deletion" }
-        }
-    }
-
-    @Test
-    fun `should cancel delete operation when clicking cancel in dialog`() {
-        // Create API token for user
-        val userId = requireNotNull(regularUser.id)
-        val testToken = "test1234567890abcdefghijklmnopqrstuvwxyz12345678"
-        testDatabaseSupport.insert(
-            UserApiAccessToken(
-                userId = userId,
-                token = testToken,
-            ),
-        )
-
-        navigateToSettingsViaToken()
-
-        // Wait for loading to complete
-        val apiTokenLoading = page.locator("[data-testid='api-token-loading']")
-        assertThat(apiTokenLoading).not().isVisible()
-
-        // Click delete button
-        val deleteButton = page.locator("[data-testid='delete-api-token-button']")
-        deleteButton.click()
-
-        // Verify confirmation dialog appears - use role selector to be specific
-        val dialogTitle = page.getByRole(AriaRole.HEADING, Page.GetByRoleOptions().setName("Delete API Token"))
-        assertThat(dialogTitle).isVisible()
-
-        // Click cancel button
-        val cancelButton = page.locator("[data-testid='cancel-delete-api-token-button']")
-        cancelButton.click()
-
-        // Verify dialog is closed
+        assertThat(page.locator("[data-testid='api-token-success']"))
+            .containsText("API token \"Jira integration\" deleted successfully")
         assertThat(dialogTitle).not().isVisible()
+        assertThat(page.locator("[data-testid='api-token-name']")).containsText(arrayOf("GitHub integration"))
+        assertEquals(listOf("GitHub integration"), findTokens().map { it.name })
+    }
 
-        // Verify token still exists in UI
-        val tokenInput = page.locator("[data-testid='api-token-input']")
-        assertThat(tokenInput).isVisible()
-        assertThat(tokenInput).hasValue("••••••••••••••••••••••••••••••••")
+    @Test
+    fun `should keep token when deletion is cancelled`() {
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+        insertToken("GitHub integration", GITHUB_TOKEN, baseTime)
+        navigateToSettings()
 
-        // Verify delete button is still visible
-        assertThat(deleteButton).isVisible()
+        tokenRow("GitHub integration").locator("[data-testid='delete-api-token-button']").click()
+        val dialogTitle = page.getByRole(AriaRole.HEADING, Page.GetByRoleOptions().setName("Delete API Token"))
+        assertThat(dialogTitle).isVisible()
 
-        // Verify no success message appears
-        val successMessage = page.locator("[data-testid='api-token-success']")
-        assertThat(successMessage).not().isVisible()
+        page.locator("[data-testid='cancel-delete-api-token-button']").click()
 
-        // Verify database state - token still exists
-        testDatabaseSupport.inTransaction {
-            val token = userApiAccessTokenRepository.findByUserId(userId)
-            assert(token.isPresent) { "Token should still exist in database after cancel" }
-            assert(token.get().token == testToken) { "Token should not have changed" }
-        }
+        assertThat(dialogTitle).not().isVisible()
+        assertThat(page.locator("[data-testid='api-token-name']")).containsText(arrayOf("GitHub integration"))
+        assertThat(page.locator("[data-testid='api-token-success']")).not().isVisible()
+        assertEquals(listOf(GITHUB_TOKEN), findTokens().map { it.token })
+    }
+
+    @Test
+    fun `should show error when creating token with existing name`() {
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+        insertToken("GitHub integration", GITHUB_TOKEN, baseTime)
+        navigateToSettings()
+
+        page.locator("[data-testid='new-api-token-name-input']").fill("GitHub integration")
+        page.locator("[data-testid='create-api-token-button']").click()
+
+        assertThat(page.locator("[data-testid='api-token-error']"))
+            .containsText("An API token with this name already exists")
+        assertThat(page.locator("[data-testid='api-token-success']")).not().isVisible()
+        assertThat(page.locator("[data-testid='api-token-name']")).containsText(arrayOf("GitHub integration"))
+        assertThat(page.locator("[data-testid='new-api-token-name-input']")).hasValue("GitHub integration")
+        assertEquals(listOf(GITHUB_TOKEN), findTokens().map { it.token })
+
+        captureUiReviewScreenshot("duplicate-name-error")
+    }
+
+    @Test
+    fun `should not show tokens of other users`() {
+        val baseTime = setBaseTime("2024-03-16", "03:30")
+        val otherUser = testUsers.createRegularUser("otherApiTokenUser", "Other API Token User")
+        insertToken("GitHub integration", GITHUB_TOKEN, baseTime)
+        insertToken("Jira integration", JIRA_TOKEN, baseTime, user = otherUser)
+
+        navigateToSettings(otherUser)
+
+        assertThat(page.locator("[data-testid='api-token-name']")).containsText(arrayOf("Jira integration"))
+        tokenRow("Jira integration").locator("[data-testid='show-api-token-button']").click()
+        assertThat(tokenRow("Jira integration").locator("[data-testid='api-token-input']")).hasValue(JIRA_TOKEN)
     }
 }

@@ -1,0 +1,250 @@
+/**
+ * Bridge between the web app and an OS-specific wrapper (a native app hosting Aionify in a webview).
+ *
+ * The wrapper injects `window.aionifyHost` before the app loads; the app then exposes `window.aionify.receive`.
+ * Both sides exchange JSON messages (requests, responses and events) - see docs/os-wrappers.md for the protocol.
+ * In regular browsers there is no host object and the bridge stays inactive.
+ */
+
+export const HOST_BRIDGE_PROTOCOL_VERSION = 1;
+
+export interface HostChannel {
+  postMessage(message: string): void;
+}
+
+interface BridgeErrorPayload {
+  code: string;
+  message: string;
+}
+
+type BridgeMessage =
+  | { type: "request"; id: string; method: string; params?: unknown }
+  | { type: "response"; id: string; result?: unknown; error?: BridgeErrorPayload }
+  | { type: "event"; event: string; payload?: unknown };
+
+export class HostBridgeError extends Error {
+  readonly code: string;
+
+  constructor(code: string, message: string) {
+    super(message);
+    this.name = "HostBridgeError";
+    this.code = code;
+  }
+}
+
+export type RequestHandler = (params: unknown) => unknown | Promise<unknown>;
+
+interface PendingRequest {
+  resolve: (result: unknown) => void;
+  reject: (error: HostBridgeError) => void;
+}
+
+export class HostBridge {
+  private readonly host: HostChannel;
+  private readonly events: string[];
+  private readonly handlers = new Map<string, RequestHandler>();
+  private readonly pendingRequests = new Map<string, PendingRequest>();
+  private nextRequestId = 1;
+  private startPromise: Promise<void> | null = null;
+  private ready = false;
+
+  constructor(host: HostChannel, events: string[]) {
+    this.host = host;
+    this.events = events;
+  }
+
+  /**
+   * Registers a handler for requests sent by the host. Returns a function that unregisters the handler.
+   */
+  registerHandler(method: string, handler: RequestHandler): () => void {
+    this.handlers.set(method, handler);
+    return () => {
+      if (this.handlers.get(method) === handler) {
+        this.handlers.delete(method);
+      }
+    };
+  }
+
+  /**
+   * Performs the `host.hello` handshake, announcing the registered methods and supported events.
+   * Events are only delivered to the host after a successful handshake. Subsequent calls return the same promise.
+   */
+  start(): Promise<void> {
+    if (!this.startPromise) {
+      this.startPromise = this.request("host.hello", {
+        protocolVersion: HOST_BRIDGE_PROTOCOL_VERSION,
+        methods: [...this.handlers.keys()],
+        events: this.events,
+      }).then((result) => {
+        // Versions are not backwards compatible, so the host must speak exactly the announced version
+        const protocolVersion = isObject(result) ? result.protocolVersion : undefined;
+        if (protocolVersion !== HOST_BRIDGE_PROTOCOL_VERSION) {
+          throw new HostBridgeError(
+            "UNSUPPORTED_PROTOCOL_VERSION",
+            `Unsupported host protocol version: ${String(protocolVersion)}`
+          );
+        }
+        this.ready = true;
+      });
+    }
+    return this.startPromise;
+  }
+
+  request(method: string, params?: unknown): Promise<unknown> {
+    const id = `app-${this.nextRequestId++}`;
+    return new Promise((resolve, reject) => {
+      this.pendingRequests.set(id, { resolve, reject });
+      try {
+        this.send({ type: "request", id, method, params });
+      } catch (error) {
+        this.pendingRequests.delete(id);
+        reject(toBridgeError(error));
+      }
+    });
+  }
+
+  /**
+   * Sends an event to the host. Returns false if the handshake has not completed yet and the event was not sent.
+   */
+  emitEvent(event: string, payload?: unknown): boolean {
+    if (!this.ready) {
+      return false;
+    }
+    this.send({ type: "event", event, payload });
+    return true;
+  }
+
+  /**
+   * Entry point for messages from the host. Malformed messages are ignored.
+   */
+  receive(rawMessage: unknown): void {
+    const message = parseMessage(rawMessage);
+    if (message?.type === "response") {
+      this.handleResponse(message);
+    } else if (message?.type === "request") {
+      void this.handleRequest(message);
+    }
+    // Events sent by the host are not part of protocol version 1 and are ignored
+  }
+
+  private handleResponse(message: Extract<BridgeMessage, { type: "response" }>) {
+    const pendingRequest = this.pendingRequests.get(message.id);
+    if (!pendingRequest) {
+      return;
+    }
+    this.pendingRequests.delete(message.id);
+    if (message.error) {
+      pendingRequest.reject(new HostBridgeError(message.error.code, message.error.message));
+    } else {
+      pendingRequest.resolve(message.result ?? null);
+    }
+  }
+
+  private async handleRequest(message: Extract<BridgeMessage, { type: "request" }>) {
+    const handler = this.handlers.get(message.method);
+    if (!handler) {
+      this.sendError(message.id, new HostBridgeError("UNKNOWN_METHOD", `Unknown method: ${message.method}`));
+      return;
+    }
+
+    try {
+      const result = await handler(message.params);
+      this.send({ type: "response", id: message.id, result: result ?? null });
+    } catch (error) {
+      this.sendError(message.id, toBridgeError(error));
+    }
+  }
+
+  private sendError(id: string, error: HostBridgeError) {
+    this.send({ type: "response", id, error: { code: error.code, message: error.message } });
+  }
+
+  private send(message: BridgeMessage) {
+    this.host.postMessage(JSON.stringify(message));
+  }
+}
+
+/**
+ * Checks that a path can only lead to a page of this app (no other origins, schemes or protocol-relative URLs).
+ */
+export function isInAppPath(path: string): boolean {
+  return path.startsWith("/") && !path.startsWith("//") && !path.includes("\\") && !/[\x00-\x1f]/.test(path);
+}
+
+function toBridgeError(error: unknown): HostBridgeError {
+  if (error instanceof HostBridgeError) {
+    return error;
+  }
+  return new HostBridgeError("INTERNAL_ERROR", error instanceof Error ? error.message : "Unexpected error");
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function parseMessage(rawMessage: unknown): BridgeMessage | null {
+  let value: unknown = rawMessage;
+  if (typeof rawMessage === "string") {
+    try {
+      value = JSON.parse(rawMessage);
+    } catch {
+      return null;
+    }
+  }
+  if (!isObject(value)) {
+    return null;
+  }
+
+  switch (value.type) {
+    case "request":
+      return typeof value.id === "string" && typeof value.method === "string"
+        ? { type: "request", id: value.id, method: value.method, params: value.params }
+        : null;
+    case "response":
+      if (typeof value.id !== "string") {
+        return null;
+      }
+      if (value.error != null) {
+        if (!isObject(value.error) || typeof value.error.code !== "string") {
+          return null;
+        }
+        const message = typeof value.error.message === "string" ? value.error.message : "";
+        return { type: "response", id: value.id, error: { code: value.error.code, message } };
+      }
+      return { type: "response", id: value.id, result: value.result };
+    case "event":
+      return typeof value.event === "string" ? { type: "event", event: value.event, payload: value.payload } : null;
+    default:
+      return null;
+  }
+}
+
+declare global {
+  interface Window {
+    aionifyHost?: HostChannel;
+    aionify?: { receive(message: unknown): void };
+  }
+}
+
+export const HOST_BRIDGE_EVENTS = ["auth.changed"];
+
+let hostBridge: HostBridge | null | undefined;
+
+/**
+ * Returns the bridge if the app is hosted by a wrapper, or null otherwise.
+ * The host is detected on the first call, which happens at app startup (see main.tsx),
+ * so a host object that appears later is ignored.
+ */
+export function getHostBridge(): HostBridge | null {
+  if (hostBridge === undefined) {
+    const host = window.aionifyHost;
+    if (host && typeof host.postMessage === "function") {
+      const bridge = new HostBridge(host, HOST_BRIDGE_EVENTS);
+      window.aionify = Object.freeze({ receive: (message: unknown) => bridge.receive(message) });
+      hostBridge = bridge;
+    } else {
+      hostBridge = null;
+    }
+  }
+  return hostBridge;
+}

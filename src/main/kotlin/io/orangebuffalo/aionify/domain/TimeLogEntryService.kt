@@ -36,12 +36,7 @@ class TimeLogEntryService(
         val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(userId).orElse(null)
         if (activeEntry != null) {
             log.debug("Stopping active entry before starting new one for user ID: {}", userId)
-            val stoppedEntry =
-                timeLogEntryRepository.update(
-                    activeEntry.copy(endTime = timeService.now()),
-                )
-            // Emit event for stopped entry
-            eventService.emitEvent(userId, TimeLogEntryEventType.ENTRY_STOPPED, stoppedEntry)
+            stopEntry(activeEntry)
         }
 
         // Create new entry
@@ -75,20 +70,27 @@ class TimeLogEntryService(
         val activeEntry = timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(userId).orElse(null)
 
         return if (activeEntry != null) {
-            val stoppedEntry =
-                timeLogEntryRepository.update(
-                    activeEntry.copy(endTime = timeService.now()),
-                )
-            log.info("Time log entry stopped for user ID: {}, entry ID: {}", userId, activeEntry.id)
-
-            // Emit event for stopped entry
-            eventService.emitEvent(userId, TimeLogEntryEventType.ENTRY_STOPPED, stoppedEntry)
-
-            stoppedEntry
+            stopEntry(activeEntry)
         } else {
             log.debug("No active time log entry to stop for user ID: {}", userId)
             null
         }
+    }
+
+    /**
+     * Stops the given active entry and notifies subscribers about the change.
+     * All ways of stopping an entry must go through this method, so that integrations are notified.
+     *
+     * @param entry The active entry to stop
+     * @return The stopped entry
+     */
+    fun stopEntry(entry: TimeLogEntry): TimeLogEntry {
+        val stoppedEntry = timeLogEntryRepository.update(entry.copy(endTime = timeService.now()))
+        log.info("Time log entry stopped for user ID: {}, entry ID: {}", entry.ownerId, entry.id)
+
+        eventService.emitEvent(entry.ownerId, TimeLogEntryEventType.ENTRY_STOPPED, stoppedEntry)
+
+        return stoppedEntry
     }
 
     /**

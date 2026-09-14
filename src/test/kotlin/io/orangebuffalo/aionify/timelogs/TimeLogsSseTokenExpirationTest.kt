@@ -68,6 +68,8 @@ class TimeLogsSseTokenExpirationTest : TimeLogsPageTestBase() {
             UserApiAccessToken(
                 userId = requireNotNull(testUser.id),
                 token = apiToken,
+                name = "Test Integration",
+                createdAt = baseTime,
             ),
         )
 

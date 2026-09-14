@@ -77,6 +77,8 @@ class TimeLogEntryApiResourceTest {
             UserApiAccessToken(
                 userId = testUser1.id!!,
                 token = validToken1,
+                name = "Test Integration",
+                createdAt = timeService.now(),
             ),
         )
 
@@ -98,6 +100,8 @@ class TimeLogEntryApiResourceTest {
             UserApiAccessToken(
                 userId = testUser2.id!!,
                 token = validToken2,
+                name = "Test Integration",
+                createdAt = timeService.now(),
             ),
         )
 
