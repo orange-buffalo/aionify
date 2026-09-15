@@ -77,12 +77,14 @@ open class TimeLogEntryApiResource(
             timeLogEntryService.startEntry(
                 userId = currentUser.id,
                 title = request.title,
+                tags = request.tags.toTypedArray(),
                 metadata = metadata,
             )
 
         return HttpResponse.ok(
             StartTimeLogEntryResponse(
                 title = newEntry.title,
+                tags = newEntry.tags.toList(),
                 metadata = newEntry.metadata.toList(),
             ),
         )
@@ -319,6 +321,12 @@ data class StartTimeLogEntryRequest(
     )
     val title: String,
     @field:Schema(
+        description = "Optional tags for the time log entry",
+        example = "[\"frontend\", \"bug-fix\"]",
+        required = false,
+    )
+    val tags: List<String> = emptyList(),
+    @field:Schema(
         description = "Optional metadata for the time log entry",
         example = "[\"project:aionify\", \"task:API-123\"]",
         required = false,
@@ -332,6 +340,8 @@ data class StartTimeLogEntryRequest(
 data class StartTimeLogEntryResponse(
     @field:Schema(description = "Title of the started time log entry", example = "Working on feature X")
     val title: String,
+    @field:Schema(description = "Tags of the started time log entry", example = "[\"frontend\", \"bug-fix\"]")
+    val tags: List<String>,
     @field:Schema(description = "Metadata of the started time log entry", example = "[\"project:aionify\", \"task:API-123\"]")
     val metadata: List<String>,
 )

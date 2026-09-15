@@ -74,6 +74,7 @@ Manage users, create accounts, and handle activation tokens.
 - **API Integration**
   - Multiple named API access tokens, revocable independently (e.g. one per integration)
   - Full programmatic access via REST API
+  - Start tagged time entries from API integrations and OS wrappers
   - Real-time event stream of time entry changes for integrations
   - Rate limiting protection
 

@@ -118,7 +118,7 @@ class TimeLogEntryApiResourceTest {
                 HttpRequest
                     .POST(
                         "/api/time-log-entries/start",
-                        StartTimeLogEntryRequest(title = "Working on API"),
+                        mapOf("title" to "Working on API"),
                     ).bearerAuth(validToken1)
 
             val response = client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
@@ -126,6 +126,7 @@ class TimeLogEntryApiResourceTest {
             // Then: Request succeeds
             assertEquals(HttpStatus.OK, response.status)
             assertEquals("Working on API", response.body()?.title)
+            assertEquals(emptyList<String>(), response.body()?.tags)
             assertEquals(emptyList<String>(), response.body()?.metadata)
 
             // And: Entry is saved in database
@@ -136,7 +137,34 @@ class TimeLogEntryApiResourceTest {
             assertNotNull(activeEntry)
             assertEquals("Working on API", activeEntry?.title)
             assertEquals(testUser1.id, activeEntry?.ownerId)
+            assertArrayEquals(emptyArray<String>(), activeEntry?.tags)
             assertNull(activeEntry?.endTime)
+        }
+
+        @Test
+        fun `should start a new time log entry with tags`() {
+            val request =
+                HttpRequest
+                    .POST(
+                        "/api/time-log-entries/start",
+                        StartTimeLogEntryRequest(
+                            title = "Working on API",
+                            tags = listOf("backend", "feature"),
+                        ),
+                    ).bearerAuth(validToken1)
+
+            val response = client.toBlocking().exchange(request, StartTimeLogEntryResponse::class.java)
+
+            assertEquals(HttpStatus.OK, response.status)
+            assertEquals("Working on API", response.body()?.title)
+            assertEquals(listOf("backend", "feature"), response.body()?.tags)
+
+            val activeEntry =
+                testDatabaseSupport.inTransaction {
+                    timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(testUser1.id!!).orElse(null)
+                }
+            assertNotNull(activeEntry)
+            assertArrayEquals(arrayOf("backend", "feature"), activeEntry?.tags)
         }
 
         @Test

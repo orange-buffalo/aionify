@@ -55,6 +55,18 @@ To protect against brute force attacks, the API implements rate limiting:
 
 The complete API reference is available in the OpenAPI schema at `/api/schema`.
 
+### Starting Time Log Entries
+
+`POST /api/time-log-entries/start` accepts a title plus optional `tags` and `metadata` arrays. The response echoes the values stored on the new entry. Omitting `tags` starts an untagged entry.
+
+```bash
+curl -X POST \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Working on feature X","tags":["frontend","bug-fix"]}' \
+  https://your-aionify-instance.com/api/time-log-entries/start
+```
+
 ## Event Stream
 
 Integrations can receive real-time updates about time log entries instead of polling. The stream includes changes made in the web UI, via the API or by other integrations.
