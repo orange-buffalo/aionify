@@ -21,7 +21,7 @@ The bridge does not proxy API calls and never exposes the web session (JWT or re
 6. Use the token with the public API:
    - `GET /api/time-log-entries/active` for the current state
    - `POST /api/time-log-entries/start` and `POST /api/time-log-entries/stop` for actions
-   - `GET /api/time-log-entries/events` for real-time updates, e.g. to update the tray title or show native notifications
+   - `GET /api/time-log-entries/events` for real-time start, stop, edit and delete updates, e.g. to update the tray title or show native notifications
 7. If the public API responds with `401`, the user has revoked the token in Settings. Delete it and provision a new one the next time the user is logged in.
 
 Users can see and revoke tokens created by wrappers under **Settings → API Access Tokens**.

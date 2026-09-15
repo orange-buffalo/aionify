@@ -129,9 +129,9 @@ data class TimeLogEntryApiEvent(
     @field:Schema(
         description = "Type of the change. Clients must ignore types they do not know.",
         example = "ENTRY_STARTED",
-        allowableValues = ["ENTRY_STARTED", "ENTRY_STOPPED"],
+        allowableValues = ["ENTRY_STARTED", "ENTRY_STOPPED", "ENTRY_UPDATED", "ENTRY_DELETED"],
     )
     val type: String,
-    @field:Schema(description = "State of the entry after the change")
+    @field:Schema(description = "State of the entry after the change, or immediately before deletion")
     val entry: TimeLogEntryApiDto,
 )

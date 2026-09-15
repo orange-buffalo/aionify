@@ -83,6 +83,8 @@ open class TimeLogEntryEventService {
 enum class TimeLogEntryEventType {
     ENTRY_STARTED,
     ENTRY_STOPPED,
+    ENTRY_UPDATED,
+    ENTRY_DELETED,
 }
 
 /**
@@ -96,7 +98,7 @@ data class TimeLogEntryEvent(
 )
 
 /**
- * Event to be emitted after a time log entry is created or updated.
+ * Event to be emitted after a time log entry is created, updated or deleted.
  * This is used to trigger the sending of SSE events after the transaction commits.
  */
 data class TimeLogEntryEventToEmit(
