@@ -79,7 +79,7 @@ curl -N -H "Authorization: Bearer YOUR_API_TOKEN" \
 The endpoint uses [Server-Sent Events](https://html.spec.whatwg.org/multipage/server-sent-events.html):
 
 - A `heartbeat` event is sent right after connecting and then every 30 seconds. Reconnect if no heartbeat is received within 45 seconds.
-- Each change is sent as a default (unnamed) event whose data is a JSON object with the change `type` and the `entry` state after the change (same format as other time log entry endpoints):
+- Each change is sent as a default (unnamed) event whose data is a JSON object with the change `type` and the affected `entry` (same format as other time log entry endpoints). For deletion, `entry` contains its state immediately before deletion:
 
 ```
 event: heartbeat
@@ -90,7 +90,7 @@ data: {"type":"ENTRY_STARTED","entry":{"startTime":"2024-01-15T10:30:00Z","title
 
 Fields without a value (e.g. `endTime` of an active entry or empty `tags`) may be omitted from event data.
 
-Current event types are `ENTRY_STARTED` and `ENTRY_STOPPED` (starting an entry while another one is active produces both). Events that happen while a client is disconnected are not replayed: after (re)connecting, load the state you need, e.g. via `GET /api/time-log-entries/active`.
+Current event types are `ENTRY_STARTED`, `ENTRY_STOPPED`, `ENTRY_UPDATED` and `ENTRY_DELETED` (starting an entry while another one is active produces both stopped and started events). Events that happen while a client is disconnected are not replayed: after (re)connecting, load the state you need, e.g. via `GET /api/time-log-entries/active`.
 
 The stream is closed as soon as the API token used to open it is deleted or regenerated; reconnecting with that token then fails with `401`. If a token becomes invalid in another way (e.g. its user is deleted), the stream is closed within 30 seconds.
 

@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback } from "react";
 import { apiPost } from "@/lib/api";
 
 export interface TimeLogEntryEvent {
-  type: "ENTRY_STARTED" | "ENTRY_STOPPED";
+  type: "ENTRY_STARTED" | "ENTRY_STOPPED" | "ENTRY_UPDATED" | "ENTRY_DELETED";
   entryId: number;
   title: string;
 }

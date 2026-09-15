@@ -94,6 +94,30 @@ class TimeLogEntryService(
     }
 
     /**
+     * Updates an entry and notifies subscribers about the change.
+     * All ways of editing an entry must go through this method, so that integrations are notified.
+     */
+    fun updateEntry(entry: TimeLogEntry): TimeLogEntry {
+        val updatedEntry = timeLogEntryRepository.update(entry)
+        log.info("Time log entry updated for user ID: {}, entry ID: {}", entry.ownerId, entry.id)
+
+        eventService.emitEvent(entry.ownerId, TimeLogEntryEventType.ENTRY_UPDATED, updatedEntry)
+
+        return updatedEntry
+    }
+
+    /**
+     * Deletes an entry and notifies subscribers about the change.
+     * All ways of deleting an entry must go through this method, so that integrations are notified.
+     */
+    fun deleteEntry(entry: TimeLogEntry) {
+        timeLogEntryRepository.delete(entry)
+        log.info("Time log entry deleted for user ID: {}, entry ID: {}", entry.ownerId, entry.id)
+
+        eventService.emitEvent(entry.ownerId, TimeLogEntryEventType.ENTRY_DELETED, entry)
+    }
+
+    /**
      * Gets the active time log entry for the user.
      *
      * @param userId The ID of the user

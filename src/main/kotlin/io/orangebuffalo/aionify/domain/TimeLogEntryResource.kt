@@ -181,7 +181,7 @@ open class TimeLogEntryResource(
             }
 
         val updatedEntry =
-            timeLogEntryRepository.update(
+            timeLogEntryService.updateEntry(
                 entry.copy(
                     title = request.title,
                     startTime = request.startTime,
@@ -226,7 +226,7 @@ open class TimeLogEntryResource(
         // Update each entry - only title and tags, preserve start and end times
         val updatedEntries =
             entries.map { entry ->
-                timeLogEntryRepository.update(
+                timeLogEntryService.updateEntry(
                     entry.copy(
                         title = request.title,
                         tags = request.tags.toTypedArray(),
@@ -259,7 +259,7 @@ open class TimeLogEntryResource(
             }
 
         val updatedEntry =
-            timeLogEntryRepository.update(
+            timeLogEntryService.updateEntry(
                 entry.copy(title = request.title),
             )
 
@@ -291,7 +291,7 @@ open class TimeLogEntryResource(
         }
 
         val updatedEntry =
-            timeLogEntryRepository.update(
+            timeLogEntryService.updateEntry(
                 entry.copy(startTime = request.startTime),
             )
 
@@ -331,7 +331,7 @@ open class TimeLogEntryResource(
         }
 
         val updatedEntry =
-            timeLogEntryRepository.update(
+            timeLogEntryService.updateEntry(
                 entry.copy(endTime = request.endTime),
             )
 
@@ -355,7 +355,7 @@ open class TimeLogEntryResource(
             }
 
         val updatedEntry =
-            timeLogEntryRepository.update(
+            timeLogEntryService.updateEntry(
                 entry.copy(tags = request.tags.toTypedArray()),
             )
 
@@ -395,7 +395,7 @@ open class TimeLogEntryResource(
         // Update each entry - only tags, preserve everything else
         val updatedEntries =
             entries.map { entry ->
-                timeLogEntryRepository.update(
+                timeLogEntryService.updateEntry(
                     entry.copy(tags = request.tags.toTypedArray()),
                 )
             }
@@ -423,7 +423,7 @@ open class TimeLogEntryResource(
                 return entryNotFoundResponse()
             }
 
-        timeLogEntryRepository.delete(entry)
+        timeLogEntryService.deleteEntry(entry)
 
         log.info("Time log entry deleted: {} for user: {}", id, currentUser.user.userName)
 
@@ -486,7 +486,7 @@ open class TimeLogEntryResource(
         // Update each entry - only title, preserve everything else
         val updatedEntries =
             entries.map { entry ->
-                timeLogEntryRepository.update(
+                timeLogEntryService.updateEntry(
                     entry.copy(title = request.title),
                 )
             }

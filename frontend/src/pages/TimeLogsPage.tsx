@@ -95,7 +95,11 @@ export function TimeLogsPage() {
 
   // Handle SSE events for time log entry changes
   const handleTimeLogEvent = useCallback(
-    async (event: { type: "ENTRY_STARTED" | "ENTRY_STOPPED"; entryId: number; title: string }) => {
+    async (event: {
+      type: "ENTRY_STARTED" | "ENTRY_STOPPED" | "ENTRY_UPDATED" | "ENTRY_DELETED";
+      entryId: number;
+      title: string;
+    }) => {
       console.log("[TimeLogsPage] Received SSE event:", event);
 
       // Reload both active entry and time entries to get the latest state

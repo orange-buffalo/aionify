@@ -173,6 +173,44 @@ class TimeLogEntryEventsApiResourceTest {
     }
 
     @Test
+    fun `should stream active entry updates and deletions made via the web UI`() {
+        val subscription = subscribe(USER1_TOKEN)
+        startEntryViaApi(USER1_TOKEN, "Original Title")
+        await().atMost(AWAIT_TIMEOUT).until { entryEvents(subscription).size == 1 }
+
+        val activeEntryId =
+            testDatabaseSupport.inTransaction {
+                requireNotNull(timeLogEntryRepository.findByOwnerIdAndEndTimeIsNull(requireNotNull(user1.id)).get().id)
+            }
+        val webUiToken = testAuthSupport.generateToken(user1)
+
+        client.toBlocking().exchange(
+            HttpRequest
+                .PATCH("/api-ui/time-log-entries/$activeEntryId/title", mapOf("title" to "Updated Title"))
+                .bearerAuth(webUiToken),
+            Map::class.java,
+        )
+
+        await().atMost(AWAIT_TIMEOUT).until { entryEvents(subscription).size == 2 }
+        val updatedEvent = entryEvents(subscription)[1]
+        assertEquals("ENTRY_UPDATED", updatedEvent["type"])
+        assertEquals("Updated Title", (updatedEvent["entry"] as Map<*, *>)["title"])
+
+        client.toBlocking().exchange(
+            HttpRequest.DELETE<Any>("/api-ui/time-log-entries/$activeEntryId").bearerAuth(webUiToken),
+            Map::class.java,
+        )
+
+        await().atMost(AWAIT_TIMEOUT).until { entryEvents(subscription).size == 3 }
+        val deletedEvent = entryEvents(subscription)[2]
+        assertEquals("ENTRY_DELETED", deletedEvent["type"])
+        assertEquals("Updated Title", (deletedEvent["entry"] as Map<*, *>)["title"])
+        testDatabaseSupport.inTransaction {
+            assertFalse(timeLogEntryRepository.existsById(activeEntryId))
+        }
+    }
+
+    @Test
     fun `should not stream entries of other users`() {
         val user1Subscription = subscribe(USER1_TOKEN)
         val user2Subscription = subscribe(USER2_TOKEN)
