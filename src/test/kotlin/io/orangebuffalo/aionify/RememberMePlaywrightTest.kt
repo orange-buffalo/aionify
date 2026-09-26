@@ -7,7 +7,6 @@ import io.orangebuffalo.aionify.domain.TimeLogEntry
 import io.orangebuffalo.aionify.domain.TimeLogEntryRepository
 import io.orangebuffalo.aionify.domain.User
 import jakarta.inject.Inject
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Duration
@@ -183,13 +182,14 @@ class RememberMePlaywrightTest : PlaywrightTestBase() {
         val cookies = page.context().cookies()
 
         // Find the remember me cookie
-        val rememberMeCookie = cookies.find { it.name == "aionify_remember_me" }
-        assertNotNull(rememberMeCookie, "Remember me cookie should be set")
+        val rememberMeCookie =
+            cookies.find { it.name == "aionify_remember_me" }
+                ?: throw AssertionError("Remember me cookie should be set")
 
         // Create a new browser context (simulates a new browser/incognito window)
         // and copy the remember me cookie to it
         val newContext =
-            page.context().browser().newContext(
+            requireNotNull(page.context().browser()) { "Browser context should have a browser" }.newContext(
                 com.microsoft.playwright.Browser
                     .NewContextOptions()
                     .setBaseURL(baseUrl),
@@ -255,7 +255,7 @@ class RememberMePlaywrightTest : PlaywrightTestBase() {
 
         // Create a new browser context to simulate a new session
         val newContext =
-            page.context().browser().newContext(
+            requireNotNull(page.context().browser()) { "Browser context should have a browser" }.newContext(
                 com.microsoft.playwright.Browser
                     .NewContextOptions()
                     .setBaseURL(baseUrl),
@@ -352,7 +352,7 @@ class RememberMePlaywrightTest : PlaywrightTestBase() {
 
         // Create a new browser context to simulate a new session
         val newContext =
-            page.context().browser().newContext(
+            requireNotNull(page.context().browser()) { "Browser context should have a browser" }.newContext(
                 com.microsoft.playwright.Browser
                     .NewContextOptions()
                     .setBaseURL(baseUrl),
