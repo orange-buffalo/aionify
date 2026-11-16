@@ -27,6 +27,7 @@ Project documentation is organized as follows:
 - **Backend**: Micronaut framework with Kotlin
 - **Frontend**: React with TypeScript, shadcn-ui components, and Tailwind CSS v4
 - **Build Tools**: Gradle for backend, **Bun for frontend** (never commit `package-lock.json`)
+- Browser userscript title-detection regression tests live in `frontend/src/lib/jira-integration.test.ts` and execute the Jira userscript with a stubbed engine and DOM selectors via the Bun test suite.
 - **Database**: PostgreSQL with Flyway migrations and Micronaut Data JDBC for data access
 - **Testing**: JUnit 5 with Playwright for E2E tests and Testcontainers for database integration
 

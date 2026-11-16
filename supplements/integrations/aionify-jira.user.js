@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Aionify Jira Integration
 // @namespace    io.orangebuffalo.aionify
-// @version      1.0.0
+// @version      1.0.1
 // @description  Start/stop Aionify time tracking from Jira issues
 // @author       Aionify Contributors
 // @license      Apache-2.0
@@ -58,13 +58,19 @@
 
     // Parse title from Jira page DOM
     function parseTitleFromPage() {
-        // Try multiple selectors for different Jira UI versions
-        const titleElement = document.querySelector('[data-testid="issue.views.issue-base.foundation.summary.heading"]') ||
-                           document.querySelector('#summary-val') ||
-                           document.querySelector('[data-test-id="issue.views.field.rich-text.heading"]');
-        
-        if (titleElement) {
-            return titleElement.textContent.trim();
+        // Prefer the new inline-edit layout, then fall back to older Cloud/Server layouts.
+        const selectors = [
+            '[data-testid="issue-field-single-line-text-inline-edit-heading.ui.single-line-text-heading.read-view"]',
+            '[data-testid="issue.views.issue-base.foundation.summary.heading"]',
+            '#summary-val',
+            '[data-test-id="issue.views.field.rich-text.heading"]'
+        ];
+
+        for (const selector of selectors) {
+            const title = document.querySelector(selector)?.textContent?.trim();
+            if (title) {
+                return title;
+            }
         }
         
         return null;

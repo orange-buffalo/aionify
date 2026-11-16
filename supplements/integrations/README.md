@@ -60,6 +60,15 @@ To add support for a new platform:
 
 ### Testing
 
+Jira title-detection regression tests run with the frontend Bun suite (`./gradlew bunTest`). To run only these tests:
+
+```bash
+cd frontend
+bun test src/lib/jira-integration.test.ts
+```
+
+These tests execute the userscript with a stubbed engine and DOM selectors to verify new-layout priority, legacy fallbacks, and empty/missing titles.
+
 To test a script locally during development:
 
 1. Make your changes to the script file

@@ -38,6 +38,8 @@ Aionify provides Tampermonkey scripts that allow you to start and stop time trac
 
 **Note:** The script works with both Jira Cloud (*.atlassian.net) and Jira Server instances.
 
+Issue titles are detected from the new inline-edit heading first, falling back to the older Jira Cloud and Server headings. Empty headings are skipped; if none contain a title, tracking uses the issue key alone.
+
 ## Configuration
 
 After installing a script, you need to configure it with your credentials:
