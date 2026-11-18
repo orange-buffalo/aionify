@@ -10,6 +10,8 @@ Aionify is distributed as a container image available from [GitHub Container Reg
 ghcr.io/orange-buffalo/aionify:<latest stable version>
 ```
 
+The application runs as the unprivileged `nonroot` account (UID/GID `65532:65532`), not root. The application executable remains root-owned and is not writable by the runtime user. No application data volume is required; persistent data is stored in PostgreSQL. If you mount configuration files, ensure they are readable by UID `65532`.
+
 ## Prerequisites
 
 - Docker or any OCI-compatible container runtime

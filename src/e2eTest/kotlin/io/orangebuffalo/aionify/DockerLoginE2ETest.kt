@@ -67,6 +67,10 @@ class DockerLoginE2ETest {
                 // so we get the actual bound port from the container
                 val containerName = "${APP_SERVICE}-1"
                 val container = composeContainer.getContainerByServiceName(containerName).orElseThrow()
+                assertEquals("65532:65532", container.currentContainerInfo.config.user)
+                val identity = container.execInContainer("id", "-u")
+                assertEquals(0, identity.exitCode)
+                assertEquals("65532", identity.stdout.trim())
                 val bindings = container.currentContainerInfo.networkSettings.ports.bindings
                 val actualPort =
                     bindings
