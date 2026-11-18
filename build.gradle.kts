@@ -125,6 +125,11 @@ micronaut {
 }
 
 val dockerImage = "ghcr.io/orange-buffalo/aionify:${project.version}"
+tasks.dockerfileNative {
+    // wolfi-base provides this nonroot account. Use numeric IDs for container policy checks.
+    // Keep the executable root-owned so the runtime user cannot modify it.
+    user("65532:65532")
+}
 tasks.dockerBuildNative {
     images.set(listOf(dockerImage))
 }
