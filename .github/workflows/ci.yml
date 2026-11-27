@@ -14,6 +14,21 @@ jobs:
       packages: write
       checks: write
 
+    services:
+      # Keep the Docker network stable while Gradle workers run Chromium in parallel.
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U test -d postgres"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 15
+        ports:
+          - 5432/tcp
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -61,6 +76,7 @@ jobs:
       - name: Run tests and checks
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+          AIONIFY_TEST_POSTGRES_URL: jdbc:postgresql://127.0.0.1:${{ job.services.postgres.ports[5432] }}/postgres
         run: ./gradlew check --console=plain
 
       - name: Stop thread dump collection
