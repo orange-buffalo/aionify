@@ -310,4 +310,4 @@ fun `should prevent self-deletion via API`() {
 - Use Flyway for database migrations (place in `src/main/resources/db/migration/`)
 - Use JDBI for database access with Kotlin extensions
 - PostgreSQL is the target database
-- **Testing**: Use Testcontainers JDBC URL (`jdbc:tc:postgresql:17:///test`) for automatic database provisioning in tests. The Micronaut Test Resources plugin is NOT used as it's redundant with Testcontainers JDBC.
+- **Testing**: Local tests use the Testcontainers JDBC URL (`jdbc:tc:postgresql:17:///test`) for automatic database provisioning. CI runs the same suite in parallel against one job-scoped PostgreSQL service to avoid Docker network changes interrupting Chromium. `TestPostgresConfigurer` creates a fresh database for each test context when `AIONIFY_TEST_POSTGRES_URL` points to the service's `postgres` database. To reproduce this mode locally, use a disposable PostgreSQL 17 instance with a `test` user (password `test`) allowed to create databases. The instance owns cleanup of the test databases when discarded.
